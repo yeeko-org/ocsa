@@ -31,6 +31,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+fixture/
+.idea/
 
 # workspace files are user-specific
 .vscode

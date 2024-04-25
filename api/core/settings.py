@@ -24,16 +24,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'general_cats',
     'tempo_extend',
-    'ubication',
-    'notes',
-    'projects',
-    'actors',
-    'eco_impact',
-    'social_impact',
-    'events',
-    'others',
+    'space_time',
+    'source',
+    'project',
+    'actor',
+    'impact',
+    'event',
 ]
 
 MIDDLEWARE = [
