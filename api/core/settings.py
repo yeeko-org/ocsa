@@ -1,5 +1,3 @@
-
-
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -66,6 +64,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 POSTRGRESQL_DB = os.getenv('POSTRGRESQL_DB', False)
 DATABASE_NAME = os.getenv("DATABASE_NAME", "db.sqlite3")
+DATABASE_SCHEMA = os.getenv("DATABASE_SCHEMA")
 if POSTRGRESQL_DB:
     default_database = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -82,8 +81,13 @@ else:
         'NAME': BASE_DIR / DATABASE_NAME
     }
 
+if DATABASE_SCHEMA:
+    default_database['OPTIONS'] = {
+        'options': f'-c search_path={DATABASE_SCHEMA}',
+    }
+
 DATABASES = {
-    default_database
+    "default": default_database
 }
 
 
