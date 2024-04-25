@@ -162,7 +162,7 @@ class SubformaAC(models.Model):
 # );
 
 
-class AccioneColectiva(models.Model):
+class AccionesColectivas(models.Model):
     nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
     forma_ac = models.ForeignKey(FormaAC, on_delete=models.CASCADE)
@@ -218,8 +218,8 @@ class GruposApoyo(models.Model):
 
 class OpositoresToAC(models.Model):
     opositor = models.ForeignKey(Opositor, on_delete=models.CASCADE)
-    accione_colectiva = models.ForeignKey(
-        AccioneColectiva, on_delete=models.CASCADE, db_column='ac_id')
+    accion_colectiva = models.ForeignKey(
+        AccionesColectivas, on_delete=models.CASCADE, db_column='ac_id')
 
     def __str__(self):
         return self.opositor.nombre

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from event.models import (
     HechosViolencia, FormaHechoViolencia, Violencia, FormaAC, SubformaAC,
-    AccioneColectiva, GruposApoyo, OpositoresToAC, SectorSocial, CondicionMujerVictima)
+    AccionesColectivas, GruposApoyo, OpositoresToAC, SectorSocial, CondicionMujerVictima)
 
 
 @admin.register(HechosViolencia)
@@ -29,8 +29,8 @@ class SubformaACAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(AccioneColectiva)
-class AccioneColectivaAdmin(admin.ModelAdmin):
+@admin.register(AccionesColectivas)
+class AccionesColectivaAdmin(admin.ModelAdmin):
     pass
 
 
