@@ -43,18 +43,19 @@ class StatusProject(models.Model):
 
 
 class Ubicacion(models.Model):
-    tipo_ubicacion = models.CharField(max_length=100, default='punto')
-    estado = models.CharField(max_length=100)
-    municipio = models.CharField(max_length=100)
-    localidad = models.CharField(max_length=100)
-    especificaciones = models.TextField()
-    sitio = models.CharField(max_length=100)
-    latitud = models.FloatField()
-    longitud = models.FloatField()
-    geom = models.TextField()
+    tipo_ubicacion = models.CharField(
+        max_length=100, default='punto', blank=True, null=True)
+    estado = models.TextField(blank=True, null=True)
+    municipio = models.TextField(blank=True, null=True)
+    localidad = models.TextField(blank=True, null=True)
+    especificaciones = models.TextField(blank=True, null=True)
+    sitio = models.TextField(blank=True, null=True)
+    latitud = models.FloatField(blank=True, null=True)
+    longitud = models.FloatField(blank=True, null=True)
+    geom = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.sitio
+        return self.sitio or str(self.pk)
 
     class Meta:
         verbose_name = 'Ubicación'
@@ -69,11 +70,11 @@ class Ubicacion(models.Model):
 
 
 class CatTemporalidad(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Temporalidad'
@@ -91,15 +92,15 @@ class CatTemporalidad(models.Model):
 # );
 
 class Temporalidad(models.Model):
-    fecha = models.DateField()
-    intervalo = models.DurationField()
-    day_undefined = models.BooleanField(default=False)
-    month_undefined = models.BooleanField(default=False)
+    fecha = models.DateField(blank=True, null=True)
+    intervalo = models.DurationField(blank=True, null=True)
+    day_undefined = models.BooleanField(default=False, blank=True, null=True)
+    month_undefined = models.BooleanField(default=False, blank=True, null=True)
     cat_temporalidad = models.ForeignKey(
-        CatTemporalidad, on_delete=models.CASCADE)
+        CatTemporalidad, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return self.fecha
+        return self.fecha or str(self.pk)
 
     class Meta:
         verbose_name = 'Temporalidad'

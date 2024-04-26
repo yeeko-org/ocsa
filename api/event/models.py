@@ -1,11 +1,14 @@
 from django.db import models
 
-from actors.models import Opositor
+from actor.models import Opositor
 from source.models import Nota
 from project.models import Proyecto
 from space_time.models import Ubicacion, Temporalidad
+from utils.obj_str import nombre_or_pk
 
 
+
+# ======================== VERSIÓN 1: ========================================
 # # --------------------- Violencias (eventos) --------------------------------
 
 
@@ -16,11 +19,11 @@ from space_time.models import Ubicacion, Temporalidad
 # );
 
 class HechosViolencia(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Hecho Violencia'
@@ -35,16 +38,54 @@ class HechosViolencia(models.Model):
 # );
 
 class FormaHechoViolencia(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Forma Hecho Violencia'
         verbose_name_plural = 'Formas Hecho Violencia'
         db_table = 'cat_forma_hecho_violencia'
+
+
+# CREATE TABLE ocs.cat_condicion_mujer_victima (
+#     id integer NOT NULL,
+#     nombre text,
+#     descripcion text
+# );
+
+class CondicionMujerVictima(models.Model):
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre or str(self.pk)
+
+    class Meta:
+        verbose_name = 'Condición Mujer Víctima'
+        verbose_name_plural = 'Condiciones Mujer Víctima'
+        db_table = 'cat_condicion_mujer_victima'
+
+# CREATE TABLE ocs.cat_sector_social (
+#     id integer NOT NULL,
+#     nombre text,
+#     descripcion text
+# );
+
+
+class SectorSocial(models.Model):
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre or str(self.pk)
+
+    class Meta:
+        verbose_name = 'Sector Social'
+        verbose_name_plural = 'Sectores Sociales'
+        db_table = 'cat_sector_social'
 
 
 # CREATE TABLE ocs.violencias (
@@ -65,31 +106,34 @@ class FormaHechoViolencia(models.Model):
 # );
 
 class Violencia(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
     hecho_violencia = models.ForeignKey(
-        HechosViolencia, on_delete=models.CASCADE)
+        HechosViolencia, on_delete=models.CASCADE, blank=True, null=True)
     forma_hecho_violencia = models.ForeignKey(
-        FormaHechoViolencia, on_delete=models.CASCADE)
-    temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
-    num_victimas = models.TextField()
-    is_hombres = models.BooleanField()
-    is_mujeres = models.BooleanField()
+        FormaHechoViolencia, on_delete=models.CASCADE, blank=True, null=True)
+    temporalidad = models.ForeignKey(
+        Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
+    num_victimas = models.TextField(blank=True, null=True)
+    is_hombres = models.BooleanField(blank=True, null=True)
+    is_mujeres = models.BooleanField(blank=True, null=True)
     condicion_mujeres_victimas = models.ForeignKey(
-        CondicionMujerVictima, on_delete=models.CASCADE)
+        CondicionMujerVictima, on_delete=models.CASCADE, blank=True, null=True)
     sector_social_victima = models.ForeignKey(
-        SectorSocial, on_delete=models.CASCADE)
-    is_victima_dirigente = models.BooleanField()
-    responsable_estatal_desc = models.TextField()
-    responsable_no_estatal_desc = models.TextField()
+        SectorSocial, on_delete=models.CASCADE, blank=True, null=True)
+    is_victima_dirigente = models.BooleanField(blank=True, null=True)
+    responsable_estatal_desc = models.TextField(blank=True, null=True)
+    responsable_no_estatal_desc = models.TextField(blank=True, null=True)
 
     ubicaciones = models.ManyToManyField(
-        Ubicacion, db_table='ocs.violencias_to_ubicaciones')
+        Ubicacion, db_table='ocs.violencias_to_ubicaciones', blank=True)
     opositores = models.ManyToManyField(
-        Opositor, db_table='ocs.violencias_to_opositores')
+        Opositor, db_table='ocs.violencias_to_opositores', blank=True)
 
     def __str__(self):
-        return self.hecho_violencia.nombre
+        return nombre_or_pk(self.hecho_violencia, self.pk)
 
     class Meta:
         verbose_name = 'Violencia'
@@ -121,11 +165,11 @@ class Violencia(models.Model):
 # );
 
 class FormaAC(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Forma Acción Colectiva'
@@ -140,12 +184,12 @@ class FormaAC(models.Model):
 #     descripcion text
 # );
 class SubformaAC(models.Model):
-    id_forma_ac = models.IntegerField()
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    id_forma_ac = models.IntegerField(blank=True, null=True)
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Subforma Acción Colectiva'
@@ -163,49 +207,31 @@ class SubformaAC(models.Model):
 
 
 class AccionesColectivas(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    forma_ac = models.ForeignKey(FormaAC, on_delete=models.CASCADE)
-    subforma_ac = models.ForeignKey(SubformaAC, on_delete=models.CASCADE)
-    temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
+    forma_ac = models.ForeignKey(
+        FormaAC, on_delete=models.CASCADE, blank=True, null=True)
+    subforma_ac = models.ForeignKey(
+        SubformaAC, on_delete=models.CASCADE, blank=True, null=True)
+    temporalidad = models.ForeignKey(
+        Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
 
     ubicaciones = models.ManyToManyField(
-        Ubicacion, db_table='ocs.ac_to_ubicaciones')
+        Ubicacion, db_table='ocs.ac_to_ubicaciones', blank=True)
     # LUCIAN: Esto no está ya en la tabla OpositoresToAC?, se tiene que declarar doble?
-    opositores = models.ManyToManyField(Opositor, through='OpositoresToAC')
+    opositores = models.ManyToManyField(
+        Opositor, through='OpositoresToAC', blank=True)
 
     def __str__(self):
-        return self.forma_ac.nombre
+        return nombre_or_pk(self.forma_ac, self.pk)
 
     class Meta:
         verbose_name = 'Acción Colectiva'
         verbose_name_plural = 'Acciones Colectivas'
         db_table = 'acciones_colectivas'
 
-
-# CREATE TABLE ocs.grupos_apoyo (
-#     id integer NOT NULL,
-#     nota_id integer,  --ForeignKey
-#     proyecto_id integer NOT NULL,  --ForeignKey
-#     tipo_grupo_apoyo text,
-#     nombre text,
-#     interes text
-# );
-
-class GruposApoyo(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    tipo_grupo_apoyo = models.CharField(max_length=100)
-    nombre = models.CharField(max_length=100)
-    interes = models.TextField()
-
-    def __str__(self):
-        return self.nombre
-
-    class Meta:
-        verbose_name = 'Grupo Apoyo'
-        verbose_name_plural = 'Grupos Apoyo'
-        db_table = 'grupos_apoyo'
 
 # # -- relacional a opositor (y acción colectiva)
 
@@ -217,12 +243,13 @@ class GruposApoyo(models.Model):
 
 
 class OpositoresToAC(models.Model):
-    opositor = models.ForeignKey(Opositor, on_delete=models.CASCADE)
+    opositor = models.ForeignKey(
+        Opositor, on_delete=models.CASCADE, blank=True, null=True)
     accion_colectiva = models.ForeignKey(
-        AccionesColectivas, on_delete=models.CASCADE, db_column='ac_id')
+        AccionesColectivas, on_delete=models.CASCADE, db_column='ac_id', blank=True, null=True)
 
     def __str__(self):
-        return self.opositor.nombre
+        return nombre_or_pk(self.opositor, self.pk)
 
     class Meta:
         verbose_name = 'Opositor a Acción Colectiva'
@@ -236,41 +263,3 @@ class OpositoresToAC(models.Model):
 #     accion_colectiva_id integer,  --ForeignKey
 #     ubicacion_id integer  --ForeignKey
 # );
-
-# CREATE TABLE ocs.cat_sector_social (
-#     id integer NOT NULL,
-#     nombre text,
-#     descripcion text
-# );
-
-
-class SectorSocial(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
-
-    def __str__(self):
-        return self.nombre
-
-    class Meta:
-        verbose_name = 'Sector Social'
-        verbose_name_plural = 'Sectores Sociales'
-        db_table = 'cat_sector_social'
-
-
-# CREATE TABLE ocs.cat_condicion_mujer_victima (
-#     id integer NOT NULL,
-#     nombre text,
-#     descripcion text
-# );
-
-class CondicionMujerVictima(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
-
-    def __str__(self):
-        return self.nombre
-
-    class Meta:
-        verbose_name = 'Condición Mujer Víctima'
-        verbose_name_plural = 'Condiciones Mujer Víctima'
-        db_table = 'cat_condicion_mujer_victima'

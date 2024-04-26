@@ -4,7 +4,39 @@ from source.models import Nota, Note
 from project.models import Proyecto, Project
 from space_time.models import Ubicacion, Temporalidad, Country
 from django.db.models import JSONField
+from utils.obj_str import nombre_or_pk
 # from work_flux.models import StatusRegister
+
+
+init_participant_types = [
+    ('Promotor', 'agree'),
+    ('Financiador', 'agree'),
+    ('Ejecutor del Proyecto', 'agree'),
+    ('Beneficiario', 'agree'),
+    ('Trabajadores', 'agree'),
+    ('Represor', 'agree'),
+    # los que tengan not null Estado.instituciones_medidoras
+    ('Mediador', 'neutral'),
+    # los que tengan not null Estado.instituciones_atienden_reclamos
+    ('Atención a reclamos', 'neutral'),
+    ('Acompañante', 'oppose'),  # Acompañamiento-apoyo (representante) con los afectados u opositores
+    ('Afectado', 'oppose'),
+    ('Opositor', 'oppose'),
+    ('Habitante de la zona', 'oppose'),
+    ('Otro', 'other'),
+]
+
+# estos se deben agregar con is_temporal = True
+temporal_participant_types = [
+    ('Capital', 'agree'),
+    # solo los que tengan not null Estado.instituciones_a_favor_proyecto
+    ('Estado', 'agree'),
+    ('Estado', 'agree'),
+    ('Opositor', 'oppose'),
+    ('Población', 'oppose'),
+    ('Grupo de Apoyo', 'agree'),
+    ('Otro', 'other'),
+]
 
 
 class ParticipantType(models.Model):
@@ -19,6 +51,7 @@ class ParticipantType(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    is_temporal = models.BooleanField(default=False)
     side = models.CharField(
         max_length=10, choices=SIDE_CHOICES, default='undefined')
 
@@ -41,6 +74,8 @@ class Vulnerability(models.Model):
         verbose_name = 'Vulnerabilidad'
         verbose_name_plural = 'Vulnerabilidades'
 
+
+# is_capital_publico => ESTADO
 
 class SectorGroup(models.Model):
     name = models.CharField(max_length=255)
@@ -88,6 +123,7 @@ class CapitalType(models.Model):
         verbose_name_plural = 'Tipos de Capital'
 
 
+# Tablas origen: Capital, Estado, Opositores, Poblaciones, GruposApoyo
 class Actor(models.Model):
     GEO_REACH_CHOICES = (
         ('local', 'Local'),
@@ -102,10 +138,18 @@ class Actor(models.Model):
         ('woman', 'Mujer'),
     )
 
+    # El nombre viene del campo "nombre", excepto:
+    # PoblaconesAfectadas.descripcion
+
     name = models.CharField(max_length=255)
     is_name_created = models.BooleanField(default=False)
+    # Al final del script, utilizando Capital.filial:
+    # Si no existe, crear un nuevo actor solo con ese nombre,
+    # y ponerle is_only_filial = True
     parent_actor = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True)
+    is_only_filial = models.BooleanField(default=False)
+    # Capital.nacionalidad
     countries = models.ManyToManyField(Country, blank=True)
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
     geo_reach = models.CharField(
@@ -113,9 +157,15 @@ class Actor(models.Model):
     vulnerabilities = models.ManyToManyField(Vulnerability, blank=True)
     capital_type = models.ForeignKey(
         CapitalType, on_delete=models.CASCADE, blank=True, null=True)
+    # Acá se irán los siguientes campos de Capital:
+    # directores, inversionistas, is_cotiza_bolsa,
+    # (no crear key si el campo está vacío)
     capital_extension = JSONField(blank=True, null=True)
     sex = models.CharField(
         max_length=10, choices=SEX_CHOICES, blank=True, null=True)
+    # True cuando Opositor.mujer tiene valor y su id es mayor o igual a 2
+    is_woman_special = models.BooleanField(
+        default=False, verbose_name='Participación sobresaliente de mujeres')
     # status_register = models.ForeignKey(
     #     'work_flux.StatusRegister', on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
@@ -134,6 +184,8 @@ class Participant(models.Model):
         Project, on_delete=models.CASCADE, blank=True, null=True)
     note = models.ForeignKey(Note, on_delete=models.CASCADE, blank=True, null=True)
     participant_types = models.ManyToManyField(ParticipantType, blank=True)
+    # Los campos origen de Actor tienen esto:
+    # Capital
     interests = models.TextField(
         blank=True, null=True, verbose_name='Intereses (extensión)')
 
@@ -165,21 +217,25 @@ class Participant(models.Model):
 # );
 
 class Capital(models.Model):
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    nombre = models.CharField(max_length=100)
-    matriz = models.TextField()
-    filial = models.TextField()
-    directores = models.TextField()
-    inversionistas = models.TextField()
-    nacionalidad = models.CharField(max_length=100)
-    is_capital_publico = models.BooleanField()
-    is_cotiza_bolsa = models.BooleanField()
-    interes = models.TextField()
-    is_activo = models.BooleanField()
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    nombre = models.TextField(blank=True, null=True)
+    matriz = models.TextField(blank=True, null=True)
+    filial = models.TextField(blank=True, null=True)
+    directores = models.TextField(blank=True, null=True)
+    inversionistas = models.TextField(blank=True, null=True)
+    nacionalidad = models.TextField(blank=True, null=True)
+    # RICK: Aún no sé cómo voy a clasificar este campo
+    is_capital_publico = models.BooleanField(blank=True, null=True)
+    is_cotiza_bolsa = models.BooleanField(blank=True, null=True)
+    interes = models.TextField(blank=True, null=True)
+    # CAMPO VACÍO
+    is_activo = models.BooleanField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Capital'
@@ -201,15 +257,18 @@ class Capital(models.Model):
 # );
 
 class Estado(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    instituciones_a_favor_proyecto = models.TextField()
-    instituciones_mediadoras = models.TextField()
-    instituciones_atienden_reclamos = models.TextField()
-    temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
+    instituciones_a_favor_proyecto = models.TextField(blank=True, null=True)
+    instituciones_mediadoras = models.TextField(blank=True, null=True)
+    instituciones_atienden_reclamos = models.TextField(blank=True, null=True)
+    temporalidad = models.ForeignKey(
+        Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return self.proyecto.nombre
+        return self.proyecto.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Estado'
@@ -228,11 +287,11 @@ class Estado(models.Model):
 # );
 
 class FormaOrganizacion(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Forma Organización'
@@ -247,11 +306,11 @@ class FormaOrganizacion(models.Model):
 # );
 
 class Mujer(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Mujer'
@@ -275,25 +334,29 @@ class Mujer(models.Model):
 # );
 
 class Opositor(models.Model):
-    nombre = models.CharField(max_length=100)
+    nombre = models.TextField(blank=True, null=True)
     forma_organizacion = models.ForeignKey(
-        FormaOrganizacion, on_delete=models.CASCADE)
-    is_indigena = models.BooleanField()
-    pueblo_indigena = models.CharField(max_length=100)
-    is_campesino_or_comunero_or_ejidatario = models.BooleanField()
-    mujer = models.ForeignKey(Mujer, on_delete=models.CASCADE)
-    is_trabajador_empresa = models.BooleanField()
-    otros_opositores = models.TextField()
-    is_habitante_zona = models.BooleanField()
+        FormaOrganizacion, on_delete=models.CASCADE, blank=True, null=True)
+    is_indigena = models.BooleanField(blank=True, null=True)
+    pueblo_indigena = models.TextField(blank=True, null=True)
+    is_campesino_or_comunero_or_ejidatario = models.BooleanField(
+        blank=True, null=True)
+    # RICK: Aún no sé qué vamos a hacer con este campo
+    mujer = models.ForeignKey(
+        Mujer, on_delete=models.CASCADE, blank=True, null=True)
+    is_trabajador_empresa = models.BooleanField(blank=True, null=True)
+    otros_opositores = models.TextField(blank=True, null=True)
+    is_habitante_zona = models.BooleanField(blank=True, null=True)
 
     proyectos = models.ManyToManyField(
-        Proyecto, db_table='ocs.opositores_to_proyecto')
-    notas = models.ManyToManyField(Nota, db_table='ocs.opositores_to_notas')
+        Proyecto, db_table='ocs.opositores_to_proyecto', blank=True)
+    notas = models.ManyToManyField(
+        Nota, db_table='ocs.opositores_to_notas', blank=True)
     ubicaciones = models.ManyToManyField(
-        Ubicacion, db_table='ocs.opositores_to_ubicaciones')
+        Ubicacion, db_table='ocs.opositores_to_ubicaciones', blank=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Opositor'
@@ -335,13 +398,16 @@ class Opositor(models.Model):
 # );
 
 class InteresesOpositores(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    opositor = models.ForeignKey(Opositor, on_delete=models.CASCADE)
-    interes = models.TextField()
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
+    opositor = models.ForeignKey(
+        Opositor, on_delete=models.CASCADE, blank=True, null=True)
+    interes = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.opositor.nombre
+        return nombre_or_pk(self.opositor, self.pk)
 
     class Meta:
         verbose_name = 'Interés Opositor'
@@ -360,11 +426,11 @@ class InteresesOpositores(models.Model):
 # );
 
 class PoblacionAfectada(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Población Afectada'
@@ -380,12 +446,13 @@ class PoblacionAfectada(models.Model):
 # );
 
 class SubpoblacionAfectada(models.Model):
-    id_subpoblacion_af = models.IntegerField()
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    # CAMPO VACÍO
+    id_subpoblacion_af = models.IntegerField(blank=True, null=True)
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Subpoblación Afectada'
@@ -407,18 +474,21 @@ class SubpoblacionAfectada(models.Model):
 
 
 class PoblacionesAfectadas(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
     poblacion_afectada = models.ForeignKey(
-        PoblacionAfectada, on_delete=models.CASCADE)
+        PoblacionAfectada, on_delete=models.CASCADE, blank=True, null=True)
     subpoblacion_afectada = models.ForeignKey(
-        SubpoblacionAfectada, on_delete=models.CASCADE)
-    descripcion = models.TextField()
-    interes = models.TextField()
-    ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
+        SubpoblacionAfectada, on_delete=models.CASCADE, blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
+    interes = models.TextField(blank=True, null=True)
+    ubicacion = models.ForeignKey(
+        Ubicacion, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return self.poblacion_afectada.nombre
+        return nombre_or_pk(self.poblacion_afectada, self.pk)
 
     class Meta:
         verbose_name = 'Población Afectada'
@@ -437,16 +507,45 @@ class PoblacionesAfectadas(models.Model):
 # );
 
 class InteresesPoblacion(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
     poblacion_afectada = models.ForeignKey(
-        PoblacionAfectada, on_delete=models.CASCADE)
-    interes = models.TextField()
+        PoblacionAfectada, on_delete=models.CASCADE, blank=True, null=True)
+    interes = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.poblacion_afectada.nombre
+        return nombre_or_pk(self.poblacion_afectada, self.pk)
 
     class Meta:
         verbose_name = 'Interés Población'
         verbose_name_plural = 'Intereses Poblaciones'
         db_table = 'intereses_poblacion'
+
+
+# CREATE TABLE ocs.grupos_apoyo (
+#     id integer NOT NULL,
+#     nota_id integer,  --ForeignKey
+#     proyecto_id integer NOT NULL,  --ForeignKey
+#     tipo_grupo_apoyo text,
+#     nombre text,
+#     interes text
+# );
+
+class GruposApoyo(models.Model):
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
+    tipo_grupo_apoyo = models.TextField(blank=True, null=True)
+    nombre = models.TextField(blank=True, null=True)
+    interes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre or str(self.pk)
+
+    class Meta:
+        verbose_name = 'Grupo Apoyo'
+        verbose_name_plural = 'Grupos Apoyo'
+        db_table = 'grupos_apoyo'

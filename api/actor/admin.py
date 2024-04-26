@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from actors.models import (
+from actor.models import (
     Capital, Estado, FormaOrganizacion, InteresesOpositores,
     InteresesPoblacion, Mujer, Opositor, PoblacionAfectada,
-    PoblacionesAfectadas, SubpoblacionAfectada
+    PoblacionesAfectadas, SubpoblacionAfectada, GruposApoyo
 )
 
 
@@ -54,4 +54,9 @@ class PoblacionesAfectadasAdmin(admin.ModelAdmin):
 
 @admin.register(SubpoblacionAfectada)
 class SubpoblacionAfectadaAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(GruposApoyo)
+class GruposApoyoAdmin(admin.ModelAdmin):
     pass
