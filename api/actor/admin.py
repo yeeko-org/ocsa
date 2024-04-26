@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from actors.models import (
+from actor.models import (
     Capital, Estado, FormaOrganizacion, InteresesOpositores,
     InteresesPoblacion, Mujer, Opositor, PoblacionAfectada,
     PoblacionesAfectadas, SubpoblacionAfectada
