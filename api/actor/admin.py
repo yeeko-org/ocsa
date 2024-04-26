@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from actor.models import (
     Capital, Estado, FormaOrganizacion, InteresesOpositores,
-    InteresesPoblacion, Mujer, Opositor, PoblacionAfectada,
+    InteresesPoblacion, Mujer, Opositores, PoblacionAfectada,
     PoblacionesAfectadas, SubpoblacionAfectada, GruposApoyo
 )
 
@@ -37,7 +37,7 @@ class MujerAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Opositor)
+@admin.register(Opositores)
 class OpositorAdmin(admin.ModelAdmin):
     pass
 

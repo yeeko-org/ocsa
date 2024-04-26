@@ -1,6 +1,7 @@
 from django.contrib import admin
 from project.models import (CSA, TipoDespliegueCapital,
-                            TipoMegaproyecto, EstatusProyecto, Proyecto, EstatusProyectos)
+                            TipoMegaproyecto, EstatusProyecto, Proyecto)
+from source.models import EstatusProyectos
 
 
 @admin.register(CSA)

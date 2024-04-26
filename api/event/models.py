@@ -1,16 +1,42 @@
 from django.db import models
 
-from actor.models import Opositor
-from source.models import Nota
+from actor.models import Opositores
+from source.models import Nota, Mention
 from project.models import Proyecto
 from space_time.models import Ubicacion, Temporalidad
 from utils.obj_str import nombre_or_pk
 
 
+class EventGroup(models.Model):
+    name = models.CharField(max_length=255)
+    model_origin = models.CharField(
+        max_length=80, blank=True, null=True)
+
+
+class EventType(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    help_text = models.TextField(blank=True, null=True)
+    group = models.ForeignKey(
+        EventGroup, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Tipo de Evento'
+        verbose_name_plural = 'Tipos de Eventos'
+
+
+class Event(models.Model):
+    mention = models.ForeignKey(
+        Mention, on_delete=models.CASCADE, blank=True, null=True)
+
+
+
 
 # ======================== VERSIÓN 1: ========================================
 # # --------------------- Violencias (eventos) --------------------------------
-
 
 # CREATE TABLE ocs.cat_hechos_violencia (
 #     id integer NOT NULL,
@@ -130,7 +156,7 @@ class Violencia(models.Model):
     ubicaciones = models.ManyToManyField(
         Ubicacion, db_table='ocs.violencias_to_ubicaciones', blank=True)
     opositores = models.ManyToManyField(
-        Opositor, db_table='ocs.violencias_to_opositores', blank=True)
+        Opositores, db_table='ocs.violencias_to_opositores', blank=True)
 
     def __str__(self):
         return nombre_or_pk(self.hecho_violencia, self.pk)
@@ -222,7 +248,7 @@ class AccionesColectivas(models.Model):
         Ubicacion, db_table='ocs.ac_to_ubicaciones', blank=True)
     # LUCIAN: Esto no está ya en la tabla OpositoresToAC?, se tiene que declarar doble?
     opositores = models.ManyToManyField(
-        Opositor, through='OpositoresToAC', blank=True)
+        Opositores, through='OpositoresToAC', blank=True)
 
     def __str__(self):
         return nombre_or_pk(self.forma_ac, self.pk)
@@ -244,7 +270,7 @@ class AccionesColectivas(models.Model):
 
 class OpositoresToAC(models.Model):
     opositor = models.ForeignKey(
-        Opositor, on_delete=models.CASCADE, blank=True, null=True)
+        Opositores, on_delete=models.CASCADE, blank=True, null=True)
     accion_colectiva = models.ForeignKey(
         AccionesColectivas, on_delete=models.CASCADE, db_column='ac_id', blank=True, null=True)
 

@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models import JSONField
-from source.models import Nota, Note
-from space_time.models import Ubicacion, Temporalidad, StatusProject
+from space_time.models import Ubicacion, StatusProject
 
 
 class DeploymentCapitalType(models.Model):
@@ -97,27 +96,6 @@ class Project(models.Model):
         db_table = 'projects'
 
 
-# LUCIAN: Temporalmente aquí, pero debería ir en la app source:
-class Mention(models.Model):
-    note = models.ForeignKey(Note, on_delete=models.CASCADE)
-    # RICK: Aún no sé si esto debería ser not null
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    # temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
-    status_project = models.ForeignKey(
-        StatusProject, on_delete=models.CASCADE, blank=True, null=True)
-    filled = models.BooleanField(default=False)
-    date_filled = models.DateField(blank=True, null=True)
-    # editor = models.ForeignKey(
-    #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
-    # reviewer = models.ForeignKey(
-    #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
-    # status_register = models.ForeignKey(
-    #     'work_flux.StatusRegister', on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
-
-
-
-
 # ======================== VERSIÓN 1: ========================================
 # --------------------- Conflictos SocioAmbientales ---------------------------
 
@@ -125,7 +103,6 @@ class Mention(models.Model):
 #     id integer NOT NULL,
 #     nombre text
 # );
-
 
 class CSA(models.Model):
     nombre = models.CharField(max_length=100)
@@ -237,29 +214,6 @@ class Proyecto(models.Model):
         verbose_name = 'Proyecto'
         verbose_name_plural = 'Proyectos'
         db_table = 'proyectos'
-
-
-# CREATE TABLE ocs.estatus_proyectos (
-#     id integer NOT NULL,
-#     nota_id integer,  --ForeignKey
-#     proyecto_id integer NOT NULL,  --ForeignKey
-#     estatus_id integer,  --ForeignKey
-#     temporalidad_id integer  --ForeignKey
-# );
-# LUCIAN, hay que pasar esto a "source"
-class EstatusProyectos(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    estatus = models.ForeignKey(EstatusProyecto, on_delete=models.CASCADE)
-    temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.nota.titulo
-
-    class Meta:
-        verbose_name = 'Estatus Proyecto'
-        verbose_name_plural = 'Estatus Proyectos'
-        db_table = 'estatus_proyectos'
 
 # --ubicaciones
 
