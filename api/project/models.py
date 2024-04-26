@@ -2,6 +2,7 @@ from django.db import models
 
 from source.models import Nota
 from space_time.models import Ubicacion, Temporalidad
+from utils.obj_str import nombre_or_pk
 
 
 # --------------------- Conflictos SocioAmbientales ---------------------------
@@ -14,10 +15,10 @@ from space_time.models import Ubicacion, Temporalidad
 
 
 class CSA(models.Model):
-    nombre = models.CharField(max_length=100)
+    nombre = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'CSA'
@@ -38,13 +39,13 @@ class CSA(models.Model):
 #     color text
 # );
 class TipoDespliegueCapital(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
-    icono = models.CharField(max_length=100)
-    color = models.CharField(max_length=100)
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
+    icono = models.TextField(blank=True, null=True)
+    color = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Tipo Despliegue Capital'
@@ -59,11 +60,11 @@ class TipoDespliegueCapital(models.Model):
 # );
 
 class TipoMegaproyecto(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Tipo Megaproyecto'
@@ -78,11 +79,11 @@ class TipoMegaproyecto(models.Model):
 
 
 class EstatusProyecto(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Estatus Proyecto'
@@ -103,22 +104,24 @@ class EstatusProyecto(models.Model):
 #     old_ubis bigint
 # );
 class Proyecto(models.Model):
-    id_mp = models.IntegerField()
-    nombre = models.CharField(max_length=100)
-    escala = models.CharField(max_length=100)
+    id_mp = models.IntegerField(blank=True, null=True)
+    nombre = models.TextField(blank=True, null=True)
+    escala = models.TextField(blank=True, null=True)
     tipo_despliegue_capital = models.ForeignKey(
-        TipoDespliegueCapital, on_delete=models.CASCADE)
+        TipoDespliegueCapital, on_delete=models.CASCADE, blank=True, null=True)
     tipo_megaproyecto = models.ForeignKey(
-        TipoMegaproyecto, on_delete=models.CASCADE)
-    especificaciones = models.TextField()
-    csa = models.ForeignKey(CSA, on_delete=models.CASCADE)
-    proyecto_vinculado = models.ForeignKey('self', on_delete=models.CASCADE)
-    old_ubis = models.BigIntegerField()
+        TipoMegaproyecto, on_delete=models.CASCADE, blank=True, null=True)
+    especificaciones = models.TextField(blank=True, null=True)
+    csa = models.ForeignKey(
+        CSA, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto_vinculado = models.ForeignKey(
+        'self', on_delete=models.CASCADE, blank=True, null=True)
+    old_ubis = models.BigIntegerField(blank=True, null=True)
     ubicaciones = models.ManyToManyField(
-        Ubicacion, db_table='ocs.proyectos_to_ubicaciones')
+        Ubicacion, db_table='ocs.proyectos_to_ubicaciones', blank=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Proyecto'
@@ -134,13 +137,17 @@ class Proyecto(models.Model):
 #     temporalidad_id integer  --ForeignKey
 # );
 class EstatusProyectos(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    estatus = models.ForeignKey(EstatusProyecto, on_delete=models.CASCADE)
-    temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
+    estatus = models.ForeignKey(
+        EstatusProyecto, on_delete=models.CASCADE, blank=True, null=True)
+    temporalidad = models.ForeignKey(
+        Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return self.nota.titulo
+        return nombre_or_pk(self.nota, self.pk, 'titulo')
 
     class Meta:
         verbose_name = 'Estatus Proyecto'
@@ -156,8 +163,8 @@ class EstatusProyectos(models.Model):
 # );
 
 # class ProyectosToUbicaciones(models.Model):
-#     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-#     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
+#     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, blank=True, null=True)
+#     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE, blank=True, null=True)
 
 #     def __str__(self):
 #         return self.proyecto.nombre

@@ -3,6 +3,7 @@ from django.db import models
 from source.models import Nota
 from project.models import Proyecto
 from space_time.models import Ubicacion, Temporalidad
+from utils.obj_str import nombre_or_pk
 
 
 # --------------------- Afectaciones ecológicas --------------------------------
@@ -14,11 +15,11 @@ from space_time.models import Ubicacion, Temporalidad
 # );
 
 class TipoAfectacionesEcologicas(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Tipo Afectación Ecológica'
@@ -36,18 +37,21 @@ class TipoAfectacionesEcologicas(models.Model):
 
 
 class AfectacionesEcologicas(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
     tipo_ae = models.ForeignKey(
-        TipoAfectacionesEcologicas, on_delete=models.CASCADE)
-    descripcion_ae = models.TextField()
-    temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
+        TipoAfectacionesEcologicas, on_delete=models.CASCADE, blank=True, null=True)
+    descripcion_ae = models.TextField(blank=True, null=True)
+    temporalidad = models.ForeignKey(
+        Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
 
     ubicaciones = models.ManyToManyField(
-        Ubicacion, db_table='ocs.ae_to_ubicaciones')
+        Ubicacion, db_table='ocs.ae_to_ubicaciones', blank=True)
 
     def __str__(self):
-        return self.tipo_ae.nombre
+        return nombre_or_pk(self.tipo_ae, self.pk)
 
     class Meta:
         verbose_name = 'Afectación Ecológica'
@@ -71,11 +75,11 @@ class AfectacionesEcologicas(models.Model):
 
 
 class TipoAfectacionesSociales(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         verbose_name = 'Tipo Afectación Social'
@@ -93,18 +97,21 @@ class TipoAfectacionesSociales(models.Model):
 # );
 
 class AfectacionesSociales(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
     tipo_as = models.ForeignKey(
-        TipoAfectacionesSociales, on_delete=models.CASCADE)
-    descripcion_as = models.TextField()
-    temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
+        TipoAfectacionesSociales, on_delete=models.CASCADE, blank=True, null=True)
+    descripcion_as = models.TextField(blank=True, null=True)
+    temporalidad = models.ForeignKey(
+        Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
 
     ubicaciones = models.ManyToManyField(
-        Ubicacion, db_table='ocs.as_to_ubicaciones')
+        Ubicacion, db_table='ocs.as_to_ubicaciones', blank=True)
 
     def __str__(self):
-        return self.tipo_as.nombre
+        return nombre_or_pk(self.tipo_as, self.pk)
 
     class Meta:
         verbose_name = 'Afectación Social'
@@ -131,14 +138,16 @@ class AfectacionesSociales(models.Model):
 
 
 class Otros(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    tipo_propiedad = models.CharField(max_length=100)
-    fortalecimiento_tejido_social = models.TextField()
-    descripcion = models.TextField()
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
+    tipo_propiedad = models.TextField(blank=True, null=True)
+    fortalecimiento_tejido_social = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.tipo_propiedad
+        return self.tipo_propiedad or str(self.pk)
 
     class Meta:
         verbose_name = 'Otro'
