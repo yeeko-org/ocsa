@@ -1,11 +1,152 @@
 from django.db import models
 
-from source.models import Nota
-from project.models import Proyecto
-from space_time.models import Ubicacion, Temporalidad
+from source.models import Nota, Note
+from project.models import Proyecto, Project
+from space_time.models import Ubicacion, Temporalidad, Country
+from django.db.models import JSONField
+# from work_flux.models import StatusRegister
 
 
-# --------------------- Capitalistas (actores) --------------------------------
+class ParticipantType(models.Model):
+
+    SIDE_CHOICES = (
+        ('undefined', 'No definido'),
+        ('agree', 'A favor'),
+        ('oppose', 'En contra'),
+        ('neutral', 'Neutral'),
+        ('other', 'Otro'),
+    )
+
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    side = models.CharField(
+        max_length=10, choices=SIDE_CHOICES, default='undefined')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Tipo de Participación en Proyecto'
+        verbose_name_plural = 'Tipos de Participación en Proyecto'
+
+
+class Vulnerability(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Vulnerabilidad'
+        verbose_name_plural = 'Vulnerabilidades'
+
+
+class SectorGroup(models.Model):
+    name = models.CharField(max_length=255)
+    is_collective = models.BooleanField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Grupo Sectorial'
+        verbose_name_plural = 'Grupos Sectoriales'
+
+
+class Sector(models.Model):
+    name = models.CharField(max_length=255)
+    needs_name = models.BooleanField(default=False)
+    sector_group = models.ForeignKey(
+        SectorGroup, on_delete=models.CASCADE)
+    sector_name = models.CharField(
+        max_length=255, blank=True, null=True,
+        verbose_name='Nombre del sector (opcional)')
+    common_participant_types = models.ManyToManyField(
+        ParticipantType, blank=True)
+    has_vulnerabilities = models.BooleanField(default=True)
+    common_vulnerabilities = models.ManyToManyField(
+        Vulnerability, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Sector'
+        verbose_name_plural = 'Sectores'
+
+
+class CapitalType(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Tipo de Capital'
+        verbose_name_plural = 'Tipos de Capital'
+
+
+class Actor(models.Model):
+    GEO_REACH_CHOICES = (
+        ('local', 'Local'),
+        ('regional', 'Regional'),
+        ('national', 'Nacional'),
+        ('international', 'Internacional'),
+        ('global', 'Global'),
+    )
+
+    SEX_CHOICES = (
+        ('man', 'Hombre'),
+        ('woman', 'Mujer'),
+    )
+
+    name = models.CharField(max_length=255)
+    is_name_created = models.BooleanField(default=False)
+    parent_actor = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True)
+    countries = models.ManyToManyField(Country, blank=True)
+    sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
+    geo_reach = models.CharField(
+        max_length=15, choices=GEO_REACH_CHOICES, blank=True, null=True)
+    vulnerabilities = models.ManyToManyField(Vulnerability, blank=True)
+    capital_type = models.ForeignKey(
+        CapitalType, on_delete=models.CASCADE, blank=True, null=True)
+    capital_extension = JSONField(blank=True, null=True)
+    sex = models.CharField(
+        max_length=10, choices=SEX_CHOICES, blank=True, null=True)
+    # status_register = models.ForeignKey(
+    #     'work_flux.StatusRegister', on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Actor'
+        verbose_name_plural = 'Actores'
+
+
+class Participant(models.Model):
+    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, blank=True, null=True)
+    note = models.ForeignKey(Note, on_delete=models.CASCADE, blank=True, null=True)
+    participant_types = models.ManyToManyField(ParticipantType, blank=True)
+    interests = models.TextField(
+        blank=True, null=True, verbose_name='Intereses (extensión)')
+
+    def __str__(self):
+        return self.actor
+
+    class Meta:
+        verbose_name = 'Participante'
+        verbose_name_plural = 'Participantes'
+
+
+# ======================== VERSIÓN 1: ========================================
+# --------------------- Capitalistas (actores) -------------------------------
 
 # CREATE TABLE ocs.capital (
 #     id integer NOT NULL,
