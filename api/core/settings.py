@@ -22,13 +22,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tempo_extend',
+    'ocsa_legacy',
     'space_time',
-    'source',
     'project',
+    'source',
     'actor',
     'impact',
     'event',
+    'work_flux',
 ]
 
 MIDDLEWARE = [
@@ -61,7 +62,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
+# -----------------------Default database configuration-----------------------
 POSTRGRESQL_DB = os.getenv('POSTRGRESQL_DB', False)
 DATABASE_NAME = os.getenv("DATABASE_NAME", "db.sqlite3")
 DATABASE_SCHEMA = os.getenv("DATABASE_SCHEMA")
@@ -89,6 +90,37 @@ if DATABASE_SCHEMA:
 DATABASES = {
     "default": default_database
 }
+# ---------------------end Default database configuration---------------------
+
+# -----------------------Legacy database configuration------------------------
+DATABASE_LEGACY_NAME = os.getenv("DATABASE_LEGACY_NAME")
+if DATABASE_LEGACY_NAME:
+    POSTRGRESQL_LEGACY_DB = os.getenv('POSTRGRESQL_LEGACY_DB', False)
+    DATABASE_LEGACY_SCHEMA = os.getenv("DATABASE_LEGACY_SCHEMA")
+    if POSTRGRESQL_LEGACY_DB:
+        legacy = {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': DATABASE_LEGACY_NAME,
+            'USER': os.getenv("DATABASE_LEGACY_USER"),
+            'PASSWORD': os.getenv("DATABASE_LEGACY_PASSWORD"),
+            'HOST': os.getenv("DATABASE_LEGACY_HOST"),
+            'PORT': int(os.getenv("DATABASE_LEGACY_PORT", 5432)),
+        }
+    else:
+
+        legacy = {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / DATABASE_LEGACY_NAME
+        }
+
+    if DATABASE_LEGACY_SCHEMA:
+        legacy['OPTIONS'] = {
+            'options': f'-c search_path={DATABASE_LEGACY_SCHEMA}',
+        }
+
+    DATABASES["legacy"] = legacy
+    DATABASE_ROUTERS = ['core.routers.LegacyRouter']
+# ---------------------end Legacy database configuration----------------------
 
 
 AUTH_PASSWORD_VALIDATORS = [
