@@ -11,7 +11,6 @@ class Country(models.Model):
     class Meta:
         verbose_name = 'Country'
         verbose_name_plural = 'Countries'
-        db_table = 'countries'
 
 
 class StatusProject(models.Model):

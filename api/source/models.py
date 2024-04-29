@@ -19,9 +19,9 @@ class Source(models.Model):
 
 
 class Note(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=255)
     old_id = models.IntegerField(blank=True, null=True)
-    author = models.CharField(max_length=100, blank=True, null=True)
+    author = models.CharField(max_length=255, blank=True, null=True)
     # En teoría, tendría que haber 2 fuentes, La Jornada y Reforma,
     # pero sí hay más, pues hay que registrarlas, pero con is_news=False
     source = models.ForeignKey(Source, on_delete=models.CASCADE)

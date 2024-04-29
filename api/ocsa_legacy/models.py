@@ -127,8 +127,9 @@ class CSA(models.Model):
 class TipoDespliegueCapital(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
-    icono = models.CharField(max_length=100)
-    color = models.CharField(max_length=100)
+    # RICK: Pendiente de migrar porque está raro.
+    icono = models.TextField(max_length=100)
+    color = models.TextField(max_length=100)
 
     def __str__(self):
         return self.nombre
@@ -206,6 +207,7 @@ class Proyecto(models.Model):
     especificaciones = models.TextField()
     csa = models.ForeignKey(CSA, on_delete=models.CASCADE)
     proyecto_vinculado = models.ForeignKey('self', on_delete=models.CASCADE)
+    # COLUMNA VACÍA
     old_ubis = models.BigIntegerField()
 
     def __str__(self):
