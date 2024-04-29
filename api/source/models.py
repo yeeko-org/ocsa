@@ -11,7 +11,7 @@ class Source(models.Model):
     main_url = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.main_url or 'unknown'} - {self.is_news or 'unknown'}"
 
     class Meta:
         verbose_name = 'Fuente de información'
