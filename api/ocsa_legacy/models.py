@@ -315,7 +315,6 @@ class RegistroNotas(models.Model):
 #     temporalidad_id integer  --ForeignKey
 # );
 
-# LUCIAN, hay que pasar esto a "source"
 class EstatusProyectos(models.Model):
     nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
     proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)

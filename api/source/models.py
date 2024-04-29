@@ -39,6 +39,11 @@ class Note(models.Model):
         verbose_name_plural = 'Notas'
 
 
+# El primer lugar de donde viene este registro es de EstatusProyectos,
+# Antes de comenzar, deberás migrar todos los registros de EstatusProyecto que
+# ahora se llama StatusProject
+# EstatusProyectos tiene la relación entre Note y Project. Por ahora vamos a
+# ignorar la tabla "temporalidad" pero sí tomaremos en cuenta Proyecto."estatus"
 class Mention(models.Model):
     note = models.ForeignKey(Note, on_delete=models.CASCADE)
     # RICK: Aún no sé si esto debería ser not null
