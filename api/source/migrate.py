@@ -25,6 +25,7 @@ class NotaToNote:
         source = self.get_source(nota.nombre_medio, nota.pagina_medio)
         print(f"Source: {source.name}")
         note = Note.objects.create(
+            nota_id_ref=nota.pk,
             old_id=nota.id_nota,
             title=nota.titulo,
             author=nota.autor,
