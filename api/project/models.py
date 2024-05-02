@@ -12,7 +12,7 @@ from work_flux.models import StatusControl
 # se deben dividir por el slash y hacer un .strip() a cada uno
 # ejemplo: "Mixto: Extractivismo energético / Hiperurbanización"
 class DeploymentCapitalType(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
     icon = models.CharField(max_length=100, blank=True, null=True)
@@ -35,7 +35,7 @@ class DeploymentCapitalType(models.Model):
 # mismo tipo de megaproyecto tenga diferentes tipos de despliegue de
 # capital, en esos casos, debe marcarse el campo has_many_dct como True
 class MegaprojectType(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     deployment_capital_types = models.ManyToManyField(
         DeploymentCapitalType, blank=True)
@@ -97,18 +97,22 @@ class Conflict(models.Model):
 # Proyecto C.parent_project = Proyecto C
 
 class Project(models.Model):
+    proyecto_id_ref = models.IntegerField(blank=True, null=True)
+    legacy_id_mp = models.IntegerField(blank=True, null=True)
+
     # Viene de Proyecto.nombre
     official_name = models.CharField(
         max_length=255, verbose_name='Nombre oficial', blank=True, null=True)
     common_name = models.CharField(
         max_length=255, verbose_name='Nombre común', blank=True, null=True)
-    alternative_name = models.TextField()
+    alternative_name = models.TextField(blank=True, null=True)
     # Viene del campo Proyecto.especificaciones, excepto si su valor es "SD",
     # en ese caso ignorarlo.
     description = models.TextField(blank=True, null=True)
     # Se va a tomar en cuenta Proyecto.proyecto_vinculado,
     # si el campo proyecto_vinculado.escala == "Cluster"
     # entonces simplemente asociar ese proyecto en el campo "parent_project"
+    
     # Si el proyecto_vinculado tiene otro valor en escala, entonces se
     # debe crear un nuevo proyecto cuyo nombre será:
     # f"CLUSTER CREADO desde {proyecto_vinculado.nombre}",
@@ -117,7 +121,8 @@ class Project(models.Model):
     # entonces dejarlo así, sin hacer nada
     parent_project = models.ForeignKey(
         'self', on_delete=models.CASCADE,
-        verbose_name='Proyecto en el que se agrupa')
+        verbose_name='Proyecto en el que se agrupa',
+        blank=True, null=True)
     # Campo Proyecto.csa
     conflict = models.ForeignKey(
         Conflict, on_delete=models.CASCADE, blank=True, null=True)

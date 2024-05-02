@@ -4,7 +4,7 @@ from source.migrate import NotaToNote
 
 
 class Command(BaseCommand):
-    help = 'Calcula si una respuesta de grupo es válida o no'
+    help = 'Migracion de Notas a Note'
 
     def handle(self, *args, **options):
         migration = NotaToNote()
