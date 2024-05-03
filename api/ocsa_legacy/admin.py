@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin import AdminSite, register
 
 from .models import (
     AccionesColectivas, AfectacionEcologica, AfectacionSocial, Capital,
@@ -18,17 +19,26 @@ from .models import (
 # ---------------------------------Space Time---------------------------------
 
 
-@admin.register(Ubicacion)
+class LegacyAdminSite(AdminSite):
+    site_header = "Legacy Admin"
+    site_title = "Legacy OCSA Admin Portal"
+    index_title = "Welcome to Legacy OCSA Portal"
+
+
+legacy_admin_site = LegacyAdminSite(name='legacy_admin')
+
+
+@register(Ubicacion, site=legacy_admin_site)
 class UbicacionAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(CatTemporalidad)
+@register(CatTemporalidad, site=legacy_admin_site)
 class CatTemporalidadAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Temporalidad)
+@register(Temporalidad, site=legacy_admin_site)
 class TemporalidadAdmin(admin.ModelAdmin):
     pass
 
@@ -36,32 +46,32 @@ class TemporalidadAdmin(admin.ModelAdmin):
 # ----------------------------------Projec-----------------------------------
 
 
-@admin.register(CSA)
+@register(CSA, site=legacy_admin_site)
 class CSAAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(TipoDespliegueCapital)
+@register(TipoDespliegueCapital, site=legacy_admin_site)
 class TipoDespliegueCapitalAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(TipoMegaproyecto)
+@register(TipoMegaproyecto, site=legacy_admin_site)
 class TipoMegaproyectoAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(EstatusProyecto)
+@register(EstatusProyecto, site=legacy_admin_site)
 class EstatusProyectoAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Proyecto)
+@register(Proyecto, site=legacy_admin_site)
 class ProyectoAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(EstatusProyectos)
+@register(EstatusProyectos, site=legacy_admin_site)
 class EstatusProyectosAdmin(admin.ModelAdmin):
     pass
 
@@ -69,12 +79,12 @@ class EstatusProyectosAdmin(admin.ModelAdmin):
 # -----------------------------------Source-----------------------------------
 
 
-@admin.register(Nota)
+@register(Nota, site=legacy_admin_site)
 class NotaAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(RegistroNotas)
+@register(RegistroNotas, site=legacy_admin_site)
 class RegistroNotasAdmin(admin.ModelAdmin):
     pass
 
@@ -82,57 +92,67 @@ class RegistroNotasAdmin(admin.ModelAdmin):
 # -----------------------------------Actor-----------------------------------
 
 
-@admin.register(Capital)
+@register(Capital, site=legacy_admin_site)
 class CapitalAdmin(admin.ModelAdmin):
-    pass
+    readonly_fields = ["proyecto", "nota"]
+    list_display = [
+        "id",
+        "nombre",
+        "matriz",
+        "filial",
+        "directores",
+        "inversionistas",
+        "nacionalidad",
+        "interes",
+    ]
 
 
-@admin.register(Estado)
+@register(Estado, site=legacy_admin_site)
 class EstadoAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(FormaOrganizacion)
+@register(FormaOrganizacion, site=legacy_admin_site)
 class FormaOrganizacionAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(InteresesOpositores)
+@register(InteresesOpositores, site=legacy_admin_site)
 class InteresesOpositoresAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(InteresesPoblacion)
+@register(InteresesPoblacion, site=legacy_admin_site)
 class InteresesPoblacionAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Mujer)
+@register(Mujer, site=legacy_admin_site)
 class MujerAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Opositores)
+@register(Opositores, site=legacy_admin_site)
 class OpositorAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(PoblacionAfectada)
+@register(PoblacionAfectada, site=legacy_admin_site)
 class PoblacionAfectadaAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(CatPoblacionAfectada)
+@register(CatPoblacionAfectada, site=legacy_admin_site)
 class PoblacionesAfectadasAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(CatSubpoblacionAfectada)
+@register(CatSubpoblacionAfectada, site=legacy_admin_site)
 class SubpoblacionAfectadaAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(GruposApoyo)
+@register(GruposApoyo, site=legacy_admin_site)
 class GruposApoyoAdmin(admin.ModelAdmin):
     pass
 
@@ -140,27 +160,27 @@ class GruposApoyoAdmin(admin.ModelAdmin):
 # -----------------------------------Impact-----------------------------------
 
 
-@admin.register(AfectacionEcologica)
+@register(AfectacionEcologica, site=legacy_admin_site)
 class AfectacionesEcologicasAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(TipoAfectacionEcologica)
+@register(TipoAfectacionEcologica, site=legacy_admin_site)
 class TipoAfectacionesEcologicasAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(AfectacionSocial)
+@register(AfectacionSocial, site=legacy_admin_site)
 class AfectacionesSocialesAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(TipoAfectacionSocial)
+@register(TipoAfectacionSocial, site=legacy_admin_site)
 class TipoAfectacionesSocialesAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Otros)
+@register(Otros, site=legacy_admin_site)
 class OtrosAdmin(admin.ModelAdmin):
     pass
 
@@ -168,86 +188,86 @@ class OtrosAdmin(admin.ModelAdmin):
 # -----------------------------------event-----------------------------------
 
 
-@admin.register(HechosViolencia)
+@register(HechosViolencia, site=legacy_admin_site)
 class HechosViolenciaAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(FormaHechoViolencia)
+@register(FormaHechoViolencia, site=legacy_admin_site)
 class FormaHechoViolenciaAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Violencia)
+@register(Violencia, site=legacy_admin_site)
 class ViolenciaAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(FormaAC)
+@register(FormaAC, site=legacy_admin_site)
 class FormaACAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(SubformaAC)
+@register(SubformaAC, site=legacy_admin_site)
 class SubformaACAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(AccionesColectivas)
+@register(AccionesColectivas, site=legacy_admin_site)
 class AccionesColectivaAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(OpositoresToAC)
+@register(OpositoresToAC, site=legacy_admin_site)
 class OpositoresToACAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(CondicionMujerVictima)
+@register(CondicionMujerVictima, site=legacy_admin_site)
 class CondicionMujerVictimaAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(SectorSocial)
+@register(SectorSocial, site=legacy_admin_site)
 class SectorSocialAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(OpositorToProyecto)
+@register(OpositorToProyecto, site=legacy_admin_site)
 class OpositorToProyectoAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(OpositorToNotas)
+@register(OpositorToNotas, site=legacy_admin_site)
 class OpositorToNotasAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(OpositorToUbicaciones)
+@register(OpositorToUbicaciones, site=legacy_admin_site)
 class OpositorToUbicacionesAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(AfectacionEcologicaToUbicacion)
+@register(AfectacionEcologicaToUbicacion, site=legacy_admin_site)
 class AfectacionEcologicaToUbicacionAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(AfectacionSocialToUbicacion)
+@register(AfectacionSocialToUbicacion, site=legacy_admin_site)
 class AfectacionSocialToUbicacionAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(ViolenciaToOpositor)
+@register(ViolenciaToOpositor, site=legacy_admin_site)
 class ViolenciaToOpositorAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(ViolenciaToUbicacion)
+@register(ViolenciaToUbicacion, site=legacy_admin_site)
 class ViolenciaToUbicacionAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(AccionColectivaToUbicacion)
+@register(AccionColectivaToUbicacion, site=legacy_admin_site)
 class AccionColectivaToUbicacionAdmin(admin.ModelAdmin):
     pass
