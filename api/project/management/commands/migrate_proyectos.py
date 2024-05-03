@@ -4,7 +4,6 @@ from django.core.management.base import BaseCommand
 from project.migrate import ProyectoToProject
 
 
-
 class Command(BaseCommand):
     help = 'Migracion de Proyectos a Projects'
 

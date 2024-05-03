@@ -16,9 +16,10 @@ class ProyectoToProject:
         self.set_deployment_capital_types_filter_mix()
         self.set_megaproject_types()
 
-        proyectos = Proyecto.objects.all().order_by("id")
-        print(f"Processing {proyectos.count()} proyectos")
-        for proyecto in proyectos:
+        proyectos_with_vinculado = Proyecto.objects \
+            .filter(proyecto_vinculado__isnull=False).order_by("id")
+        print(f"Processing {proyectos_with_vinculado.count()} proyectos")
+        for proyecto in proyectos_with_vinculado:
             print(f"Processing proyecto {proyecto.pk}: {proyecto.nombre}")
             try:
                 self.migrate_proyecto(proyecto)
@@ -43,7 +44,7 @@ class ProyectoToProject:
         for tipo_despliegue_capital in tipo_despliegue_capital_query:
             self.create_deployment_capital_type(tipo_despliegue_capital)
 
-    def set_deployment_capital_types_filter_mix(self, mixto=False):
+    def set_deployment_capital_types_filter_mix(self):
         tipo_despliegue_capital_query = TipoDespliegueCapital.objects\
             .filter(nombre__istartswith='mixto')
 
@@ -82,6 +83,7 @@ class ProyectoToProject:
             deployment_capital_type.save()
 
         self.deployment_capital_types[nombre] = deployment_capital_type
+        return deployment_capital_type
 
     def get_deployment_capital_type(self, tipo_despliegue_capital_nombre):
         return self.deployment_capital_types[tipo_despliegue_capital_nombre]
@@ -93,6 +95,8 @@ class ProyectoToProject:
         for tipo_megaproyecto in tipos_megaproyecto:
             if not tipo_megaproyecto.nombre:
                 continue
+            # if not tipo_megaproyecto.nombre == "SD":
+            #     continue
             megaproject_type, _ = MegaprojectType.objects.get_or_create(
                 name=tipo_megaproyecto.nombre)
 
@@ -103,21 +107,40 @@ class ProyectoToProject:
             self.mega_project_types[tipo_megaproyecto.nombre] = megaproject_type
 
     def get_megaproject_type(
-            self, tipo_megaproyecto_nombre,
+            self, tipo_megaproyecto: Optional[TipoMegaproyecto] = None,
             tipo_despliegue_capital: Optional[TipoDespliegueCapital] = None):
+
+        if not tipo_megaproyecto and not tipo_despliegue_capital:
+            return None
+
+        def add_megaproject_type(tdc, mp_type):
+            tdc_name = tdc.nombre
+            if tdc_name and tdc_name.lower().startswith('mixto'):
+                names = tdc_name[6:].split('/')
+                for name in names:
+                    self.add_deployment_capital_type(
+                        mp_type, name.strip())
+            elif tdc_name:
+                self.add_deployment_capital_type(
+                    mp_type, tdc_name)
+
+        if not tipo_megaproyecto:
+            tipo_megaproyecto_nombre = f"Genérico de {tipo_despliegue_capital.nombre}"
+            new_megaproject_type, created = MegaprojectType.objects.get_or_create(
+                name=tipo_megaproyecto_nombre)
+            if created:
+                add_megaproject_type(
+                    tipo_despliegue_capital, new_megaproject_type)
+            self.mega_project_types[tipo_megaproyecto_nombre] = new_megaproject_type
+        else:
+            tipo_megaproyecto_nombre = tipo_megaproyecto.nombre
+
         megaproject_type = self.mega_project_types[tipo_megaproyecto_nombre]
 
         if not tipo_despliegue_capital:
             return megaproject_type
-        tdc_name = tipo_despliegue_capital.nombre
-        if tdc_name and tdc_name.lower().startswith('mixto'):
-            names = tdc_name[6:].split('/')
-            for name in names:
-                self.add_deployment_capital_type(
-                    megaproject_type, name.strip())
-        elif tdc_name:
-            self.add_deployment_capital_type(
-                megaproject_type, tdc_name)
+
+        add_megaproject_type(tipo_despliegue_capital, megaproject_type)
 
         if megaproject_type.deployment_capital_types.count() > 1:
             megaproject_type.has_many_dct = True
@@ -132,7 +155,9 @@ class ProyectoToProject:
             tipo_despliegue_capital_name.strip())
         megaproject_type.deployment_capital_types.add(deployment_capital_type)
 
-    def get_scale(self, escala: str):
+    def get_scale(self, escala: Optional[str]) -> Scale or None:
+        if not escala:
+            return None
         if escala in self.scales:
             return self.scales[escala]
         scale, _ = Scale.objects.get_or_create(name=escala)
@@ -155,15 +180,13 @@ class ProyectoToProject:
             conflict = self.get_conflict(proyecto.csa.nombre)
 
         megaproject_type = self.get_megaproject_type(
-            proyecto.tipo_megaproyecto.nombre,
-            proyecto.tipo_despliegue_capital) if proyecto.tipo_megaproyecto else None
-
-        scale = self.get_scale(proyecto.escala) if proyecto.escala else None
+            proyecto.tipo_megaproyecto,
+            proyecto.tipo_despliegue_capital)
 
         project = Project.objects.create(
             legacy_id_mp=proyecto.id_mp,
             official_name=proyecto.nombre,
-            scale=scale,
+            scale=self.get_scale(proyecto.escala),
             megaproject_type=megaproject_type,
             description=description,
             conflict=conflict,
@@ -174,10 +197,8 @@ class ProyectoToProject:
         return project
 
     def migrate_proyecto(self, proyecto: Proyecto):
-        project_a = self.get_project(proyecto)
 
-        if not proyecto.proyecto_vinculado:
-            return
+        project_a = self.get_project(proyecto)
         if project_a.parent_project:
             # print(f"Already has parent")
             return
@@ -186,15 +207,19 @@ class ProyectoToProject:
 
         if project_b.parent_project == project_a:
             # CASO 2, doble relación
-            # cluster artificial anque sea cluster?
-            pass
-        elif proyecto.proyecto_vinculado.escala == "Cluster":
+            # cluster artificial aunque sea cluster?
+            return
+        elif project_b.parent_project:
+            project_a.parent_project = project_b.parent_project
+            return
+        elif proyecto.proyecto_vinculado.escala.startswith("Cluster"):
             project_a.parent_project = project_b  # type: ignore
             project_a.save()
             return
 
+        name = f"CLUSTER CREADO desde {project_b.official_name}"
         project_c, _ = Project.objects.get_or_create(
-            official_name=f"CLUSTER CREADO desde {project_b.official_name} - {project_b.pk}",
+            official_name=name,
             scale=self.get_scale("Cluster artificial"),
         )
 
