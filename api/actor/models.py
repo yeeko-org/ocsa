@@ -171,6 +171,7 @@ class Actor(models.Model):
     name = models.CharField(max_length=255)
     is_incomplete = models.BooleanField(default=False)
     is_name_created = models.BooleanField(default=False)
+
     # Al final del script, utilizando Capital.matriz:
     # Si no existe, crear un nuevo actor solo con ese nombre,
     # y ponerle is_only_related = True
@@ -179,6 +180,7 @@ class Actor(models.Model):
     parent_actor = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True)
     is_only_related = models.BooleanField(default=False)
+
     # Capital.nacionalidad
     countries = models.ManyToManyField(Country, blank=True)
     sector = models.ForeignKey(
@@ -235,6 +237,8 @@ class Actor(models.Model):
     # status_register = models.ForeignKey(
     #     'work_flux.StatusRegister', on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
+
+    capital_id_ref = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -314,8 +318,9 @@ class InterestType(models.Model):
 class Interest(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     interest_type = models.ForeignKey(
-        InterestType, on_delete=models.CASCADE)
-    text = models.TextField(blank=True, null=True)
+        InterestType, on_delete=models.CASCADE, blank=True, null=True)
+
+    text = models.TextField()
 
     def __str__(self):
         return self.text or str(self.pk)

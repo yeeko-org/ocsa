@@ -100,7 +100,7 @@ class Temporalidad(models.Model):
 
 
 class CSA(models.Model):
-    nombre = models.CharField(max_length=100)
+    nombre = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -125,11 +125,11 @@ class CSA(models.Model):
 #     color text
 # );
 class TipoDespliegueCapital(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
     # RICK: Pendiente de migrar porque está raro.
-    icono = models.TextField(max_length=100)
-    color = models.TextField(max_length=100)
+    icono = models.TextField(blank=True, null=True)
+    color = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -149,8 +149,8 @@ class TipoDespliegueCapital(models.Model):
 # );
 
 class TipoMegaproyecto(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -170,8 +170,8 @@ class TipoMegaproyecto(models.Model):
 
 
 class EstatusProyecto(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    nombre = models.TextField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -197,18 +197,20 @@ class EstatusProyecto(models.Model):
 #     old_ubis bigint
 # );
 class Proyecto(models.Model):
-    id_mp = models.IntegerField()
-    nombre = models.CharField(max_length=100)
-    escala = models.CharField(max_length=100)
+    id_mp = models.IntegerField(blank=True, null=True)
+    nombre = models.TextField(blank=True, null=True)
+    escala = models.TextField(blank=True, null=True)
     tipo_despliegue_capital = models.ForeignKey(
-        TipoDespliegueCapital, on_delete=models.CASCADE)
+        TipoDespliegueCapital, on_delete=models.CASCADE, blank=True, null=True)
     tipo_megaproyecto = models.ForeignKey(
-        TipoMegaproyecto, on_delete=models.CASCADE)
-    especificaciones = models.TextField()
-    csa = models.ForeignKey(CSA, on_delete=models.CASCADE)
-    proyecto_vinculado = models.ForeignKey('self', on_delete=models.CASCADE)
+        TipoMegaproyecto, on_delete=models.CASCADE, blank=True, null=True)
+    especificaciones = models.TextField(blank=True, null=True)
+    csa = models.ForeignKey(
+        CSA, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto_vinculado = models.ForeignKey(
+        'self', on_delete=models.CASCADE, blank=True, null=True)
     # COLUMNA VACÍA
-    old_ubis = models.BigIntegerField()
+    old_ubis = models.BigIntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.nombre
@@ -230,11 +232,13 @@ class Proyecto(models.Model):
 
 
 class ProyectoToUbicacion(models.Model):
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE, blank=True, null=True)
+    ubicacion = models.ForeignKey(
+        Ubicacion, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return self.proyecto.nombre
+        return nombre_or_pk(self.proyecto, self.pk)
 
     class Meta:
         managed = False
@@ -316,10 +320,14 @@ class RegistroNotas(models.Model):
 # );
 
 class EstatusProyectos(models.Model):
-    nota = models.ForeignKey(Nota, on_delete=models.CASCADE)
-    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
-    estatus = models.ForeignKey(EstatusProyecto, on_delete=models.CASCADE)
-    temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
+    nota = models.ForeignKey(
+        Nota, on_delete=models.CASCADE, blank=True, null=True)
+    proyecto = models.ForeignKey(
+        Proyecto, on_delete=models.CASCADE)
+    estatus = models.ForeignKey(
+        EstatusProyecto, on_delete=models.CASCADE, blank=True, null=True)
+    temporalidad = models.ForeignKey(
+        Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.nota
