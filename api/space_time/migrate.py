@@ -1,4 +1,4 @@
-from ocsa_legacy.models import EstatusProyecto
+from ocsa_legacy.models import EstatusProyecto, EstatusProyectos
 from space_time.models import StatusProject
 
 
@@ -6,7 +6,7 @@ class EstatusProyectoToStatusProject:
     errors: list = []
 
     def __init__(self):
-        EstatusProyecto.objects.all().delete()
+        StatusProject.objects.all().delete()
 
         for estatus in EstatusProyecto.objects.all():
             try:
@@ -18,3 +18,4 @@ class EstatusProyectoToStatusProject:
                     status.save()
             except Exception as e:
                 self.errors.append([estatus, e])
+        # self.delete_duplicates_estatus_proyectos()

@@ -9,10 +9,10 @@ GROUP_CHOICES = [
 
 
 class StatusControl(models.Model):
+    name = models.CharField(max_length=120, primary_key=True)
     group = models.CharField(
         max_length=10, choices=GROUP_CHOICES,
         verbose_name="grupo de status", default="petition")
-    name = models.CharField(max_length=120, primary_key=True)
     public_name = models.CharField(max_length=255)
     color = models.CharField(
         max_length=30, blank=True, null=True,

@@ -13,6 +13,14 @@ class ProyectoToProject:
         self.deployment_capital_types: Dict[str, DeploymentCapitalType] = {}
         self.scales: Dict[str, Scale] = {}
         self.delete_all()
+        # TRUNCATE
+        # formula_rx,
+        # formula_drug,
+        # formula_missingrow,
+        # formula_missingfield
+        # RESTART
+        # IDENTITY;
+
         self.set_conflicts()
         self.set_deployment_capital_types_exclude_mix()
         self.set_deployment_capital_types_filter_mix()

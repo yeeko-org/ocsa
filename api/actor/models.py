@@ -3,6 +3,7 @@ from django.db import models
 from source.models import Mention
 from space_time.models import Country
 from django.db.models import JSONField
+from work_flux.models import StatusControl
 # from work_flux.models import StatusRegister
 
 
@@ -28,7 +29,6 @@ init_participant_types = [
     ('Ejecutor del Proyecto', 'support', False),
     # RICK: Parece que es lo mismo que el campo "is_affected"
     ('Beneficiario', 'support', True),
-
 ]
 
 # estos se deben agregar también, pero con is_temporal = True
@@ -148,6 +148,10 @@ class CapitalType(models.Model):
         verbose_name_plural = 'Tipos de Capital'
 
 
+def default_list():
+    return []
+
+
 # Tablas origen: Capital, Estado, Opositores, Poblaciones, GruposApoyo
 class Actor(models.Model):
     GEO_REACH_CHOICES = (
@@ -169,6 +173,12 @@ class Actor(models.Model):
     # en esos casos, habrá que poner el campo is_incomplete = True
     # Estado, que tiene 3 campos y su comportamiento se explica arrriba
     name = models.CharField(max_length=255)
+    official_name = models.CharField(
+        max_length=255, blank=True, null=True)
+    std_name = models.CharField(
+        max_length=255, blank=True, null=True)
+    alternative_names = models.JSONField(
+        default=default_list, blank=True, null=True)
     is_incomplete = models.BooleanField(default=False)
     is_name_created = models.BooleanField(default=False)
 
@@ -179,7 +189,7 @@ class Actor(models.Model):
     # cuyo parent_actor será el registro actual
     parent_actor = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True)
-    is_only_related = models.BooleanField(default=False)
+    is_only_related = models.BooleanField(blank=True, null=True)
 
     # Capital.nacionalidad
     countries = models.ManyToManyField(Country, blank=True)
@@ -231,11 +241,11 @@ class Actor(models.Model):
     # directores, inversionistas, is_cotiza_bolsa,
     # (no crear key si el campo está vacío)
     capital_extension = JSONField(blank=True, null=True)
+    # True cuando Opositor.mujer tiene valor y su id es mayor o igual a 2
     sex = models.CharField(
         max_length=10, choices=SEX_CHOICES, blank=True, null=True)
-    # True cuando Opositor.mujer tiene valor y su id es mayor o igual a 2
-    # status_register = models.ForeignKey(
-    #     'work_flux.StatusRegister', on_delete=models.CASCADE, blank=True, null=True)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
 
     capital_id_ref = models.IntegerField(blank=True, null=True)

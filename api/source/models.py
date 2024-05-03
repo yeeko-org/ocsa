@@ -53,9 +53,8 @@ class Mention(models.Model):
     note = models.ForeignKey(Note, on_delete=models.CASCADE)
     # RICK: Aún no sé si esto debería ser not null
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    # temporalidad = models.ForeignKey(Temporalidad, on_delete=models.CASCADE)
-    status_project = models.ForeignKey(
-        StatusProject, on_delete=models.CASCADE, blank=True, null=True)
+    # status_project = models.ForeignKey(
+    #     StatusProject, on_delete=models.CASCADE, blank=True, null=True)
     filled = models.BooleanField(default=False)
     date_filled = models.DateField(blank=True, null=True)
     # editor = models.ForeignKey(
@@ -72,3 +71,21 @@ class Mention(models.Model):
     class Meta:
         verbose_name = 'Mención de proyecto en nota'
         verbose_name_plural = 'Menciones de proyectos en notas'
+
+
+class StatusHistory(models.Model):
+    mention = models.ForeignKey(Mention, on_delete=models.CASCADE)
+    status_project = models.ForeignKey(
+        StatusProject, on_delete=models.CASCADE, blank=True, null=True)
+    date = models.DateField(blank=True, null=True)
+    interval = models.DurationField(blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+    type_temporalidad = models.CharField(
+        max_length=20, blank=True, null=True)
+
+    def __str__(self):
+        return self.status_project
+
+    class Meta:
+        verbose_name = 'Historial de estatus de proyecto'
+        verbose_name_plural = 'Historiales de estatus de proyectos'
