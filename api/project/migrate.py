@@ -190,7 +190,6 @@ class ProyectoToProject:
             megaproject_type=megaproject_type,
             description=description,
             conflict=conflict,
-
             proyecto_id_ref=proyecto.pk,
         )
         # print(f"Project {proyecto} from proyecto {proyecto} created")
@@ -206,8 +205,7 @@ class ProyectoToProject:
         project_b = self.get_project(proyecto.proyecto_vinculado)
 
         if project_b.parent_project == project_a:
-            # CASO 2, doble relación
-            # cluster artificial aunque sea cluster?
+            # CASO 2, doble relación, no hacer nada
             return
         elif project_b.parent_project:
             project_a.parent_project = project_b.parent_project
