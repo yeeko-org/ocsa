@@ -2,6 +2,19 @@ from django.db import models
 
 from utils.obj_str import nombre_or_pk
 
+
+class CustomModel(models.Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self._meta.fields:
+            value = getattr(self, field.name)
+            if value == 'SD' and field.null:
+                setattr(self, field.name, None)
+
+    class Meta:
+        abstract = True
+
+
 # Create your models here.
 # ======================== Space Time ========================================
 
@@ -19,7 +32,7 @@ from utils.obj_str import nombre_or_pk
 # );
 
 
-class Ubicacion(models.Model):
+class Ubicacion(CustomModel):
     tipo_ubicacion = models.CharField(
         max_length=100, default='punto', blank=True, null=True)
     estado = models.TextField(blank=True, null=True)
@@ -48,7 +61,7 @@ class Ubicacion(models.Model):
 # );
 
 
-class CatTemporalidad(models.Model):
+class CatTemporalidad(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -72,7 +85,7 @@ class CatTemporalidad(models.Model):
 #     cat_temporalidad_id integer  --ForeignKey
 # );
 
-class Temporalidad(models.Model):
+class Temporalidad(CustomModel):
     fecha = models.DateField(blank=True, null=True)
     intervalo = models.DurationField(blank=True, null=True)
     day_undefined = models.BooleanField(default=False, blank=True, null=True)
@@ -99,7 +112,7 @@ class Temporalidad(models.Model):
 # );
 
 
-class CSA(models.Model):
+class CSA(CustomModel):
     nombre = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -124,7 +137,7 @@ class CSA(models.Model):
 #     icono text,
 #     color text
 # );
-class TipoDespliegueCapital(models.Model):
+class TipoDespliegueCapital(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
     # RICK: Pendiente de migrar porque está raro.
@@ -148,7 +161,7 @@ class TipoDespliegueCapital(models.Model):
 #     descripcion text
 # );
 
-class TipoMegaproyecto(models.Model):
+class TipoMegaproyecto(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -169,7 +182,7 @@ class TipoMegaproyecto(models.Model):
 # );
 
 
-class EstatusProyecto(models.Model):
+class EstatusProyecto(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -196,7 +209,7 @@ class EstatusProyecto(models.Model):
 #     proyecto_vinculado_id integer,  --ForeignKey
 #     old_ubis bigint
 # );
-class Proyecto(models.Model):
+class Proyecto(CustomModel):
     id_mp = models.IntegerField(blank=True, null=True)
     nombre = models.TextField(blank=True, null=True)
     escala = models.TextField(blank=True, null=True)
@@ -231,7 +244,7 @@ class Proyecto(models.Model):
 # );
 
 
-class ProyectoToUbicacion(models.Model):
+class ProyectoToUbicacion(CustomModel):
     proyecto = models.ForeignKey(
         Proyecto, on_delete=models.CASCADE, blank=True, null=True)
     ubicacion = models.ForeignKey(
@@ -261,7 +274,7 @@ class ProyectoToUbicacion(models.Model):
 #     fecha_captura date
 # );
 
-class Nota(models.Model):
+class Nota(CustomModel):
     id_nota = models.IntegerField(blank=True, null=True)
     titulo = models.TextField(blank=True, null=True)
     autor = models.TextField(blank=True, null=True)
@@ -293,7 +306,7 @@ class Nota(models.Model):
 
 # ALTER TABLE ocs.registro_notas ENABLE ROW LEVEL SECURITY;
 
-class RegistroNotas(models.Model):
+class RegistroNotas(CustomModel):
     owner = models.TextField(blank=True, null=True)
     datum = models.JSONField(blank=True, null=True)
     status = models.CharField(
@@ -319,7 +332,7 @@ class RegistroNotas(models.Model):
 #     temporalidad_id integer  --ForeignKey
 # );
 
-class EstatusProyectos(models.Model):
+class EstatusProyectos(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -359,7 +372,7 @@ class EstatusProyectos(models.Model):
 #     is_activo boolean
 # );
 
-class Capital(models.Model):
+class Capital(CustomModel):
     proyecto = models.ForeignKey(
         Proyecto, on_delete=models.CASCADE)
     nota = models.ForeignKey(
@@ -402,7 +415,7 @@ class Capital(models.Model):
 #     temporalidad_id integer  --ForeignKey
 # );
 
-class Estado(models.Model):
+class Estado(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -435,7 +448,7 @@ class Estado(models.Model):
 #     descripcion text
 # );
 
-class FormaOrganizacion(models.Model):
+class FormaOrganizacion(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -456,7 +469,7 @@ class FormaOrganizacion(models.Model):
 #     descripcion text
 # );
 
-class Mujer(models.Model):
+class Mujer(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -486,7 +499,7 @@ class Mujer(models.Model):
 #     is_habitante_zona boolean
 # );
 
-class Opositores(models.Model):
+class Opositores(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     forma_organizacion = models.ForeignKey(
         FormaOrganizacion, on_delete=models.CASCADE, blank=True, null=True)
@@ -522,7 +535,7 @@ class Opositores(models.Model):
 #     proyecto_id integer  --ForeignKey
 # );
 
-class OpositorToProyecto(models.Model):
+class OpositorToProyecto(CustomModel):
     opositor = models.ForeignKey(
         Opositores, on_delete=models.CASCADE)
     proyecto = models.ForeignKey(
@@ -545,7 +558,7 @@ class OpositorToProyecto(models.Model):
 # );
 
 
-class OpositorToNotas(models.Model):
+class OpositorToNotas(CustomModel):
     opositor = models.ForeignKey(
         Opositores, on_delete=models.CASCADE)
     nota = models.ForeignKey(
@@ -570,7 +583,7 @@ class OpositorToNotas(models.Model):
 #     ubicacion_id integer  --ForeignKey
 # );
 
-class OpositorToUbicaciones(models.Model):
+class OpositorToUbicaciones(CustomModel):
     opositor = models.ForeignKey(
         Opositores, on_delete=models.CASCADE)
     ubicacion = models.ForeignKey(
@@ -597,7 +610,7 @@ class OpositorToUbicaciones(models.Model):
 # );
 
 
-class InteresesOpositores(models.Model):
+class InteresesOpositores(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -627,7 +640,7 @@ class InteresesOpositores(models.Model):
 #     descripcion text
 # );
 
-class CatPoblacionAfectada(models.Model):
+class CatPoblacionAfectada(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -649,7 +662,7 @@ class CatPoblacionAfectada(models.Model):
 #     descripcion text
 # );
 
-class CatSubpoblacionAfectada(models.Model):
+class CatSubpoblacionAfectada(CustomModel):
     # CAMPO VACÍO
     id_subpoblacion_af = models.IntegerField(blank=True, null=True)
     nombre = models.TextField(blank=True, null=True)
@@ -679,7 +692,7 @@ class CatSubpoblacionAfectada(models.Model):
 # );
 
 
-class PoblacionAfectada(models.Model):
+class PoblacionAfectada(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -716,7 +729,7 @@ class PoblacionAfectada(models.Model):
 # );
 
 # TABLA VACÍA
-class InteresesPoblacion(models.Model):
+class InteresesPoblacion(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -747,7 +760,7 @@ class InteresesPoblacion(models.Model):
 #     interes text
 # );
 
-class GruposApoyo(models.Model):
+class GruposApoyo(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -775,7 +788,7 @@ class GruposApoyo(models.Model):
 #     descripcion text
 # );
 
-class TipoAfectacionEcologica(models.Model):
+class TipoAfectacionEcologica(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -799,7 +812,7 @@ class TipoAfectacionEcologica(models.Model):
 # );
 
 
-class AfectacionEcologica(models.Model):
+class AfectacionEcologica(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -829,7 +842,7 @@ class AfectacionEcologica(models.Model):
 # );
 
 
-class AfectacionEcologicaToUbicacion(models.Model):
+class AfectacionEcologicaToUbicacion(CustomModel):
     afectacion_ecologica = models.ForeignKey(
         AfectacionEcologica, on_delete=models.CASCADE)
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
@@ -852,7 +865,7 @@ class AfectacionEcologicaToUbicacion(models.Model):
 # );
 
 
-class TipoAfectacionSocial(models.Model):
+class TipoAfectacionSocial(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -876,7 +889,7 @@ class TipoAfectacionSocial(models.Model):
 #     temporalidad_id integer  --ForeignKey
 # );
 
-class AfectacionSocial(models.Model):
+class AfectacionSocial(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -906,7 +919,7 @@ class AfectacionSocial(models.Model):
 # );
 
 
-class AfectacionSocialToUbicacion(models.Model):
+class AfectacionSocialToUbicacion(CustomModel):
     afectacion_social = models.ForeignKey(
         AfectacionSocial, on_delete=models.CASCADE)
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
@@ -932,7 +945,7 @@ class AfectacionSocialToUbicacion(models.Model):
 # );
 
 
-class Otros(models.Model):
+class Otros(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -961,7 +974,7 @@ class Otros(models.Model):
 #     descripcion text
 # );
 
-class HechosViolencia(models.Model):
+class HechosViolencia(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -982,7 +995,7 @@ class HechosViolencia(models.Model):
 #     descripcion text
 # );
 
-class FormaHechoViolencia(models.Model):
+class FormaHechoViolencia(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -1003,7 +1016,7 @@ class FormaHechoViolencia(models.Model):
 #     descripcion text
 # );
 
-class CondicionMujerVictima(models.Model):
+class CondicionMujerVictima(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -1024,7 +1037,7 @@ class CondicionMujerVictima(models.Model):
 # );
 
 
-class SectorSocial(models.Model):
+class SectorSocial(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -1056,7 +1069,7 @@ class SectorSocial(models.Model):
 #     responsable_no_estatal_desc text
 # );
 
-class Violencia(models.Model):
+class Violencia(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -1097,7 +1110,7 @@ class Violencia(models.Model):
 #     opositor_id integer  --ForeignKey
 # );
 
-class ViolenciaToOpositor(models.Model):
+class ViolenciaToOpositor(CustomModel):
     violencia = models.ForeignKey(
         Violencia, on_delete=models.CASCADE)
     opositor = models.ForeignKey(
@@ -1122,7 +1135,7 @@ class ViolenciaToOpositor(models.Model):
 #     ubicacion_id integer  --ForeignKey
 # );
 
-class ViolenciaToUbicacion(models.Model):
+class ViolenciaToUbicacion(CustomModel):
     violencia = models.ForeignKey(
         Violencia, on_delete=models.CASCADE)
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
@@ -1146,7 +1159,7 @@ class ViolenciaToUbicacion(models.Model):
 # );
 
 
-class FormaAC(models.Model):
+class FormaAC(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
 
@@ -1167,7 +1180,7 @@ class FormaAC(models.Model):
 #     nombre text,
 #     descripcion text
 # );
-class SubformaAC(models.Model):
+class SubformaAC(CustomModel):
     id_forma_ac = models.IntegerField(blank=True, null=True)
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -1192,7 +1205,7 @@ class SubformaAC(models.Model):
 # );
 
 
-class AccionesColectivas(models.Model):
+class AccionesColectivas(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
@@ -1224,7 +1237,7 @@ class AccionesColectivas(models.Model):
 # );
 
 
-class OpositoresToAC(models.Model):
+class OpositoresToAC(CustomModel):
     opositor = models.ForeignKey(
         Opositores, on_delete=models.CASCADE, blank=True, null=True)
     accion_colectiva = models.ForeignKey(
@@ -1249,7 +1262,7 @@ class OpositoresToAC(models.Model):
 # );
 
 
-class AccionColectivaToUbicacion(models.Model):
+class AccionColectivaToUbicacion(CustomModel):
     accion_colectiva = models.ForeignKey(
         AccionesColectivas, on_delete=models.CASCADE)
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
