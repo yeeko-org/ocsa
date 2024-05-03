@@ -2,7 +2,8 @@ import traceback
 from django.core.management.base import BaseCommand
 
 from project.migrate import ProyectoToProject
-from space_time.migrate import EstatusProyectosToStatusProject
+from space_time.migrate import EstatusProyectoToStatusProject
+
 
 class Command(BaseCommand):
     help = 'Migracion de Proyectos a Projects'
@@ -18,8 +19,8 @@ class Command(BaseCommand):
             traceback.print_exc()
             print()
 
-        print("Starting EstatusProyectos to StatusProject migration")
-        status_migration = EstatusProyectosToStatusProject()
+        print("Starting EstatusProyecto to StatusProject migration")
+        status_migration = EstatusProyectoToStatusProject()
 
         for estatus, error in status_migration.errors:
             print(f"Error with estatus {estatus.pk}: {estatus}")

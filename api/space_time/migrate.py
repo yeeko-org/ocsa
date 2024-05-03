@@ -2,10 +2,11 @@ from ocsa_legacy.models import EstatusProyecto
 from space_time.models import StatusProject
 
 
-class EstatusProyectosToStatusProject:
+class EstatusProyectoToStatusProject:
     errors: list = []
 
     def __init__(self):
+        EstatusProyecto.objects.all().delete()
 
         for estatus in EstatusProyecto.objects.all():
             try:

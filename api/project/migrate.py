@@ -4,27 +4,41 @@ from project.models import Conflict, DeploymentCapitalType, MegaprojectType, Pro
 
 
 class ProyectoToProject:
-    errors: list = []
-    conflicts: Dict[str, Conflict] = {}
-    mega_project_types: Dict[str, MegaprojectType] = {}
-    deployment_capital_types: Dict[str, DeploymentCapitalType] = {}
-    scales: Dict[str, Scale] = {}
 
     def __init__(self):
+        self.show_creations = False
+        self.errors: list = []
+        self.conflicts: Dict[str, Conflict] = {}
+        self.mega_project_types: Dict[str, MegaprojectType] = {}
+        self.deployment_capital_types: Dict[str, DeploymentCapitalType] = {}
+        self.scales: Dict[str, Scale] = {}
+        self.delete_all()
         self.set_conflicts()
         self.set_deployment_capital_types_exclude_mix()
         self.set_deployment_capital_types_filter_mix()
         self.set_megaproject_types()
 
+        all_proyectos = Proyecto.objects.all()
+        print(f"Processing {all_proyectos.count()} proyectos")
+        for proyecto in all_proyectos:
+            self.get_project(proyecto)
         proyectos_with_vinculado = Proyecto.objects \
             .filter(proyecto_vinculado__isnull=False).order_by("id")
-        print(f"Processing {proyectos_with_vinculado.count()} proyectos")
         for proyecto in proyectos_with_vinculado:
-            print(f"Processing proyecto {proyecto.pk}: {proyecto.nombre}")
+            if self.show_creations:
+                print(f"Processing proyecto con vínculo {proyecto.pk}: {proyecto.nombre}")
             try:
                 self.migrate_proyecto(proyecto)
             except Exception as e:
                 self.errors.append([proyecto, e])
+
+    def delete_all(self):
+        Project.objects.all().delete()
+        Conflict.objects.all().delete()
+        DeploymentCapitalType.objects.all().delete()
+        MegaprojectType.objects.all().delete()
+        Scale.objects.all().delete()
+        self.errors = []
 
     def set_conflicts(self):
         csa_query = CSA.objects.all()
@@ -172,7 +186,7 @@ class ProyectoToProject:
             return project
 
         description = None
-        if proyecto.especificaciones != "SD":
+        if proyecto.especificaciones not in ["", "SD"]:
             description = proyecto.especificaciones
 
         conflict = None
@@ -209,6 +223,7 @@ class ProyectoToProject:
             return
         elif project_b.parent_project:
             project_a.parent_project = project_b.parent_project
+            project_a.save()
             return
         elif proyecto.proyecto_vinculado.escala.startswith("Cluster"):
             project_a.parent_project = project_b  # type: ignore
@@ -218,6 +233,8 @@ class ProyectoToProject:
         name = f"CLUSTER CREADO desde {project_b.official_name}"
         project_c, _ = Project.objects.get_or_create(
             official_name=name,
+            conflict=project_b.conflict,
+            megaproject_type=project_b.megaproject_type,
             scale=self.get_scale("Cluster artificial"),
         )
 
