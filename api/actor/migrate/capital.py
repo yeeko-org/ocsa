@@ -78,7 +78,6 @@ class CapitalToActorMigration(ActorBase):
         if not (capital.nota and capital.proyecto):
             return
 
-        status_project = self.get_status_project(capital)
         note = Note.objects.filter(pk=capital.nota.pk).first()
         project = Project.objects.filter(
             proyecto_id_ref=capital.proyecto.pk).first()
@@ -89,7 +88,6 @@ class CapitalToActorMigration(ActorBase):
         mention = Mention.objects.create(
             note=note,
             project=project,
-            status_project=status_project,
         )
 
         # participant_types?
@@ -120,15 +118,16 @@ class CapitalToActorMigration(ActorBase):
         # RESPUESTA: Por lo pronto hay que registrar esas inconsistencias en
         # el reporte de errores, para analizar los casos uno por uno
 
-        def get_real_attribute(field):
-            value = getattr(capital, field)
-            if value == "" or value == "SD" or value is None:
-                return None
-            return value
+        # ### Para Ricardo Ya no es necesario la comprovacion con "SD"
+        # def get_real_attribute(field):
+        #     value = getattr(capital, field)
+        #     if value == "" or value == "SD" or value is None:
+        #         return None
+        #     return value
 
-        nombre = get_real_attribute("nombre")
-        matriz = get_real_attribute("matriz")
-        filial = get_real_attribute("filial")
+        nombre = capital.nombre
+        matriz = capital.matriz
+        filial = capital.filial
         std_nombre = text_normalizer(nombre)
         std_matriz = text_normalizer(matriz)
         std_filial = text_normalizer(filial)
@@ -178,7 +177,7 @@ class CapitalToActorMigration(ActorBase):
 
         if actor:
             if need_review:
-                actor.status_control = self.need_review
+                actor.status_validation = self.need_review
             if matriz_actor:
                 self.add_parent(actor, matriz_actor)
             actor.save()
@@ -186,7 +185,7 @@ class CapitalToActorMigration(ActorBase):
             if actor and matriz_actor.is_only_related is False:
                 matriz_actor.is_only_related = True
             if need_review:
-                matriz_actor.status_control = self.need_review
+                matriz_actor.status_validation = self.need_review
             matriz_actor.save()
         if filial_actor:
             if matriz_actor:
@@ -195,7 +194,7 @@ class CapitalToActorMigration(ActorBase):
                 self.add_parent(filial_actor, actor)
             filial_actor.is_only_related = True
             if need_review:
-                filial_actor.status_control = self.need_review
+                filial_actor.status_validation = self.need_review
             filial_actor.save()
 
         main_actor = actor or matriz_actor or filial_actor
@@ -217,7 +216,9 @@ class CapitalToActorMigration(ActorBase):
             main_actor.countries.add(country)
 
         mention = self.get_mention(capital)
-        self.add_participant(main_actor, mention, ["Capital"])
+        if mention:
+            self.add_participant(main_actor, mention, ["Capital"])
+            self.add_status_project(mention)
         main_actor.save()
         # _ = self.get_actor_filial(capital, actor)
         # self.create_mention(capital, actor)

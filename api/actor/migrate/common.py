@@ -1,8 +1,10 @@
 from typing import Optional
-from source.models import Mention, Note
+from django.db.models import F
+from source.models import Mention, Note, StatusHistory
 from project.models import Project
-from actor.models import Actor, Participant, ParticipantType
-from ocsa_legacy.models import Proyecto, Nota
+from actor.models import Actor, Interest, Participant, ParticipantType
+from ocsa_legacy.models import EstatusProyectos, Proyecto, Nota
+from space_time.models import StatusProject
 
 
 class ActorBase:
@@ -40,12 +42,15 @@ class ActorBase:
                  f"Actor {actor.pk} already has a parent {actor.parent_actor.pk}"]
             )
             return
-        actor.parent_actor = parent
+        actor.parent_actor = parent  # type: ignore
 
-    def add_participant(self, actor: Actor, mention: Mention,
-                        participant_types: Optional[list] = None):
+    def add_participant(
+        self, actor: Actor, mention: Mention,
+        participant_types: Optional[list] = None
+    ):
         participant, _ = Participant.objects.get_or_create(
             actor=actor, mention=mention)
+
         if participant_types:
             for participant_type in participant_types:
                 pt, _ = ParticipantType.objects.get_or_create(
@@ -53,25 +58,27 @@ class ActorBase:
                 participant.participant_types.add(pt)
 
     def get_mention(self, instance):
+        nota_id: Optional[int] = getattr(instance, "nota_id", None)
+        proyecto_id: Optional[int] = getattr(instance, "proyecto_id", None)
 
-        if not (instance.nota and instance.proyecto):
+        if not (nota_id and proyecto_id):
             error = (f"Error with instance {instance.__class__.__name__}"
                      f" {instance.pk}: {instance}")
             print(error)
             self.errors.append([instance, error])
             return None
 
-        key_name = f"{instance.nota_id}-{instance.proyecto_id}"
+        key_name = f"{nota_id}-{proyecto_id}"
         if key_name in self.mentions:
             return self.mentions[key_name]
 
         project = Project.objects.filter(
-            proyecto_id_ref=instance.proyecto_id).first()
-        note = Note.objects.filter(nota_id_ref=instance.nota_id).first()
+            proyecto_id_ref=proyecto_id).first()
+        note = Note.objects.filter(nota_id_ref=nota_id).first()
 
         if not (note and project):
-            error = (f"Not proyecto {instance.proyecto.pk} or note"
-                     f" {instance.nota.pk} found")
+            error = (f"Not proyecto {proyecto_id} or note"
+                     f" {nota_id} found")
             print(error)
             self.errors.append([instance, error])
 
@@ -82,6 +89,43 @@ class ActorBase:
         self.mentions[key_name] = mention
 
         return mention
+
+    def add_status_project(self, mention: Mention):
+        query_estatus_proyectos = EstatusProyectos.objects\
+            .filter(
+                nota__id=mention.note.nota_id_ref,
+                proyecto__id=mention.project.proyecto_id_ref)\
+            .annotate(
+                estatus_nombre=F('estatus__nombre'),
+                tem_date=F('temporalidad__fecha'),
+                tem_interval=F('temporalidad__interval'),
+                cat_tem_nombre=F('temporalidad__cat_temporalidad__nombre'),
+            )
+
+        for estatus_proyecto in query_estatus_proyectos:
+            estatus_nombre = estatus_proyecto.estatus_nombre  # type: ignore
+            cat_tem_nombre = estatus_proyecto.cat_tem_nombre  # type: ignore
+            tem_date = estatus_proyecto.tem_date  # type: ignore
+            tem_interval = estatus_proyecto.tem_interval  # type: ignore
+
+            any_data = any(
+                [estatus_nombre, cat_tem_nombre, tem_date, tem_interval])
+
+            if any_data:
+                continue
+
+            status_project = None
+            if estatus_nombre:
+                status_project = StatusProject.objects.get_or_create(
+                    name=estatus_nombre)
+
+            _, _ = StatusHistory.objects.get_or_create(
+                mention=mention,
+                status_project=status_project,
+                date=tem_date,
+                interval=tem_interval,
+                type_temporalidad=cat_tem_nombre
+            )
 
 
 def text_normalizer(text, to_headers=False):
@@ -94,9 +138,9 @@ def text_normalizer(text, to_headers=False):
     final_text = final_text.replace('Ü', 'U')
     final_text = re.sub(r'[^a-zA-Z0-9\s]', '', final_text)
     final_text = re.sub(r' +', ' ', final_text)
-    final_text = re.sub(r'[^A-Z][SA DE CV|SAPI DE CV|SA DE RL|SAB DE CV|S DE RL|S DE RL DE CV]', '', final_text)
+    final_text = re.sub(
+        r'[^A-Z][SA DE CV|SAPI DE CV|SA DE RL|SAB DE CV|S DE RL|S DE RL DE CV]', '', final_text)
     final_text = re.sub(r' +', ' ', final_text)
     final_text = re.sub(r'[^A-Z]', '', final_text)
     final_text = final_text.strip()
     return final_text
-
