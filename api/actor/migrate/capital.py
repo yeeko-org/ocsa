@@ -1,10 +1,8 @@
 from typing import Optional
-from actor.models import Actor, CapitalType, Interest, Participant
-from ocsa_legacy.models import Capital, EstatusProyectos, Nota, Proyecto
-from project.models import Project
-from source.models import Mention, Note
+from actor.models import Actor, CapitalType
+from ocsa_legacy.models import Capital
 from work_flux.models import StatusControl
-from space_time.models import Country, StatusProject
+from space_time.models import Country
 from actor.migrate.common import text_normalizer, ActorBase
 
 
@@ -13,8 +11,9 @@ class CapitalToActorMigration(ActorBase):
 
     def __init__(self):
         super().__init__()
-        Actor.objects.all().delete()
+
         capitales = Capital.objects.all()
+
         self.need_review, _ = StatusControl.objects.get_or_create(
             name="need_review", group="validation",
             public_name="Requiere revisión")
@@ -38,30 +37,6 @@ class CapitalToActorMigration(ActorBase):
         capital_type, _ = CapitalType.objects.get_or_create(name=name)
         return capital_type
 
-    # def get_actor_matriz(self, capital: Capital):
-    #     if not capital.matriz or capital.matriz == "SD":
-    #         return None
-    #
-    #     parent_actor, parent_actor_created = Actor.objects\
-    #         .get_or_create(name=capital.matriz)
-    #     if parent_actor_created:
-    #         parent_actor.is_only_related = True
-    #         parent_actor.save()
-    #
-    #     return parent_actor
-
-    # def get_actor_filial(self, capital: Capital, actor: Actor):
-    #     if not capital.filial or capital.filial == "SD":
-    #         return None
-    #
-    #     filial_actor, filial_actor_created = Actor.objects\
-    #         .get_or_create(name=capital.filial)
-    #     if filial_actor_created:
-    #         filial_actor.parent_actor = actor  # type: ignore
-    #         filial_actor.save()
-    #
-    #     return filial_actor
-
     def get_capital_extension(self, actor: Actor, capital: Capital):
         capital_extension = actor.capital_extension or {}
         fields = ["directores", "inversionistas", "is_cotiza_bolsa"]
@@ -72,36 +47,6 @@ class CapitalToActorMigration(ActorBase):
                 saved_value.append(value)
                 capital_extension[field] = saved_value
         return capital_extension
-
-    def create_mention(self, capital: Capital, actor: Actor):
-
-        if not (capital.nota and capital.proyecto):
-            return
-
-        note = Note.objects.filter(pk=capital.nota.pk).first()
-        project = Project.objects.filter(
-            proyecto_id_ref=capital.proyecto.pk).first()
-
-        if not (note and project):
-            return
-
-        mention = Mention.objects.create(
-            note=note,
-            project=project,
-        )
-
-        # participant_types?
-        participant = Participant.objects.create(
-            actor=actor,
-            mention=mention,
-        )
-
-        # create Interest
-        if capital.interes and capital.interes != "SD":
-            Interest.objects.create(
-                participant=participant,
-                text=capital.interes,
-            )
 
     def migrate_to_actor(self, capital: Capital):
         # ### Para Ricardo
@@ -220,5 +165,3 @@ class CapitalToActorMigration(ActorBase):
             self.add_participant(main_actor, mention, ["Capital"])
             self.add_status_project(mention)
         main_actor.save()
-        # _ = self.get_actor_filial(capital, actor)
-        # self.create_mention(capital, actor)
