@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 from django.db.models import F
 from source.models import Mention, Note, StatusHistory
 from project.models import Project
@@ -9,29 +9,44 @@ from space_time.models import StatusProject
 
 class ActorBase:
     mentions = {}
-    actors = {}
+    actors: Dict[str, Actor] = {}
 
     def __init__(self):
         self.errors = []
 
-    def get_actor(self, name: str, std_name: Optional[str] = None):
+    def get_actor(
+            self, name: Optional[str], std_name: Optional[str] = None
+    ) -> Actor:
         if not name and not std_name:
             raise ValueError("Name or std_name must be provided")
         if not std_name:
             std_name = text_normalizer(name)
-        if std_name in self.actors:
-            final_actor = self.actors[std_name]
-            if final_actor.name != name:
-                if name not in final_actor.alternative_names:
-                    final_actor.alternative_names.append(name)
-                    final_actor.save()
-                    self.actors[std_name] = final_actor
-            return self.actors[std_name]
+
+        final_actor = self.actors.get(std_name)
+        if final_actor:
+            # No es necesario, el diccionario y las instancias son apuntadores
+            # self.actors[std_name] = final_actor
+            final_actor.append_alternative_name(name)
+            return final_actor
+
         try:
+            # Existe fuera de la migracion actual con std_name
             actor = Actor.objects.get(std_name=std_name)
         except Actor.DoesNotExist:
-            actor = Actor.objects.create(name=name, std_name=std_name)
+            try:
+                # Existe con name pero no con std_name
+                actor = Actor.objects.get(name=name)
+                if not actor.std_name:
+                    # Ricardo, se remplaza si existe?
+                    actor.std_name = std_name
+                    actor.save()
+
+            except Actor.DoesNotExist:
+                actor = Actor.objects.create(name=name, std_name=std_name)
+
+        actor.append_alternative_name(name)
         self.actors[std_name] = actor
+        return actor
 
     def add_parent(self, actor: Actor, parent: Actor):
         if not parent:
@@ -46,7 +61,8 @@ class ActorBase:
 
     def add_participant(
         self, actor: Actor, mention: Mention,
-        participant_types: Optional[list] = None
+        participant_types: Optional[list] = None,
+        interest: Optional[str] = None
     ):
         participant, _ = Participant.objects.get_or_create(
             actor=actor, mention=mention)
@@ -56,17 +72,17 @@ class ActorBase:
                 pt, _ = ParticipantType.objects.get_or_create(
                     name=participant_type)
                 participant.participant_types.add(pt)
+        if interest:
+            self.set_interest(participant, interest)
 
-    def get_mention(self, instance):
+    def get_mention(self, instance) -> Mention:
         nota_id: Optional[int] = getattr(instance, "nota_id", None)
         proyecto_id: Optional[int] = getattr(instance, "proyecto_id", None)
 
         if not (nota_id and proyecto_id):
             error = (f"Error with instance {instance.__class__.__name__}"
                      f" {instance.pk}: {instance}")
-            print(error)
-            self.errors.append([instance, error])
-            return None
+            raise ValueError(error)
 
         key_name = f"{nota_id}-{proyecto_id}"
         if key_name in self.mentions:
@@ -98,7 +114,7 @@ class ActorBase:
             .annotate(
                 estatus_nombre=F('estatus__nombre'),
                 tem_date=F('temporalidad__fecha'),
-                tem_interval=F('temporalidad__interval'),
+                tem_interval=F('temporalidad__intervalo'),
                 cat_tem_nombre=F('temporalidad__cat_temporalidad__nombre'),
             )
 
@@ -127,8 +143,16 @@ class ActorBase:
                 type_temporalidad=cat_tem_nombre
             )
 
+    def set_interest(self, participant: Participant, interest: str):
+        if not interest:
+            return
+        Interest.objects.create(
+            participant=participant,
+            text=interest,
+        )
 
-def text_normalizer(text, to_headers=False):
+
+def text_normalizer(text, to_headers=False) -> str:
     import re
     import unidecode
     if not text:
