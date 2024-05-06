@@ -7,6 +7,9 @@ class CustomModel(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self._meta.fields:
+            field.type = field.__class__.__name__
+            if field.type not in ['CharField', 'TextField']:
+                continue
             value = getattr(self, field.name)
             if value == 'SD' and field.null:
                 setattr(self, field.name, None)
@@ -226,7 +229,7 @@ class Proyecto(CustomModel):
     old_ubis = models.BigIntegerField(blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.nombre or str(self.pk)
 
     class Meta:
         managed = False
