@@ -34,7 +34,8 @@ class ProyectoToProject:
             .filter(proyecto_vinculado__isnull=False).order_by("id")
         for proyecto in proyectos_with_vinculado:
             if self.show_creations:
-                print(f"Processing proyecto con vínculo {proyecto.pk}: {proyecto.nombre}")
+                print(
+                    f"Processing proyecto con vínculo {proyecto.pk}: {proyecto.nombre}")
             try:
                 self.migrate_proyecto(proyecto)
             except Exception as e:
@@ -146,7 +147,7 @@ class ProyectoToProject:
                 self.add_deployment_capital_type(
                     mp_type, tdc_name)
 
-        if not tipo_megaproyecto:
+        if not tipo_megaproyecto and tipo_despliegue_capital:
             tipo_megaproyecto_nombre = f"Genérico de {tipo_despliegue_capital.nombre}"
             new_megaproject_type, created = MegaprojectType.objects.get_or_create(
                 name=tipo_megaproyecto_nombre)
@@ -154,12 +155,15 @@ class ProyectoToProject:
                 add_megaproject_type(
                     tipo_despliegue_capital, new_megaproject_type)
             self.mega_project_types[tipo_megaproyecto_nombre] = new_megaproject_type
-        else:
+        elif tipo_megaproyecto and tipo_megaproyecto.nombre:
             tipo_megaproyecto_nombre = tipo_megaproyecto.nombre
+        else:  # pragma: no cover
+            return None
 
-        megaproject_type = self.mega_project_types[tipo_megaproyecto_nombre]
+        megaproject_type = self.mega_project_types.get(
+            tipo_megaproyecto_nombre)
 
-        if not tipo_despliegue_capital:
+        if not tipo_despliegue_capital or not megaproject_type:
             return megaproject_type
 
         add_megaproject_type(tipo_despliegue_capital, megaproject_type)
@@ -177,7 +181,7 @@ class ProyectoToProject:
             tipo_despliegue_capital_name.strip())
         megaproject_type.deployment_capital_types.add(deployment_capital_type)
 
-    def get_scale(self, escala: Optional[str]) -> Scale or None:
+    def get_scale(self, escala: Optional[str]) -> Optional[Scale]:
         if not escala:
             return None
         if escala in self.scales:
@@ -220,7 +224,7 @@ class ProyectoToProject:
     def migrate_proyecto(self, proyecto: Proyecto):
 
         project_a = self.get_project(proyecto)
-        if project_a.parent_project:
+        if project_a.parent_project or not proyecto.proyecto_vinculado:
             # print(f"Already has parent")
             return
 
