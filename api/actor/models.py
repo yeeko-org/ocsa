@@ -250,6 +250,18 @@ class Actor(models.Model):
 
     capital_id_ref = models.IntegerField(blank=True, null=True)
 
+    def append_alternative_name(self, name, save=True):
+        if not name or self.name == name:
+            return
+
+        if not isinstance(self.alternative_names, list):
+            self.alternative_names = []
+
+        if name not in self.alternative_names:
+            self.alternative_names.append(name)
+            if save:
+                self.save()
+
     def __str__(self):
         return self.name
 
