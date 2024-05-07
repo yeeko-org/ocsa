@@ -9,6 +9,8 @@ class EstatusProyectoToStatusProject:
         StatusProject.objects.all().delete()
 
         for estatus in EstatusProyecto.objects.all():
+            if not estatus.nombre:
+                continue
             try:
                 status, _ = StatusProject.objects.get_or_create(
                     name=estatus.nombre
