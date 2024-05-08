@@ -977,6 +977,8 @@ class Otros(CustomModel):
 #     descripcion text
 # );
 
+# Esto se va a EventType con el EventGroup =
+# (name='Violencia', model_origin='HechosViolencia')
 class HechosViolencia(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -998,6 +1000,11 @@ class HechosViolencia(CustomModel):
 #     descripcion text
 # );
 
+# Esto se va a EventSubtype, el cual vamos a dejar por ahora sin relación
+# directa con event_types, después, a través de la tabla Violencias vamos a
+# hacer la relación entre las categorías.
+# Si el valor de "nombre" es NE, ignorarlo por el momento, pero en Violencias
+# sí se tomará en cuenta.
 class FormaHechoViolencia(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -1040,6 +1047,13 @@ class CondicionMujerVictima(CustomModel):
 # );
 
 
+# Esta tabla va a alimentar a la tabla "Sector" de actor. Si no está creado,
+# crearlo con el sector_group.name = "Varios" y el campo is_collective = True,
+# Excepto los siguientes nombres:
+# "Trabajador de la empresa", "Otro (Abogado opositor)", "Periodista",
+# "Abogado", "Activista", "Agente Federal", "Activista", "Defensor Ambiental",
+# "Comerciante", "Defensor Ambiental", "Profesor", "Comunero",
+# "Defensor del territorio", "Comunicador", "Profesora", "Alcalde"
 class SectorSocial(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -1072,27 +1086,79 @@ class SectorSocial(CustomModel):
 #     responsable_no_estatal_desc text
 # );
 
+# ANTES DE COMENZAR:
+# Crear los registros iniciales de EventRole (idéntico a lo que hicimos
+# con init_participant_types (checar el modelo EventRole
+# INTRODUCCIÓN:
+# La Tabla violencias se guardará en la tabla Event, pero algunos datos se
+# guardarán en la tabla Actor. cada combinación de hecho_violencia y
+# forma_hecho_violencia generará un nuevo Event. Los actores involucrados
+# (tabla Involved) se guardarán por cada uno de los actores involucrados,
+# tanto víctimas (sector social) como victimarios (responsables estatales
+# y no estatales).
+
 class Violencia(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
         Proyecto, on_delete=models.CASCADE)
+    # Con los dos siguientes campos vamos, además de guardar los valores que
+    # correspondan (event_type y event_subtype, vamos a generar la relación
+    # de EventSubtype con EventType, por cada vez que aparezca, muy
+    # parecido a lo que ya hicimos con MegaprojectType y DeploymentCapitalType
+    # NOTA: Si el valor de forma_hecho_violencia.nombre es NE, crear un nuevo
+    # EventSubtype con el nombre f"No Especificado de {hecho_violencia.nombre}"
     hecho_violencia = models.ForeignKey(
         HechosViolencia, on_delete=models.CASCADE, blank=True, null=True)
     forma_hecho_violencia = models.ForeignKey(
         FormaHechoViolencia, on_delete=models.CASCADE, blank=True, null=True)
     temporalidad = models.ForeignKey(
         Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
+    # Con los 3 siguientes campos vamos a construir los campos de Involved:
+    # number_men, number_women y number_mix, cuando el número es 1 o 2,
+    # pues hay que ver cuál es el género de todas las víctimas o si tiene
+    # is_mujeres e is_hombres activos, pues dividir.
+    # Si son más de 2 víctimas y hay 1 solo sexo activo, pues asignar a ese
+    # género, si no, asignar a number_mix
     num_victimas = models.TextField(blank=True, null=True)
     is_hombres = models.BooleanField(blank=True, null=True)
     is_mujeres = models.BooleanField(blank=True, null=True)
+
+    # RICK: Campo pendiente de clasficar
     condicion_mujeres_victimas = models.ForeignKey(
         CondicionMujerVictima, on_delete=models.CASCADE, blank=True, null=True,
         db_column='condicion_mujeres_victimas')
+    # Si hay valor en este campo, se creará un registro de Actor con el nombre
+    # f"Víctima del sector {sector_social_victima.nombre} del proyecto
+    # {project.name}". El event_role.name, para sus Involved, será "Víctima"
+    # Esto tiene que ver con la tabla Sector, hay que vincular el sector
+    # al actor que generemos
+    # Si hay dos registros con los mismos valores, hay que agregarle al nombre
+    # un número consecutivo, para que tengamos nombres únicos
     sector_social_victima = models.ForeignKey(
         SectorSocial, on_delete=models.CASCADE, blank=True, null=True,
         db_column='sector_social_victima')
     is_victima_dirigente = models.BooleanField(blank=True, null=True)
+
+    # Todas las reglas aplican para los 2 siguientes campos:
+    # Se creará (si no existe) un registro de Actor
+    # El participan_type de todos deberá tener "Por definir (de violencias)",
+    # El Sector.nombre de responsable_estatal_desc será "Responsable Estatal" y
+    # su SectorGroup.name será "Varios"
+    # (a menos que el registro ya exista y ya tenga un sector asociado,
+    # en cuyo caso, no se debe modificar)
+    # El Sector.nombre de responsable_no_estatal_desc será
+    # "Responsable No Estatal" y aplicar las mismas reglas de arriba
+    # El event_role.name, para sus Involved generados será "Responsable"
+
+    # Separar los valores de este campo por punto y coma ";", existe una
+    # lista de excepciones en el excel, para dichos casos, hay que cambiar
+    # el nombre y agregarles el nombre del proyecto,:
+    # f"{responsable_ESTATAL_O_NO_ESTATAL_desc} del proyecto {project.name}"
+    # También hay que dejarlos
+    # con el status_validation de "need_review" y con el comentario siguiente:
+    # YEEKO: Se creó este nombre porque se identificó como nombre genérico,
+    # sin embargo, debe mejorar su nombre.
     responsable_estatal_desc = models.TextField(blank=True, null=True)
     responsable_no_estatal_desc = models.TextField(blank=True, null=True)
 

@@ -40,6 +40,7 @@ temporal_participant_types = [
     ('PoblacionesAfectadas', 'oppose', True),
     # solo los que tengan not null Estado.instituciones_a_favor_proyecto
     ('Estado', 'support', False),
+    ("Por definir (de violencias)", 'undefined', False),
     # Estos se van a sacar de la tabla Opositores.otros_opositores, pero no
     # se le van a asignar todos los campos (solo su relación con nota y proyecto)
     ("otros_opositores", 'oppose', True),
@@ -80,7 +81,6 @@ class Belong(models.Model):
     key_name = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    # is_indigenous = models.BooleanField(blank=True, null=True)
 
     def __str__(self):
         return self.name
