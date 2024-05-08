@@ -1,22 +1,30 @@
-from typing import Dict, Optional
+from typing import Dict
 from actor.models import Belong, IndigenousGroup, Sector, SectorGroup
-from ocsa_legacy.models import FormaOrganizacion, InteresesOpositores, Opositores
+from ocsa_legacy.models import (
+    CatSubpoblacionAfectada, FormaOrganizacion, InteresesOpositores,
+    Opositores)
 from work_flux.models import StatusControl
-from actor.migrate.common import text_normalizer, ActorBase
+from actor.migrate.common import ActorBase
 
 
 class OpositorToActorMigration(ActorBase):
     errors = []
     sectors: Dict[str, Sector] = {}
     belongs: Dict[str, Belong] = {}
+    indigenous_groups: Dict[str, IndigenousGroup] = {}
 
     def __init__(self):
         super().__init__()
         self.default_sg, _ = SectorGroup.objects.get_or_create(
             name="Varios", is_collective=True)
 
+        self.need_review, _ = StatusControl.objects.get_or_create(
+            name="need_review", group="validation",
+            public_name="Requiere revisión")
+
         self.set_sectors()
         self.set_belong()
+        self.set_indigenous_group()
 
         opositores = Opositores.objects.all()
 
@@ -71,14 +79,28 @@ class OpositorToActorMigration(ActorBase):
             self.belongs[key] = belong
         return belong
 
+    def set_indigenous_group(self):
+        for subpoblacion_afectada in CatSubpoblacionAfectada.objects.all():
+            nombre = subpoblacion_afectada.nombre
+            if not nombre:
+                continue
+
+            indigenous_group, _ = IndigenousGroup.objects.get_or_create(
+                name=nombre, description=subpoblacion_afectada.descripcion)
+            self.indigenous_groups[nombre] = indigenous_group
+
     def get_indigenous_group(self, name: str) -> IndigenousGroup:
-        indigenous_group, _ = IndigenousGroup.objects.get_or_create(name=name)
+        indigenous_group = self.indigenous_groups.get(name)
+        if not indigenous_group:
+            indigenous_group, _ = IndigenousGroup.objects.get_or_create(
+                name=name)
+            self.indigenous_groups[name] = indigenous_group
         return indigenous_group
 
     def migrate_to_actor(self, opositor: Opositores):
-        # Nombres hambiguos, algunos separados por ;
-        # * Vecinos; Trabajadores de la UNAM; Estudiantes de la UNAM de Copilco el Alto, Coyoacán, Ciudad de México (MP115)
-        # caracteres especiales como *, y nombres muy generales como "Vecinos"
+        if not opositor.nombre:
+            return
+
         opositor_actor = self.get_actor(opositor.nombre)
         if opositor.forma_organizacion and opositor.forma_organizacion.nombre:
             opositor_actor.sector = self.get_sector(
@@ -111,21 +133,25 @@ class OpositorToActorMigration(ActorBase):
             opositor_actor.belongs.add(self.get_belong("is_woman_special"))
 
         other_opositor = None
-        if opositor.otros_opositores:
-            # mismo caso que opositor.nombre
-            other_opositor = self.get_actor(opositor.otros_opositores)
-        if not other_opositor:
-            return
-
-        # se relacionan al final?
+        if opositor.otros_opositores and not "*" in opositor.nombre:
+            other_name = f"{opositor.nombre} --> {opositor.otros_opositores}"
+            other_opositor = self.get_actor(other_name)
+            other_opositor.status_validation = self.need_review
+            other_opositor.comments = (
+                "YEEKO: Muchos de los nombres de 'otros_opositores' son "
+                "demasiado abstractos (y no únicos), por eso todos deben "
+                "revisarse")
+            other_opositor.save()
 
         for interes in InteresesOpositores.objects.filter(opositor=opositor):
-            # revisar si este es el origen correcto, esta tambien OpositorToNotas y OpositorToProyecto
             mention = self.get_mention(interes)
             self.add_status_project(mention)
 
             self.add_participant(
                 opositor_actor, mention, ["Opositor"], interes.interes)
+
+            if not other_opositor:
+                continue
             self.add_participant(
                 other_opositor, mention, ["Opositor", "otros_opositores"],
                 interes.interes)

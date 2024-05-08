@@ -1,6 +1,8 @@
 import traceback
 from django.core.management.base import BaseCommand
 
+from actor.migrate.grupos_apoyo import GruposApoyoToActorMigration
+from actor.migrate.poblacion_afectada import PoblacionAfectadaToActorMigration
 from actor.migrate.status_project import MigrateStatusProject
 from actor.migrate import (
     CapitalToActorMigration, EstadoToActorMigration, OpositorToActorMigration)
@@ -30,7 +32,6 @@ class Command(BaseCommand):
         for status, error in status_project_migration.errors:
             print(f"Error with status {status.pk}: {status}")
             print(error)
-            traceback.print_exc()
             print()
 
         print("Starting Capital to Actor migration")
@@ -39,7 +40,6 @@ class Command(BaseCommand):
         for capital, error in capital_migration.errors:
             print(f"Error with capital {capital.pk}: {capital}")
             print(error)
-            traceback.print_exc()
             print()
 
         print("Starting Estado to Actor migration")
@@ -48,7 +48,6 @@ class Command(BaseCommand):
         for estado, error in estado_migration.errors:
             print(f"Error with estado {estado.pk}: {estado}")
             print(error)
-            traceback.print_exc()
             print()
 
         print("Starting Opositor to Actor migration")
@@ -57,5 +56,20 @@ class Command(BaseCommand):
         for opositor, error in opositor_migration.errors:
             print(f"Error with opositor {opositor.pk}: {opositor}")
             print(error)
-            traceback.print_exc()
+            print()
+
+        print("Starting Grupos de Apoyo to Actor migration")
+        ga_migration = GruposApoyoToActorMigration()
+
+        for grupo_apoyo, error in ga_migration.errors:
+            print(f"Error with grupo apoyo {grupo_apoyo.pk}: {grupo_apoyo}")
+            print(error)
+            print()
+
+        print("Starting Poblaciones Afectadas to Actor migration")
+        poblaciones_migration = PoblacionAfectadaToActorMigration()
+
+        for poblacion, error in poblaciones_migration.errors:
+            print(f"Error with poblaciones afectadas {poblacion.pk}: {poblacion}")
+            print(error)
             print()
