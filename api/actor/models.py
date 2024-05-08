@@ -350,3 +350,28 @@ class Interest(models.Model):
     class Meta:
         verbose_name = 'Interés'
         verbose_name_plural = 'Intereses'
+
+
+LEGACY_MODELS = (
+    ('Capital', 'Capital'),
+    ('Estado', 'Estado'),
+    ('Opositores', 'Opositores'),
+    ('Poblacione', 'PoblacionesAfectadas'),
+    ('GruposApoyo', 'GruposApoyo'),
+)
+
+
+class OriginReference(models.Model):
+    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
+    type_model = models.CharField(max_length=20, choices=LEGACY_MODELS)
+    origin_id = models.IntegerField()
+    actor_created = models.BooleanField(blank=True, null=True)
+    data = models.JSONField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.origin_id} - {self.type_model}"
+
+    class Meta:
+        verbose_name = 'Referencia de Origen'
+        verbose_name_plural = 'Referencias de Origen'

@@ -1,8 +1,8 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from django.db.models import F
 from source.models import Mention, Note, StatusHistory
 from project.models import Project
-from actor.models import Actor, Interest, Participant, ParticipantType
+from actor.models import Actor, Interest, OriginReference, Participant, ParticipantType
 from ocsa_legacy.models import EstatusProyectos, Proyecto, Nota
 from space_time.models import StatusProject
 
@@ -16,7 +16,9 @@ class ActorBase:
 
     def get_actor(
             self, name: Optional[str], std_name: Optional[str] = None
-    ) -> Actor:
+    ) -> Tuple[Actor, bool]:
+        is_created = False
+
         if not name and not std_name:
             raise ValueError("Name or std_name must be provided")
         if not std_name:
@@ -27,7 +29,7 @@ class ActorBase:
             # No es necesario, el diccionario y las instancias son apuntadores
             # self.actors[std_name] = final_actor
             final_actor.append_alternative_name(name)
-            return final_actor
+            return final_actor, is_created
 
         try:
             # Existe fuera de la migracion actual con std_name
@@ -43,10 +45,11 @@ class ActorBase:
 
             except Actor.DoesNotExist:
                 actor = Actor.objects.create(name=name, std_name=std_name)
+                is_created = True
 
         actor.append_alternative_name(name)
         self.actors[std_name] = actor
-        return actor
+        return actor, is_created
 
     def add_parent(self, actor: Actor, parent: Actor):
         if not parent:
@@ -149,6 +152,18 @@ class ActorBase:
         Interest.objects.create(
             participant=participant,
             text=interest,
+        )
+
+    def register_origin(
+            self, actor: Actor, origin_id: str, type_model: str,
+            actor_created: bool, **kwargs
+    ) -> None:
+        OriginReference.objects.create(
+            actor=actor,
+            origin_id=origin_id,
+            type_model=type_model,
+            actor_created=actor_created,
+            data=kwargs
         )
 
 

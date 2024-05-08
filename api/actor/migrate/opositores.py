@@ -101,7 +101,7 @@ class OpositorToActorMigration(ActorBase):
         if not opositor.nombre:
             return
 
-        opositor_actor = self.get_actor(opositor.nombre)
+        opositor_actor, created_actor = self.get_actor(opositor.nombre)
         if opositor.forma_organizacion and opositor.forma_organizacion.nombre:
             opositor_actor.sector = self.get_sector(
                 opositor.forma_organizacion.nombre)
@@ -135,7 +135,7 @@ class OpositorToActorMigration(ActorBase):
         other_opositor = None
         if opositor.otros_opositores and not "*" in opositor.nombre:
             other_name = f"{opositor.nombre} --> {opositor.otros_opositores}"
-            other_opositor = self.get_actor(other_name)
+            other_opositor, created_other = self.get_actor(other_name)
             other_opositor.status_validation = self.need_review
             other_opositor.comments = (
                 "YEEKO: Muchos de los nombres de 'otros_opositores' son "
@@ -155,3 +155,10 @@ class OpositorToActorMigration(ActorBase):
             self.add_participant(
                 other_opositor, mention, ["Opositor", "otros_opositores"],
                 interes.interes)
+
+        self.register_origin(
+            opositor_actor, opositor.pk, "Opositores", created_actor)
+        if other_opositor:
+            self.register_origin(
+                other_opositor, opositor.pk, "Opositores", created_other,
+                by="otros_opositores")

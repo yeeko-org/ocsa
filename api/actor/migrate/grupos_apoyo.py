@@ -25,7 +25,7 @@ class GruposApoyoToActorMigration(ActorBase):
 
         grupo_name = grupo_apoyo.nombre
 
-        grupo_apoyo_actor = self.get_actor(grupo_name)
+        grupo_apoyo_actor, created_actor = self.get_actor(grupo_name)
 
         mention = self.get_mention(grupo_apoyo)
         self.add_status_project(mention)
@@ -40,3 +40,6 @@ class GruposApoyoToActorMigration(ActorBase):
         self.add_participant(
             grupo_apoyo_actor, mention, participation_list,
             grupo_apoyo.interes)
+
+        self.register_origin(
+            grupo_apoyo_actor, grupo_apoyo.pk, "GruposApoyo", created_actor)

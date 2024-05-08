@@ -72,7 +72,8 @@ class PoblacionAfectadaToActorMigration(ActorBase):
         if poblacion_name == '""':
             poblacion_name = f'"Desconocida - {poblacion_afectada.pk}"'
 
-        poblacion_afectada_actor = self.get_actor(poblacion_name)
+        poblacion_afectada_actor, created_actor = self.get_actor(
+            poblacion_name)
 
         subpoblacion_afectada_name = getattr(
             poblacion_afectada.subpoblacion_afectada, "nombre", None)
@@ -113,3 +114,7 @@ class PoblacionAfectadaToActorMigration(ActorBase):
         self.add_participant(
             poblacion_afectada_actor, mention, ["PoblacionesAfectadas"],
             poblacion_afectada.interes)
+
+        self.register_origin(
+            poblacion_afectada_actor, poblacion_afectada.pk,
+            "PoblacionAfectada", created_actor)

@@ -110,15 +110,22 @@ class CapitalToActorMigration(ActorBase):
         actor = None
         matriz_actor = None
         filial_actor = None
+
+        created_actor = False
+        created_matriz = False
+        created_filial = False
+
         if final_name:
-            actor, _ = Actor.objects.get_or_create(name=final_name)
+            actor, created_actor = Actor.objects.get_or_create(name=final_name)
         elif real_count > 1:
             if nombre:
-                actor = self.get_actor(nombre, std_nombre)
+                actor, created_actor = self.get_actor(nombre, std_nombre)
             if matriz:
-                matriz_actor = self.get_actor(matriz, std_matriz)
+                matriz_actor, created_matriz = self.get_actor(
+                    matriz, std_matriz)
             if filial:
-                filial_actor = self.get_actor(filial, std_filial)
+                filial_actor, created_filial = self.get_actor(
+                    filial, std_filial)
 
         if actor:
             if need_review:
@@ -165,3 +172,12 @@ class CapitalToActorMigration(ActorBase):
             self.add_participant(main_actor, mention, ["Capital"])
             self.add_status_project(mention)
         main_actor.save()
+
+        if actor:
+            self.register_origin(actor, capital.pk, "Capital", created_actor)
+        if matriz_actor:
+            self.register_origin(
+                matriz_actor, capital.pk, "Capital", created_matriz, by="matriz")
+        if filial_actor:
+            self.register_origin(
+                filial_actor, capital.pk, "Capital", created_filial, by="filial")

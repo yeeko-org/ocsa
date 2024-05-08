@@ -29,23 +29,30 @@ class EstadoToActorMigration(ActorBase):
         self.add_status_project(mention)
 
         self.migrate_to_actor_from_name(
-            mention, estado.instituciones_a_favor_proyecto, ["Estado"])
+            mention, estado, "instituciones_a_favor_proyecto", ["Estado"])
 
         self.migrate_to_actor_from_name(
-            mention, estado.instituciones_mediadoras, ["Mediador"])
+            mention, estado, "instituciones_mediadoras", ["Mediador"])
 
         self.migrate_to_actor_from_name(
-            mention, estado.instituciones_atienden_reclamos,
+            mention, estado, "instituciones_atienden_reclamos",
             ["Atención a reclamos"])
 
     def migrate_to_actor_from_name(
             self, mention: Mention,
-            institution_name: Optional[str],
+            estado: Estado,
+            attr_institution_name: str,
             participant_types: Optional[list] = None
     ):
+        institution_name = getattr(estado, attr_institution_name)
         if not institution_name:
             return
-        institution_actor = self.get_actor(institution_name)
+        institution_actor, created_actor = self.get_actor(institution_name)
 
         self.add_participant(
             institution_actor, mention, participant_types)
+
+        self.register_origin(
+            institution_actor, estado.pk, "Estado", created_actor,
+            by=attr_institution_name, mention_id=mention.pk
+        )
