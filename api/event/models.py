@@ -67,7 +67,8 @@ class Event(models.Model):
 init_event_roles = [
     "Victimario",
     "Responsable",
-    "Víctima"]
+    "Víctima",
+    "Accionante"]
 
 
 class EventRole(models.Model):

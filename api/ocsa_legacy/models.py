@@ -384,6 +384,7 @@ class Capital(CustomModel):
     matriz = models.TextField(blank=True, null=True)
     filial = models.TextField(blank=True, null=True)
     # RICK: No me queda claro qué haremos con este campo
+    # NUEVO: Directores
     directores = models.TextField(blank=True, null=True)
     inversionistas = models.TextField(blank=True, null=True)
     nacionalidad = models.TextField(blank=True, null=True)
@@ -1124,7 +1125,7 @@ class Violencia(CustomModel):
     is_hombres = models.BooleanField(blank=True, null=True)
     is_mujeres = models.BooleanField(blank=True, null=True)
 
-    # RICK: Campo pendiente de clasficar
+    # RICK: Campo pendiente de clasificar
     condicion_mujeres_victimas = models.ForeignKey(
         CondicionMujerVictima, on_delete=models.CASCADE, blank=True, null=True,
         db_column='condicion_mujeres_victimas')
@@ -1138,11 +1139,14 @@ class Violencia(CustomModel):
     sector_social_victima = models.ForeignKey(
         SectorSocial, on_delete=models.CASCADE, blank=True, null=True,
         db_column='sector_social_victima')
+    # PREVIO: Agregar un belong con el key_name = "is_leader" y
+    # name = "Dirigente"
+    # los actores generados hay que agregarles el Belong de is_leader
     is_victima_dirigente = models.BooleanField(blank=True, null=True)
 
     # Todas las reglas aplican para los 2 siguientes campos:
     # Se creará (si no existe) un registro de Actor
-    # El participan_type de todos deberá tener "Por definir (de violencias)",
+    # Se debe agregar el participan_type "Por definir (de violencias)",
     # El Sector.nombre de responsable_estatal_desc será "Responsable Estatal" y
     # su SectorGroup.name será "Varios"
     # (a menos que el registro ya exista y ya tenga un sector asociado,
@@ -1159,6 +1163,8 @@ class Violencia(CustomModel):
     # con el status_validation de "need_review" y con el comentario siguiente:
     # YEEKO: Se creó este nombre porque se identificó como nombre genérico,
     # sin embargo, debe mejorar su nombre.
+    # Para los nombres de la lista del excel, hay que agregar al actor,
+    # el Sector con el nombre tal como viene
     responsable_estatal_desc = models.TextField(blank=True, null=True)
     responsable_no_estatal_desc = models.TextField(blank=True, null=True)
 
@@ -1228,6 +1234,12 @@ class ViolenciaToUbicacion(CustomModel):
 # );
 
 
+# Vamos a hacer exactamente lo mismo que con HechosViolencia y
+# FormaHechoViolencia, pero con FormaAC y SubformaAC,
+# se vana a ir a EventType y EventSubtype. La diferencia es que sí
+# existe desde el modelo SubformaAC, una relación directa con FormaAC
+# El EventGroup será name = "Acciones Colectivas" y el model_origin será
+# "FormaAC"
 class FormaAC(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -1274,6 +1286,8 @@ class SubformaAC(CustomModel):
 # );
 
 
+# cada registro de AccionesColectivas generará un nuevo Event, los
+
 class AccionesColectivas(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
@@ -1305,6 +1319,9 @@ class AccionesColectivas(CustomModel):
 #     ac_id integer  --ForeignKey
 # );
 
+
+# Esta tabla ayudará a construir los Involved de los eventos, en este caso
+# el event_role será "Accionante".
 
 class OpositoresToAC(CustomModel):
     opositor = models.ForeignKey(
