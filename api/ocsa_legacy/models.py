@@ -1139,9 +1139,11 @@ class Violencia(CustomModel):
     sector_social_victima = models.ForeignKey(
         SectorSocial, on_delete=models.CASCADE, blank=True, null=True,
         db_column='sector_social_victima')
+
+    # NUEVO:
     # PREVIO: Agregar un belong con el key_name = "is_leader" y
     # name = "Dirigente"
-    # los actores generados hay que agregarles el Belong de is_leader
+    # SEGUNDO PASO: los actores generados hay que agregarles el Belong de is_leader
     is_victima_dirigente = models.BooleanField(blank=True, null=True)
 
     # Todas las reglas aplican para los 2 siguientes campos:

@@ -65,7 +65,8 @@ class ActorBase:
     def add_participant(
         self, actor: Actor, mention: Mention,
         participant_types: Optional[list] = None,
-        interest: Optional[str] = None
+        interest: Optional[str] = None,
+        get_object: Optional[bool] = False
     ):
         participant, _ = Participant.objects.get_or_create(
             actor=actor, mention=mention)
@@ -77,6 +78,9 @@ class ActorBase:
                 participant.participant_types.add(pt)
         if interest:
             self.set_interest(participant, interest)
+
+        if get_object:
+            return participant
 
     def get_mention(self, instance) -> Mention:
         nota_id: Optional[int] = getattr(instance, "nota_id", None)
