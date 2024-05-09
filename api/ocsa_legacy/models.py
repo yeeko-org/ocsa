@@ -1138,6 +1138,8 @@ class Violencia(CustomModel):
     sector_social_victima = models.ForeignKey(
         SectorSocial, on_delete=models.CASCADE, blank=True, null=True,
         db_column='sector_social_victima')
+    
+    # RICK: Campo pendiente de clasficar
     is_victima_dirigente = models.BooleanField(blank=True, null=True)
 
     # Todas las reglas aplican para los 2 siguientes campos:
