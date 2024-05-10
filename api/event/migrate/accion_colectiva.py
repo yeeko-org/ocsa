@@ -105,8 +105,13 @@ class AccionesColectivasToEventMigrate:
             sub_forma_exist = SubformaAC.objects.filter(
                 id_forma_ac=forma_accion_colectiva.pk).exists()
 
+            forma_ac_nombre = forma_accion_colectiva.nombre
+
+            if EventType.objects.filter(name=forma_ac_nombre).exists():
+                continue
+
             event_type = EventType.objects.create(
-                name=forma_accion_colectiva.nombre,
+                name=forma_ac_nombre,
                 description=forma_accion_colectiva.descripcion,
                 group=ac_group if sub_forma_exist else None
             )
