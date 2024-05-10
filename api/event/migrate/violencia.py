@@ -10,7 +10,7 @@ from .generic_responsable_estatal import generic_responsable_estatal_desc
 from .generic_responsable_no_estatal import generic_responsable_no_estatal_desc
 
 
-class MigrateEvent(ActorBase):
+class MigrateViolenciaToEvent(ActorBase):
     violencia: Violencia
     mention: Mention
     event: Event
@@ -232,7 +232,7 @@ class ViolenciaToEventMigrate:
         self.sector_social()
         for violencia in Violencia.objects.all():
             try:
-                migrate_violencia = MigrateEvent(violencia)
+                migrate_violencia = MigrateViolenciaToEvent(violencia)
                 migrate_violencia.migrate()
             except Exception as e:
                 self.errors.append([violencia, e])
