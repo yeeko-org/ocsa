@@ -1,5 +1,5 @@
 from typing import Optional
-from actor.models import Actor, CapitalType
+from actor.models import Actor, Sector
 from ocsa_legacy.models import Capital
 from work_flux.models import StatusControl
 from space_time.models import Country
@@ -30,13 +30,6 @@ class CapitalToActorMigration(ActorBase):
         country, _ = Country.objects.get_or_create(name=name)
         return country
 
-    def get_capital_type(self, is_public: Optional[bool] = None):
-        if is_public is None:
-            return None
-        name = "Público" if is_public else "Privado"
-        capital_type, _ = CapitalType.objects.get_or_create(name=name)
-        return capital_type
-
     def get_capital_extension(self, actor: Actor, capital: Capital):
         capital_extension = actor.capital_extension or {}
         fields = ["directores", "inversionistas", "is_cotiza_bolsa"]
@@ -62,13 +55,7 @@ class CapitalToActorMigration(ActorBase):
 
         # RESPUESTA: Por lo pronto hay que registrar esas inconsistencias en
         # el reporte de errores, para analizar los casos uno por uno
-
-        # ### Para Ricardo Ya no es necesario la comprovacion con "SD"
-        # def get_real_attribute(field):
-        #     value = getattr(capital, field)
-        #     if value == "" or value == "SD" or value is None:
-        #         return None
-        #     return value
+        capital_type = "public" if capital.is_capital_publico else "private"
 
         nombre = capital.nombre
         matriz = capital.matriz
@@ -132,12 +119,14 @@ class CapitalToActorMigration(ActorBase):
                 actor.status_validation = self.need_review
             if matriz_actor:
                 self.add_parent(actor, matriz_actor)
+            actor = self.add_capital_type(actor, capital_type)
             actor.save()
         if matriz_actor:
             if actor and matriz_actor.is_only_related is False:
                 matriz_actor.is_only_related = True
             if need_review:
                 matriz_actor.status_validation = self.need_review
+            matriz_actor = self.add_capital_type(matriz_actor, capital_type)
             matriz_actor.save()
         if filial_actor:
             if matriz_actor:
@@ -147,6 +136,7 @@ class CapitalToActorMigration(ActorBase):
             filial_actor.is_only_related = True
             if need_review:
                 filial_actor.status_validation = self.need_review
+            filial_actor = self.add_capital_type(filial_actor, capital_type)
             filial_actor.save()
 
         main_actor = actor or matriz_actor or filial_actor
@@ -158,10 +148,6 @@ class CapitalToActorMigration(ActorBase):
             main_actor, capital)
 
         # actor.parent_actor = self.get_actor_matriz(capital)  # type: ignore
-        # RICK: No estoy seguro de la existencia de capital_type, por ahora
-        # lo dejaré comentado
-        # actor.capital_type = self.get_capital_type(
-        #     capital.is_capital_publico)
 
         country = self.get_country(capital.nacionalidad)
         if country:
@@ -181,3 +167,13 @@ class CapitalToActorMigration(ActorBase):
         if filial_actor:
             self.register_origin(
                 filial_actor, capital.pk, "Capital", created_filial, by="filial")
+
+    def add_capital_type(self, actor: Actor, capital_type: str):
+        if not actor.capital_type:
+            actor.capital_type = capital_type
+        elif actor.capital_type != capital_type:
+            actor.status_validation = self.need_review
+            comment = "YEEKO: El actor tiene registrado más de un tipo de capital"
+            actor.add_comment(comment)
+        return actor
+

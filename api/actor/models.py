@@ -102,6 +102,17 @@ class IndigenousGroup(models.Model):
         verbose_name_plural = 'Grupos Indígenas'
 
 
+init_sector_groups = [
+    ('Individuos', False),
+    ('Empresas Privadas', True),
+    ('Empresas estatales', True),
+    ('Empresas privadas', True),
+    ('Estado', True),
+    ('Contradictorio', True),
+    ('Varios', True),
+]
+
+
 class SectorGroup(models.Model):
     name = models.CharField(max_length=255)
     is_collective = models.BooleanField(blank=True, null=True)
@@ -114,9 +125,23 @@ class SectorGroup(models.Model):
         verbose_name_plural = 'Grupos Sectoriales'
 
 
-# Esto se alimentará de:
-# cat_forma_organizacion: todos tendrán el sector con nombre "Varios",
-#   y con is_collective = True
+init_sectors = [
+    ('Empresa privada nacional', False, 'Empresas Privadas', None),
+    ('Empresa privada extranjera', False, 'Empresas Privadas', None),
+    ('Empresa privada', False, 'Empresas Privadas', 'need_reclassify'),
+    ('Empresa estatal', False, 'Empresas estatales', None),
+    ('Poder Ejecutivo Federal', False, 'Estado', None),
+    ('Poder Ejecutivo Estatal', False, 'Estado', None),
+    ('Poder Ejecutivo Municipal', False, 'Estado', None),
+    ('Poder Judicial', False, 'Estado', None),
+    ('Poder Legislativo', False, 'Estado', None),
+    ('Institución del Estado', False, 'Estado', 'need_reclassify'),
+    ('Contradictorio', False, 'Contradictorio', 'need_reclassify'),
+    ('Varios', False, 'Varios', 'need_reclassify'),
+    ('Empresariado', False, 'Individuos', False),
+]
+
+
 class Sector(models.Model):
     name = models.CharField(max_length=255)
     needs_name = models.BooleanField(default=False)
@@ -127,6 +152,8 @@ class Sector(models.Model):
     has_belongs = models.BooleanField(default=True)
     common_belongs = models.ManyToManyField(
         Belong, blank=True)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -136,20 +163,16 @@ class Sector(models.Model):
         verbose_name_plural = 'Sectores'
 
 
-class CapitalType(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = 'Tipo de Capital'
-        verbose_name_plural = 'Tipos de Capital'
-
-
 def default_list():
     return []
+
+
+CAPITAL_TYPES = (
+    ('public', 'Público'),
+    ('private', 'Privado'),
+    ('mixed', 'Mixto'),
+    ("conflict", "Conflicto"),
+)
 
 
 # Tablas origen: Capital, Estado, Opositores, Poblaciones, GruposApoyo
@@ -234,8 +257,8 @@ class Actor(models.Model):
     # cuando el id > 4 ; también agregar su belong de "is_indigena"
     indigenous_group = models.ForeignKey(
         IndigenousGroup, on_delete=models.CASCADE, blank=True, null=True)
-    capital_type = models.ForeignKey(
-        CapitalType, on_delete=models.CASCADE, blank=True, null=True)
+    capital_type = models.CharField(
+        max_length=10, choices=CAPITAL_TYPES, blank=True, null=True)
 
     # Acá se irán los siguientes campos de Capital, como diccionario:
     # directores, inversionistas, is_cotiza_bolsa,
@@ -249,6 +272,16 @@ class Actor(models.Model):
     comments = models.TextField(blank=True, null=True)
 
     capital_id_ref = models.IntegerField(blank=True, null=True)
+
+    def add_comment(self, comment: str):
+        if not comment:
+            return
+        if self.comments:
+            if comment not in self.comments:
+                self.comments += f"\n\n{comment}"
+        else:
+            self.comments = comment
+        self.save()
 
     def append_alternative_name(self, name, save=True):
         if not name or self.name == name:

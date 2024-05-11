@@ -384,7 +384,9 @@ class Capital(CustomModel):
     matriz = models.TextField(blank=True, null=True)
     filial = models.TextField(blank=True, null=True)
     # RICK: No me queda claro qué haremos con este campo
-    # NUEVO: Directores
+    # NUEVO 2: Hay que separar a los directores (por punto y coma y "y")
+    # Cada uno de los directores tendrá su parent_actor a main_actor
+    # y su Sector será "Empresarios" y el SectorGroup será "Individuales"
     directores = models.TextField(blank=True, null=True)
     inversionistas = models.TextField(blank=True, null=True)
     nacionalidad = models.TextField(blank=True, null=True)
@@ -452,6 +454,9 @@ class Estado(CustomModel):
 #     descripcion text
 # );
 
+
+# Esto alimentará a Sector: todos tendrán el sector con nombre "Varios",
+# y con is_collective = True
 class FormaOrganizacion(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)

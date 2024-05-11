@@ -1,4 +1,6 @@
-from .models import init_participant_types, temporal_participant_types, ParticipantType
+from .models import (
+    init_participant_types, temporal_participant_types, ParticipantType,
+    init_sector_groups, SectorGroup)
 
 
 class ParticipantTypes:
@@ -18,3 +20,11 @@ class TemporalParticipantTypes:
                 required_interests=required_interests,
                 is_temporal=True
             )
+
+
+class InitSectorGroups:
+    def __init__(self):
+        for name, is_collective in init_sector_groups:
+            SectorGroup.objects.get_or_create(
+                name=name, is_collective=is_collective)
+

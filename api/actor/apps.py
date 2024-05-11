@@ -8,11 +8,13 @@ class ActorConfig(AppConfig):
     verbose_name = 'Actores'
 
     def ready(self) -> None:
-        from .initial_data import ParticipantTypes, TemporalParticipantTypes
+        from .initial_data import (
+            ParticipantTypes, TemporalParticipantTypes, InitSectorGroups)
         _ready = super().ready()
         if 'runserver' in sys.argv:
             print('Cargando datos iniciales...')
             ParticipantTypes()
+            InitSectorGroups()
             TemporalParticipantTypes()
             print('Datos iniciales cargados.')
         return _ready
