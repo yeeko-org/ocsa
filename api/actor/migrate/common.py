@@ -82,6 +82,20 @@ class ActorBase:
         if get_object:
             return participant
 
+    def get_participant(
+        self, actor: Actor, mention: Mention,
+        participant_types: Optional[list] = None,
+        interest: Optional[str] = None
+    ) -> Participant:
+        participant = self.add_participant(
+            actor, mention, participant_types, interest, get_object=True
+        )
+
+        if not participant:
+            raise ValueError(f"Error with actor {actor} and mention {mention}")
+
+        return participant
+
     def get_mention(self, instance) -> Mention:
         nota_id: Optional[int] = getattr(instance, "nota_id", None)
         proyecto_id: Optional[int] = getattr(instance, "proyecto_id", None)

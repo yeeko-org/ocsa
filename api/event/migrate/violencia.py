@@ -10,7 +10,7 @@ from .generic_responsable_estatal import generic_responsable_estatal_desc
 from .generic_responsable_no_estatal import generic_responsable_no_estatal_desc
 
 
-class MigrateEvent(ActorBase):
+class MigrateViolenciaToEvent(ActorBase):
     violencia: Violencia
     mention: Mention
     event: Event
@@ -232,7 +232,7 @@ class ViolenciaToEventMigrate:
         self.sector_social()
         for violencia in Violencia.objects.all():
             try:
-                migrate_violencia = MigrateEvent(violencia)
+                migrate_violencia = MigrateViolenciaToEvent(violencia)
                 migrate_violencia.migrate()
             except Exception as e:
                 self.errors.append([violencia, e])
@@ -241,6 +241,8 @@ class ViolenciaToEventMigrate:
         default_group, _ = EventGroup.objects.get_or_create(
             name="Violencia", model_origin="HechosViolencia")
         for h_violencia in HechosViolencia.objects.all():
+            if EventType.objects.filter(name=h_violencia.nombre).exists():
+                continue
             EventType.objects.create(
                 name=h_violencia.nombre,
                 description=h_violencia.descripcion,
@@ -265,15 +267,18 @@ class ViolenciaToEventMigrate:
             "Defensor del territorio", "Comunicador", "Profesora", "Alcalde"
         ]
         for sector_social in SectorSocial.objects.all():
+            if not sector_social.nombre:
+                continue
             if Sector.objects.filter(name=sector_social.nombre).exists():
                 continue
 
             sector_group = {}
-            if sector_social.nombre in special_sectors:
+            # revisar esta logica, sector_grupo es obligatorio
+            # if sector_social.nombre in special_sectors:
+            if True:
                 sector_group["sector_group"] = default_group
 
             Sector.objects.create(
                 name=sector_social.nombre,
-                description=sector_social.descripcion,
                 **sector_group
             )
