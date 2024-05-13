@@ -1,8 +1,10 @@
 from typing import List, Optional
 from actor.migrate.common import ActorBase
 from actor.models import Participant, Sector, SectorGroup
-from event.models import Event, EventGroup, EventRole, EventSubtype, EventType, Involved
-from ocsa_legacy.models import FormaHechoViolencia, HechosViolencia, SectorSocial, Violencia
+from event.models import (
+    Event, EventGroup, EventRole, EventSubtype, EventType, Involved)
+from ocsa_legacy.models import (
+    FormaHechoViolencia, HechosViolencia, SectorSocial, Violencia)
 from source.models import Mention
 from work_flux.models import StatusControl
 
@@ -121,7 +123,7 @@ class MigrateViolenciaToEvent(ActorBase):
 
         project_name = self.mention.project.official_name
         sector_s_name = (
-            f"Víctima del sector {sector_s_name} del proyecto  {project_name}")
+            f"Víctima del sector {sector_s_name} del proyecto {project_name}")
         sector_social_actor, _ = self.get_actor(sector_s_name)
 
         similar_count = Sector.objects.filter(
@@ -257,8 +259,10 @@ class ViolenciaToEventMigrate:
             )
 
     def sector_social(self):
-        default_group, _ = SectorGroup.objects.get_or_create(
+        collective_group, _ = SectorGroup.objects.get_or_create(
             name="Varios", is_collective=True)
+        individual_group, _ = SectorGroup.objects.get_or_create(
+            name="Individuos (Varios)", is_collective=False)
         special_sectors = [
             "Trabajador de la empresa", "Otro (Abogado opositor)",
             "Periodista", "Abogado", "Activista", "Agente Federal",
@@ -269,16 +273,16 @@ class ViolenciaToEventMigrate:
         for sector_social in SectorSocial.objects.all():
             if not sector_social.nombre:
                 continue
-            if Sector.objects.filter(name=sector_social.nombre).exists():
-                continue
+            group = individual_group if sector_social.nombre in special_sectors \
+                else collective_group
 
-            sector_group = {}
-            # revisar esta logica, sector_grupo es obligatorio
-            # if sector_social.nombre in special_sectors:
-            if True:
-                sector_group["sector_group"] = default_group
+            if Sector.objects\
+                    .filter(name=sector_social.nombre, sector_group=group)\
+                    .exists():
+                continue
 
             Sector.objects.create(
                 name=sector_social.nombre,
-                **sector_group
+                sector_group=group,
+                status_validation_id="need_reclassify"
             )

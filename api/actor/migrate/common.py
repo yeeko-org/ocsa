@@ -2,7 +2,8 @@ from typing import Dict, Optional, Tuple
 from django.db.models import F
 from source.models import Mention, Note, StatusHistory
 from project.models import Project
-from actor.models import Actor, Interest, OriginReference, Participant, ParticipantType
+from actor.models import (
+    Actor, Interest, OriginReference, Participant, ParticipantType, Sector)
 from ocsa_legacy.models import EstatusProyectos, Proyecto, Nota
 from space_time.models import StatusProject
 
@@ -63,11 +64,13 @@ class ActorBase:
         actor.parent_actor = parent  # type: ignore
 
     def add_participant(
-        self, actor: Actor, mention: Mention,
+        self, actor: Actor, mention: Optional[Mention],
         participant_types: Optional[list] = None,
         interest: Optional[str] = None,
         get_object: Optional[bool] = False
     ):
+        if not mention:
+            return
         participant, _ = Participant.objects.get_or_create(
             actor=actor, mention=mention)
 
@@ -164,6 +167,32 @@ class ActorBase:
                 type_temporalidad=cat_tem_nombre
             )
 
+    def set_sector(self, actor: Actor, sector: str):
+        if not sector:
+            return
+        sector_obj, _ = Sector.objects.get_or_create(name=sector)
+        if not actor.sector:
+            actor.sector = sector_obj
+        elif actor.sector != sector_obj:
+            if actor.sector.name == "Contradictorio":
+                error = (f"YEEKO: hay sectores contradictorios:"
+                         f" {actor.sector.name} y {sector_obj.name}")
+                actor.add_comment(error)
+                self.errors.append([actor, error])
+            elif "reclassify" in actor.sector.status_validation_id:
+                actor.sector = sector_obj
+            elif "reclassify" in sector_obj.status_validation_id:
+                pass
+            else:
+                sector_contradictory = Sector.objects.get(
+                    name="Contradictorio")
+                self.errors.append([actor, error])
+                error = (f"YEEKO: hay sectores contradictorios:"
+                         f" {actor.sector.name} y {sector_obj.name}")
+                actor.add_comment(error)
+                actor.sector = sector_contradictory
+        actor.save()
+
     def set_interest(self, participant: Participant, interest: str):
         if not interest:
             return
@@ -174,12 +203,13 @@ class ActorBase:
 
     def register_origin(
             self, actor: Actor, origin_id: str, type_model: str,
-            actor_created: bool, **kwargs
+            actor_created: bool, field: Optional[str] = None, **kwargs
     ) -> None:
         OriginReference.objects.create(
             actor=actor,
             origin_id=origin_id,
             type_model=type_model,
+            field=field,
             actor_created=actor_created,
             data=kwargs
         )

@@ -31,7 +31,7 @@ class PoblacionAfectadaToActorMigration(ActorBase):
             "is_farmer": "Campesino",
             "is_worker": "Trabajador",
             "is_habitant": "Habitante",
-            "is_woman_special": "Mujer",
+            "is_women_special": "Mujer",
             "is_affected": "Población Afectada",
         }
 

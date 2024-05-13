@@ -12,7 +12,7 @@ class ActorConfig(AppConfig):
             ParticipantTypes, TemporalParticipantTypes, InitSectorGroups)
         _ready = super().ready()
         if 'runserver' in sys.argv:
-            print('Cargando datos iniciales...')
+            print('Cargando datos iniciales de actor...')
             ParticipantTypes()
             InitSectorGroups()
             TemporalParticipantTypes()

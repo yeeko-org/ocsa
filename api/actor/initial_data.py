@@ -18,13 +18,18 @@ class TemporalParticipantTypes:
                 name=name,
                 position=position,
                 required_interests=required_interests,
-                is_temporal=True
+                status_validation_id="need_reclassify"
             )
 
 
 class InitSectorGroups:
     def __init__(self):
-        for name, is_collective in init_sector_groups:
+        for name, is_collective, capital_type in init_sector_groups:
             SectorGroup.objects.get_or_create(
-                name=name, is_collective=is_collective)
+                name=name,
+                is_collective=is_collective,
+                capital_type=capital_type
+            )
+
+
 

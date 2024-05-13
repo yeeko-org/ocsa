@@ -381,16 +381,21 @@ class Capital(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     nombre = models.TextField(blank=True, null=True)
+    # Al final del script, utilizando Capital.matriz:
+    # Si no existe, crear un nuevo Actor solo con ese nombre,
+    # y ponerle is_only_related = True
+    # Por el contrario, con el campo de Capital.filial se creará un nuevo actor
+    # cuyo parent_actor será el registro actual
     matriz = models.TextField(blank=True, null=True)
     filial = models.TextField(blank=True, null=True)
-    # RICK: No me queda claro qué haremos con este campo
     # NUEVO 2: Hay que separar a los directores (por punto y coma y "y")
     # Cada uno de los directores tendrá su parent_actor a main_actor
     # y su Sector será "Empresarios" y el SectorGroup será "Individuales"
     directores = models.TextField(blank=True, null=True)
+    # los 2 siguientes campos inversionistas, is_cotiza_bolsa,
+    # ayudaran a construir el campo "capital_extension"
     inversionistas = models.TextField(blank=True, null=True)
     nacionalidad = models.TextField(blank=True, null=True)
-    # RICK: Aún no sé cómo voy a clasificar este campo
     is_capital_publico = models.BooleanField(blank=True, null=True)
     is_cotiza_bolsa = models.BooleanField(blank=True, null=True)
     interes = models.TextField(blank=True, null=True)
@@ -426,8 +431,11 @@ class Estado(CustomModel):
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
         Proyecto, on_delete=models.CASCADE)
+    # participant_type = Estado
     instituciones_a_favor_proyecto = models.TextField(blank=True, null=True)
+    # participant_type = Mediador
     instituciones_mediadoras = models.TextField(blank=True, null=True)
+    # participant_type = Atención a reclamos
     instituciones_atienden_reclamos = models.TextField(blank=True, null=True)
     # RICK Y LUCIAN: Aún no le encuentro sentido a este campo
     temporalidad = models.ForeignKey(
@@ -512,14 +520,22 @@ class Opositores(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     forma_organizacion = models.ForeignKey(
         FormaOrganizacion, on_delete=models.CASCADE, blank=True, null=True)
-    # RICK: Aún no sé qué vamos a hacer con este campo
+    # is_women_special => Mujer
+    # Esto se construye a partir de Opositor.mujer,
+    # cuando Opositor.mujer tiene valor y su id es mayor o igual a 2;
+    # RICK: Aún no sé bien qué vamos a hacer con este campo
     mujer = models.ForeignKey(
         Mujer, on_delete=models.CASCADE, blank=True, null=True)
+    # is_farmer => Campesino
     is_campesino_or_comunero_or_ejidatario = models.BooleanField(
         blank=True, null=True)
+    # is_worker => Trabajador
     is_trabajador_empresa = models.BooleanField(blank=True, null=True)
+    # is_habitant => Habitante
     is_habitante_zona = models.BooleanField(blank=True, null=True)
+    # is_indigena => Indígena
     is_indigena = models.BooleanField(blank=True, null=True)
+    # Va a Actor.indigenous_group, también agregar Belong "is_indigena"
     pueblo_indigena = models.TextField(blank=True, null=True)
     otros_opositores = models.TextField(blank=True, null=True)
     # RICK: Falta decidir el comportamiento de este campo
@@ -701,15 +717,30 @@ class CatSubpoblacionAfectada(CustomModel):
 # );
 
 
+# Agregar belong "is_affected"
+# Todos los de la tabla PopulacionesAfectadas tendrán este campo
 class PoblacionAfectada(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
         Proyecto, on_delete=models.CASCADE)
+    # BELONGS:
+    # is_habitant => Habitante
+    # PoblacionesAfectadas: name == "Pobladores" or name == "Vecinos"
+    # is_worker => Trabajador
+    # PoblacionesAfectadas: name == "Trabajadores de la empresa"
+    # is_indigena => Indígena
+    # PoblacionesAfectadas: name == "Indígena"
+    # is_farmer => Campesino
+    # PoblacionesAfectadas: name == "Campesino/Comunero/Ejidatario"
     poblacion_afectada = models.ForeignKey(
         CatPoblacionAfectada, on_delete=models.CASCADE, blank=True, null=True)
+    # Actor. indigenous_group
+    # cuando el id > 4 ; también agregar su belong de "is_indigena"
     subpoblacion_afectada = models.ForeignKey(
         CatSubpoblacionAfectada, on_delete=models.CASCADE, blank=True, null=True)
+    # Este campo ayuda a construir 'nombre'. Hay varios registros
+    # que tienen comillas, están raros, parecen como no terminados
     descripcion = models.TextField(blank=True, null=True)
     interes = models.TextField(blank=True, null=True)
     # RICK: Falta decidir el comportamiento de este campo
@@ -774,6 +805,9 @@ class GruposApoyo(CustomModel):
         Nota, on_delete=models.CASCADE, blank=True, null=True)
     proyecto = models.ForeignKey(
         Proyecto, on_delete=models.CASCADE)
+    # Los GruposApoyo que tengan "Empresa" tendrán participante_type = "Partidario"
+    # Los GruposApoyo que tengan "Opositor" u "Opositores" tendrán
+    # participante_type = "Acompañante solidario"
     tipo_grupo_apoyo = models.TextField(blank=True, null=True)
     nombre = models.TextField(blank=True, null=True)
     interes = models.TextField(blank=True, null=True)

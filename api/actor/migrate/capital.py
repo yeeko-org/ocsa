@@ -1,5 +1,5 @@
 from typing import Optional
-from actor.models import Actor, Sector
+from actor.models import Actor, Sector, SectorGroup, Member
 from ocsa_legacy.models import Capital
 from work_flux.models import StatusControl
 from space_time.models import Country
@@ -13,33 +13,28 @@ class CapitalToActorMigration(ActorBase):
         super().__init__()
 
         capitales = Capital.objects.all()
+        self.current_capital = None
 
-        self.need_review, _ = StatusControl.objects.get_or_create(
-            name="need_review", group="validation",
-            public_name="Requiere revisión")
+        self.countries = []
+
+        self.empresariado = None
+        try:
+            self.empresariado = Sector.objects.get(name="Empresariado")
+        except Sector.DoesNotExist:
+            self.add_error("El sector Empresariado no existe")
 
         for capital in capitales:
+            self.current_capital = capital
+            self.countries = []
+            self.need_review = None
+            self.is_mexican = False
             try:
                 self.migrate_to_actor(capital)
             except Exception as e:
-                self.errors.append([capital, e])
+                self.add_error(str(e))
 
-    def get_country(self, name):
-        if not name:
-            return None
-        country, _ = Country.objects.get_or_create(name=name)
-        return country
-
-    def get_capital_extension(self, actor: Actor, capital: Capital):
-        capital_extension = actor.capital_extension or {}
-        fields = ["directores", "inversionistas", "is_cotiza_bolsa"]
-        for field in fields:
-            saved_value = capital_extension.get(field, [])
-            value = getattr(capital, field)
-            if value is not None:
-                saved_value.append(value)
-                capital_extension[field] = saved_value
-        return capital_extension
+    def add_error(self, message: str):
+        self.errors.append([self.current_capital, message])
 
     def migrate_to_actor(self, capital: Capital):
         # ### Para Ricardo
@@ -55,7 +50,8 @@ class CapitalToActorMigration(ActorBase):
 
         # RESPUESTA: Por lo pronto hay que registrar esas inconsistencias en
         # el reporte de errores, para analizar los casos uno por uno
-        capital_type = "public" if capital.is_capital_publico else "private"
+
+        self.get_countries()
 
         nombre = capital.nombre
         matriz = capital.matriz
@@ -67,10 +63,12 @@ class CapitalToActorMigration(ActorBase):
         real_count = (bool(nombre) + bool(matriz) + bool(filial))
 
         final_name = None
-        need_review = False
+
+        warning_change = ("YEEKO: La filial se interpretó como la matriz, "
+                          "pero no necesariamenete es cierto")
 
         if real_count == 0:
-            need_review = True
+            self.add_error("Ningún nombre de empresa se encontró")
         elif real_count == 1:
             final_name = nombre or matriz or filial
         else:
@@ -85,7 +83,7 @@ class CapitalToActorMigration(ActorBase):
 
             if nombre and not matriz and filial:
                 if std_nombre != std_filial:
-                    need_review = True
+                    self.need_review = warning_change
                     matriz = filial
                     std_matriz = std_filial
                 filial = None
@@ -114,30 +112,32 @@ class CapitalToActorMigration(ActorBase):
                 filial_actor, created_filial = self.get_actor(
                     filial, std_filial)
 
+        mention = self.get_mention(capital)
+
         if actor:
-            if need_review:
-                actor.status_validation = self.need_review
             if matriz_actor:
                 self.add_parent(actor, matriz_actor)
-            actor = self.add_capital_type(actor, capital_type)
-            actor.save()
+            actor = self.save_capital_features(actor, mention)
+            self.add_participant(actor, mention, ["Capital"])
+            self.register_origin(
+                actor, capital.pk, "Capital", created_actor, field="nombre")
         if matriz_actor:
             if actor and matriz_actor.is_only_related is False:
                 matriz_actor.is_only_related = True
-            if need_review:
-                matriz_actor.status_validation = self.need_review
-            matriz_actor = self.add_capital_type(matriz_actor, capital_type)
-            matriz_actor.save()
+            matriz_actor = self.save_capital_features(matriz_actor)
+            self.register_origin(
+                matriz_actor, capital.pk, "Capital", created_matriz, field="matriz")
+
         if filial_actor:
             if matriz_actor:
                 self.add_parent(filial_actor, matriz_actor)
             elif actor:
                 self.add_parent(filial_actor, actor)
+            self.add_participant(filial_actor, mention, ["Capital"])
             filial_actor.is_only_related = True
-            if need_review:
-                filial_actor.status_validation = self.need_review
-            filial_actor = self.add_capital_type(filial_actor, capital_type)
-            filial_actor.save()
+            filial_actor = self.save_capital_features(filial_actor)
+            self.register_origin(
+                filial_actor, capital.pk, "Capital", created_filial, field="filial")
 
         main_actor = actor or matriz_actor or filial_actor
         if not main_actor:
@@ -147,33 +147,98 @@ class CapitalToActorMigration(ActorBase):
         main_actor.capital_extension = self.get_capital_extension(  # type: ignore
             main_actor, capital)
 
-        # actor.parent_actor = self.get_actor_matriz(capital)  # type: ignore
+        self.append_directors(main_actor)
 
-        country = self.get_country(capital.nacionalidad)
-        if country:
-            main_actor.countries.add(country)
-
-        mention = self.get_mention(capital)
         if mention:
-            self.add_participant(main_actor, mention, ["Capital"])
             self.add_status_project(mention)
+
         main_actor.save()
 
-        if actor:
-            self.register_origin(actor, capital.pk, "Capital", created_actor)
-        if matriz_actor:
-            self.register_origin(
-                matriz_actor, capital.pk, "Capital", created_matriz, by="matriz")
-        if filial_actor:
-            self.register_origin(
-                filial_actor, capital.pk, "Capital", created_filial, by="filial")
+    def get_countries(self):
+        names = self.current_capital.nacionalidad
+        if not names:
+            return
+        mexican_countries = ["México", "Mexicana"]
+        names = names.replace("/", ";")
+        names = names.replace("-", ";")
+        names = names.replace(" y ", ";")
+        countries = names.split(";")
+        for name in countries:
+            name = name.strip()
+            if name in mexican_countries:
+                self.is_mexican = True
+            country_obj, _ = Country.objects.get_or_create(name=name)
+            self.countries.append(country_obj)
 
-    def add_capital_type(self, actor: Actor, capital_type: str):
-        if not actor.capital_type:
-            actor.capital_type = capital_type
-        elif actor.capital_type != capital_type:
-            actor.status_validation = self.need_review
-            comment = "YEEKO: El actor tiene registrado más de un tipo de capital"
-            actor.add_comment(comment)
+    def get_capital_extension(self, actor: Actor, capital: Capital):
+        capital_extension = actor.capital_extension or {}
+        fields = ["inversionistas", "is_cotiza_bolsa"]
+        for field in fields:
+            saved_value = capital_extension.get(field, [])
+            value = getattr(capital, field)
+            if value is not None:
+                saved_value.append(value)
+                capital_extension[field] = saved_value
+        return capital_extension
+
+    def save_capital_features(self, actor: Actor,  mention=None) -> Actor:
+        if self.need_review:
+            actor.status_validation_id = "need_review"
+            actor.add_comment(self.need_review)
+
+        is_private = not self.current_capital.is_capital_publico
+        if not is_private:
+            sector_name = "Empresa estatal"
+        elif self.is_mexican:
+            sector_name = "Empresa privada nacional"
+        elif self.countries:
+            sector_name = "Empresa privada extranjera"
+            for country in self.countries:
+                actor.countries.add(country)
+        else:
+            sector_name = "Empresa privada"
+
+        try:
+            sector_obj = Sector.objects.get(name=sector_name)
+        except Sector.DoesNotExist:
+            self.add_error(f"El sector {sector_name} no existe")
+            actor.status_validation_id = "need_review"
+            actor.add_comment(f"YEEKO: El sector {sector_name} no existe")
+            return actor
+
+        if not actor.sector:
+            actor.sector = sector_obj
+
+        elif actor.sector.name != sector_name:
+            if sector_name == "Empresa privada":
+                pass
+            elif actor.sector.name == "Empresa privada":
+                actor.sector = sector_obj
+            else:
+                sector_obj, _ = Sector.objects.get_or_create(
+                    name="Contradictorio", status_validation_id="need_review")
+                actor.sector = sector_obj
+                actor.status_validation_id = "need_review"
+                comment = "YEEKO: El actor tiene registrado más de un tipo de capital"
+                actor.add_comment(comment)
+        actor.save()
         return actor
 
+    def append_directors(self, actor: Actor):
+        directors = self.current_capital.directores
+        directors = directors.replace(" y ", ";").split(";")
+        for director in directors:
+            director = director.strip()
+            if not director:
+                continue
+            actor_director, created = Actor.objects.get_or_create(
+                name=director, sector=self.empresariado)
+            if created or actor_director.is_only_related is None:
+                actor_director.is_only_related = False
+            actor_director.save()
+            self.register_origin(
+                actor_director, self.current_capital.pk, "Capital", created,
+                field="directores")
+            Member.objects.get_or_create(
+                actor_individual=actor_director, actor_corporate=actor,
+                membership_type="director")

@@ -20,8 +20,8 @@ class EstadoToActorMigration(ActorBase):
             try:
                 self.migrate_to_actor(estado)
             except Exception as e:
+                self.errors.append([estado, str(e)])
                 raise e
-                self.errors.append([estado, e])
 
     def migrate_to_actor(self, estado: Estado):
 
@@ -52,7 +52,9 @@ class EstadoToActorMigration(ActorBase):
         self.add_participant(
             institution_actor, mention, participant_types)
 
+        self.set_sector(institution_actor, "Institución del Estado")
+
         self.register_origin(
             institution_actor, estado.pk, "Estado", created_actor,
-            by=attr_institution_name, mention_id=mention.pk
+            field=attr_institution_name, mention_id=mention.pk
         )

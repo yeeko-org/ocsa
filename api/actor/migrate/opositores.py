@@ -18,19 +18,11 @@ class OpositorToActorMigration(ActorBase):
         self.default_sg, _ = SectorGroup.objects.get_or_create(
             name="Varios", is_collective=True)
 
-        self.need_review, _ = StatusControl.objects.get_or_create(
-            name="need_review", group="validation",
-            public_name="Requiere revisión")
-
         self.set_sectors()
         self.set_belong()
         self.set_indigenous_group()
 
         opositores = Opositores.objects.all()
-
-        self.need_review, _ = StatusControl.objects.get_or_create(
-            name="need_review", group="validation",
-            public_name="Requiere revisión")
 
         for opositor in opositores:
             try:
@@ -47,7 +39,8 @@ class OpositorToActorMigration(ActorBase):
                 sector = Sector.objects.get(name=forma.nombre)
             except Sector.DoesNotExist:
                 sector = Sector.objects.create(
-                    name=forma.nombre, sector_group=self.default_sg)
+                    name=forma.nombre, sector_group=self.default_sg,
+                    status_validation_id="need_reclassify")
             self.sectors[forma.nombre] = sector
 
     def get_sector(self, name: str) -> Sector:
@@ -64,7 +57,7 @@ class OpositorToActorMigration(ActorBase):
             "is_farmer": "Campesino",
             "is_worker": "Trabajador",
             "is_habitant": "Habitante",
-            "is_woman_special": "Mujer",
+            "is_women_special": "Mujer",
             "is_affected": "Población Afectada",
         }
 
@@ -108,8 +101,11 @@ class OpositorToActorMigration(ActorBase):
 
         mujer_id = getattr(opositor, "mujer_id", 0) or 0
 
+        mujer_text = None
         if mujer_id > 1:
-            opositor_actor.sex = "woman"
+            mujer_text = opositor.mujer.nombre
+            if mujer_text:
+                mujer_text = mujer_text.lower()
 
         if opositor.pueblo_indigena:
             opositor_actor.indigenous_group = self.get_indigenous_group(
@@ -117,7 +113,7 @@ class OpositorToActorMigration(ActorBase):
 
         opositor_actor.save()
 
-        if opositor.is_campesino_or_comunero_or_ejidatario:
+        if opositor.is_campesino_or_comunero_or_ejidatario or "campo" in mujer_text:
             opositor_actor.belongs.add(self.get_belong("is_farmer"))
 
         if opositor.is_trabajador_empresa:
@@ -126,17 +122,31 @@ class OpositorToActorMigration(ActorBase):
         if opositor.is_habitante_zona:
             opositor_actor.belongs.add(self.get_belong("is_habitant"))
 
-        if opositor.is_indigena:
+        if opositor.is_indigena or "indígena" in mujer_text:
             opositor_actor.belongs.add(self.get_belong("is_indigena"))
 
-        if mujer_id > 2:
-            opositor_actor.belongs.add(self.get_belong("is_woman_special"))
+        if "sobresaliente" in mujer_text:
+            opositor_actor.belongs.add(self.get_belong("is_women_special"))
+
+        if "urban" in mujer_text:
+            opositor_actor.belongs.add(self.get_belong("is_urban"))
+
+        if "líder" in mujer_text:
+            opositor_actor.sex = "woman"
+            opositor_actor.belongs.add(self.get_belong("is_leader"))
+
+        if "organización" in mujer_text:
+            opositor_actor.belongs.add(self.get_belong("is_woman_organization"))
+
+        if "investigadora" in mujer_text:
+            opositor_actor.sex = "woman"
 
         other_opositor = None
-        if opositor.otros_opositores and not "*" in opositor.nombre:
+        created_other = None
+        if opositor.otros_opositores and "*" not in opositor.nombre:
             other_name = f"{opositor.nombre} --> {opositor.otros_opositores}"
             other_opositor, created_other = self.get_actor(other_name)
-            other_opositor.status_validation = self.need_review
+            other_opositor.status_validation_id = "need_review"
             other_opositor.comments = (
                 "YEEKO: Muchos de los nombres de 'otros_opositores' son "
                 "demasiado abstractos (y no únicos), por eso todos deben "
@@ -161,4 +171,4 @@ class OpositorToActorMigration(ActorBase):
         if other_opositor:
             self.register_origin(
                 other_opositor, opositor.pk, "Opositores", created_other,
-                by="otros_opositores")
+                field="otros_opositores")

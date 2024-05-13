@@ -35,6 +35,10 @@ class Note(models.Model):
         upload_to='screenshots/', blank=True, null=True)
     date = models.DateField()
     capture_date = models.DateField(blank=True, null=True)
+    # editor = models.ForeignKey(
+    #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
+    # reviewer = models.ForeignKey(
+    #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -57,10 +61,6 @@ class Mention(models.Model):
     #     StatusProject, on_delete=models.CASCADE, blank=True, null=True)
     filled = models.BooleanField(default=False)
     date_filled = models.DateField(blank=True, null=True)
-    # editor = models.ForeignKey(
-    #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
-    # reviewer = models.ForeignKey(
-    #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
     status_register = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
