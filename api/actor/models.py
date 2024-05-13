@@ -157,6 +157,7 @@ init_sectors = [
     ('Poder Judicial', False, 'Estado', None),
     ('Poder Legislativo', False, 'Estado', None),
     ('Institución del Estado', False, 'Estado', 'could_reclassify'),
+    ('Responsable No Estatal', False, 'Varios', 'could_reclassify'),
     ('Contradictorio', False, 'Contradictorio', 'need_reclassify'),
     ('Varios', False, 'Varios', 'need_reclassify'),
     ('Empresariado', False, 'Individuos', False),
