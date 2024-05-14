@@ -42,6 +42,7 @@ class Ubicacion(CustomModel):
     municipio = models.TextField(blank=True, null=True)
     localidad = models.TextField(blank=True, null=True)
     especificaciones = models.TextField(blank=True, null=True)
+    # CAMPO VACÍO
     sitio = models.TextField(blank=True, null=True)
     latitud = models.FloatField(blank=True, null=True)
     longitud = models.FloatField(blank=True, null=True)

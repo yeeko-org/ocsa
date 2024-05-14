@@ -11,9 +11,7 @@ from space_time.models import StatusProject
 class ActorBase:
     mentions = {}
     actors: Dict[str, Actor] = {}
-
-    def __init__(self):
-        self.errors = []
+    errors = []
 
     def get_actor(
             self, name: Optional[str], std_name: Optional[str] = None
