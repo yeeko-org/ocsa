@@ -15,14 +15,36 @@ class Command(BaseCommand):
             type=bool,
             help='Delete old events after migration',
         )
+        parser.add_argument(
+            "--only-violencia",
+            type=bool,
+            help="Only migrate violencia")
+        parser.add_argument(
+            "--only-accion-colectiva",
+            type=bool,
+            help="Only migrate accion colectiva")
 
     def handle(self, *args, **kwargs):
         delete_old_events = kwargs.get('delete_old_events', False)
+        only_violencia = kwargs.get('only_violencia', False)
+        only_accion_colectiva = kwargs.get('only_accion_colectiva', False)
 
         if delete_old_events:
             print("Deleting old events")
             Event.objects.all().delete()
 
+        if only_violencia:
+            self.migrate_violencia()
+            return
+
+        if only_accion_colectiva:
+            self.migrate_accion_colectiva()
+            return
+
+        self.migrate_violencia()
+        self.migrate_accion_colectiva()
+
+    def migrate_violencia(self):
         print("Starting Violencia migration")
         violencia_migration = ViolenciaToEventMigrate()
 
@@ -31,7 +53,8 @@ class Command(BaseCommand):
             print(error)
             print()
 
-        print("Starting Accion colectiva to Event migration")
+    def migrate_accion_colectiva(self):
+        print("Starting Accion colectiva migration")
         accion_colectiva_migration = AccionesColectivasToEventMigrate()
 
         for accion_colectiva, error in accion_colectiva_migration.errors:

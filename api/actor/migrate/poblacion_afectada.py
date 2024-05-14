@@ -7,13 +7,11 @@ from ocsa_legacy.models import CatSubpoblacionAfectada, PoblacionAfectada
 
 class PoblacionAfectadaToActorMigration(ActorBase):
     errors = []
-    belongs: Dict[str, Belong] = {}
     indigenous_groups: Dict[str, IndigenousGroup] = {}
 
     def __init__(self):
         super().__init__()
 
-        self.set_belong()
         self.set_indigenous_group()
 
         poblacion_afectada = PoblacionAfectada.objects.all()
@@ -24,27 +22,6 @@ class PoblacionAfectadaToActorMigration(ActorBase):
             except Exception as e:
                 # raise e
                 self.errors.append([poblacion_afectada, e])
-
-    def set_belong(self):
-        data_belong = {
-            "is_indigena": "Indígena",
-            "is_farmer": "Campesino",
-            "is_worker": "Trabajador",
-            "is_habitant": "Habitante",
-            "is_women_special": "Mujer",
-            "is_affected": "Población Afectada",
-        }
-
-        for key, value in data_belong.items():
-            belong, _ = Belong.objects.get_or_create(key_name=key, name=value)
-            self.belongs[key] = belong
-
-    def get_belong(self, key: str) -> Belong:
-        belong = self.belongs.get(key)
-        if not belong:
-            belong = Belong.objects.create(key_name=key, name=key)
-            self.belongs[key] = belong
-        return belong
 
     def set_indigenous_group(self):
         for subpoblacion_afectada in CatSubpoblacionAfectada.objects.all():

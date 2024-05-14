@@ -36,7 +36,7 @@ class MigrateViolenciaToEvent(ActorBase):
         self.default_sector_group, _ = SectorGroup.objects.get_or_create(
             name="Varios", is_collective=True)
         self.sector_res_estatal = self.get_or_create_sector(
-            "Responsable Estatal")
+            "Institución del Estado")
         self.sector_res_no_estatal = self.get_or_create_sector(
             "Responsable No Estatal")
 
@@ -136,6 +136,8 @@ class MigrateViolenciaToEvent(ActorBase):
         )
         sector_social_actor.sector = sector_social_victima
         sector_social_actor.save()
+
+        sector_social_actor.belongs.add(self.get_belong("is_leader"))
 
         self.sector_social_participant = self.add_participant(
             sector_social_actor, self.mention, ["Víctima"],
@@ -253,10 +255,12 @@ class ViolenciaToEventMigrate:
 
     def forma_hecho_violencia(self):
         for forma in FormaHechoViolencia.objects.exclude(nombre="NE"):
-            EventSubtype.objects.create(
-                name=forma.nombre,
-                description=forma.descripcion
+            event_subtype, is_created = EventSubtype.objects.get_or_create(
+                name=forma.nombre
             )
+            if is_created:
+                event_subtype.description = forma.descripcion
+                event_subtype.save()
 
     def sector_social(self):
         collective_group, _ = SectorGroup.objects.get_or_create(

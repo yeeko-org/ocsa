@@ -41,9 +41,9 @@ class MigrateAccionToEvent(ActorBase):
                 "Forma o Subforma de accion_colectiva no encontrados")
 
         event_type = EventType.objects.get(name=forma_ac_nombre)
+        event_subtype = None
         if subforma_ac_nombre == "NE":
-            event_subtype = None
-            EventSubtype.objects.get_or_create(
+            event_subtype, _ = EventSubtype.objects.get_or_create(
                 name=f"No Especificado de {forma_ac_nombre}")
         else:
             event_subtype = EventSubtype.objects.get(name=subforma_ac_nombre)
@@ -102,13 +102,15 @@ class AccionesColectivasToEventMigrate:
             name="Acciones Colectivas", model_origin="FormaAC")
 
         for forma_accion_colectiva in FormaAC.objects.all():
-            sub_forma_exist = SubformaAC.objects.filter(
-                id_forma_ac=forma_accion_colectiva.pk).exists()
-
             forma_ac_nombre = forma_accion_colectiva.nombre
+            if not forma_ac_nombre:
+                continue
 
             if EventType.objects.filter(name=forma_ac_nombre).exists():
                 continue
+
+            sub_forma_exist = SubformaAC.objects.filter(
+                id_forma_ac=forma_accion_colectiva.pk).exists()
 
             event_type = EventType.objects.create(
                 name=forma_ac_nombre,
@@ -119,10 +121,16 @@ class AccionesColectivasToEventMigrate:
 
     def subforma_accion_colectiva(self):
         for forma in SubformaAC.objects.exclude(nombre="NE"):
-            event_subtype = EventSubtype.objects.create(
-                name=forma.nombre,
-                description=forma.descripcion
+            nombre = forma.nombre
+            if not nombre:
+                continue
+
+            event_subtype, is_created = EventSubtype.objects.get_or_create(
+                name=nombre
             )
+            if is_created:
+                event_subtype.description = forma.descripcion
+                event_subtype.save()
 
             event_type = self.events_type.get(forma.id_forma_ac)
             if not event_type:

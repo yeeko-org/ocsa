@@ -38,7 +38,8 @@ class Command(BaseCommand):
         capital_migration = CapitalToActorMigration()
 
         for capital, error in capital_migration.errors:
-            print(f"Error with capital {capital.pk}: {capital}")
+            pk = getattr(capital, "pk", None)
+            print(f"Error with capital {pk}: {capital}")
             print(error)
             print()
 
@@ -70,6 +71,7 @@ class Command(BaseCommand):
         poblaciones_migration = PoblacionAfectadaToActorMigration()
 
         for poblacion, error in poblaciones_migration.errors:
-            print(f"Error with poblaciones afectadas {poblacion.pk}: {poblacion}")
+            print(
+                f"Error with poblaciones afectadas {poblacion.pk}: {poblacion}")
             print(error)
             print()
