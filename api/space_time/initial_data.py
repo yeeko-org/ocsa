@@ -69,7 +69,8 @@ states = [
         "name": "Ciudad de México",
         "short_name": "Ciudad de México",
         "code_name": "CDMX",
-        "other_names": "cdmx DF distrito distito federal chilango cd de méxico cd de mexico cd. de México cd. de Mexico ciudad de mexico",
+        "other_names": "cdmx, DF, distito federal, chilango, cd de méxico, cd de mexico, cd. de México, "
+                       "cd. de Mexico, ciudad de mexico",
     },
     {
         "id": 10,
@@ -246,7 +247,7 @@ states = [
         "name": "Yucatán",
         "short_name": "Yucatán",
         "code_name": "Yuc.",
-        "other_names": "yucatan merida mérida",
+        "other_names": "yucatan, merida, mérida",
     },
     {
         "id": 32,

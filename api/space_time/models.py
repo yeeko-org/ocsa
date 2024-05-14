@@ -30,6 +30,7 @@ def default_alternative_names():
     return []
 
 
+# Para todos los casos de comparación por name, estandariza con text_normalizer
 # Para estados vas a utilizar la lista de initial_data y vas a tomar las
 # alternative_names del campo other_names, separados por comas.
 class State(models.Model):
@@ -61,16 +62,19 @@ class State(models.Model):
 # CVE_ENT --> Municipality.state.inegi_code
 # CVE_MUN --> Municipality.inegi_code
 # NOM_MUN --> Municipality.name
+# std_name lo construyes con nom_mun
 # POB_TOTAL --> Municipality.population
-# complete_code lo puedes generar con la concatenación de Cve_Ent y Cve_Mun,
-# en medio de ellos un guión.
+# complete_code genéralo con la concatenación de Cve_Ent y Cve_Mun,
+# en medio de ellos un guión, ejemplo: 01-001
 
 class Municipality(models.Model):
 
     inegi_code = models.CharField(max_length=6, verbose_name="Clave INEGI")
     complete_code = models.CharField(
         max_length=8, verbose_name="Clave INEGI Completa")
-    name = models.CharField(max_length=120, verbose_name="Nombre")
+    name = models.CharField(max_length=255, verbose_name="Nombre")
+    std_name = models.CharField(
+        max_length=255, verbose_name="Nombre Estandarizado")
     state = models.ForeignKey(
         State, verbose_name=State,
         null=True, on_delete=models.CASCADE,
@@ -97,6 +101,9 @@ class Municipality(models.Model):
 # LAT_DECIMAL --> Locality.latitude
 # LON_DECIMAL --> Locality.longitude
 # ALTITUD --> Locality.altitude
+# complete_code genéralo con la concatenación de municipality.complete_code y
+# inegi_code, en medio de ellos un guión.
+# Ejemplo: 01-001-0001
 
 class Locality(models.Model):
     inegi_code = models.CharField(max_length=6, verbose_name="Clave INEGI")
@@ -125,15 +132,22 @@ class Locality(models.Model):
 class Location(models.Model):
     state = models.ForeignKey(
         State, on_delete=models.CASCADE,
-        related_name="locations")
+        related_name="locations", blank=True, null=True)
     municipality = models.ForeignKey(
         Municipality, on_delete=models.CASCADE,
-        related_name="locations")
+        related_name="locations", blank=True, null=True)
     locality = models.ForeignKey(
         Locality, on_delete=models.CASCADE,
-        related_name="locations")
+        related_name="locations", blank=True, null=True)
     details = models.TextField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     # LUCIAN: Esto debe ser JSON, Point ¿o de qué tipo?, ¿cómo lo nombramos?
     # geom = models.PointField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.state or 'sin entidad'} - {self.details}"
+
+    class Meta:
+        verbose_name = "Ubicación"
+        verbose_name_plural = "Ubicaciones"

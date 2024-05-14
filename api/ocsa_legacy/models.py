@@ -38,6 +38,7 @@ class CustomModel(models.Model):
 # INTRODUCCIÓN: Esto se va a ir a la tabla Location
 # Buena parte del contenido se va a ir al campo "details", incluyendo
 # por supuesto "especificaciones"
+# Para las comparaciones por nombre, normaliza vía text_normalizer
 
 class Ubicacion(CustomModel):
 
@@ -49,15 +50,15 @@ class Ubicacion(CustomModel):
     # o en name
     estado = models.TextField(blank=True, null=True)
     # Si el nombre del municipio (no lo busques directo, sino fíltralo por estado),
-    # no lo encuentras, deberás agregarlo a "details", con el siguiente texto:
-    # f"municipio: {municipio}"
+    # no lo encuentras, búscalo en alterative_names
     municipio = models.TextField(blank=True, null=True)
     # Lo mismo que para municipio, solo busca las localidades que tuvieron
     # un municipio asociado, si no lo encuentras, deberás agregarlo a "details",
-    # con el siguiente texto: f"localidad: {localidad}"
+    # f"municipio: {municipio}"
     localidad = models.TextField(blank=True, null=True)
     # Irá al principio del campo "details", al final se agregan, con saltos
     # de línea o no sé, las anotaciones mencionadas de municipio y localidad
+    # con el siguiente texto: f"localidad: {localidad}"
     especificaciones = models.TextField(blank=True, null=True)
     # CAMPO VACÍO
     sitio = models.TextField(blank=True, null=True)

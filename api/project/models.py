@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import JSONField
 from space_time.models import StatusProject
+from space_time.models import Location
 from work_flux.models import StatusControl
 
 
@@ -143,3 +144,18 @@ class Project(models.Model):
     class Meta:
         verbose_name = 'Proyecto'
         verbose_name_plural = 'Proyectos'
+
+
+class ProjectLocation(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    location = models.ForeignKey(
+        Location, on_delete=models.CASCADE)
+    status_register = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.project} - {self.location}"
+
+    class Meta:
+        verbose_name = 'Ubicación de proyecto'
+        verbose_name_plural = 'Ubicaciones de proyectos'

@@ -2,6 +2,7 @@ from django.db import models
 from source.models import Mention
 from actor.models import Participant
 from work_flux.models import StatusControl
+from space_time.models import Location
 
 
 class EventGroup(models.Model):
@@ -93,4 +94,24 @@ class Involved(models.Model):
     number_men = models.IntegerField(blank=True, null=True)
     number_mix = models.IntegerField(blank=True, null=True)
 
+    def __str__(self):
+        return f"{self.event} - {self.participant}"
 
+    class Meta:
+        verbose_name = 'Involucrado en Evento'
+        verbose_name_plural = 'Involucrados en Eventos'
+
+
+class EventLocation(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    location = models.ForeignKey(
+        Location, on_delete=models.CASCADE)
+    status_register = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return self.location
+
+    class Meta:
+        verbose_name = 'Ubicación de Evento'
+        verbose_name_plural = 'Ubicaciones de Eventos'
