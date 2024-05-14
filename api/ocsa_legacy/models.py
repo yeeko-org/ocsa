@@ -35,17 +35,36 @@ class CustomModel(models.Model):
 # );
 
 
+# INTRODUCCIÓN: Esto se va a ir a la tabla Location
+# Buena parte del contenido se va a ir al campo "details", incluyendo
+# por supuesto "especificaciones"
+
 class Ubicacion(CustomModel):
+
+    # Si el valorde tipo_ubicación es distinto de "punto", deberás agregar
+    # a "details": f"tipo de ubicación: {tipo_ubicacion}"
     tipo_ubicacion = models.CharField(
         max_length=100, default='punto', blank=True, null=True)
+    # Utiliza los alternative_names si no encuentras el valor en short_name
+    # o en name
     estado = models.TextField(blank=True, null=True)
+    # Si el nombre del municipio (no lo busques directo, sino fíltralo por estado),
+    # no lo encuentras, deberás agregarlo a "details", con el siguiente texto:
+    # f"municipio: {municipio}"
     municipio = models.TextField(blank=True, null=True)
+    # Lo mismo que para municipio, solo busca las localidades que tuvieron
+    # un municipio asociado, si no lo encuentras, deberás agregarlo a "details",
+    # con el siguiente texto: f"localidad: {localidad}"
     localidad = models.TextField(blank=True, null=True)
+    # Irá al principio del campo "details", al final se agregan, con saltos
+    # de línea o no sé, las anotaciones mencionadas de municipio y localidad
     especificaciones = models.TextField(blank=True, null=True)
     # CAMPO VACÍO
     sitio = models.TextField(blank=True, null=True)
+    # se van directo a Location.latitud y Location.longitud
     latitud = models.FloatField(blank=True, null=True)
     longitud = models.FloatField(blank=True, null=True)
+    # Esto se irá al nuevo campo que no sé muy bien cómo nombrar
     geom = models.TextField(blank=True, null=True)
 
     def __str__(self):
