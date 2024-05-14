@@ -3,7 +3,7 @@ from django.db.models import F
 from source.models import Mention, Note, StatusHistory
 from project.models import Project
 from actor.models import (
-    Actor, Interest, OriginReference, Participant, ParticipantType, Sector)
+    Actor, Belong, Interest, OriginReference, Participant, ParticipantType, Sector, SectorGroup)
 from ocsa_legacy.models import EstatusProyectos, Proyecto, Nota
 from space_time.models import StatusProject
 
@@ -167,28 +167,41 @@ class ActorBase:
                 type_temporalidad=cat_tem_nombre
             )
 
+    def get_sector_group_default(self) -> SectorGroup:
+        if not hasattr(self, "_default_sector_group"):
+            self._default_sector_group, _ = SectorGroup.objects.get_or_create(
+                name="Varios", is_collective=True)
+        return self._default_sector_group
+
     def set_sector(self, actor: Actor, sector: str):
         if not sector:
             return
-        sector_obj, _ = Sector.objects.get_or_create(name=sector)
+        try:
+            sector_obj = Sector.objects.get(name=sector)
+        except Sector.DoesNotExist:
+            sector_obj = Sector.objects.create(
+                name=sector, sector_group=self.get_sector_group_default())
+
         if not actor.sector:
             actor.sector = sector_obj
         elif actor.sector != sector_obj:
+            actor_validation = actor.sector.status_validation_id  # type: ignore
+            sector_validation = sector_obj.status_validation_id  # type: ignore
             if actor.sector.name == "Contradictorio":
                 error = (f"YEEKO: hay sectores contradictorios:"
                          f" {actor.sector.name} y {sector_obj.name}")
                 actor.add_comment(error)
                 self.errors.append([actor, error])
-            elif "reclassify" in actor.sector.status_validation_id:
+            elif actor_validation and "reclassify" in actor_validation:
                 actor.sector = sector_obj
-            elif "reclassify" in sector_obj.status_validation_id:
+            elif sector_validation and "reclassify" in sector_validation:
                 pass
             else:
                 sector_contradictory = Sector.objects.get(
                     name="Contradictorio")
-                self.errors.append([actor, error])
                 error = (f"YEEKO: hay sectores contradictorios:"
                          f" {actor.sector.name} y {sector_obj.name}")
+                self.errors.append([actor, error])
                 actor.add_comment(error)
                 actor.sector = sector_contradictory
         actor.save()
@@ -209,10 +222,16 @@ class ActorBase:
             actor=actor,
             origin_id=origin_id,
             type_model=type_model,
-            field=field,
+            field_name=field,
             actor_created=actor_created,
             data=kwargs
         )
+
+    def get_belong(self, key: str) -> Belong:
+        try:
+            return Belong.objects.get(key_name=key)
+        except Belong.DoesNotExist:
+            return Belong.objects.create(key_name=key, name=key)
 
 
 def text_normalizer(text, to_headers=False) -> str:

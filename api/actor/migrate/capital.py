@@ -155,7 +155,7 @@ class CapitalToActorMigration(ActorBase):
         main_actor.save()
 
     def get_countries(self):
-        names = self.current_capital.nacionalidad
+        names = getattr(self.current_capital, "nacionalidad", None)
         if not names:
             return
         mexican_countries = ["México", "Mexicana"]
@@ -183,10 +183,11 @@ class CapitalToActorMigration(ActorBase):
 
     def save_capital_features(self, actor: Actor,  mention=None) -> Actor:
         if self.need_review:
-            actor.status_validation_id = "need_review"
+            actor.status_validation_id = "need_review"  # type: ignore
             actor.add_comment(self.need_review)
 
-        is_private = not self.current_capital.is_capital_publico
+        is_private = not getattr(self.current_capital,
+                                 "is_capital_publico", None)
         if not is_private:
             sector_name = "Empresa estatal"
         elif self.is_mexican:
@@ -202,7 +203,7 @@ class CapitalToActorMigration(ActorBase):
             sector_obj = Sector.objects.get(name=sector_name)
         except Sector.DoesNotExist:
             self.add_error(f"El sector {sector_name} no existe")
-            actor.status_validation_id = "need_review"
+            actor.status_validation_id = "need_review"  # type: ignore
             actor.add_comment(f"YEEKO: El sector {sector_name} no existe")
             return actor
 
@@ -216,16 +217,19 @@ class CapitalToActorMigration(ActorBase):
                 actor.sector = sector_obj
             else:
                 sector_obj, _ = Sector.objects.get_or_create(
-                    name="Contradictorio", status_validation_id="need_review")
+                    name="Contradictorio",
+                    sector_group=self.get_sector_group_default(),
+                    status_validation_id="need_review")
                 actor.sector = sector_obj
-                actor.status_validation_id = "need_review"
+                actor.status_validation_id = "need_review"  # type: ignore
                 comment = "YEEKO: El actor tiene registrado más de un tipo de capital"
                 actor.add_comment(comment)
         actor.save()
         return actor
 
     def append_directors(self, actor: Actor):
-        directors = self.current_capital.directores
+        directors = getattr(self.current_capital, "directores", None) or ""
+        capital_pk = getattr(self.current_capital, "pk", None) or ""
         directors = directors.replace(" y ", ";").split(";")
         for director in directors:
             director = director.strip()
@@ -237,8 +241,8 @@ class CapitalToActorMigration(ActorBase):
                 actor_director.is_only_related = False
             actor_director.save()
             self.register_origin(
-                actor_director, self.current_capital.pk, "Capital", created,
+                actor_director, capital_pk, "Capital", created,
                 field="directores")
             Member.objects.get_or_create(
-                actor_individual=actor_director, actor_corporate=actor,
+                actor_individual=actor_director, actor_collective=actor,
                 membership_type="director")

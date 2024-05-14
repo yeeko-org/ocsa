@@ -19,7 +19,6 @@ class OpositorToActorMigration(ActorBase):
             name="Varios", is_collective=True)
 
         self.set_sectors()
-        self.set_belong()
         self.set_indigenous_group()
 
         opositores = Opositores.objects.all()
@@ -50,20 +49,6 @@ class OpositorToActorMigration(ActorBase):
                 name=name, sector_group=self.default_sg)
             self.sectors[name] = sector
         return sector
-
-    def set_belong(self):
-        data_belong = {
-            "is_indigena": "Indígena",
-            "is_farmer": "Campesino",
-            "is_worker": "Trabajador",
-            "is_habitant": "Habitante",
-            "is_women_special": "Mujer",
-            "is_affected": "Población Afectada",
-        }
-
-        for key, value in data_belong.items():
-            belong, _ = Belong.objects.get_or_create(key_name=key, name=value)
-            self.belongs[key] = belong
 
     def get_belong(self, key: str) -> Belong:
         belong = self.belongs.get(key)
@@ -101,9 +86,9 @@ class OpositorToActorMigration(ActorBase):
 
         mujer_id = getattr(opositor, "mujer_id", 0) or 0
 
-        mujer_text = None
+        mujer_text = ""
         if mujer_id > 1:
-            mujer_text = opositor.mujer.nombre
+            mujer_text = getattr(opositor.mujer, "nombre", "")
             if mujer_text:
                 mujer_text = mujer_text.lower()
 
@@ -136,17 +121,18 @@ class OpositorToActorMigration(ActorBase):
             opositor_actor.belongs.add(self.get_belong("is_leader"))
 
         if "organización" in mujer_text:
-            opositor_actor.belongs.add(self.get_belong("is_woman_organization"))
+            opositor_actor.belongs.add(
+                self.get_belong("is_woman_organization"))
 
         if "investigadora" in mujer_text:
             opositor_actor.sex = "woman"
 
         other_opositor = None
-        created_other = None
+        created_other = False
         if opositor.otros_opositores and "*" not in opositor.nombre:
             other_name = f"{opositor.nombre} --> {opositor.otros_opositores}"
             other_opositor, created_other = self.get_actor(other_name)
-            other_opositor.status_validation_id = "need_review"
+            other_opositor.status_validation_id = "need_review" # type: ignore
             other_opositor.comments = (
                 "YEEKO: Muchos de los nombres de 'otros_opositores' son "
                 "demasiado abstractos (y no únicos), por eso todos deben "
