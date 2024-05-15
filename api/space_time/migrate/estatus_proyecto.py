@@ -1,4 +1,4 @@
-from ocsa_legacy.models import EstatusProyecto, EstatusProyectos
+from ocsa_legacy.models import EstatusProyecto
 from space_time.models import StatusProject
 
 
