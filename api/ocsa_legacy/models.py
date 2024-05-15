@@ -18,7 +18,6 @@ class CustomModel(models.Model):
         abstract = True
 
 
-# Create your models here.
 # ======================== Space Time ========================================
 
 # CREATE TABLE ocs.ubicaciones (

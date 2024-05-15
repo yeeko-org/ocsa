@@ -46,7 +46,7 @@ class State(models.Model):
         default=default_alternative_names,
         verbose_name="Lista nombres alternativos",
         help_text="Ocupar para OCAMIS",
-        )
+    )
 
     def __str__(self):
         return self.short_name or self.code_name or self.name
@@ -62,7 +62,7 @@ class State(models.Model):
 # CVE_ENT --> Municipality.state.inegi_code
 # CVE_MUN --> Municipality.inegi_code
 # NOM_MUN --> Municipality.name
-# std_name lo construyes con nom_mun
+# std_name lo construyes con text_normalizer(NOM_MUN)
 # POB_TOTAL --> Municipality.population
 # complete_code genéralo con la concatenación de Cve_Ent y Cve_Mun,
 # en medio de ellos un guión, ejemplo: 01-001
@@ -76,7 +76,7 @@ class Municipality(models.Model):
     std_name = models.CharField(
         max_length=255, verbose_name="Nombre Estandarizado")
     state = models.ForeignKey(
-        State, verbose_name=State,
+        State, verbose_name="State",
         null=True, on_delete=models.CASCADE,
         related_name="municipalities")
     population = models.IntegerField(
@@ -111,7 +111,7 @@ class Locality(models.Model):
         max_length=10, verbose_name="Clave INEGI Completa")
     name = models.CharField(max_length=120, verbose_name="Nombre")
     municipality = models.ForeignKey(
-        Municipality, verbose_name=Municipality,
+        Municipality, verbose_name="Municipality",
         null=True, on_delete=models.CASCADE,
         related_name="localities")
     population = models.IntegerField(
@@ -143,7 +143,7 @@ class Location(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     # LUCIAN: Esto debe ser JSON, Point ¿o de qué tipo?, ¿cómo lo nombramos?
-    # geom = models.PointField(blank=True, null=True)
+    geojson = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.state or 'sin entidad'} - {self.details}"
