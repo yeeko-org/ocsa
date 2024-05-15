@@ -40,19 +40,17 @@ class MigrateStatusProject(ActorBase):
         mention = self.get_mention(estatus_proyecto)
         status_project = self.get_status(estatus_proyecto)
         temporalidad = estatus_proyecto.temporalidad
-        type_temporalidad = None
-        if temporalidad and temporalidad.cat_temporalidad:
-            type_temporalidad = temporalidad.cat_temporalidad.nombre
-            if type_temporalidad in ["SD", "NE"]:
-                type_temporalidad = None
-        if mention:
+        fecha = None
+        if temporalidad and temporalidad.fecha:
+            fecha = temporalidad.fecha
+        # type_temporalidad = None
+        # if temporalidad and temporalidad.cat_temporalidad:
+        #     type_temporalidad = temporalidad.cat_temporalidad.nombre
+        #     if type_temporalidad in ["SD", "NE"]:
+        #         type_temporalidad = None
+        if mention and (fecha or status_project):
             StatusHistory.objects.get_or_create(
                 mention=mention,
                 status_project=status_project,
-                date=temporalidad and temporalidad.fecha,
-                interval=temporalidad and temporalidad.intervalo,
-                type_temporalidad=type_temporalidad,
+                date=fecha,
             )
-        if not estatus_proyecto:
-            return None
-

@@ -141,7 +141,6 @@ class OpositorToActorMigration(ActorBase):
 
         for interes in InteresesOpositores.objects.filter(opositor=opositor):
             mention = self.get_mention(interes)
-            self.add_status_project(mention)
 
             self.add_participant(
                 opositor_actor, mention, ["Opositor"], interes.interes)

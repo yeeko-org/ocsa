@@ -28,7 +28,6 @@ class GruposApoyoToActorMigration(ActorBase):
         grupo_apoyo_actor, created_actor = self.get_actor(grupo_name)
 
         mention = self.get_mention(grupo_apoyo)
-        self.add_status_project(mention)
 
         participation_list = []
         if grupo_apoyo.tipo_grupo_apoyo == "Empresa":

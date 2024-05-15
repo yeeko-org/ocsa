@@ -149,9 +149,6 @@ class CapitalToActorMigration(ActorBase):
 
         self.append_directors(main_actor)
 
-        if mention:
-            self.add_status_project(mention)
-
         main_actor.save()
 
     def get_countries(self):

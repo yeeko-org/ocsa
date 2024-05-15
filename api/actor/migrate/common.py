@@ -128,43 +128,6 @@ class ActorBase:
 
         return mention
 
-    def add_status_project(self, mention: Mention):
-        query_estatus_proyectos = EstatusProyectos.objects\
-            .filter(
-                nota__id=mention.note.nota_id_ref,
-                proyecto__id=mention.project.proyecto_id_ref)\
-            .annotate(
-                estatus_nombre=F('estatus__nombre'),
-                tem_date=F('temporalidad__fecha'),
-                tem_interval=F('temporalidad__intervalo'),
-                cat_tem_nombre=F('temporalidad__cat_temporalidad__nombre'),
-            )
-
-        for estatus_proyecto in query_estatus_proyectos:
-            estatus_nombre = estatus_proyecto.estatus_nombre  # type: ignore
-            cat_tem_nombre = estatus_proyecto.cat_tem_nombre  # type: ignore
-            tem_date = estatus_proyecto.tem_date  # type: ignore
-            tem_interval = estatus_proyecto.tem_interval  # type: ignore
-
-            any_data = any(
-                [estatus_nombre, cat_tem_nombre, tem_date, tem_interval])
-
-            if any_data:
-                continue
-
-            status_project = None
-            if estatus_nombre:
-                status_project = StatusProject.objects.get_or_create(
-                    name=estatus_nombre)
-
-            _, _ = StatusHistory.objects.get_or_create(
-                mention=mention,
-                status_project=status_project,
-                date=tem_date,
-                interval=tem_interval,
-                type_temporalidad=cat_tem_nombre
-            )
-
     def get_sector_group_default(self) -> SectorGroup:
         if not hasattr(self, "_default_sector_group"):
             self._default_sector_group, _ = SectorGroup.objects.get_or_create(

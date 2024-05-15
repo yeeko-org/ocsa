@@ -86,7 +86,6 @@ class PoblacionAfectadaToActorMigration(ActorBase):
         poblacion_afectada_actor.belongs.add(self.get_belong("is_affected"))
 
         mention = self.get_mention(poblacion_afectada)
-        self.add_status_project(mention)
 
         self.add_participant(
             poblacion_afectada_actor, mention, ["PoblacionesAfectadas"],

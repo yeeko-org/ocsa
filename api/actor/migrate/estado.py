@@ -26,7 +26,6 @@ class EstadoToActorMigration(ActorBase):
     def migrate_to_actor(self, estado: Estado):
 
         mention = self.get_mention(estado)
-        self.add_status_project(mention)
 
         self.migrate_to_actor_from_name(
             mention, estado, "instituciones_a_favor_proyecto", ["Estado"])
