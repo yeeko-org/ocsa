@@ -1,7 +1,7 @@
 import traceback
 from django.core.management.base import BaseCommand
 
-from project.migrate import ProyectoToProject
+from project.migrate import ProyectoToProject, ProyectoToUbicacionMigrate
 from space_time.migrate import EstatusProyectoToStatusProject
 
 
@@ -27,3 +27,6 @@ class Command(BaseCommand):
             print(error)
             traceback.print_exc()
             print()
+
+        print("Starting ProyectoToUbicacion migration")
+        ubicacion_migration = ProyectoToUbicacionMigrate()
