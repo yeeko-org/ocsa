@@ -50,8 +50,6 @@ class LoadMunicipios:
                     )
                     self.municipalities.append(municipality)
                 except Exception as e:
-                    raise e
-                    traceback.print_exc()
                     self.errors.append(
                         f"Error creating municipality {inegi_code}: {e}")
 

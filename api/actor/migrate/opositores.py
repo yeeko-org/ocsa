@@ -27,7 +27,6 @@ class OpositorToActorMigration(ActorBase):
             try:
                 self.migrate_to_actor(opositor)
             except Exception as e:
-                # raise e
                 self.errors.append([opositor, e])
 
     def set_sectors(self):

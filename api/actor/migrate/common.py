@@ -117,7 +117,7 @@ class ActorBase:
         if not (note and project):
             error = (f"Not proyecto {proyecto_id} or note"
                      f" {nota_id} found")
-            print(error)
+
             self.errors.append([instance, error])
 
         mention, _ = Mention.objects.get_or_create(

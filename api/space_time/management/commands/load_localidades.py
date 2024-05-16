@@ -55,7 +55,6 @@ class LoadLocalidades:
                     )
                     self.localities.append(locality)
                 except Exception as e:
-                    raise e
                     self.errors.append(
                         f"Error creating locality {inegi_code}: {e}")
 

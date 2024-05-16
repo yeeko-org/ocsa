@@ -21,7 +21,6 @@ class EstadoToActorMigration(ActorBase):
                 self.migrate_to_actor(estado)
             except Exception as e:
                 self.errors.append([estado, str(e)])
-                raise e
 
     def migrate_to_actor(self, estado: Estado):
 

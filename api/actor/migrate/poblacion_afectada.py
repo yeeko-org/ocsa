@@ -20,7 +20,6 @@ class PoblacionAfectadaToActorMigration(ActorBase):
             try:
                 self.migrate_to_actor(poblacion_afectada)
             except Exception as e:
-                # raise e
                 self.errors.append([poblacion_afectada, e])
 
     def set_indigenous_group(self):

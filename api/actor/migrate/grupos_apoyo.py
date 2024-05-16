@@ -16,7 +16,6 @@ class GruposApoyoToActorMigration(ActorBase):
             try:
                 self.migrate_to_actor(grupo_apoyo)
             except Exception as e:
-                raise e
                 self.errors.append([grupo_apoyo, e])
 
     def migrate_to_actor(self, grupo_apoyo: GruposApoyo):

@@ -11,11 +11,9 @@ class UbicacionesToLocations:
 
     def __init__(self):
         for ubicacion in Ubicacion.objects.all():
-            print(f"Migrating Ubicacion {ubicacion.pk}")
             try:
                 self.migrate_ubicacion(ubicacion)
             except Exception as e:
-                raise e
                 self.errors.append([ubicacion, e])
 
     def load_states(self):

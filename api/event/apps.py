@@ -10,9 +10,9 @@ class EventConfig(AppConfig):
         from .models import init_event_roles, EventRole
         _ready = super().ready()
 
-        print('Cargando datos iniciales de EventRole...')
         valid_commands = ["runserver", "migrate_eventos"]
         if any([command in sys.argv for command in valid_commands]):
+            print('Cargando datos iniciales de EventRole...')
             for role in init_event_roles:
                 EventRole.objects.get_or_create(name=role)
             print("Datos iniciales cargados.")
