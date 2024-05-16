@@ -144,6 +144,7 @@ class Location(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     # LUCIAN: Esto debe ser JSON, Point ¿o de qué tipo?, ¿cómo lo nombramos?
     geojson = models.JSONField(blank=True, null=True)
+    ubicacion_id_ref = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.state or 'sin entidad'} - {self.details}"
