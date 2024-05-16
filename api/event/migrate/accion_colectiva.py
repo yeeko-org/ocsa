@@ -1,9 +1,10 @@
 from typing import Any, Dict, List, Optional
 from actor.migrate.common import ActorBase
 from actor.models import Participant, Sector, SectorGroup
-from event.models import Event, EventGroup, EventRole, EventSubtype, EventType, Involved
-from ocsa_legacy.models import FormaAC, Opositores, OpositoresToAC, SectorSocial, AccionesColectivas, SubformaAC
+from event.models import Event, EventGroup, EventLocation, EventRole, EventSubtype, EventType, Involved
+from ocsa_legacy.models import AccionColectivaToUbicacion, FormaAC, Opositores, OpositoresToAC, SectorSocial, AccionesColectivas, SubformaAC
 from source.models import Mention
+from space_time.models import Location
 from work_flux.models import StatusControl
 
 
@@ -18,6 +19,7 @@ class MigrateAccionToEvent(ActorBase):
         self.accion_colectiva = accion_colectiva
         self.mention = self.get_mention(self.accion_colectiva)
         self.event = self.get_event()
+        self.set_location()
 
         self.default_sector_group, _ = SectorGroup.objects.get_or_create(
             name="Varios", is_collective=True)
@@ -65,6 +67,19 @@ class MigrateAccionToEvent(ActorBase):
             event=self.event, participant=participant, event_role=event_role,
 
         )
+
+    def set_location(self):
+        ac_to_ubic_query = AccionColectivaToUbicacion.objects\
+            .filter(accion_colectiva=self.accion_colectiva)
+        for ac_to_ubic in ac_to_ubic_query:
+            location = Location.objects.filter(
+                ubicacion_id_ref=ac_to_ubic.ubicacion_id).first()  # type: ignore
+            if not location:
+                continue
+
+            EventLocation.objects.get_or_create(
+                event=self.event, location=location
+            )
 
     def migrate_opositor(self, opositor: Opositores):
         opositor_actor, _ = self.get_actor(opositor.nombre)

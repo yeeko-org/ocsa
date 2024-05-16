@@ -2,10 +2,11 @@ from typing import List, Optional
 from actor.migrate.common import ActorBase
 from actor.models import Participant, Sector, SectorGroup
 from event.models import (
-    Event, EventGroup, EventRole, EventSubtype, EventType, Involved)
+    Event, EventGroup, EventLocation, EventRole, EventSubtype, EventType, Involved)
 from ocsa_legacy.models import (
-    FormaHechoViolencia, HechosViolencia, SectorSocial, Violencia)
+    FormaHechoViolencia, HechosViolencia, SectorSocial, Violencia, ViolenciaToUbicacion)
 from source.models import Mention
+from space_time.models import Location
 from work_flux.models import StatusControl
 
 from .generic_responsable_estatal import generic_responsable_estatal_desc
@@ -32,6 +33,7 @@ class MigrateViolenciaToEvent(ActorBase):
         self.violencia = violencia
         self.mention = self.get_mention(self.violencia)
         self.event = self.get_event()
+        self.set_location()
         self.set_involved_nums()
         self.default_sector_group, _ = SectorGroup.objects.get_or_create(
             name="Varios", is_collective=True)
@@ -216,6 +218,19 @@ class MigrateViolenciaToEvent(ActorBase):
             number_men=self.number_men,
             number_mix=self.number_mix
         )
+
+    def set_location(self):
+        viol_to_ubic_query = ViolenciaToUbicacion.objects\
+            .filter(violencia=self.violencia)
+        for viol_to_ubic in viol_to_ubic_query:
+            location = Location.objects.filter(
+                ubicacion_id_ref=viol_to_ubic.ubicacion_id).first()  # type: ignore
+            if not location:
+                continue
+
+            EventLocation.objects.get_or_create(
+                event=self.event, location=location
+            )
 
     def migrate(self):
 
