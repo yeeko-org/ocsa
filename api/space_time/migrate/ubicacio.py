@@ -110,5 +110,6 @@ class UbicacionesToLocations:
             details=details,
             latitude=ubicacion.latitud,
             longitude=ubicacion.longitud,
-            geojson=geojson
+            geojson=geojson,
+            ubicacion_id_ref=ubicacion.pk
         )
