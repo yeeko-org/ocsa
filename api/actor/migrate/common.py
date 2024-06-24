@@ -3,7 +3,8 @@ from django.db.models import F
 from source.models import Mention, Note, StatusHistory
 from project.models import Project
 from actor.models import (
-    Actor, Belong, Interest, OriginReference, Participant, ParticipantType, Sector, SectorGroup)
+    Actor, Interest, OriginReference, Participant)
+from classify.models import ParticipantType, Belong, SectorGroup, Sector
 from ocsa_legacy.models import EstatusProyectos, Proyecto, Nota
 from space_time.models import StatusProject
 

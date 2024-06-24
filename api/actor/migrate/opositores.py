@@ -1,5 +1,5 @@
 from typing import Dict
-from actor.models import Belong, IndigenousGroup, Sector, SectorGroup
+from classify.models import Belong, IndigenousGroup, SectorGroup, Sector
 from ocsa_legacy.models import (
     CatSubpoblacionAfectada, FormaOrganizacion, InteresesOpositores,
     Opositores)
