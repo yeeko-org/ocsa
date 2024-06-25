@@ -11,8 +11,6 @@ python .\manage.py  load_localidades
 python .\manage.py  migrate_ubicaciones
 python .\manage.py  migrate_notas
 python .\manage.py  migrate_proyectos
-python .\manage.py  migrate_actors
+python .\manage.py  migrate_classify
 python .\manage.py  migrate_events
-
-
-
+python .\manage.py  migrate_afectaciones

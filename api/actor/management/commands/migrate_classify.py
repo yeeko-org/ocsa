@@ -1,4 +1,3 @@
-import traceback
 from django.core.management.base import BaseCommand
 
 from actor.migrate.grupos_apoyo import GruposApoyoToActorMigration

@@ -1,5 +1,6 @@
 from typing import Optional
-from actor.models import Actor, Sector, SectorGroup, Member
+from actor.models import Actor, Member
+from classify.models import SectorGroup, Sector
 from ocsa_legacy.models import Capital
 from work_flux.models import StatusControl
 from space_time.models import Country

@@ -1,9 +1,8 @@
 from typing import Dict
-from actor.models import Belong, IndigenousGroup, Sector, SectorGroup
+from classify.models import Belong, IndigenousGroup, SectorGroup, Sector
 from ocsa_legacy.models import (
     CatSubpoblacionAfectada, FormaOrganizacion, InteresesOpositores,
     Opositores)
-from work_flux.models import StatusControl
 from actor.migrate.common import ActorBase
 
 
@@ -52,7 +51,10 @@ class OpositorToActorMigration(ActorBase):
     def get_belong(self, key: str) -> Belong:
         belong = self.belongs.get(key)
         if not belong:
-            belong = Belong.objects.create(key_name=key, name=key)
+            try:
+                belong = Belong.objects.get(key_name=key)
+            except Belong.DoesNotExist:
+                belong = Belong.objects.create(key_name=key, name=key)
             self.belongs[key] = belong
         return belong
 
@@ -131,7 +133,7 @@ class OpositorToActorMigration(ActorBase):
         if opositor.otros_opositores and "*" not in opositor.nombre:
             other_name = f"{opositor.nombre} --> {opositor.otros_opositores}"
             other_opositor, created_other = self.get_actor(other_name)
-            other_opositor.status_validation_id = "need_review" # type: ignore
+            other_opositor.status_validation_id = "need_review"  # type: ignore
             other_opositor.comments = (
                 "YEEKO: Muchos de los nombres de 'otros_opositores' son "
                 "demasiado abstractos (y no únicos), por eso todos deben "

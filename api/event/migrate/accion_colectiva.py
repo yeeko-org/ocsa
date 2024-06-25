@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 from actor.migrate.common import ActorBase
-from actor.models import Participant, Sector, SectorGroup
+from actor.models import Participant
+from classify.models import SectorGroup, Sector
 from event.models import Event, EventGroup, EventLocation, EventRole, EventSubtype, EventType, Involved
 from ocsa_legacy.models import AccionColectivaToUbicacion, FormaAC, Opositores, OpositoresToAC, SectorSocial, AccionesColectivas, SubformaAC
 from source.models import Mention

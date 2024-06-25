@@ -1,7 +1,6 @@
 from work_flux.models import StatusControl
-from .models import (
-    Belong, Sector, init_participant_types, temporal_participant_types, ParticipantType,
-    init_sector_groups, init_sectors, SectorGroup, init_belongs)
+from classify.models import init_participant_types, temporal_participant_types, ParticipantType, init_belongs, Belong, \
+    init_sector_groups, SectorGroup, init_sectors, Sector
 
 
 class ParticipantTypes:

@@ -1,11 +1,9 @@
 from typing import Dict, Optional, Tuple
-from django.db.models import F
-from source.models import Mention, Note, StatusHistory
+from source.models import Mention, Note
 from project.models import Project
 from actor.models import (
-    Actor, Belong, Interest, OriginReference, Participant, ParticipantType, Sector, SectorGroup)
-from ocsa_legacy.models import EstatusProyectos, Proyecto, Nota
-from space_time.models import StatusProject
+    Actor, Interest, OriginReference, Participant)
+from classify.models import ParticipantType, Belong, SectorGroup, Sector
 
 
 class ActorBase:
@@ -102,8 +100,11 @@ class ActorBase:
         proyecto_id: Optional[int] = getattr(instance, "proyecto_id", None)
 
         if not (nota_id and proyecto_id):
-            error = (f"Error with instance {instance.__class__.__name__}"
-                     f" {instance.pk}: {instance}")
+            error = (
+                f"Error with instance {instance.__class__.__name__}"
+                f" {instance.pk}: {instance}"
+                f" (nota_id: {nota_id}, proyecto_id: {proyecto_id})"
+            )
             raise ValueError(error)
 
         key_name = f"{nota_id}-{proyecto_id}"

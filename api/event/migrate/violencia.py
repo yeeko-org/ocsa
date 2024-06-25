@@ -1,6 +1,7 @@
 from typing import List, Optional
 from actor.migrate.common import ActorBase
-from actor.models import Participant, Sector, SectorGroup
+from actor.models import Participant
+from classify.models import SectorGroup, Sector
 from event.models import (
     Event, EventGroup, EventLocation, EventRole, EventSubtype, EventType, Involved)
 from ocsa_legacy.models import (

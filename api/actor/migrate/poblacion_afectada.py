@@ -1,7 +1,7 @@
 
 from typing import Dict
 from actor.migrate.common import ActorBase
-from actor.models import Belong, IndigenousGroup
+from classify.models import Belong, IndigenousGroup
 from ocsa_legacy.models import CatSubpoblacionAfectada, PoblacionAfectada
 
 

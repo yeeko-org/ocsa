@@ -851,6 +851,8 @@ class GruposApoyo(CustomModel):
 #     descripcion text
 # );
 
+
+# Estos se va a ImpactType con is_social = False
 class TipoAfectacionEcologica(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -875,6 +877,7 @@ class TipoAfectacionEcologica(CustomModel):
 # );
 
 
+# Esto se va a Impact, respetando descripción_ae --> description
 class AfectacionEcologica(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
@@ -928,6 +931,9 @@ class AfectacionEcologicaToUbicacion(CustomModel):
 # );
 
 
+# Estos se va a ImpactType con is_social = True
+# tendrá has_subtype = True para los siguientes strings:
+# ["Afectaciones a la salud", "Otros medios de vida afectados"]
 class TipoAfectacionSocial(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -952,6 +958,7 @@ class TipoAfectacionSocial(CustomModel):
 #     temporalidad_id integer  --ForeignKey
 # );
 
+# Esto se va a Impact, respetando descripción_as --> description
 class AfectacionSocial(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
