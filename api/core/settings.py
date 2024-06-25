@@ -27,13 +27,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'profile_auth',
     'ocsa_legacy',
+    'work_flux',
+    'classify',
     'space_time',
     'project',
     'source',
     'actor',
     'impact',
     'event',
-    'work_flux',
+
 ]
 
 MIDDLEWARE = [
