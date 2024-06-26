@@ -1,5 +1,5 @@
 from django.contrib import admin
-from space_time.models import Country, Locality, Municipality, State
+from space_time.models import Country, Locality, Municipality, State, Location
 
 
 @admin.register(Country)
@@ -23,3 +23,10 @@ class MunicipalityAdmin(admin.ModelAdmin):
 @admin.register(State)
 class StateAdmin(admin.ModelAdmin):
     list_display = ('name', 'inegi_code')
+
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ('state', 'municipality', 'locality', 'details',
+                    'latitude', 'longitude')
+    raw_id_fields = ('state', 'municipality', 'locality')
