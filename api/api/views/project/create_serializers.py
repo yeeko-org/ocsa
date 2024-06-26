@@ -9,5 +9,5 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         exclude = ['id', 'proyecto_id_ref', 'legacy_id_mp']
 
 
-class ProjectEditeSerializer(ProjectCreateSerializer):
+class ProjectEditSerializer(ProjectCreateSerializer):
     pass

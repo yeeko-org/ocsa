@@ -10,6 +10,7 @@ class UbicacionesToLocations:
     errors = []
 
     def __init__(self):
+        self.load_states()
         for ubicacion in Ubicacion.objects.all():
             try:
                 self.migrate_ubicacion(ubicacion)
@@ -18,7 +19,7 @@ class UbicacionesToLocations:
 
     def load_states(self):
         for state in State.objects.all():
-            self.states[text_normalizer(state.name.lower())] = state.pk
+            self.states[text_normalizer(state.short_name.lower())] = state.pk
 
             for alt_name in state.alternative_names:
                 self.states[text_normalizer(alt_name.lower())] = state.pk
@@ -36,8 +37,10 @@ class UbicacionesToLocations:
         if not municipality_name:
             return None, 0
 
+        std_name = text_normalizer(municipality_name)
+
         municipality_query = Municipality.objects.filter(
-            state_id=state_id, name__iexact=municipality_name)
+            state_id=state_id, std_name=std_name)
         municipality_count = municipality_query.count()
 
         if not municipality_count:

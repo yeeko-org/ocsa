@@ -12,6 +12,7 @@ from work_flux.models import StatusControl
 # Existen algunos nombres que tienen "Mixto: " al inicio, esos
 # se deben dividir por el slash y hacer un .strip() a cada uno
 # ejemplo: "Mixto: Extractivismo energético / Hiperurbanización"
+# Cambiar a ExtractivismType
 class DeploymentCapitalType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)

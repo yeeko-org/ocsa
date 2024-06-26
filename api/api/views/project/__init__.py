@@ -6,7 +6,7 @@ from project.models import Project
 from rest_framework import viewsets, permissions
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from .create_serializers import ProjectCreateSerializer, ProjectEditeSerializer
+from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
 from .list_serializers import ProjectBasicSerializer
 from .retrieve_serializers import ProjectFullSerializer
 
@@ -16,11 +16,17 @@ class QSearchFilter(SearchFilter):
 
 
 class ProjectFilter(FilterSet):
-    state = NumberFilter(field_name='locations__location__state', lookup_expr='exact')
-    social_impact = NumberFilter(field_name='mentions__impacts__impact_type', lookup_expr='exact')
-    social_subimpact = NumberFilter(field_name='mentions__impacts__impact_subtype', lookup_expr='exact')
-    event_type = NumberFilter(field_name='mentions__events__event_type', lookup_expr='exact')
-    event_subtype = NumberFilter(field_name='mentions__events__event_subtype', lookup_expr='exact')
+    state = NumberFilter(
+        field_name='locations__location__state', lookup_expr='exact')
+    social_impact = NumberFilter(
+        field_name='mentions__impacts__impact_type', lookup_expr='exact')
+    social_subimpact = NumberFilter(
+        field_name='mentions__impacts__impact_subtype', lookup_expr='exact')
+    event_type = NumberFilter(
+        field_name='mentions__events__event_type', lookup_expr='exact')
+    event_subtype = NumberFilter(
+        field_name='mentions__events__event_subtype', lookup_expr='exact')
+
     class Meta:
         model = Project
         fields = {
@@ -56,7 +62,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     search_fields = [
         "official_name",
         "common_name",
-        "description"
+        # "description"
     ]
     ordering_fields = ['id', 'official_name']
     ordering = ['id']
@@ -67,6 +73,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
         action_serializer = {
             'retrieve': ProjectFullSerializer,
             'create': ProjectCreateSerializer,
-            'update': ProjectEditeSerializer
+            'update': ProjectEditSerializer
         }
         return action_serializer.get(self.action, self.serializer_class)
