@@ -46,7 +46,8 @@ class EventSubtype(models.Model):
 
 class Event(models.Model):
     mention = models.ForeignKey(
-        Mention, on_delete=models.CASCADE, blank=True, null=True)
+        Mention, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='events')
     event_subtype = models.ForeignKey(
         EventSubtype, on_delete=models.CASCADE, blank=True, null=True)
     # RICK: Temporal, hasta que no existan ya conflictos

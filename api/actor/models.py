@@ -123,9 +123,10 @@ class Member(models.Model):
 
 
 class Participant(models.Model):
-    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
+    actor = models.ForeignKey(
+        Actor, on_delete=models.CASCADE, related_name='participants')
     mention = models.ForeignKey(
-        Mention, on_delete=models.CASCADE)
+        Mention, on_delete=models.CASCADE, related_name='participants')
     participant_types = models.ManyToManyField(ParticipantType, blank=True)
     # raw_interests = models.TextField(
     #     blank=True, null=True, verbose_name='Intereses (extensión)')

@@ -113,7 +113,7 @@ class Project(models.Model):
     # Se va a tomar en cuenta Proyecto.proyecto_vinculado,
     # si el campo proyecto_vinculado.escala == "Cluster"
     # entonces simplemente asociar ese proyecto en el campo "parent_project"
-    
+
     # Si el proyecto_vinculado tiene otro valor en escala, entonces se
     # debe crear un nuevo proyecto cuyo nombre será:
     # f"CLUSTER CREADO desde {proyecto_vinculado.nombre}",
@@ -147,7 +147,8 @@ class Project(models.Model):
 
 
 class ProjectLocation(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name='locations')
     location = models.ForeignKey(
         Location, on_delete=models.CASCADE)
     status_register = models.ForeignKey(

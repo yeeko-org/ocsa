@@ -37,7 +37,8 @@ class Impact(models.Model):
         ImpactType, on_delete=models.CASCADE)
     impact_subtype = models.ForeignKey(
         ImpactSubtype, on_delete=models.CASCADE, blank=True, null=True)
-    mention = models.ForeignKey(Mention, on_delete=models.CASCADE)
+    mention = models.ForeignKey(
+        Mention, on_delete=models.CASCADE, related_name='impacts')
     description = models.TextField(blank=True, null=True)
     is_potential = models.BooleanField(blank=True, null=True)
 

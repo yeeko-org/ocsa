@@ -56,7 +56,8 @@ class Note(models.Model):
 class Mention(models.Model):
     note = models.ForeignKey(Note, on_delete=models.CASCADE)
     # RICK: Aún no sé si esto debería ser not null
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name='mentions')
     # status_project = models.ForeignKey(
     #     StatusProject, on_delete=models.CASCADE, blank=True, null=True)
     filled = models.BooleanField(default=False)
