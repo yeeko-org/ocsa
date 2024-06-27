@@ -54,7 +54,8 @@ class Note(models.Model):
 # EstatusProyectos tiene la relación entre Note y Project. Por ahora vamos a
 # ignorar la tabla "temporalidad" pero sí tomaremos en cuenta Proyecto."estatus"
 class Mention(models.Model):
-    note = models.ForeignKey(Note, on_delete=models.CASCADE)
+    note = models.ForeignKey(
+        Note, on_delete=models.CASCADE, related_name='mentions')
     # RICK: Aún no sé si esto debería ser not null
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name='mentions')

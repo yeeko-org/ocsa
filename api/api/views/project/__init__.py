@@ -11,10 +11,6 @@ from .list_serializers import ProjectBasicSerializer
 from .retrieve_serializers import ProjectFullSerializer
 
 
-class QSearchFilter(SearchFilter):
-    search_param = 'q'
-
-
 class ProjectFilter(FilterSet):
     state = NumberFilter(
         field_name='locations__location__state', lookup_expr='exact')
@@ -58,7 +54,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     filterset_class = ProjectFilter
 
-    filter_backends = [QSearchFilter, OrderingFilter, DjangoFilterBackend]
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     search_fields = [
         "official_name",
         "common_name",

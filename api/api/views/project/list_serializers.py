@@ -1,8 +1,6 @@
 from rest_framework import serializers
 
 from actor.models import Actor, Participant
-from api.views.catalogs.serializers import (
-    ImpactSubtypeSerializer, ImpactTypeSerializer)
 from impact.models import Impact
 from project.models import Project, ProjectLocation
 from source.models import Mention, Note
@@ -30,8 +28,6 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 
 class ImpactSerializer(serializers.ModelSerializer):
-    impact_type = ImpactTypeSerializer()
-    impact_subtype = ImpactSubtypeSerializer()
 
     class Meta:
         model = Impact
@@ -42,7 +38,7 @@ class NoteBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Note
-        fields = ['title', 'source', 'date']
+        fields = ['id', 'title', 'source', 'date']
 
 
 class EventSerializer(serializers.ModelSerializer):
