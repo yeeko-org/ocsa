@@ -89,6 +89,9 @@ class Actor(models.Model):
             if save:
                 self.save()
 
+    def get_participant_count(self):
+        return Participant.objects.filter(actor=self).count()
+
     def __str__(self):
         return self.name
 
@@ -147,7 +150,8 @@ class Participant(models.Model):
 # Estado no tiene interés
 
 class Interest(models.Model):
-    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    participant = models.ForeignKey(
+        Participant, on_delete=models.CASCADE, related_name='interests')
     interest_type = models.ForeignKey(
         InterestType, on_delete=models.CASCADE, blank=True, null=True)
 
@@ -171,7 +175,8 @@ LEGACY_MODELS = (
 
 
 class OriginReference(models.Model):
-    actor = models.ForeignKey(Actor, on_delete=models.CASCADE)
+    actor = models.ForeignKey(
+        Actor, on_delete=models.CASCADE, related_name='origin_references')
     type_model = models.CharField(max_length=20, choices=LEGACY_MODELS)
     field_name = models.CharField(max_length=255, blank=True, null=True)
     origin_id = models.IntegerField()

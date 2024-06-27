@@ -151,7 +151,7 @@ class ProjectLocation(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name='locations')
     location = models.ForeignKey(
-        Location, on_delete=models.CASCADE)
+        Location, on_delete=models.CASCADE, related_name='projects')
     status_register = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
