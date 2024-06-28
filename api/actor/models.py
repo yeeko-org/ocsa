@@ -92,6 +92,9 @@ class Actor(models.Model):
     def get_participant_count(self):
         return Participant.objects.filter(actor=self).count()
 
+    def get_sector_group(self):
+        return self.sector.sector_group_id if self.sector else None  # type: ignore
+
     def __str__(self):
         return self.name
 
