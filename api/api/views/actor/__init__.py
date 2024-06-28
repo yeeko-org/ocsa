@@ -6,8 +6,9 @@ from rest_framework import viewsets, permissions
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 
-from actor.models import Actor
+from actor.models import Actor, Member, OriginReference, Participant
 
+from api.merge_mix import FromToModelSerializer, MergeSerializerMixin
 from api.pagination import CustomPagination
 from api.views.actor.massive_chages_serializers import MassiveChangeSerializer
 from api.views.actor.serializers import (
@@ -37,7 +38,7 @@ class ActorFilter(FilterSet):
         }
 
 
-class ActorViewMixin(viewsets.GenericViewSet):
+class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
     queryset = Actor.objects.all()\
         .annotate(
             projects_count=Count('participants'),
@@ -84,6 +85,19 @@ class ActorViewMixin(viewsets.GenericViewSet):
 
         return Response({'message': 'Actors updated successfully'})
 
+    def get_from_obj(self, from_id):
+        return Actor.objects.get(id=from_id)
+
+    def update_relations_merge(self, from_obj, to_obj):
+        Member.objects.filter(actor_individual=from_obj)\
+            .update(actor_individual=to_obj)
+        Member.objects.filter(actor_collective=from_obj)\
+            .update(actor_collective=to_obj)
+        Participant.objects.filter(actor=from_obj)\
+            .update(actor=to_obj)
+        OriginReference.objects.filter(actor=from_obj)\
+            .update(actor=to_obj)
+
 
 class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
 
@@ -95,6 +109,7 @@ class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
             'create': ActorCreateSerializer,
             'update': ActorEditeSerializer,
             'massive_changes': MassiveChangeSerializer,
+            'merge': FromToModelSerializer
         }
         return action_serializer.get(self.action, self.serializer_class)
 
