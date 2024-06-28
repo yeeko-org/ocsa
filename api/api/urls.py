@@ -16,6 +16,7 @@ router.register(r'actors_mini', ActorMiniListViewSet, basename='actor mini')
 
 
 urlpatterns = [
-    path('catalogs/', CatalogsView.as_view()),
+    path('catalogs/', include('api.views.catalogs.urls')),
+    path('space_time/', include('api.views.space_time.urls')),
     path('', include(router.urls)),
 ]
