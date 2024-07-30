@@ -89,15 +89,8 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class ActorFullSerializer(ActorBaseSerializer):
     participants = ParticipantMiniSerializer(many=True)
-    locations = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
     projects = serializers.SerializerMethodField()
-
-    def get_locations(self, obj: Actor):
-        locations_query = Location.objects.filter(
-            projects__project__mentions__participants__actor=obj
-        ).distinct()
-        return LocationSerializer(locations_query, many=True).data
 
     def get_notes(self, obj: Actor):
         return NoteBasicSerializer(
