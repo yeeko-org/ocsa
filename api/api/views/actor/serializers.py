@@ -8,36 +8,13 @@ from space_time.models import Location
 from api.views.note.serializers import NoteBasicSerializer
 
 
-class ActorBasicSerializer(serializers.ModelSerializer):
-    projects_count = serializers.SerializerMethodField()
-
-    def get_projects_count(self, obj: Actor):
-        projects_count = getattr(obj, 'projects_count', None)
-        return projects_count or obj.get_participant_count()
-
-    class Meta:
-        model = Actor
-        fields = [
-            "projects_count",
-            "id",
-            "name",
-            "alternative_names",
-            "sector",
-            "sector_name",
-            "geo_reach",
-            "belongs",
-            "status_validation",
-            "indigenous_group",
-        ]
-
-
 class ProjectBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
 
 
-class MentionFullSerializer(serializers.ModelSerializer):
+class MentionBaseSerializer(serializers.ModelSerializer):
     project = ProjectBaseSerializer()
     note = NoteBasicSerializer()
 
@@ -46,8 +23,8 @@ class MentionFullSerializer(serializers.ModelSerializer):
         fields = ["project", "note"]
 
 
-class ParticipantSerializer(serializers.ModelSerializer):
-    mention = MentionFullSerializer()
+class ParticipantBaseSerializer(serializers.ModelSerializer):
+    mention = MentionBaseSerializer()
 
     class Meta:
         model = Participant
@@ -60,7 +37,7 @@ class MentionMiniSerializer(serializers.ModelSerializer):
         fields = ["project", "note"]
 
 
-class ParticipantMiniSerializer(ParticipantSerializer):
+class ParticipantMiniSerializer(ParticipantBaseSerializer):
     mention = MentionMiniSerializer()
 
 
@@ -70,20 +47,54 @@ class OriginReferenceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ActorBaseSerializer(ActorBasicSerializer):
-
-    parent_actor = ActorBasicSerializer()
-    participants = ParticipantSerializer(many=True)
-    origin_references = OriginReferenceSerializer(many=True)
-
-    class Meta:
-        model = Actor
-        fields = '__all__'
-
-
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
+        fields = '__all__'
+
+
+class ActorMiniSerializer(serializers.ModelSerializer):
+    projects_count = serializers.SerializerMethodField()
+    sector_group = serializers.SerializerMethodField()
+
+    def get_projects_count(self, obj: Actor):
+        projects_count = getattr(obj, 'projects_count', None)
+        return projects_count or obj.get_participant_count()
+
+    def get_sector_group(self, obj: Actor):
+        sector_group = getattr(obj, "sector_group", None)
+        return sector_group or obj.get_sector_group()
+
+    class Meta:
+        model = Actor
+        fields = [
+            "id",
+            "projects_count",
+
+            "indigenous_group",
+            "sector_group",
+
+            "name",
+            "alternative_names",
+            "sector",
+            "sector_name",
+            "geo_reach",
+            "belongs",
+            "status_validation",
+        ]
+
+
+class ActorBaseSerializer(ActorMiniSerializer):
+
+    parent_actor = serializers.SerializerMethodField()
+    participants = ParticipantBaseSerializer(many=True)
+
+    def get_parent_actor(self, obj: Actor):
+        # ActorBaseSerializer produce error de recursividad. analizar
+        return ActorMiniSerializer(obj.parent_actor).data
+
+    class Meta:
+        model = Actor
         fields = '__all__'
 
 
@@ -91,6 +102,7 @@ class ActorFullSerializer(ActorBaseSerializer):
     participants = ParticipantMiniSerializer(many=True)
     notes = serializers.SerializerMethodField()
     projects = serializers.SerializerMethodField()
+    # origin_references = OriginReferenceSerializer(many=True)
 
     def get_notes(self, obj: Actor):
         return NoteBasicSerializer(

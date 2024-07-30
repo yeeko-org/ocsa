@@ -1,11 +1,13 @@
 from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
-from api.pagination import CustomPagination
-from project.models import Project
 from rest_framework import viewsets, permissions
 from rest_framework.filters import SearchFilter, OrderingFilter
 
+from api.merge_mix import MergeSerializerMixin
+from api.pagination import CustomPagination
+from project.models import Project, ProjectLocation
+from source.models import Mention
 from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
 from .list_serializers import ProjectBasicSerializer
 from .retrieve_serializers import ProjectFullSerializer
@@ -33,7 +35,7 @@ class ProjectFilter(FilterSet):
         }
 
 
-class ProjectViewSet(viewsets.ModelViewSet):
+class ProjectViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
@@ -72,3 +74,12 @@ class ProjectViewSet(viewsets.ModelViewSet):
             'update': ProjectEditSerializer
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    def get_from_obj(self, from_id):
+        return Project.objects.get(id=from_id)
+
+    def update_relations_merge(self, from_obj, to_obj):
+        ProjectLocation.objects.filter(project=from_obj)\
+            .update(project=to_obj)
+        Mention.objects.filter(project=from_obj)\
+            .update(project=to_obj)

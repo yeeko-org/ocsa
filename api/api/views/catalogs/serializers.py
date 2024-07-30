@@ -20,6 +20,14 @@ from profile_auth.models import Role
 from source.models import Source
 from work_flux.models import StatusControl
 
+from space_time.models import StatusProject
+
+
+class StatusProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StatusProject
+        fields = "__all__"
+
 
 class StatusControlSerializer(serializers.ModelSerializer):
     class Meta:

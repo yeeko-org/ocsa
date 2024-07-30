@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, F
 from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
@@ -6,12 +6,13 @@ from rest_framework import viewsets, permissions
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 
-from actor.models import Actor
+from actor.models import Actor, Member, OriginReference, Participant
 
+from api.merge_mix import FromToModelSerializer, MergeSerializerMixin
 from api.pagination import CustomPagination
 from api.views.actor.massive_chages_serializers import MassiveChangeSerializer
 from api.views.actor.serializers import (
-    ActorBasicSerializer, ActorCreateSerializer, ActorEditeSerializer,
+    ActorBaseSerializer, ActorMiniSerializer, ActorCreateSerializer, ActorEditeSerializer,
     ActorFullSerializer)
 
 
@@ -37,10 +38,13 @@ class ActorFilter(FilterSet):
         }
 
 
-class ActorViewSet(viewsets.ModelViewSet):
+class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
     queryset = Actor.objects.all()\
-        .annotate(projects_count=Count('participants'))\
-        .select_related("parent_actor")\
+        .annotate(
+            projects_count=Count('participants'),
+            sector_group=F('sector__sector_group')
+    )\
+        .select_related("parent_actor", "parent_actor__sector")\
         .prefetch_related("participants", "origin_references")
     permission_classes = [permissions.IsAuthenticated]
 
@@ -50,21 +54,10 @@ class ActorViewSet(viewsets.ModelViewSet):
 
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     search_fields = [
-        "title",
+        "name",
     ]
     ordering_fields = ['id', 'name', 'projects_count']
     ordering = ['id']
-
-    serializer_class = ActorBasicSerializer
-
-    def get_serializer_class(self):
-        action_serializer = {
-            'retrieve': ActorFullSerializer,
-            'create': ActorCreateSerializer,
-            'update': ActorEditeSerializer,
-            'massive_changes': MassiveChangeSerializer
-        }
-        return action_serializer.get(self.action, self.serializer_class)
 
     @action(detail=False, methods=['post'])
     def massive_changes(self, request):
@@ -91,3 +84,35 @@ class ActorViewSet(viewsets.ModelViewSet):
         actors.update(**update_data)
 
         return Response({'message': 'Actors updated successfully'})
+
+    def get_from_obj(self, from_id):
+        return Actor.objects.get(id=from_id)
+
+    def update_relations_merge(self, from_obj, to_obj):
+        Member.objects.filter(actor_individual=from_obj)\
+            .update(actor_individual=to_obj)
+        Member.objects.filter(actor_collective=from_obj)\
+            .update(actor_collective=to_obj)
+        Participant.objects.filter(actor=from_obj)\
+            .update(actor=to_obj)
+        OriginReference.objects.filter(actor=from_obj)\
+            .update(actor=to_obj)
+
+
+class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
+
+    serializer_class = ActorBaseSerializer
+
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': ActorFullSerializer,
+            'create': ActorCreateSerializer,
+            'update': ActorEditeSerializer,
+            'massive_changes': MassiveChangeSerializer,
+            'merge': FromToModelSerializer
+        }
+        return action_serializer.get(self.action, self.serializer_class)
+
+
+class ActorMiniListViewSet(ActorViewMixin, viewsets.ReadOnlyModelViewSet):
+    serializer_class = ActorMiniSerializer
