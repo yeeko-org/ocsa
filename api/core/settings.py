@@ -10,7 +10,12 @@ SECRET_KEY = '***REMOVED***'
 
 DEBUG = True
 
+ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS")
 ALLOWED_HOSTS = []
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [
+        host.strip() for host in ALLOWED_HOSTS_ENV.split(",") if host.strip()
+    ]
 
 AUTH_USER_MODEL = 'profile_auth.User'
 
