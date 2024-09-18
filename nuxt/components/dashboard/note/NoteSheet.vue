@@ -26,7 +26,7 @@ const openNote = () => {
 <template>
   <v-expansion-panel-text
     class="ml-n16 mr-n6"
-    color="deep-purple-lighten-5"
+    color="blue-lighten-5"
   >
     <v-sheet
       v-if="full_note"

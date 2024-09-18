@@ -8,7 +8,7 @@ const { getSimple } = mainStore
 
 const props = defineProps({
   main: Object,
-  group_name: String,
+  group: Object,
   show_details: {
     type: Boolean,
     default: false,
@@ -20,7 +20,7 @@ const full_main = ref({})
 
 
 const openMain = () => {
-  getSimple([props.group_name, props.main.id]).then((res) => {
+  getSimple([props.group.key, props.main.id]).then((res) => {
     full_main.value = res
   })
 }
@@ -30,7 +30,7 @@ const openMain = () => {
 <template>
   <v-expansion-panel class="d-flex">
     <v-sheet
-      color="purple-lighten-5"
+      :color="`${props.group.color}-lighten-5`"
       class="d-flex align-start flex-shrink-0"
     >
       <v-checkbox

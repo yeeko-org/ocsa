@@ -12,7 +12,7 @@ import NoteHeader from "~/components/dashboard/note/NoteHeader.vue";
 import ActorHeader from "~/components/dashboard/actor/ActorHeader.vue";
 
 const route = useRoute()
-const group = route.params.group
+const group_name = route.params.group
 
 const mainStore = useMainStore()
 const { fetchCatalogs, fetchElements } = mainStore
@@ -125,8 +125,16 @@ const all_filters = [
   },
 ]
 
+const groups = [
+  {name: "Proyectos", key: "project", color: 'purple'},
+  {name: "Notas", key: "note", color: 'deep-purple'},
+  {name: "Actores", key: "actor", color: 'blue'},
+]
+
+const group = computed(() => groups.find(g => g.key === group_name))
+
 const group_filters = computed(() =>
-    all_filters.filter(f => f.groups.includes(group)) )
+    all_filters.filter(f => f.groups.includes(group_name)) )
 
 const sorts = [
   {text: 'Fecha de registro', value: 'send_petition'},
@@ -163,7 +171,7 @@ function applyFilters() {
   loading_fetch.value = true
   show_details.value = false
   // const function_name = group === 'project' ? fetchProjects : fetchNotes
-  fetchElements([group, final_filters.value]).then(res => {
+  fetchElements([group_name, final_filters.value]).then(res => {
     loading_fetch.value = false
     filters_touched.value = false
     total_count.value = res.total
@@ -346,41 +354,41 @@ function changeGroupActions(){
       <PanelCommon
         v-for="elem in results"
         :key="elem.id"
-        :group_name="group"
+        :group="group"
         :main="elem"
-        :show_details="show_details"
+        :show_details="true"
         :sel="sel"
       >
         <template #header="{openMain}">
           <ProjectHeader
-            v-if="group === 'project'"
+            v-if="group.key === 'project'"
             :project="elem"
-            :show_details="show_details"
+            :show_details="true"
             @open-project="openMain"
           />
           <NoteHeader
-            v-else-if="group === 'note'"
+            v-else-if="group.key === 'note'"
             :note="elem"
-            :show_details="show_details"
+            :show_details="true"
             @open-panel="openMain"
           />
           <ActorHeader
-            v-else-if="group === 'actor'"
+            v-else-if="group.key === 'actor'"
             :actor="elem"
-            :show_details="show_details"
+            :show_details="true"
             @open-panel="openMain"
           />
         </template>
         <template #sheet="{full_main}">
           <ProjectSheet
-            v-if="group === 'project'"
+            v-if="group.key === 'project'"
             :full_project="full_main"
-            :show_details="show_details"
+            :show_details="true"
           />
           <NoteSheet
-            v-else-if="group === 'note'"
+            v-else-if="group.key === 'note'"
             :full_note="full_main"
-            :show_details="show_details"
+            :show_details="true"
           />
         </template>
       </PanelCommon>
