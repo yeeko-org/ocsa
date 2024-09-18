@@ -10,7 +10,12 @@ SECRET_KEY = '***REMOVED***'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS")
+ALLOWED_HOSTS = []
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [
+        host.strip() for host in ALLOWED_HOSTS_ENV.split(",") if host.strip()
+    ]
 
 AUTH_USER_MODEL = 'profile_auth.User'
 
@@ -161,6 +166,15 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -185,5 +199,4 @@ REST_FRAMEWORK = {
 CORS_ORIGIN_ALLOW_ALL = True
 # ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 USE_X_FORWARDED_HOST = True
-HTTP_X_FORWARDED_HOST = os.getenv("HTTP_X_FORWARDED_HOST", "ocamis.yeeko.org")
-
+HTTP_X_FORWARDED_HOST = os.getenv("HTTP_X_FORWARDED_HOST", "apiocsa.yeeko.org")
