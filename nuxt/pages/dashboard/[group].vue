@@ -356,26 +356,26 @@ function changeGroupActions(){
         :key="elem.id"
         :group="group"
         :main="elem"
-        :show_details="true"
+        :show_details="show_details"
         :sel="sel"
       >
         <template #header="{openMain}">
           <ProjectHeader
             v-if="group.key === 'project'"
             :project="elem"
-            :show_details="true"
+            :show_details="show_details"
             @open-project="openMain"
           />
           <NoteHeader
             v-else-if="group.key === 'note'"
             :note="elem"
-            :show_details="true"
+            :show_details="show_details"
             @open-panel="openMain"
           />
           <ActorHeader
             v-else-if="group.key === 'actor'"
             :actor="elem"
-            :show_details="true"
+            :show_details="show_details"
             @open-panel="openMain"
           />
         </template>
@@ -383,12 +383,12 @@ function changeGroupActions(){
           <ProjectSheet
             v-if="group.key === 'project'"
             :full_project="full_main"
-            :show_details="true"
+            :show_details="show_details"
           />
           <NoteSheet
             v-else-if="group.key === 'note'"
             :full_note="full_main"
-            :show_details="true"
+            :show_details="show_details"
           />
         </template>
       </PanelCommon>

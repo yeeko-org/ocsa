@@ -20,12 +20,9 @@ const actor_by_position = computed(() => {
     all_participants = props.participants.map(
       participant => ({...participant, ...participant.mention}) )
   }
-  else if (final_mentions.value) {
-    const final_mentions = props.mentions || props.main.mentions
-    all_participants = final_mentions.value.flatMap(mention => mention.participants)
-  }
   else {
-    all_participants = []
+    const final_mentions = props.mentions || props.main.mentions
+    all_participants = final_mentions.flatMap(mention => mention.participants)
   }
   return actorCounter(all_participants, props.field, props.subfield)
 })

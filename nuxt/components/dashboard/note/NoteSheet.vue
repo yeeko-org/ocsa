@@ -79,7 +79,7 @@ const openNote = () => {
           />
         </v-card-text>
       </v-card>
-      <v-card>
+      <v-card v-if="full_note.mentions">
         <v-card-title>
           {{ full_note.mentions.length }} menciones de proyectos
         </v-card-title>
@@ -98,6 +98,9 @@ const openNote = () => {
         <v-card-title>
           -----
         </v-card-title>
+        <v-card-text v-if="!full_note.mentions">
+          {{full_note}}
+        </v-card-text>
       </v-card>
     </v-sheet>
   </v-expansion-panel-text>
