@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'NuxtOcsaDashboard',
+      name: 'ocsa',
       port: '3000',
       exec_mode: 'cluster',
       instances: 'max',

@@ -1,0 +1,17 @@
+{
+  "apps": [
+    {
+      "name": "ocsa",
+      "instances": "max",
+      "exec_mode": "cluster",
+      "script": "npm",
+      "args": "start",
+      "cwd": "/home/ubuntu/app/",
+      "env": {
+        "HOST": "127.0.0.1",
+        "PORT": "3000",
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}
