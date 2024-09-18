@@ -9,10 +9,10 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 
-router.register(r'projects', ProjectViewSet, basename='project')
-router.register(r'notes', NoteViewSet, basename='note')
-router.register(r'actors', ActorViewSet, basename='actor')
-router.register(r'actors_mini', ActorMiniListViewSet, basename='actor mini')
+router.register(r'project', ProjectViewSet, basename='project')
+router.register(r'note', NoteViewSet, basename='note')
+router.register(r'actor', ActorViewSet, basename='actor')
+router.register(r'actor_mini', ActorMiniListViewSet, basename='actor mini')
 
 
 urlpatterns = [

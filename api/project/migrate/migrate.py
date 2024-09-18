@@ -242,12 +242,12 @@ class ProyectoToProject:
             project_a.save()
             return
 
-        name = f"CLUSTER CREADO desde {project_b.official_name}"
+        name = f"AGRUPADOR CREADO desde {project_b.official_name}"
         project_c, _ = Project.objects.get_or_create(
             official_name=name,
             conflict=project_b.conflict,
             megaproject_type=project_b.megaproject_type,
-            scale=self.get_scale("Cluster artificial"),
+            scale=self.get_scale("Agrupador artificial"),
         )
 
         project_a.parent_project = project_c  # type: ignore

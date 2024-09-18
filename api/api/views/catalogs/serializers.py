@@ -14,6 +14,7 @@ from event.models import (
     EventType,
     EventSubtype,
     EventRole,)
+from project.models import MegaprojectType, Scale, DeploymentCapitalType
 
 from impact.models import ImpactSubtype, ImpactType
 from profile_auth.models import Role
@@ -36,7 +37,7 @@ class StatusControlSerializer(serializers.ModelSerializer):
 
 
 class ParticipantTypeSerializer(serializers.ModelSerializer):
-    status_validation = StatusControlSerializer()
+    # status_validation = StatusControlSerializer()
 
     class Meta:
         model = ParticipantType
@@ -62,10 +63,10 @@ class SectorGroupSerializer(serializers.ModelSerializer):
 
 
 class SectorSerializer(serializers.ModelSerializer):
-    sector_group = SectorGroupSerializer()
-    common_participant_types = ParticipantTypeSerializer(many=True)
-    common_belongs = BelongSerializer(many=True)
-    status_validation = StatusControlSerializer()
+    # sector_group = SectorGroupSerializer()
+    # common_participant_types = ParticipantTypeSerializer(many=True)
+    # common_belongs = BelongSerializer(many=True)
+    # status_validation = StatusControlSerializer()
 
     class Meta:
         model = Sector
@@ -73,7 +74,7 @@ class SectorSerializer(serializers.ModelSerializer):
 
 
 class InterestGroupSerializer(serializers.ModelSerializer):
-    participant_types = ParticipantTypeSerializer(many=True)
+    # participant_types = ParticipantTypeSerializer(many=True)
 
     class Meta:
         model = InterestGroup
@@ -81,7 +82,7 @@ class InterestGroupSerializer(serializers.ModelSerializer):
 
 
 class InterestTypeSerializer(serializers.ModelSerializer):
-    group = InterestGroupSerializer()
+    # group = InterestGroupSerializer()
 
     class Meta:
         model = InterestType
@@ -95,8 +96,8 @@ class EventGroupSerializer(serializers.ModelSerializer):
 
 
 class EventTypeSerializer(serializers.ModelSerializer):
-    group = EventGroupSerializer()
-    status_validation = StatusControlSerializer()
+    # group = EventGroupSerializer()
+    # status_validation = StatusControlSerializer()
 
     class Meta:
         model = EventType
@@ -104,8 +105,8 @@ class EventTypeSerializer(serializers.ModelSerializer):
 
 
 class EventSubtypeSerializer(serializers.ModelSerializer):
-    event_types = EventTypeSerializer(many=True)
-    status_validation = StatusControlSerializer()
+    # event_types = EventTypeSerializer(many=True)
+    # status_validation = StatusControlSerializer()
 
     class Meta:
         model = EventSubtype
@@ -125,7 +126,7 @@ class ImpactTypeSerializer(serializers.ModelSerializer):
 
 
 class ImpactSubtypeSerializer(serializers.ModelSerializer):
-    impact_type = ImpactTypeSerializer()
+    # impact_type = ImpactTypeSerializer()
 
     class Meta:
         model = ImpactSubtype
@@ -141,4 +142,22 @@ class RoleSerializer(serializers.ModelSerializer):
 class SourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Source
+        fields = "__all__"
+
+
+class ScaleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Scale
+        fields = "__all__"
+
+
+class MegaprojectTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MegaprojectType
+        fields = "__all__"
+
+
+class DeploymentCapitalTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeploymentCapitalType
         fields = "__all__"

@@ -10,13 +10,7 @@ from event.models import Event
 class ActorBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
-        fields = [
-            "name",
-            "official_name",
-            "sex",
-            "status_validation",
-        ]
-        # exclude = ['std_name', 'capital_id_ref']
+        exclude = ['std_name', 'capital_id_ref']
 
 
 class ParticipantSerializer(serializers.ModelSerializer):

@@ -232,6 +232,17 @@ class EstatusProyecto(CustomModel):
 #     proyecto_vinculado_id integer,  --ForeignKey
 #     old_ubis bigint
 # );
+# Se va a tomar en cuenta Proyecto.proyecto_vinculado,
+# si el campo proyecto_vinculado.escala == "Cluster"
+# entonces simplemente asociar ese proyecto en el campo "parent_project"
+
+# Si el proyecto_vinculado tiene otro valor en escala, entonces se
+# debe crear un nuevo proyecto cuyo nombre será:
+# f"CLUSTER CREADO desde {proyecto_vinculado.nombre}",
+# con Scale.name = "Cluster artificial"
+# Si el proyecto vinculado ya tenía como hijo o padre el mismo proyecto
+# entonces dejarlo así, sin hacer nada
+
 class Proyecto(CustomModel):
     id_mp = models.IntegerField(blank=True, null=True)
     nombre = models.TextField(blank=True, null=True)

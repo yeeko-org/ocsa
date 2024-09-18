@@ -35,10 +35,13 @@ class Note(models.Model):
         upload_to='screenshots/', blank=True, null=True)
     date = models.DateField()
     capture_date = models.DateField(blank=True, null=True)
+    # TODO: Agregar estos campos en migración
     # editor = models.ForeignKey(
     #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
     # reviewer = models.ForeignKey(
     #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
+    # status_register = models.ForeignKey(
+    #     StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -76,7 +79,8 @@ class Mention(models.Model):
 
 
 class StatusHistory(models.Model):
-    mention = models.ForeignKey(Mention, on_delete=models.CASCADE)
+    mention = models.ForeignKey(
+        Mention, on_delete=models.CASCADE, related_name='status_history')
     status_project = models.ForeignKey(
         StatusProject, on_delete=models.CASCADE, blank=True, null=True)
     date = models.DateField(blank=True, null=True)

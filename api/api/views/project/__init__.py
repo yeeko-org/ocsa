@@ -24,6 +24,9 @@ class ProjectFilter(FilterSet):
         field_name='mentions__events__event_type', lookup_expr='exact')
     event_subtype = NumberFilter(
         field_name='mentions__events__event_subtype', lookup_expr='exact')
+    extractivism_type = NumberFilter(
+        field_name='megaproject_type__deployment_capital_types',
+        lookup_expr='exact')
 
     class Meta:
         model = Project
@@ -39,18 +42,15 @@ class ProjectViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
-        "megaproject_type",
-        "scale",
-        "status_project",
-        "status_register",
     ).prefetch_related(
         "mentions",
         "mentions__note",
         "mentions__impacts",
         "mentions__participants",
         "mentions__participants__actor",
-    )
-    permission_classes = [permissions.IsAuthenticated]
+    ).distinct()
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
 

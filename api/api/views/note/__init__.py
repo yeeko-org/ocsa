@@ -7,7 +7,7 @@ from source.models import Note
 
 from api.pagination import CustomPagination
 from api.views.note.serializers import (
-    NoteBasicSerializer, NoteCreateSerializer, NoteEditeSerializer,
+    NoteSerializer, NoteCreateSerializer, NoteEditeSerializer,
     NoteFullSerializer)
 
 
@@ -24,8 +24,16 @@ class NoteFilter(FilterSet):
 
 
 class NoteViewSet(viewsets.ModelViewSet):
-    queryset = Note.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    queryset = Note.objects.all()\
+        .prefetch_related(
+            'mentions',
+            'mentions__project',
+            'mentions__impacts',
+            'mentions__participants',
+            'mentions__participants__actor'
+        )
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
 
@@ -38,7 +46,7 @@ class NoteViewSet(viewsets.ModelViewSet):
     ordering_fields = ['id', 'date']
     ordering = ['id']
 
-    serializer_class = NoteBasicSerializer
+    serializer_class = NoteSerializer
 
     def get_serializer_class(self):
         action_serializer = {

@@ -5,7 +5,7 @@ from project.models import Project
 from source.models import Mention, Note
 from space_time.models import Location
 
-from api.views.note.serializers import NoteBasicSerializer
+from api.views.project.list_serializers import NoteBasicSerializer
 
 
 class ProjectBaseSerializer(serializers.ModelSerializer):
@@ -54,12 +54,12 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class ActorMiniSerializer(serializers.ModelSerializer):
-    projects_count = serializers.SerializerMethodField()
+    mentions_count = serializers.SerializerMethodField()
     sector_group = serializers.SerializerMethodField()
 
-    def get_projects_count(self, obj: Actor):
-        projects_count = getattr(obj, 'projects_count', None)
-        return projects_count or obj.get_participant_count()
+    def get_mentions_count(self, obj: Actor):
+        mentions_count = getattr(obj, 'mentions_count', None)
+        return mentions_count or obj.get_participant_count()
 
     def get_sector_group(self, obj: Actor):
         sector_group = getattr(obj, "sector_group", None)
@@ -69,7 +69,7 @@ class ActorMiniSerializer(serializers.ModelSerializer):
         model = Actor
         fields = [
             "id",
-            "projects_count",
+            "mentions_count",
 
             "indigenous_group",
             "sector_group",

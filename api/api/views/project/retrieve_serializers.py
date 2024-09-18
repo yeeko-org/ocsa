@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
-from actor.models import Actor, Participant
+from actor.models import Participant
 from api.views.catalogs.serializers import StatusControlSerializer
-from api.views.project.list_serializers import ImpactSerializer
+from api.views.project.list_serializers import (
+    ImpactSerializer, ActorBasicSerializer)
 from project.models import (
     Conflict, DeploymentCapitalType, MegaprojectType, Project, Scale)
-from source.models import Note
+from source.models import Note, Mention
 from space_time.models import StatusProject
 
 
@@ -36,12 +37,6 @@ class ScaleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class StatusProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StatusProject
-        fields = '__all__'
-
-
 class NoteFullSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -49,14 +44,8 @@ class NoteFullSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ActorFullSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Actor
-        exclude = ['std_name', 'capital_id_ref']
-
-
 class ParticipantFullSerializer(serializers.ModelSerializer):
-    actor = ActorFullSerializer()
+    actor = ActorBasicSerializer()
 
     class Meta:
         model = Participant
@@ -68,14 +57,14 @@ class MentionFullSerializer(serializers.ModelSerializer):
     note = NoteFullSerializer()
     participants = ParticipantFullSerializer(many=True)
 
+    class Meta:
+        model = Mention
+        exclude = ['project']
+
 
 class ProjectFullSerializer(serializers.ModelSerializer):
     parent_project = serializers.SerializerMethodField()
     conflict = ConflictSerializer()
-    megaproject_type = MegaprojectTypeSerializer()
-    scale = ScaleSerializer()
-    status_project = StatusProjectSerializer()
-    status_register = StatusControlSerializer()
     mentions = MentionFullSerializer(many=True)
 
     def get_parent_project(self, obj):

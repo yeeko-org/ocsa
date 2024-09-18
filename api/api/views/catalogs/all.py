@@ -1,6 +1,7 @@
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import permissions
 
 from classify.models import (
     ParticipantType,
@@ -17,9 +18,12 @@ from event.models import (
     EventSubtype,
     EventRole,)
 
+from space_time.models import State
+from project.models import MegaprojectType, Scale, DeploymentCapitalType
+
 from impact.models import ImpactSubtype, ImpactType
 from profile_auth.models import Role
-from source.models import Source
+from source.models import Source, StatusProject
 from work_flux.models import StatusControl
 
 from api.views.catalogs.serializers import (
@@ -38,12 +42,23 @@ from api.views.catalogs.serializers import (
     ImpactTypeSerializer,
     RoleSerializer,
     SourceSerializer,
-    StatusControlSerializer
+    StatusProjectSerializer,
+    StatusControlSerializer,
+    MegaprojectTypeSerializer,
+    ScaleSerializer,
+    DeploymentCapitalTypeSerializer
 )
+
+from api.views.space_time.serializers import StateListSerializer
 
 
 class CatalogsView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
     def get(self, request):
+        sectors = Sector.objects\
+            .filter(name__isnull=False)\
+            .exclude(name__exact='')
         catalogs = {
             "participant_types": ParticipantTypeSerializer(
                 ParticipantType.objects.all(), many=True).data,
@@ -53,8 +68,7 @@ class CatalogsView(APIView):
                 IndigenousGroup.objects.all(), many=True).data,
             "sector_groups": SectorGroupSerializer(
                 SectorGroup.objects.all(), many=True).data,
-            "sectors": SectorSerializer(
-                Sector.objects.all(), many=True).data,
+            "sectors": SectorSerializer(sectors, many=True).data,
             "interest_groups": InterestGroupSerializer(
                 InterestGroup.objects.all(), many=True).data,
             "interest_types": InterestTypeSerializer(
@@ -75,7 +89,19 @@ class CatalogsView(APIView):
                 Role.objects.all(), many=True).data,
             "sources": SourceSerializer(
                 Source.objects.all(), many=True).data,
-            "status_controls": StatusControlSerializer(
+            "status_project": StatusProjectSerializer(
+                StatusProject.objects.all(), many=True).data,
+            "status_control": StatusControlSerializer(
                 StatusControl.objects.all(), many=True).data,
+            "states": StateListSerializer(
+                State.objects.all(), many=True).data,
+            "megaproject_types": MegaprojectTypeSerializer(
+                MegaprojectType.objects.all(), many=True).data,
+            "scales": ScaleSerializer(
+                Scale.objects.all(), many=True).data,
+            "deployment_capital_types": DeploymentCapitalTypeSerializer(
+                DeploymentCapitalType.objects.all(), many=True).data,
+            "extractivism_types": DeploymentCapitalTypeSerializer(
+                DeploymentCapitalType.objects.all(), many=True).data,
         }
         return Response(catalogs)

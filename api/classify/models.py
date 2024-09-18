@@ -2,40 +2,7 @@ from django.db import models
 
 from work_flux.models import StatusControl
 
-# Estos se generan al inicio, con los campos: (name, position, required_interests)
-init_participant_types = [
-    ('Promotor', 'support', False),
-    ('Financiador', 'support', False),
-    ('Represor', 'support', False),
-    ('Partidario', 'support', False),
-    ('Mediador', 'neutral', True),
-    ('Analista', 'neutral', False),
-    ('Atención a reclamos', 'neutral', False),
-    # Los GruposApoyo que tengan "Opositor" u "Opositores" en tipo_grupo_apoyo
-    # Acompañamiento-apoyo (representante) con los afectados u opositores
-    ('Acompañante solidario', 'oppose', True),
-    ('Opositor', 'oppose', True),
-    ('Otro', 'other', True),
 
-    # RICK: Parece una categoría distinta:
-    ('Ejecutor del Proyecto', 'support', False),
-    # RICK: Parece que es lo mismo que el campo "is_affected"
-    ('Beneficiario', 'support', True),
-]
-
-# estos se deben agregar también, pero con is_temporal = True
-# Los grupos Opositores y PoblacionesAfectadas deben ir directo en su grupo
-# Estado tiene su filtro específico y se agregan otros_opositores de Opositores
-temporal_participant_types = [
-    ('Capital', 'support', False),
-    ('Opositores', 'oppose', True),
-    ('PoblacionesAfectadas', 'oppose', True),
-    ('Estado', 'support', False),
-    ("Por definir (de violencias)", 'undefined', False),
-    # Estos se van a sacar de la tabla Opositores.otros_opositores, pero no
-    # se le van a asignar todos los campos (solo su relación con nota y proyecto)
-    ("otros_opositores", 'oppose', True),
-]
 POSITION_CHOICES = (
     ('undefined', 'No definido'),
     ('maybe_support', 'Posiblemente a favor'),
@@ -63,20 +30,6 @@ class ParticipantType(models.Model):
     class Meta:
         verbose_name = 'Tipo de Participación en Proyecto'
         verbose_name_plural = 'Tipos de Participación en Proyecto'
-
-
-init_belongs = [
-    ('is_worker', 'Trabajador'),
-    ('is_affected', 'Afectado'),
-    ('is_habitant', 'Habitante'),
-    ('is_indigena', 'Indígena'),
-    ('is_farmer', 'Campesino'),
-    ('is_urban', 'Urbano'),
-    ('is_leader', 'Líder'),
-    ('is_women_special', 'Participación sobresaliente de mujeres'),
-    ('is_woman_organization', 'Organización de mujeres'),
-    ('has_protection', 'Tiene Protección'),
-]
 
 
 class Belong(models.Model):

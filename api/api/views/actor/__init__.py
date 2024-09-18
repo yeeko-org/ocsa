@@ -41,12 +41,13 @@ class ActorFilter(FilterSet):
 class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
     queryset = Actor.objects.all()\
         .annotate(
-            projects_count=Count('participants'),
+            mentions_count=Count('participants'),
             sector_group=F('sector__sector_group')
     )\
         .select_related("parent_actor", "parent_actor__sector")\
         .prefetch_related("participants", "origin_references")
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
 
@@ -56,7 +57,7 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
     search_fields = [
         "name",
     ]
-    ordering_fields = ['id', 'name', 'projects_count']
+    ordering_fields = ['id', 'name', 'mentions_count']
     ordering = ['id']
 
     @action(detail=False, methods=['post'])

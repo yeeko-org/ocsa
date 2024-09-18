@@ -111,16 +111,6 @@ class Project(models.Model):
     # Viene del campo Proyecto.especificaciones, excepto si su valor es "SD",
     # en ese caso ignorarlo.
     description = models.TextField(blank=True, null=True)
-    # Se va a tomar en cuenta Proyecto.proyecto_vinculado,
-    # si el campo proyecto_vinculado.escala == "Cluster"
-    # entonces simplemente asociar ese proyecto en el campo "parent_project"
-
-    # Si el proyecto_vinculado tiene otro valor en escala, entonces se
-    # debe crear un nuevo proyecto cuyo nombre será:
-    # f"CLUSTER CREADO desde {proyecto_vinculado.nombre}",
-    # con Scale.name = "Cluster artificial"
-    # Si el proyecto vinculado ya tenía como hijo o padre el mismo proyecto
-    # entonces dejarlo así, sin hacer nada
     parent_project = models.ForeignKey(
         'self', on_delete=models.CASCADE,
         verbose_name='Proyecto en el que se agrupa',

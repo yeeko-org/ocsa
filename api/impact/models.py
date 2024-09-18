@@ -8,6 +8,9 @@ class ImpactType(models.Model):
     has_subtype = models.BooleanField(default=False)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
+    # TODO Nuevas migraciones:
+    # order = models.IntegerField(default=0)
+    # short_name = models.CharField(max_length=50, blank=True, null=True)
     is_social = models.BooleanField(default=True)
 
     def __str__(self):
@@ -44,3 +47,7 @@ class Impact(models.Model):
 
     def __str__(self):
         return f'{self.impact_type} - {self.mention}'
+
+    class Meta:
+        verbose_name = 'Impacto'
+        verbose_name_plural = 'Impactos'

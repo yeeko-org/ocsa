@@ -121,7 +121,6 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
             .update(sector=to_obj)
 
 
-
 class InterestGroupViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     queryset = InterestGroup.objects.all()
