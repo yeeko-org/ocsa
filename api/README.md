@@ -14,3 +14,4 @@ python .\manage.py  migrate_proyectos
 python .\manage.py  migrate_classify
 python .\manage.py  migrate_events
 python .\manage.py  migrate_afectaciones
+python .\manage.py  migrate_proyectos_status

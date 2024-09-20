@@ -132,6 +132,17 @@ class Project(models.Model):
     def __str__(self):
         return self.official_name or self.common_name or "Proyecto sin nombre"
 
+    def get_last_status_project(self, save=False):
+        from source.models import StatusHistory
+        last_status_history = StatusHistory.objects\
+            .filter(mention__project=self).order_by('date').last()
+        if last_status_history:
+            self.status_project = last_status_history.status_project
+            if save:
+                self.save()
+            return self.status_project
+        return None
+
     class Meta:
         verbose_name = 'Proyecto'
         verbose_name_plural = 'Proyectos'
