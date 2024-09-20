@@ -3,7 +3,7 @@ from django.db import models
 from project.models import Project
 from space_time.models import StatusProject
 from work_flux.models import StatusControl
-# from django.contrib.auth.models import User
+from profile_auth.models import User
 
 
 class Source(models.Model):
@@ -36,13 +36,14 @@ class Note(models.Model):
         upload_to='screenshots/', blank=True, null=True)
     date = models.DateField()
     capture_date = models.DateField(blank=True, null=True)
-    # Lucian: Necesito incorporar estos 3 campos, pero no puedo
-    # editor = models.ForeignKey(
-    #     User, on_delete=models.CASCADE, blank=True, null=True)
-    # reviewer = models.ForeignKey(
-    #     User, on_delete=models.CASCADE, blank=True, null=True)
-    # status_register = models.ForeignKey(
-    #     StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    editor = models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='editors')
+    reviewer = models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='reviewers')
+    status_register = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.title
