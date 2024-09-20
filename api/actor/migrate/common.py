@@ -138,11 +138,11 @@ class ActorBase:
     def set_sector(self, actor: Actor, sector: str):
         if not sector:
             return
-        try:
-            sector_obj = Sector.objects.get(name=sector)
-        except Sector.DoesNotExist:
-            sector_obj = Sector.objects.create(
-                name=sector, sector_group=self.get_sector_group_default())
+
+        sector_obj, _ = Sector.objects.get_or_create(
+            name=sector, defaults={
+                "sector_group": self.get_sector_group_default()}
+        )
 
         if not actor.sector:
             actor.sector = sector_obj

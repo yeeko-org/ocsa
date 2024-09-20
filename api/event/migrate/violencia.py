@@ -57,11 +57,9 @@ class MigrateViolenciaToEvent(ActorBase):
         self.set_responsables_no_estatales()
 
     def get_or_create_sector(self, name: str) -> Sector:
-        try:
-            return Sector.objects.get(name=name)
-        except Sector.DoesNotExist:
-            return Sector.objects.create(
-                name=name, sector_group=self.default_sector_group)
+        sector, _ = Sector.objects.get_or_create(
+            name=name, defaults={"sector_group": self.default_sector_group})
+        return sector
 
     def get_event(self) -> Event:
         hecho_nombre = getattr(self.violencia.hecho_violencia, "nombre", None)
