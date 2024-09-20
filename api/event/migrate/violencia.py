@@ -57,11 +57,9 @@ class MigrateViolenciaToEvent(ActorBase):
         self.set_responsables_no_estatales()
 
     def get_or_create_sector(self, name: str) -> Sector:
-        try:
-            return Sector.objects.get(name=name)
-        except Sector.DoesNotExist:
-            return Sector.objects.create(
-                name=name, sector_group=self.default_sector_group)
+        sector, _ = Sector.objects.get_or_create(
+            name=name, defaults={"sector_group": self.default_sector_group})
+        return sector
 
     def get_event(self) -> Event:
         hecho_nombre = getattr(self.violencia.hecho_violencia, "nombre", None)
@@ -143,8 +141,7 @@ class MigrateViolenciaToEvent(ActorBase):
         sector_social_actor.belongs.add(self.get_belong("is_leader"))
 
         self.sector_social_participant = self.add_participant(
-            sector_social_actor, self.mention, ["Víctima"],
-            get_object=True)
+            sector_social_actor, self.mention, get_object=True)
 
     def get_not_generic_name(self, name: str) -> str:
         return f"{name} del proyecto {self.mention.project.official_name}"

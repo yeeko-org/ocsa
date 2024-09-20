@@ -32,19 +32,18 @@ class OpositorToActorMigration(ActorBase):
         for forma in FormaOrganizacion.objects.all():
             if not forma.nombre:
                 continue
-            try:
-                sector = Sector.objects.get(name=forma.nombre)
-            except Sector.DoesNotExist:
-                sector = Sector.objects.create(
-                    name=forma.nombre, sector_group=self.default_sg,
-                    status_validation_id="need_reclassify")
+
+            sector, _ = Sector.objects.get_or_create(
+                name=forma.nombre, defaults={
+                    "sector_group": self.default_sg,
+                    "status_validation_id": "need_reclassify"})
             self.sectors[forma.nombre] = sector
 
     def get_sector(self, name: str) -> Sector:
         sector = self.sectors.get(name)
         if not sector:
-            sector = Sector.objects.create(
-                name=name, sector_group=self.default_sg)
+            sector, _ = Sector.objects.get_or_create(
+                name=name, defaults={"sector_group": self.default_sg})
             self.sectors[name] = sector
         return sector
 
