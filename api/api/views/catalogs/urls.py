@@ -15,7 +15,8 @@ from api.views.catalogs import (
     ImpactTypeViewSet,
     RoleViewSet,
     SourceViewSet,
-    StatusControlViewSet
+    StatusControlViewSet,
+    MegaprojectTypeViewSet
 )
 
 from rest_framework import routers
@@ -39,6 +40,7 @@ router.register(r'impact_types', ImpactTypeViewSet, basename='catalog_impact_typ
 router.register(r'roles', RoleViewSet, basename='catalog_role')
 router.register(r'sources', SourceViewSet, basename='catalog_source')
 router.register(r'status_controls', StatusControlViewSet, basename='catalog_status_control')
+router.register(r'megaproject_types', MegaprojectTypeViewSet, basename='catalog_megaproject_type')
 
 urlpatterns = [
     path("all/", CatalogsView.as_view(), name="catalogs_all"),

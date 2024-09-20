@@ -557,6 +557,7 @@ class Opositores(CustomModel):
     # RICK: Aún no sé bien qué vamos a hacer con este campo
     mujer = models.ForeignKey(
         Mujer, on_delete=models.CASCADE, blank=True, null=True)
+    # LUCIAN, esto se va a usar para la equivalencia de los campos con Belong
     # is_farmer => Campesino
     is_campesino_or_comunero_or_ejidatario = models.BooleanField(
         blank=True, null=True)

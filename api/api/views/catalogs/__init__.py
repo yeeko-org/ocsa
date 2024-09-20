@@ -26,6 +26,7 @@ from source.models import Source
 from work_flux.models import StatusControl
 
 from space_time.models import StatusProject
+from project.models import MegaprojectType, Project
 
 from api.views.catalogs.serializers import (
     ParticipantTypeSerializer,
@@ -44,7 +45,8 @@ from api.views.catalogs.serializers import (
     RoleSerializer,
     SourceSerializer,
     StatusControlSerializer,
-    StatusProjectSerializer
+    StatusProjectSerializer,
+    MegaprojectTypeSerializer,
 )
 
 from .all import CatalogsView  # noqa
@@ -152,8 +154,12 @@ class EventSubtypeViewSet(viewsets.ModelViewSet):
 
 
 class EventRoleViewSet(viewsets.ModelViewSet):
+    # from django.db.models import Count, F
     permission_classes = [permissions.IsAuthenticated]
     queryset = EventRole.objects.all()
+    # .annotate(
+    #     event_group=F('event_type__event_group')
+    # )
     serializer_class = EventRoleSerializer
 
 
@@ -191,3 +197,13 @@ class StatusProjectViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     queryset = StatusProject.objects.all()
     serializer_class = StatusProjectSerializer
+
+
+class MegaprojectTypeViewSet(viewsets.ModelViewSet, MergeSerializerMixin):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = MegaprojectType.objects.all()
+    serializer_class = MegaprojectTypeSerializer
+
+    def update_relations_merge(self, from_obj, to_obj):
+        Project.objects.filter(megaproject_type=from_obj)\
+            .update(megaproject_type=to_obj)

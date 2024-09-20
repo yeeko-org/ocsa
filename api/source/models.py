@@ -3,6 +3,7 @@ from django.db import models
 from project.models import Project
 from space_time.models import StatusProject
 from work_flux.models import StatusControl
+# from django.contrib.auth.models import User
 
 
 class Source(models.Model):
@@ -35,11 +36,11 @@ class Note(models.Model):
         upload_to='screenshots/', blank=True, null=True)
     date = models.DateField()
     capture_date = models.DateField(blank=True, null=True)
-    # TODO: Agregar estos campos en migración
+    # Lucian: Necesito incorporar estos 3 campos, pero no puedo
     # editor = models.ForeignKey(
-    #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
+    #     User, on_delete=models.CASCADE, blank=True, null=True)
     # reviewer = models.ForeignKey(
-    #     'users.User', on_delete=models.CASCADE, blank=True, null=True)
+    #     User, on_delete=models.CASCADE, blank=True, null=True)
     # status_register = models.ForeignKey(
     #     StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
@@ -62,8 +63,6 @@ class Mention(models.Model):
     # RICK: Aún no sé si esto debería ser not null
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name='mentions')
-    # status_project = models.ForeignKey(
-    #     StatusProject, on_delete=models.CASCADE, blank=True, null=True)
     filled = models.BooleanField(default=False)
     date_filled = models.DateField(blank=True, null=True)
     status_register = models.ForeignKey(

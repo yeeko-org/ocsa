@@ -1,24 +1,13 @@
 import os
+from core.settings.get_env import getenv_bool, getenv_int, getenv_list
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-SECRET_KEY = '***REMOVED***'
-
-DEBUG = True
-
-ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS")
-ALLOWED_HOSTS = []
-if ALLOWED_HOSTS_ENV:
-    ALLOWED_HOSTS = [
-        host.strip() for host in ALLOWED_HOSTS_ENV.split(",") if host.strip()
-    ]
+# BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 AUTH_USER_MODEL = 'profile_auth.User'
-
 
 # Application definition
 
@@ -32,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    # 'rest_framework.authtoken',
     'django_filters',
     'profile_auth',
     'ocsa_legacy',
@@ -48,17 +38,18 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
 
-TEMPLATE_PATH = os.path.join(BASE_DIR, 'templates')
+# TEMPLATE_PATH = os.path.join(BASE_DIR, 'templates')
+TEMPLATE_PATH = os.path.join(BASE_DIR, os.getenv("TEMPLATE_PATH", 'templates'))
 
 TEMPLATES = [
     {
@@ -67,10 +58,14 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },
@@ -108,6 +103,50 @@ DATABASES = {
 }
 # ---------------------end Default database configuration---------------------
 
+
+# ---------------------------------SECURITY-----------------------------------
+
+SECRET_KEY = '***REMOVED***'
+ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS", ["*"])
+DEBUG = True
+
+# ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS")
+# ALLOWED_HOSTS = []
+# if ALLOWED_HOSTS_ENV:
+#     ALLOWED_HOSTS = [
+#         host.strip() for host in ALLOWED_HOSTS_ENV.split(",") if host.strip()
+#     ]
+# ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+
+_CSRF_TRUSTED_ORIGINS = getenv_list("CSRF_TRUSTED_ORIGINS")
+if _CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = _CSRF_TRUSTED_ORIGINS
+
+CORS_ORIGIN_ALLOW_ALL = True
+# USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_HOST = getenv_bool("USE_X_FORWARDED_HOST", True)
+print("USE_X_FORWARDED_HOST", USE_X_FORWARDED_HOST)
+HTTP_X_FORWARDED_HOST = os.getenv("HTTP_X_FORWARDED_HOST")
+
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# -------------------------------END SECURITY---------------------------------
+
+
 # -----------------------Legacy database configuration------------------------
 DATABASE_LEGACY_NAME = os.getenv("DATABASE_LEGACY_NAME")
 if DATABASE_LEGACY_NAME:
@@ -137,22 +176,6 @@ if DATABASE_LEGACY_NAME:
     DATABASES["legacy"] = legacy
     DATABASE_ROUTERS = ['core.routers.LegacyRouter']
 # ---------------------end Legacy database configuration----------------------
-
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
 
 
 LANGUAGE_CODE = 'es-mx'
@@ -195,8 +218,3 @@ REST_FRAMEWORK = {
     ],
 
 }
-
-CORS_ORIGIN_ALLOW_ALL = True
-# ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
-USE_X_FORWARDED_HOST = True
-HTTP_X_FORWARDED_HOST = os.getenv("HTTP_X_FORWARDED_HOST", "apiocsa.yeeko.org")

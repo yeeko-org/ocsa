@@ -8,9 +8,9 @@ class ImpactType(models.Model):
     has_subtype = models.BooleanField(default=False)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
-    # TODO Nuevas migraciones:
-    # order = models.IntegerField(default=0)
-    # short_name = models.CharField(max_length=50, blank=True, null=True)
+    # TODO Nuevas migraciones, incorporarlas en el frontend
+    order = models.SmallIntegerField(default=0)
+    short_name = models.CharField(max_length=50, blank=True, null=True)
     is_social = models.BooleanField(default=True)
 
     def __str__(self):

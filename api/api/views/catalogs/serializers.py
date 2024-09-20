@@ -114,6 +114,8 @@ class EventSubtypeSerializer(serializers.ModelSerializer):
 
 
 class EventRoleSerializer(serializers.ModelSerializer):
+    # event_group = serializers.ReadOnlyField()
+
     class Meta:
         model = EventRole
         fields = "__all__"

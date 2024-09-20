@@ -22,6 +22,7 @@ init_participant_types = [
     ('Ejecutor del Proyecto', 'support', False),
     # RICK: Parece que es lo mismo que el campo "is_affected"
     ('Beneficiario', 'support', True),
+    ("Por definir (de violencias)", 'oppose', False),
 ]
 
 
@@ -101,21 +102,22 @@ class InitSector:
 class InitBelongs:
     def __init__(self):
         init_belongs = [
-            ('is_worker', 'Trabajador'),
-            ('is_affected', 'Afectado'),
-            ('is_habitant', 'Habitante'),
-            ('is_indigena', 'Indígena'),
-            ('is_farmer', 'Campesino'),
-            ('is_urban', 'Urbano'),
-            ('is_leader', 'Líder'),
-            ('is_women_special', 'Participación sobresaliente de mujeres'),
-            ('is_woman_organization', 'Organización de mujeres'),
-            ('has_protection', 'Tiene Protección'),
+            ('is_worker', 'Trabajador', 'engineering'),
+            ('is_affected', 'Afectado', 'affected'),
+            ('is_habitant', 'Habitante', 'cottage'),
+            ('is_indigena', 'Indígena', 'groups_2'),
+            ('is_farmer', 'Campesino', 'agriculture'),
+            ('is_urban', 'Urbano', 'location_city'),
+            ('is_leader', 'Líder', 'admin_panel_settings'),
+            ('is_women_special', 'Participación sobresaliente de mujeres', 'woman'),
+            ('is_woman_organization', 'Organización de mujeres', 'diversity_1'),
+            ('has_protection', 'Tiene Protección', 'security'),
         ]
-        for key_name, value in init_belongs:
+        for key_name, value, icon in init_belongs:
             if Belong.objects.filter(key_name=key_name).exists():
                 continue
             Belong.objects.get_or_create(
                 key_name=key_name,
-                name=value
+                name=value,
+                icon=icon
             )
