@@ -141,8 +141,7 @@ class MigrateViolenciaToEvent(ActorBase):
         sector_social_actor.belongs.add(self.get_belong("is_leader"))
 
         self.sector_social_participant = self.add_participant(
-            sector_social_actor, self.mention, ["Víctima"],
-            get_object=True)
+            sector_social_actor, self.mention, get_object=True)
 
     def get_not_generic_name(self, name: str) -> str:
         return f"{name} del proyecto {self.mention.project.official_name}"
