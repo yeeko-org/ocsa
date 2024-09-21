@@ -82,6 +82,8 @@ class Actor(CommentsMixin, models.Model):
     #         self.comments = comment
     #     self.save()
 
+    status_validation_id: str | None
+
     def append_alternative_name(self, name, save=True):
         if not name or self.name == name:
             return

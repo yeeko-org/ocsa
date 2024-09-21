@@ -73,9 +73,11 @@ class InitSectorGroups:
         for name, is_collective, capital_type, icon in init_sector_groups:
             SectorGroup.objects.get_or_create(
                 name=name,
-                is_collective=is_collective,
-                capital_type=capital_type,
-                icon=icon
+                defaults={
+                    "is_collective": is_collective,
+                    "capital_type": capital_type,
+                    "icon": icon
+                }
             )
 
 

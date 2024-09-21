@@ -22,7 +22,10 @@ class InitStatus:
         for name, group, public_name, color, icon in init_status:
             StatusControl.objects.get_or_create(
                 name=name,
-                group=group,
-                public_name=public_name,
-                color=color,
+                defaults={
+                    "group": group,
+                    "public_name": public_name,
+                    "color": color,
+                    "icon": icon,   
+                }
             )
