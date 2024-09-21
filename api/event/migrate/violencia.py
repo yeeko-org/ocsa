@@ -153,6 +153,7 @@ class MigrateViolenciaToEvent(ActorBase):
 
         responsables = [
             r.strip() for r in responsables.split(";") if r.strip()]
+        self.responsables_estatales = []
 
         for responsable in responsables:
             need_review = False
@@ -184,6 +185,7 @@ class MigrateViolenciaToEvent(ActorBase):
 
         responsables = [
             r.strip() for r in responsables.split(";") if r.strip()]
+        self.responsables_no_estatales = []
 
         for responsable in responsables:
             need_review = False
@@ -206,7 +208,7 @@ class MigrateViolenciaToEvent(ActorBase):
 
         actor.save()
         if participant:
-            self.responsables_estatales.append(participant)
+            self.responsables_no_estatales.append(participant)
 
     def set_involved(self, participant, role_name: str):
         event_role, _ = EventRole.objects.get_or_create(name=role_name)
