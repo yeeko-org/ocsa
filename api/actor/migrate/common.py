@@ -202,21 +202,13 @@ def text_normalizer(text, to_headers=False) -> str:
     if not text:
         return text
     final_text = text.upper().strip()
-    print("final_text 1", final_text)
     final_text = unidecode.unidecode(final_text)
-    print("final_text 2", final_text)
     final_text = final_text.replace('Ü', 'U')
     final_text = re.sub(r'[^a-zA-Z0-9\s]', '', final_text)
-    print("final_text 3", final_text)
     final_text = re.sub(r' +', ' ', final_text)
-    print("final_text 4", final_text)
     final_text = re.sub(
         r'(^A-Z)(SA DE CV|SAPI DE CV|SA DE RL|SAB DE CV|S DE RL|S DE RL DE CV)', '', final_text)
-    print("final_text 5", final_text)
     final_text = re.sub(r' +', ' ', final_text)
-    print("final_text 6", final_text)
     final_text = re.sub(r'[^A-Z0-9]', '', final_text)
-    print("final_text 7", final_text)
     final_text = final_text.strip()
-    print("final_text 8", final_text)
     return final_text
