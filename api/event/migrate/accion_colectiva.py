@@ -39,13 +39,14 @@ class MigrateAccionToEvent(ActorBase):
         intervalo = getattr(
             self.accion_colectiva.temporalidad, "intervalo", None)
 
-        if not (forma_ac_nombre and subforma_ac_nombre):
+        if not forma_ac_nombre:
+            self.mention.add_comment(
+                "YEEKO: Hay un evento (Accion Colectiva) no especificada")
             raise Exception(
                 "Forma o Subforma de accion_colectiva no encontrados")
 
         event_type = EventType.objects.get(name=forma_ac_nombre)
-        event_subtype = None
-        if subforma_ac_nombre == "NE":
+        if not subforma_ac_nombre or subforma_ac_nombre == "NE":
             event_subtype, _ = EventSubtype.objects.get_or_create(
                 name=f"No Especificado de {forma_ac_nombre}")
         else:

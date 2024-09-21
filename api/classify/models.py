@@ -58,15 +58,6 @@ class IndigenousGroup(models.Model):
         verbose_name_plural = 'Grupos Indígenas'
 
 
-init_sector_groups = [
-    ('Individuos', False, None),
-    ('Empresas privadas', True, 'private'),
-    ('Empresas estatales', True, 'public'),
-    ('Estado', True, 'public'),
-    ('Contradictorio', True, 'conflict'),
-    ('Varios', True, None),
-    ('Individuos (Varios)', False, None),
-]
 CAPITAL_TYPES = (
     ('public', 'Público'),
     ('private', 'Privado'),
@@ -81,6 +72,7 @@ class SectorGroup(models.Model):
     has_belongs = models.BooleanField(default=True)
     capital_type = models.CharField(
         max_length=10, choices=CAPITAL_TYPES, blank=True, null=True)
+    icon = models.CharField(max_length=90, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -88,24 +80,6 @@ class SectorGroup(models.Model):
     class Meta:
         verbose_name = 'Grupo Sectorial'
         verbose_name_plural = 'Grupos Sectoriales'
-
-
-init_sectors = [
-    ('Empresa privada nacional', False, 'Empresas privadas', None),
-    ('Empresa privada extranjera', False, 'Empresas privadas', None),
-    ('Empresa privada', False, 'Empresas privadas', 'could_reclassify'),
-    ('Empresa estatal', False, 'Empresas estatales', None),
-    ('Poder Ejecutivo Federal', False, 'Estado', None),
-    ('Poder Ejecutivo Estatal', False, 'Estado', None),
-    ('Poder Ejecutivo Municipal', False, 'Estado', None),
-    ('Poder Judicial', False, 'Estado', None),
-    ('Poder Legislativo', False, 'Estado', None),
-    ('Institución del Estado', False, 'Estado', 'could_reclassify'),
-    ('Responsable No Estatal', False, 'Varios', 'could_reclassify'),
-    ('Contradictorio', False, 'Contradictorio', 'need_reclassify'),
-    ('Varios', False, 'Varios', 'need_reclassify'),
-    ('Empresariado', False, 'Individuos', False),
-]
 
 
 class Sector(models.Model):

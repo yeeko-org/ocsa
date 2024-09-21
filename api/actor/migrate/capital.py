@@ -66,21 +66,28 @@ class CapitalToActorMigration(ActorBase):
         final_name = None
 
         warning_change = ("YEEKO: La filial se interpretó como la matriz, "
-                          "pero no necesariamenete es cierto")
+                          "pero no necesariamenete es correcto")
 
+        mention = self.get_mention(capital)
         if real_count == 0:
             self.add_error("Ningún nombre de empresa se encontró")
+            mention.add_comment("YEEKO: Hay al menos un capital sin nombre")
+            mention.note.status_register_id = "need_new_checking"
+            mention.note.add_comment(
+                "YEEKO: En alguna mención existe un capital sin nombre")
+            return
         elif real_count == 1:
             final_name = nombre or matriz or filial
+            # std_final_name = std_nombre or std_matriz or std_filial
         else:
-            if nombre and std_nombre == std_matriz:
-                nombre = None
-
             if nombre and std_nombre == std_filial:
                 filial = None
 
             if matriz and std_matriz == std_filial:
                 filial = None
+
+            if nombre and std_nombre == std_matriz:
+                matriz = None
 
             if nombre and not matriz and filial:
                 if std_nombre != std_filial:
@@ -112,8 +119,6 @@ class CapitalToActorMigration(ActorBase):
             if filial:
                 filial_actor, created_filial = self.get_actor(
                     filial, std_filial)
-
-        mention = self.get_mention(capital)
 
         if actor:
             if matriz_actor:

@@ -69,11 +69,11 @@ class MigrateViolenciaToEvent(ActorBase):
         fecha = getattr(self.violencia.temporalidad, "fecha", None)
         intervalo = getattr(self.violencia.temporalidad, "intervalo", None)
 
-        if not (hecho_nombre and forma_nombre):
+        if not hecho_nombre:
             raise Exception("Hecho o forma de violencia no encontrados")
 
         event_type = EventType.objects.get(name=hecho_nombre)
-        if forma_nombre == "NE":
+        if not forma_nombre or forma_nombre == "NE":
             event_subtype = None
             EventSubtype.objects.get_or_create(
                 name=f"No Especificado de {hecho_nombre}")

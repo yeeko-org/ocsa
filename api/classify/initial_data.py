@@ -1,6 +1,5 @@
 from work_flux.models import StatusControl
-from classify.models import ParticipantType, Belong, \
-    init_sector_groups, SectorGroup, init_sectors, Sector
+from classify.models import ParticipantType, Belong, SectorGroup, Sector
 
 
 # Estos se generan al inicio, con los campos: (name, position, required_interests)
@@ -22,7 +21,7 @@ init_participant_types = [
     ('Ejecutor del Proyecto', 'support', False),
     # RICK: Parece que es lo mismo que el campo "is_affected"
     ('Beneficiario', 'support', True),
-    ("Por definir (de violencias)", 'oppose', False),
+    # ("Por definir (de violencias)", 'oppose', False),
 ]
 
 
@@ -62,12 +61,40 @@ class TemporalParticipantTypes:
 
 class InitSectorGroups:
     def __init__(self):
-        for name, is_collective, capital_type in init_sector_groups:
+        init_sector_groups = [
+            ('Individuos', False, None, 'face'),
+            ('Empresas privadas', True, 'private', 'business'),
+            ('Empresas estatales', True, 'public', 'assured_workload'),
+            ('Estado', True, 'public', 'account_balance'),
+            ('Contradictorio', True, 'conflict', 'report'),
+            ('Varios', True, None, 'report_problem'),
+            ('Individuos (Varios)', False, None, 'groups'),
+        ]
+        for name, is_collective, capital_type, icon in init_sector_groups:
             SectorGroup.objects.get_or_create(
                 name=name,
                 is_collective=is_collective,
-                capital_type=capital_type
+                capital_type=capital_type,
+                icon=icon
             )
+
+
+init_sectors = [
+    ('Empresa privada nacional', False, 'Empresas privadas', None),
+    ('Empresa privada extranjera', False, 'Empresas privadas', None),
+    ('Empresa privada', False, 'Empresas privadas', 'could_reclassify'),
+    ('Empresa estatal', False, 'Empresas estatales', None),
+    ('Poder Ejecutivo Federal', False, 'Estado', None),
+    ('Poder Ejecutivo Estatal', False, 'Estado', None),
+    ('Poder Ejecutivo Municipal', False, 'Estado', None),
+    ('Poder Judicial', False, 'Estado', None),
+    ('Poder Legislativo', False, 'Estado', None),
+    ('Institución del Estado', False, 'Estado', 'could_reclassify'),
+    ('Responsable No Estatal', False, 'Varios', 'could_reclassify'),
+    ('Contradictorio', False, 'Contradictorio', 'need_reclassify'),
+    ('Varios', False, 'Varios', 'need_reclassify'),
+    ('Empresariado', False, 'Individuos', False),
+]
 
 
 class InitSector:

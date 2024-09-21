@@ -3,7 +3,7 @@ from django.db import models
 from source.models import Mention
 from space_time.models import Country
 from django.db.models import JSONField
-from work_flux.models import StatusControl
+from work_flux.models import StatusControl, CommentsMixin
 from classify.models import (
     ParticipantType, Belong, IndigenousGroup, Sector, InterestType)
 # from work_flux.models import StatusRegister
@@ -14,7 +14,7 @@ def default_list():
 
 
 # Tablas origen: Capital, Estado, Opositores, Poblaciones, GruposApoyo
-class Actor(models.Model):
+class Actor(CommentsMixin, models.Model):
     GEO_REACH_CHOICES = (
         ('local', 'Local'),
         ('regional', 'Regional'),
@@ -41,8 +41,13 @@ class Actor(models.Model):
     is_name_created = models.BooleanField(default=False)
 
     parent_actor = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True)
-    is_only_related = models.BooleanField(blank=True, null=True)
+        'self', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='children_actors', verbose_name='Actor padre')
+    others_parents = models.ManyToManyField(
+        'self', blank=True, verbose_name='Otros padres')
+    network_seq = models.IntegerField(blank=True, null=True)
+    is_only_related = models.BooleanField(
+        blank=True, null=True, verbose_name='Se creó solo por relación')
 
     # Capital.nacionalidad
     countries = models.ManyToManyField(Country, blank=True)
@@ -67,15 +72,15 @@ class Actor(models.Model):
 
     capital_id_ref = models.IntegerField(blank=True, null=True)
 
-    def add_comment(self, comment: str):
-        if not comment:
-            return
-        if self.comments:
-            if comment not in self.comments:
-                self.comments += f"\n\n{comment}"
-        else:
-            self.comments = comment
-        self.save()
+    # def add_comment(self, comment: str):
+    #     if not comment:
+    #         return
+    #     if self.comments:
+    #         if comment not in self.comments:
+    #             self.comments += f"\n\n{comment}"
+    #     else:
+    #         self.comments = comment
+    #     self.save()
 
     def append_alternative_name(self, name, save=True):
         if not name or self.name == name:

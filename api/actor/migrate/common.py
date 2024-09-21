@@ -56,6 +56,10 @@ class ActorBase:
                 [actor,
                  f"Actor {actor.pk} already has a parent {actor.parent_actor.pk}"]
             )
+            actor.status_validation_id = "could_reclassify"
+            actor.add_comment("YEEKO: Actor ya tiene un padre, pero se "
+                              "identificó otro relacionado")
+            actor.others_parents.add(parent)
             return
         actor.parent_actor = parent  # type: ignore
 
@@ -72,9 +76,14 @@ class ActorBase:
 
         if participant_types:
             for participant_type in participant_types:
-                pt, _ = ParticipantType.objects.get_or_create(
-                    name=participant_type)
-                participant.participant_types.add(pt)
+                try:
+                    pt, _ = ParticipantType.objects.get_or_create(
+                        name=participant_type)
+                    participant.participant_types.add(pt)
+                except ParticipantType.MultipleObjectsReturned as e:
+                    print(f"Multiple ParticipantType with name "
+                          f"{participant_type}")
+                    raise e
         if interest:
             self.set_interest(participant, interest)
 
@@ -171,10 +180,7 @@ class ActorBase:
     def set_interest(self, participant: Participant, interest: str):
         if not interest:
             return
-        Interest.objects.create(
-            participant=participant,
-            text=interest,
-        )
+        Interest.objects.create(participant=participant, text=interest)
 
     def register_origin(
             self, actor: Actor, origin_id: str, type_model: str,

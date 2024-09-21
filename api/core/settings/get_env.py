@@ -15,7 +15,6 @@ def getenv_list(
 
 def getenv_bool(env_name: str, default: bool = False) -> bool:
     env_value = os.getenv(env_name)
-    print("env_value", env_value)
     if not env_value:
         return default
 

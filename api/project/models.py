@@ -5,14 +5,6 @@ from space_time.models import Location
 from work_flux.models import StatusControl
 
 
-# El origen para este campo es "cat_tipo_despliegue_capital"
-# Primero que nada, crear todos los tipos de despliegue capital
-# sin crear los mixtos.
-# LUCIAN, no sé qué hacer con el icono, porque no entiendo qué tipo es
-# Existen algunos nombres que tienen "Mixto: " al inicio, esos
-# se deben dividir por el slash y hacer un .strip() a cada uno
-# ejemplo: "Mixto: Extractivismo energético / Hiperurbanización"
-# Cambiar a ExtractivismType
 class DeploymentCapitalType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
@@ -115,6 +107,8 @@ class Project(models.Model):
         'self', on_delete=models.CASCADE,
         verbose_name='Proyecto en el que se agrupa',
         blank=True, null=True)
+    others_parents = models.ManyToManyField(
+        'self', blank=True, verbose_name='Otros proyectos en los que se agrupa')
     # Campo Proyecto.csa
     conflict = models.ForeignKey(
         Conflict, on_delete=models.CASCADE, blank=True, null=True)

@@ -6,6 +6,8 @@ from actor.migrate.status_project import MigrateStatusProject
 from actor.migrate import (
     CapitalToActorMigration, EstadoToActorMigration, OpositorToActorMigration)
 from actor.models import Actor
+from actor.migrate.identify_networks import (
+    IdentifyNetworks, add_comment_to_only_related)
 
 
 class Command(BaseCommand):
@@ -74,3 +76,10 @@ class Command(BaseCommand):
                 f"Error with poblaciones afectadas {poblacion.pk}: {poblacion}")
             print(error)
             print()
+
+        identify_networks = IdentifyNetworks()
+        identify_networks()
+
+        add_comment_to_only_related()
+
+

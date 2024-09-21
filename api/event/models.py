@@ -9,6 +9,7 @@ class EventGroup(models.Model):
     name = models.CharField(max_length=255)
     model_origin = models.CharField(
         max_length=80, blank=True, null=True)
+    icon = models.CharField(max_length=255, blank=True, null=True)
 
 
 class EventType(models.Model):
@@ -87,7 +88,8 @@ class EventRole(models.Model):
 
 
 class Involved(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name='involvements')
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     event_role = models.ForeignKey(
         EventRole, on_delete=models.CASCADE, blank=True, null=True)

@@ -6,6 +6,7 @@ from api.views.project.retrieve_serializers import (
     ConflictSerializer, ProjectFullSerializer)
 from project.models import Project
 from source.models import Mention, Note, StatusHistory
+from event.models import Event, Involved
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -27,10 +28,25 @@ class ProjectSemiFullSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class InvolvedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Involved
+        fields = '__all__'
+
+
+class EventSerializer(serializers.ModelSerializer):
+    involvements = InvolvedSerializer(many=True)
+
+    class Meta:
+        model = Event
+        fields = '__all__'
+
+
 class MentionFullSerializer(serializers.ModelSerializer):
     project = ProjectSerializer()
     impacts = ImpactSerializer(many=True)
     participants = ParticipantSerializer(many=True)
+    events = EventSerializer(many=True)
 
     class Meta:
         model = Mention

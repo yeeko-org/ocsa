@@ -2,7 +2,7 @@ from django.db import models
 
 from project.models import Project
 from space_time.models import StatusProject
-from work_flux.models import StatusControl
+from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
 
 
@@ -19,7 +19,7 @@ class Source(models.Model):
         verbose_name_plural = 'Fuentes de información'
 
 
-class Note(models.Model):
+class Note(CommentsMixin, models.Model):
     nota_id_ref = models.IntegerField(blank=True, null=True)
     title = models.CharField(max_length=255)
     old_id = models.IntegerField(blank=True, null=True)
@@ -44,6 +44,7 @@ class Note(models.Model):
         related_name='reviewers')
     status_register = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -53,12 +54,7 @@ class Note(models.Model):
         verbose_name_plural = 'Notas'
 
 
-# El primer lugar de donde viene este registro es de EstatusProyectos,
-# Antes de comenzar, deberás migrar todos los registros de EstatusProyecto que
-# ahora se llama StatusProject
-# EstatusProyectos tiene la relación entre Note y Project. Por ahora vamos a
-# ignorar la tabla "temporalidad" pero sí tomaremos en cuenta Proyecto."estatus"
-class Mention(models.Model):
+class Mention(CommentsMixin, models.Model):
     note = models.ForeignKey(
         Note, on_delete=models.CASCADE, related_name='mentions')
     # RICK: Aún no sé si esto debería ser not null
@@ -66,8 +62,8 @@ class Mention(models.Model):
         Project, on_delete=models.CASCADE, related_name='mentions')
     filled = models.BooleanField(default=False)
     date_filled = models.DateField(blank=True, null=True)
-    status_register = models.ForeignKey(
-        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    # status_register = models.ForeignKey(
+    #     StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
 
     def __str__(self):

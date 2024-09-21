@@ -28,3 +28,18 @@ class StatusControl(models.Model):
         ordering = ["group", "order"]
         verbose_name = "Status de control"
         verbose_name_plural = "Status de control (TODOS)"
+
+
+class CommentsMixin:
+    comments = models.TextField(blank=True, null=True)
+    save: callable
+
+    def add_comment(self, comment: str):
+        if not comment:
+            return
+        if self.comments:
+            if comment not in self.comments:
+                self.comments += f"\n\n{comment}"
+        else:
+            self.comments = comment
+        self.save()

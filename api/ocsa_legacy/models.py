@@ -160,6 +160,14 @@ class CSA(CustomModel):
 #     icono text,
 #     color text
 # );
+# El origen para este campo (DeploymentCapitalType es "cat_tipo_despliegue_capital"
+# Primero que nada, crear todos los tipos de despliegue capital
+# sin crear los mixtos.
+# LUCIAN, no sé qué hacer con el icono, porque no entiendo qué tipo es
+# Existen algunos nombres que tienen "Mixto: " al inicio, esos
+# se deben dividir por el slash y hacer un .strip() a cada uno
+# ejemplo: "Mixto: Extractivismo energético / Hiperurbanización"
+# Cambiar a ExtractivismType
 class TipoDespliegueCapital(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -204,7 +212,11 @@ class TipoMegaproyecto(CustomModel):
 #     descripcion text
 # );
 
-
+# El primer lugar de donde viene este registro es de EstatusProyectos,
+# Antes de comenzar, deberás migrar todos los registros de EstatusProyecto que
+# ahora se llama StatusProject
+# EstatusProyectos tiene la relación entre Note y Project. Por ahora vamos a
+# ignorar la tabla "temporalidad" pero sí tomaremos en cuenta Proyecto."estatus"
 class EstatusProyecto(CustomModel):
     nombre = models.TextField(blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)

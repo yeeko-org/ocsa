@@ -30,7 +30,9 @@ class NoteViewSet(viewsets.ModelViewSet):
             'mentions__project',
             'mentions__impacts',
             'mentions__participants',
-            'mentions__participants__actor'
+            'mentions__participants__actor',
+            'mentions__events',
+            'mentions__events__involvements',
         )
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
