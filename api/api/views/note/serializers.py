@@ -84,7 +84,3 @@ class NoteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
         exclude = ['id', 'nota_id_ref', 'old_id']
-
-
-class NoteEditeSerializer(NoteCreateSerializer):
-    pass

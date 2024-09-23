@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 
 from event.migrate.accion_colectiva import AccionesColectivasToEventMigrate
 from event.migrate.violencia import ViolenciaToEventMigrate
-from event.models import Event
+from event.models import Event, EventLocation, Involved
 
 
 class Command(BaseCommand):
@@ -32,6 +32,8 @@ class Command(BaseCommand):
         if delete_old_events:
             print("Deleting old events")
             Event.objects.all().delete()
+            EventLocation.objects.all().delete()
+            Involved.objects.all().delete()
 
         if only_violencia:
             self.migrate_violencia()

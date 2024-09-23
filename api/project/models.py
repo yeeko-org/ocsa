@@ -120,7 +120,11 @@ class Project(models.Model):
     status_project = models.ForeignKey(
         StatusProject, on_delete=models.CASCADE, blank=True, null=True)
     status_register = models.ForeignKey(
-        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='project_register')
+    status_location = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='project_location')
     comments = models.TextField(blank=True, null=True)
 
     def __str__(self):

@@ -7,8 +7,7 @@ from source.models import Note
 
 from api.pagination import CustomPagination
 from api.views.note.serializers import (
-    NoteSerializer, NoteCreateSerializer, NoteEditeSerializer,
-    NoteFullSerializer)
+    NoteSerializer, NoteCreateSerializer, NoteFullSerializer)
 
 
 class NoteFilter(FilterSet):
@@ -54,6 +53,6 @@ class NoteViewSet(viewsets.ModelViewSet):
         action_serializer = {
             'retrieve': NoteFullSerializer,
             'create': NoteCreateSerializer,
-            'update': NoteEditeSerializer
+            'update': NoteCreateSerializer
         }
         return action_serializer.get(self.action, self.serializer_class)

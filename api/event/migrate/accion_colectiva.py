@@ -1,76 +1,40 @@
 from typing import Any, Dict, List, Optional
-from actor.migrate.common import ActorBase
+from event.migrate.event_base import EventBase
 from actor.models import Participant
 from classify.models import SectorGroup, Sector
-from event.models import Event, EventGroup, EventLocation, EventRole, EventSubtype, EventType, Involved
-from ocsa_legacy.models import AccionColectivaToUbicacion, FormaAC, Opositores, OpositoresToAC, SectorSocial, AccionesColectivas, SubformaAC
-from source.models import Mention
+from event.models import (Event, EventGroup, EventLocation, EventRole,
+                          EventSubtype, EventType, Involved)
+from ocsa_legacy.models import (
+    AccionColectivaToUbicacion, FormaAC, Opositores, OpositoresToAC,
+    SectorSocial, AccionesColectivas, SubformaAC)
 from space_time.models import Location
-from work_flux.models import StatusControl
 
 
-class MigrateAccionToEvent(ActorBase):
+class MigrateAccionToEvent(EventBase):
     accion_colectiva: AccionesColectivas
-    mention: Mention
-    event: Event
-    default_sector_group: SectorGroup
-    need_review: StatusControl
 
     def __init__(self, accion_colectiva: AccionesColectivas):
         self.accion_colectiva = accion_colectiva
         self.mention = self.get_mention(self.accion_colectiva)
-        self.event = self.get_event()
-        self.set_location()
+        self.event = self.get_main_event()
+        ac_to_ubic_query = self.accion_colectiva.accioncolectivatoubicacion_set.all()
+        self.set_locations(ac_to_ubic_query)
 
-        self.default_sector_group, _ = SectorGroup.objects.get_or_create(
-            name="Varios", is_collective=True)
-
-        self.need_review, _ = StatusControl.objects.get_or_create(
-            name="need_review", group="validation",
-            public_name="Requiere revisión")
-
-    def get_event(self) -> Event:
+    def get_main_event(self) -> Event:
         forma_ac_nombre = getattr(
             self.accion_colectiva.forma_ac, "nombre", None)
         subforma_ac_nombre = getattr(
             self.accion_colectiva.subforma_ac, "nombre", None)
-
-        fecha = getattr(self.accion_colectiva.temporalidad, "fecha", None)
-        intervalo = getattr(
-            self.accion_colectiva.temporalidad, "intervalo", None)
-
-        if not forma_ac_nombre:
-            self.mention.add_comment(
-                "YEEKO: Hay un evento (Accion Colectiva) no especificada")
-            raise Exception(
-                "Forma o Subforma de accion_colectiva no encontrados")
-
-        event_type = EventType.objects.get(name=forma_ac_nombre)
-        if not subforma_ac_nombre or subforma_ac_nombre == "NE":
-            event_subtype, _ = EventSubtype.objects.get_or_create(
-                name=f"No Especificado de {forma_ac_nombre}")
-        else:
-            event_subtype = EventSubtype.objects.get(name=subforma_ac_nombre)
-
-        event, _ = Event.objects.get_or_create(
-            mention=self.mention,
-            event_type=event_type,
-            event_subtype=event_subtype
-        )
-
-        event.date = fecha if not event.date else event.date
-        event.duration = intervalo if not event.duration else event.duration
-        event.save()
-        return event
+        return self.get_event(
+            self.accion_colectiva, forma_ac_nombre, subforma_ac_nombre)
 
     def set_involved(self, participant, role_name: str):
         event_role, _ = EventRole.objects.get_or_create(name=role_name)
         Involved.objects.create(
             event=self.event, participant=participant, event_role=event_role,
-
         )
 
-    def set_location(self):
+    def set_not_location(self):
         ac_to_ubic_query = AccionColectivaToUbicacion.objects\
             .filter(accion_colectiva=self.accion_colectiva)
         for ac_to_ubic in ac_to_ubic_query:
@@ -127,13 +91,13 @@ class AccionesColectivasToEventMigrate:
             if EventType.objects.filter(name=forma_ac_nombre).exists():
                 continue
 
-            sub_forma_exist = SubformaAC.objects.filter(
-                id_forma_ac=forma_accion_colectiva.pk).exists()
+            # sub_forma_exist = SubformaAC.objects.filter(
+            #     id_forma_ac=forma_accion_colectiva.pk).exists()
 
             event_type = EventType.objects.create(
                 name=forma_ac_nombre,
                 description=forma_accion_colectiva.descripcion,
-                group=ac_group if sub_forma_exist else None
+                group=ac_group
             )
             self.events_type[forma_accion_colectiva.pk] = event_type
 

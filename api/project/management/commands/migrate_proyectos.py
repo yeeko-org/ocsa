@@ -29,4 +29,23 @@ class Command(BaseCommand):
             print()
 
         print("Starting ProyectoToUbicacion migration")
-        ubicacion_migration = ProyectoToUbicacionMigrate()
+        ProyectoToUbicacionMigrate()
+
+        set_icons_to_dct()
+
+
+def set_icons_to_dct():
+    from project.models import DeploymentCapitalType
+    extractivism_types = [
+        ("Extractivismo minero", "landslide"),
+        ("Extractivismo agroindustrial, de monocultivo, industria ganadera, explotación forestal y recursos bióticos", "agriculture"),
+        ("Hiperurbanización", "apartment"),
+        ("Biomercantilización", "yard"),
+        ("Extractivismo energético", "wind_power"),
+        ("Extractivismo hídrico", "water_drop"),
+        ("Megainfraestructura y vías de comunicación", "commute")
+    ]
+    for name, icon in extractivism_types:
+        dct, _ = DeploymentCapitalType.objects.get_or_create(name=name)
+        dct.icon = icon
+        dct.save()

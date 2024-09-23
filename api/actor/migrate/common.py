@@ -162,7 +162,7 @@ class ActorBase:
                 error = (f"YEEKO: hay sectores contradictorios:"
                          f" {actor.sector.name} y {sector_obj.name}")
                 actor.add_comment(error)
-                self.errors.append([actor, error])
+                # self.errors.append([actor, error])
             elif actor_validation and "reclassify" in actor_validation:
                 actor.sector = sector_obj
             elif sector_validation and "reclassify" in sector_validation:

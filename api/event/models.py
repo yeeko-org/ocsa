@@ -67,13 +67,6 @@ class Event(models.Model):
         verbose_name_plural = 'Eventos'
 
 
-init_event_roles = [
-    "Victimario",
-    "Responsable",
-    "Víctima",
-    "Accionante"]
-
-
 class EventRole(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)

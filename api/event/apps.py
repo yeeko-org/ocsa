@@ -7,8 +7,13 @@ class EventConfig(AppConfig):
     name = "event"
 
     def ready(self) -> None:
-        from .models import init_event_roles, EventRole
+        from .models import EventRole
         _ready = super().ready()
+        init_event_roles = [
+            "Victimario",
+            "Responsable",
+            "Víctima",
+            "Accionante"]
 
         valid_commands = ["runserver", "migrate_eventos"]
         if any([command in sys.argv for command in valid_commands]):
