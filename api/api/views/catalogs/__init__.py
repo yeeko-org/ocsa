@@ -1,4 +1,8 @@
 from rest_framework import viewsets, permissions
+from django_filters import FilterSet, NumberFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from api.pagination import CustomPagination
 from rest_framework.decorators import action
 
 from rest_framework.response import Response
@@ -26,7 +30,7 @@ from source.models import Source
 from work_flux.models import StatusControl
 
 from space_time.models import StatusProject
-from project.models import MegaprojectType, Project
+from project.models import MegaprojectType, Project, ExtractivismType
 
 from api.views.catalogs.serializers import (
     ParticipantTypeSerializer,
@@ -46,14 +50,17 @@ from api.views.catalogs.serializers import (
     SourceSerializer,
     StatusControlSerializer,
     StatusProjectSerializer,
-    MegaprojectTypeSerializer,
+    ExtractivismTypeSerializer,
+    MegaprojectTypeCountSerializer,
+    MegaprojectTypeFullSerializer,
 )
 
 from .all import CatalogsView  # noqa
 
 
 class ParticipantTypeViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = ParticipantType.objects.all()
     serializer_class = ParticipantTypeSerializer
 
@@ -70,7 +77,8 @@ class ParticipantTypeViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
 
 class BelongViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = Belong.objects.all()
     serializer_class = BelongSerializer
 
@@ -85,7 +93,8 @@ class BelongViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
 
 class IndigenousGroupViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = IndigenousGroup.objects.all()
     serializer_class = IndigenousGroupSerializer
 
@@ -98,7 +107,8 @@ class IndigenousGroupViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
 
 class SectorGroupViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = SectorGroup.objects.all()
     serializer_class = SectorGroupSerializer
 
@@ -111,7 +121,8 @@ class SectorGroupViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
 
 class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = Sector.objects.all()
     serializer_class = SectorSerializer
 
@@ -124,38 +135,44 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
 
 class InterestGroupViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = InterestGroup.objects.all()
     serializer_class = InterestGroupSerializer
 
 
 class InterestTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = InterestType.objects.all()
     serializer_class = InterestTypeSerializer
 
 
 class EventGroupViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = EventGroup.objects.all()
     serializer_class = EventGroupSerializer
 
 
 class EventTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = EventType.objects.all()
     serializer_class = EventTypeSerializer
 
 
 class EventSubtypeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = EventSubtype.objects.all()
     serializer_class = EventSubtypeSerializer
 
 
 class EventRoleViewSet(viewsets.ModelViewSet):
     # from django.db.models import Count, F
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = EventRole.objects.all()
     # .annotate(
     #     event_group=F('event_type__event_group')
@@ -164,46 +181,82 @@ class EventRoleViewSet(viewsets.ModelViewSet):
 
 
 class ImpactSubtypeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = ImpactSubtype.objects.all()
     serializer_class = ImpactSubtypeSerializer
 
 
 class ImpactTypeViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = ImpactType.objects.all()
     serializer_class = ImpactTypeSerializer
 
 
 class RoleViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
 
 
 class SourceViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = Source.objects.all()
     serializer_class = SourceSerializer
 
 
 class StatusControlViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = StatusControl.objects.all()
     serializer_class = StatusControlSerializer
 
 
 class StatusProjectViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = StatusProject.objects.all()
     serializer_class = StatusProjectSerializer
 
 
-class MegaprojectTypeViewSet(viewsets.ModelViewSet, MergeSerializerMixin):
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = MegaprojectType.objects.all()
-    serializer_class = MegaprojectTypeSerializer
+# class ExtractivismTypeViewSet(viewsets.ModelViewSet):
+#     # permission_classes = [permissions.IsAuthenticated]
+#     permission_classes = [permissions.AllowAny]
+#     queryset = ExtractivismType.objects.all()
+#     serializer_class = ExtractivismTypeSerializer
 
-    def update_relations_merge(self, from_obj, to_obj):
-        Project.objects.filter(megaproject_type=from_obj)\
-            .update(megaproject_type=to_obj)
+
+class MegaprojectTypeFilter(FilterSet):
+    extractivism_type = NumberFilter(
+        field_name='extractivism_types', lookup_expr='exact')
+
+    class Meta:
+        model = MegaprojectType
+        fields = {'status_validation': ['exact']}
+
+
+class MegaprojectTypeViewSet(viewsets.ModelViewSet):
+    # from django.db.models import Count, F
+    from django.db.models import Count
+
+    queryset = MegaprojectType.objects.all().annotate(count=Count('projects'))
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+
+    pagination_class = CustomPagination
+    filterset_class = MegaprojectTypeFilter
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name']
+
+    serializer_class = MegaprojectTypeCountSerializer
+
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': MegaprojectTypeFullSerializer,
+            'create': MegaprojectTypeCountSerializer,
+            'update': MegaprojectTypeCountSerializer
+        }
+        return action_serializer.get(self.action, self.serializer_class)

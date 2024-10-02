@@ -10,6 +10,7 @@ class Country(models.Model):
         return self.name
 
     class Meta:
+        ordering = ["name"]
         verbose_name = 'Country'
         verbose_name_plural = 'Countries'
 
@@ -17,11 +18,13 @@ class Country(models.Model):
 class StatusProject(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ["order"]
         verbose_name = 'Status Project'
         verbose_name_plural = 'Status Projects'
 

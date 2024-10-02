@@ -23,11 +23,13 @@ class ParticipantType(models.Model):
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Tipo de Participación en Proyecto'
         verbose_name_plural = 'Tipos de Participación en Proyecto'
 
@@ -37,11 +39,13 @@ class Belong(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order', 'key_name']
         verbose_name = 'Grupo de Pertenencia (Vulnerabilidad)'
         verbose_name_plural = 'Grupos de Pertenencia (Vulnerabilidades)'
 
@@ -55,6 +59,7 @@ class IndigenousGroup(models.Model):
 
     class Meta:
         verbose_name = 'Grupo Indígena'
+        ordering = ['name']
         verbose_name_plural = 'Grupos Indígenas'
 
 
@@ -73,11 +78,13 @@ class SectorGroup(models.Model):
     capital_type = models.CharField(
         max_length=10, choices=CAPITAL_TYPES, blank=True, null=True)
     icon = models.CharField(max_length=90, blank=True, null=True)
+    order = models.SmallIntegerField(default=10)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Grupo Sectorial'
         verbose_name_plural = 'Grupos Sectoriales'
 
@@ -93,11 +100,13 @@ class Sector(models.Model):
         Belong, blank=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    order = models.SmallIntegerField(default=50)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order', 'name']
         verbose_name = 'Sector'
         verbose_name_plural = 'Sectores'
 
@@ -117,6 +126,9 @@ class InterestGroup(models.Model):
     description = models.TextField(blank=True, null=True)
     participant_types = models.ManyToManyField(
         ParticipantType, blank=True)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
 
     def __str__(self):
         return self.name
@@ -131,6 +143,9 @@ class InterestType(models.Model):
         InterestGroup, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    order = models.SmallIntegerField(default=20)
 
     def __str__(self):
         return self.name

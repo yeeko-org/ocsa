@@ -134,7 +134,7 @@ class Temporalidad(CustomModel):
 #     nombre text
 # );
 
-
+# Va a la tabla Conflict
 class CSA(CustomModel):
     nombre = models.TextField(blank=True, null=True)
 
@@ -160,7 +160,7 @@ class CSA(CustomModel):
 #     icono text,
 #     color text
 # );
-# El origen para este campo (DeploymentCapitalType es "cat_tipo_despliegue_capital"
+# El origen para este campo (ExtractivismType es "cat_tipo_despliegue_capital"
 # Primero que nada, crear todos los tipos de despliegue capital
 # sin crear los mixtos.
 # LUCIAN, no sé qué hacer con el icono, porque no entiendo qué tipo es
@@ -191,6 +191,12 @@ class TipoDespliegueCapital(CustomModel):
 #     nombre text,
 #     descripcion text
 # );
+# El registro de esta tabla es desde "cat_tipo_megaproyecto",
+# a MegaProjectType para el name (que viene de nombre)
+# sin embargo, extractivism_types lo vamos a construir
+# a partir de la tabla Proyecto, sin embargo, es posible que un
+# mismo tipo de megaproyecto tenga diferentes tipos de despliegue de
+# capital, en esos casos, debe marcarse el campo has_many_dct como True
 
 class TipoMegaproyecto(CustomModel):
     nombre = models.TextField(blank=True, null=True)
@@ -255,14 +261,32 @@ class EstatusProyecto(CustomModel):
 # Si el proyecto vinculado ya tenía como hijo o padre el mismo proyecto
 # entonces dejarlo así, sin hacer nada
 
+# CASO 1, simple
+# Proyecto A --> Proyecto B
+# Proyecto B
+# Proyecto C (CLUSTER CREADO desde Proyecto B)
+# Proyecto A.parent_project = Proyecto C
+# Proyecto C.parent_project = Proyecto C
+
+# CASO 2, doble relación
+# Proyecto A --> Proyecto B
+# Proyecto B --> Proyecto A
+# Proyecto C (CLUSTER CREADO desde Proyecto B)
+# Proyecto A.parent_project = Proyecto C
+# Proyecto C.parent_project = Proyecto C
+
 class Proyecto(CustomModel):
     id_mp = models.IntegerField(blank=True, null=True)
+    # Va a de Project.oficial_name
     nombre = models.TextField(blank=True, null=True)
+    # Este no tiene mayor complicación y se genera Scale
     escala = models.TextField(blank=True, null=True)
     tipo_despliegue_capital = models.ForeignKey(
         TipoDespliegueCapital, on_delete=models.CASCADE, blank=True, null=True)
     tipo_megaproyecto = models.ForeignKey(
         TipoMegaproyecto, on_delete=models.CASCADE, blank=True, null=True)
+    # Va a la campo Project.description, excepto si su valor es "SD"
+    # en ese caso, dejarlo en blanco
     especificaciones = models.TextField(blank=True, null=True)
     csa = models.ForeignKey(
         CSA, on_delete=models.CASCADE, blank=True, null=True)
@@ -1196,7 +1220,7 @@ class Violencia(CustomModel):
     # Con los dos siguientes campos vamos, además de guardar los valores que
     # correspondan (event_type y event_subtype, vamos a generar la relación
     # de EventSubtype con EventType, por cada vez que aparezca, muy
-    # parecido a lo que ya hicimos con MegaprojectType y DeploymentCapitalType
+    # parecido a lo que ya hicimos con MegaprojectType y ExtractivismType
     # NOTA: Si el valor de forma_hecho_violencia.nombre es NE, crear un nuevo
     # EventSubtype con el nombre f"No Especificado de {hecho_violencia.nombre}"
     hecho_violencia = models.ForeignKey(

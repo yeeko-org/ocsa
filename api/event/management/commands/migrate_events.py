@@ -3,7 +3,8 @@ from django.core.management.base import BaseCommand
 
 from event.migrate.accion_colectiva import AccionesColectivasToEventMigrate
 from event.migrate.violencia import ViolenciaToEventMigrate
-from event.models import Event, EventLocation, Involved
+from event.models import (
+    Event, EventLocation, Involved, EventType, EventSubtype)
 
 
 class Command(BaseCommand):
@@ -45,6 +46,11 @@ class Command(BaseCommand):
 
         self.migrate_violencia()
         self.migrate_accion_colectiva()
+
+        EventType.objects.filter(status_validation__isnull=True)\
+            .update(status_validation_id='original')
+        EventSubtype.objects.filter(status_validation__isnull=True)\
+            .update(status_validation_id='original')
 
     def migrate_violencia(self):
         print("Starting Violencia migration")

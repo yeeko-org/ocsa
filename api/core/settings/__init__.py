@@ -7,6 +7,7 @@ load_dotenv()
 # BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+WSGI_APPLICATION = 'core.wsgi.application'
 AUTH_USER_MODEL = 'profile_auth.User'
 
 # Application definition
@@ -71,7 +72,6 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
 
 # -----------------------Default database configuration-----------------------
 POSTRGRESQL_DB = os.getenv('POSTRGRESQL_DB', False)

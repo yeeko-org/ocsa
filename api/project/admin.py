@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Project, MegaprojectType, DeploymentCapitalType
+from .models import Project, MegaprojectType, ExtractivismType
 
 
 @admin.register(Project)
@@ -7,8 +7,8 @@ class ProjectAdmin(admin.ModelAdmin):
     pass
 
 
-class DeploymentCapitalTypeInline(admin.TabularInline):
-    model = DeploymentCapitalType
+class ExtractivismTypeInline(admin.TabularInline):
+    model = ExtractivismType
     extra = 0
 
 

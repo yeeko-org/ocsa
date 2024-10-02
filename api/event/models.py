@@ -10,6 +10,12 @@ class EventGroup(models.Model):
     model_origin = models.CharField(
         max_length=80, blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
+    order = models.SmallIntegerField(default=2)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Grupo de Evento'
+        verbose_name_plural = 'Grupos de Eventos'
 
 
 class EventType(models.Model):
@@ -20,6 +26,7 @@ class EventType(models.Model):
         EventGroup, on_delete=models.CASCADE, blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    order = models.SmallIntegerField(default=20)
 
     def __str__(self):
         return self.name
@@ -36,11 +43,13 @@ class EventSubtype(models.Model):
     event_types = models.ManyToManyField(EventType, blank=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    order = models.SmallIntegerField(default=10)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Subtipo de Evento'
         verbose_name_plural = 'Subtipos de Eventos'
 
@@ -71,11 +80,13 @@ class EventRole(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=10)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Rol en Evento'
         verbose_name_plural = 'Roles en Eventos'
 

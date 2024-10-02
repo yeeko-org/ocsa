@@ -19,6 +19,7 @@ class StatusControl(models.Model):
         help_text="https://vuetifyjs.com/en/styles/colors/")
     icon = models.CharField(max_length=40, blank=True, null=True)
     order = models.IntegerField(default=4)
+    is_public = models.BooleanField(default=True)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):

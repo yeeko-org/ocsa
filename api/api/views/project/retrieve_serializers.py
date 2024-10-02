@@ -5,7 +5,7 @@ from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
     ImpactSerializer, ActorBasicSerializer)
 from project.models import (
-    Conflict, DeploymentCapitalType, MegaprojectType, Project, Scale)
+    Conflict, ExtractivismType, MegaprojectType, Project, Scale)
 from source.models import Note, Mention
 from space_time.models import StatusProject
 
@@ -16,14 +16,14 @@ class ConflictSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class DeploymentCapitalTypeSerializer(serializers.ModelSerializer):
+class ExtractivismTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DeploymentCapitalType
+        model = ExtractivismType
         fields = '__all__'
 
 
 class MegaprojectTypeSerializer(serializers.ModelSerializer):
-    deployment_capital_types = DeploymentCapitalTypeSerializer(many=True)
+    extractivism_types = ExtractivismTypeSerializer(many=True)
     status_validation = StatusControlSerializer()
 
     class Meta:

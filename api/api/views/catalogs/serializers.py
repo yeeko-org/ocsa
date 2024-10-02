@@ -14,14 +14,19 @@ from event.models import (
     EventType,
     EventSubtype,
     EventRole,)
-from project.models import MegaprojectType, Scale, DeploymentCapitalType
+from project.models import MegaprojectType, Scale, ExtractivismType
 
 from impact.models import ImpactSubtype, ImpactType
 from profile_auth.models import Role
 from source.models import Source
 from work_flux.models import StatusControl
+from api.views.project.list_serializers import ProjectBasicSerializer
 
 from space_time.models import StatusProject
+
+
+class CommonCount(serializers.ModelSerializer):
+    count = serializers.ReadOnlyField()
 
 
 class StatusProjectSerializer(serializers.ModelSerializer):
@@ -153,13 +158,29 @@ class ScaleSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ExtractivismTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExtractivismType
+        fields = "__all__"
+
+
 class MegaprojectTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MegaprojectType
         fields = "__all__"
 
 
-class DeploymentCapitalTypeSerializer(serializers.ModelSerializer):
+class MegaprojectTypeCountSerializer(CommonCount):
+
     class Meta:
-        model = DeploymentCapitalType
+        model = MegaprojectType
         fields = "__all__"
+
+
+class MegaprojectTypeFullSerializer(MegaprojectTypeSerializer):
+    projects = ProjectBasicSerializer(many=True)
+
+    class Meta:
+        model = MegaprojectType
+        fields = "__all__"
+

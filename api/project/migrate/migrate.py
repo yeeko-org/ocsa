@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 from ocsa_legacy.models import CSA, Proyecto, TipoDespliegueCapital, TipoMegaproyecto
-from project.models import Conflict, DeploymentCapitalType, MegaprojectType, Project, Scale
+from project.models import Conflict, ExtractivismType, MegaprojectType, Project, Scale
 
 
 class ProyectoToProject:
@@ -10,7 +10,7 @@ class ProyectoToProject:
         self.errors: list = []
         self.conflicts: Dict[str, Conflict] = {}
         self.mega_project_types: Dict[str, MegaprojectType] = {}
-        self.deployment_capital_types: Dict[str, DeploymentCapitalType] = {}
+        self.extractivism_types: Dict[str, ExtractivismType] = {}
         self.scales: Dict[str, Scale] = {}
         self.delete_all()
         # TRUNCATE
@@ -22,8 +22,8 @@ class ProyectoToProject:
         # IDENTITY;
 
         self.set_conflicts()
-        self.set_deployment_capital_types_exclude_mix()
-        self.set_deployment_capital_types_filter_mix()
+        self.set_extractivism_types_exclude_mix()
+        self.set_extractivism_types_filter_mix()
         self.set_megaproject_types()
 
         all_proyectos = Proyecto.objects.all()
@@ -44,7 +44,7 @@ class ProyectoToProject:
     def delete_all(self):
         Project.objects.all().delete()
         Conflict.objects.all().delete()
-        DeploymentCapitalType.objects.all().delete()
+        ExtractivismType.objects.all().delete()
         MegaprojectType.objects.all().delete()
         Scale.objects.all().delete()
         self.errors = []
@@ -60,14 +60,14 @@ class ProyectoToProject:
     def get_conflict(self, csa_name: str):
         return self.conflicts[csa_name]
 
-    def set_deployment_capital_types_exclude_mix(self):
+    def set_extractivism_types_exclude_mix(self):
         tipo_despliegue_capital_query = TipoDespliegueCapital.objects\
             .exclude(nombre__istartswith='mixto')
 
         for tipo_despliegue_capital in tipo_despliegue_capital_query:
-            self.create_deployment_capital_type(tipo_despliegue_capital)
+            self.create_extractivism_type(tipo_despliegue_capital)
 
-    def set_deployment_capital_types_filter_mix(self):
+    def set_extractivism_types_filter_mix(self):
         tipo_despliegue_capital_query = TipoDespliegueCapital.objects\
             .filter(nombre__istartswith='mixto')
 
@@ -77,10 +77,10 @@ class ProyectoToProject:
 
             names = tipo_despliegue_capital.nombre[6:].split('/')
             for name in names:
-                self.create_deployment_capital_type(
+                self.create_extractivism_type(
                     tipo_despliegue_capital, name.strip())
 
-    def create_deployment_capital_type(
+    def create_extractivism_type(
             self, tipo_despliegue_capital: TipoDespliegueCapital,
             nombre: Optional[str] = None
     ):
@@ -90,26 +90,26 @@ class ProyectoToProject:
         descripcion = tipo_despliegue_capital.descripcion
         color = tipo_despliegue_capital.color
 
-        deployment_capital_type, created = DeploymentCapitalType.objects\
+        extractivism_type, created = ExtractivismType.objects\
             .get_or_create(name=nombre)
         save = False
 
         if descripcion and created:
-            deployment_capital_type.description = descripcion
+            extractivism_type.description = descripcion
             save = True
 
         if color and created:
-            deployment_capital_type.color = color
+            extractivism_type.color = color
             save = True
 
         if save:
-            deployment_capital_type.save()
+            extractivism_type.save()
 
-        self.deployment_capital_types[nombre] = deployment_capital_type
-        return deployment_capital_type
+        self.extractivism_types[nombre] = extractivism_type
+        return extractivism_type
 
-    def get_deployment_capital_type(self, tipo_despliegue_capital_nombre):
-        return self.deployment_capital_types[tipo_despliegue_capital_nombre]
+    def get_extractivism_type(self, tipo_despliegue_capital_nombre):
+        return self.extractivism_types[tipo_despliegue_capital_nombre]
 
     def set_megaproject_types(self):
         # se tiene que separa los megaproyectos convinados?
@@ -141,16 +141,19 @@ class ProyectoToProject:
             if tdc_name and tdc_name.lower().startswith('mixto'):
                 names = tdc_name[6:].split('/')
                 for name in names:
-                    self.add_deployment_capital_type(
+                    self.add_extractivism_type(
                         mp_type, name.strip())
             elif tdc_name:
-                self.add_deployment_capital_type(
+                self.add_extractivism_type(
                     mp_type, tdc_name)
 
         if not tipo_megaproyecto and tipo_despliegue_capital:
             tipo_megaproyecto_nombre = f"Genérico de {tipo_despliegue_capital.nombre}"
             new_megaproject_type, created = MegaprojectType.objects.get_or_create(
                 name=tipo_megaproyecto_nombre)
+            if created:
+                new_megaproject_type.status_validation_id = "need_reclassify"
+                new_megaproject_type.save()
             if created:
                 add_megaproject_type(
                     tipo_despliegue_capital, new_megaproject_type)
@@ -168,18 +171,18 @@ class ProyectoToProject:
 
         add_megaproject_type(tipo_despliegue_capital, megaproject_type)
 
-        if megaproject_type.deployment_capital_types.count() > 1:
+        if megaproject_type.extractivism_types.count() > 1:
             megaproject_type.has_many_dct = True
             megaproject_type.save()
 
         return megaproject_type
 
-    def add_deployment_capital_type(
+    def add_extractivism_type(
             self, megaproject_type: MegaprojectType,
             tipo_despliegue_capital_name: str):
-        deployment_capital_type = self.get_deployment_capital_type(
+        extractivism_type = self.get_extractivism_type(
             tipo_despliegue_capital_name.strip())
-        megaproject_type.deployment_capital_types.add(deployment_capital_type)
+        megaproject_type.extractivism_types.add(extractivism_type)
 
     def get_scale(self, escala: Optional[str]) -> Optional[Scale]:
         if not escala:

@@ -39,7 +39,7 @@ class ActorFilter(FilterSet):
 
 
 class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
-    queryset = Actor.objects.all()\
+    queryset = Actor.objects.all().distinct()\
         .annotate(
             mentions_count=Count('participants'),
             sector_group=F('sector__sector_group')

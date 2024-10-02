@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 
 from project.migrate import ProyectoToProject, ProyectoToUbicacionMigrate
 from space_time.migrate import EstatusProyectoToStatusProject
+from project.models import MegaprojectType
 
 
 class Command(BaseCommand):
@@ -32,10 +33,12 @@ class Command(BaseCommand):
         ProyectoToUbicacionMigrate()
 
         set_icons_to_dct()
+        MegaprojectType.objects.filter(status_validation__isnull=True)\
+            .update(status_validation_id='original')
 
 
 def set_icons_to_dct():
-    from project.models import DeploymentCapitalType
+    from project.models import ExtractivismType
     extractivism_types = [
         ("Extractivismo minero", "landslide"),
         ("Extractivismo agroindustrial, de monocultivo, industria ganadera, explotación forestal y recursos bióticos", "agriculture"),
@@ -46,6 +49,6 @@ def set_icons_to_dct():
         ("Megainfraestructura y vías de comunicación", "commute")
     ]
     for name, icon in extractivism_types:
-        dct, _ = DeploymentCapitalType.objects.get_or_create(name=name)
+        dct, _ = ExtractivismType.objects.get_or_create(name=name)
         dct.icon = icon
         dct.save()

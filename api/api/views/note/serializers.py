@@ -34,19 +34,22 @@ class InvolvedSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class EventSerializer(serializers.ModelSerializer):
-    involvements = InvolvedSerializer(many=True)
+class EventSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
         fields = '__all__'
 
 
+class EventSerializer(EventSimpleSerializer):
+    involvements = InvolvedSerializer(many=True)
+
+
 class MentionFullSerializer(serializers.ModelSerializer):
     project = ProjectSerializer()
     impacts = ImpactSerializer(many=True)
     participants = ParticipantSerializer(many=True)
-    events = EventSerializer(many=True)
+    events = EventSimpleSerializer(many=True)
 
     class Meta:
         model = Mention
@@ -62,6 +65,7 @@ class StatusHistorySerializer(serializers.ModelSerializer):
 class MentionMegaFullSerializer(MentionFullSerializer):
     project = ProjectSemiFullSerializer()
     status_history = StatusHistorySerializer(many=True)
+    events = EventSerializer(many=True)
 
 
 class NoteSerializer(serializers.ModelSerializer):

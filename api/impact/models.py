@@ -1,22 +1,38 @@
 from django.db import models
-from django.db.models import JSONField
 from source.models import Mention
+from work_flux.models import StatusControl
+
+
+# class ImpactGroup(models.Model):
+#     name = models.CharField(max_length=255)
+#     icon = models.CharField(max_length=255, blank=True, null=True)
+#     is_social = models.BooleanField(default=True)
+#
+#     def __str__(self):
+#         return self.name
+#
+#     class Meta:
+#         verbose_name = 'Grupo de Impacto'
+#         verbose_name_plural = 'Grupos de Impactos'
 
 
 class ImpactType(models.Model):
     name = models.CharField(max_length=255)
+    # impact_group = models.ForeignKey(
+    #     ImpactGroup, on_delete=models.CASCADE, blank=True, null=True)
     has_subtype = models.BooleanField(default=False)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
-    # TODO Nuevas migraciones, incorporarlas en el frontend
-    order = models.SmallIntegerField(default=0)
-    short_name = models.CharField(max_length=50, blank=True, null=True)
+    short_name = models.CharField(
+        max_length=50, blank=True, null=True, help_text='Nombre corto')
     is_social = models.BooleanField(default=True)
+    order = models.SmallIntegerField(default=0)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Tipo de Impacto'
         verbose_name_plural = 'Tipos de Impactos'
 
@@ -26,11 +42,15 @@ class ImpactSubtype(models.Model):
     description = models.TextField(blank=True, null=True)
     impact_type = models.ForeignKey(ImpactType, on_delete=models.CASCADE)
     help_text = models.TextField(blank=True, null=True)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    order = models.SmallIntegerField(default=0)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Subtipo de Impacto'
         verbose_name_plural = 'Subtipos de Impactos'
 

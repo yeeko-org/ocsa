@@ -19,7 +19,7 @@ from event.models import (
     EventRole,)
 
 from space_time.models import State
-from project.models import MegaprojectType, Scale, DeploymentCapitalType
+from project.models import MegaprojectType, Scale, ExtractivismType
 
 from impact.models import ImpactSubtype, ImpactType
 from profile_auth.models import Role
@@ -46,7 +46,7 @@ from api.views.catalogs.serializers import (
     StatusControlSerializer,
     MegaprojectTypeSerializer,
     ScaleSerializer,
-    DeploymentCapitalTypeSerializer
+    ExtractivismTypeSerializer
 )
 
 from api.views.space_time.serializers import StateListSerializer
@@ -99,9 +99,7 @@ class CatalogsView(APIView):
                 MegaprojectType.objects.all(), many=True).data,
             "scales": ScaleSerializer(
                 Scale.objects.all(), many=True).data,
-            "deployment_capital_types": DeploymentCapitalTypeSerializer(
-                DeploymentCapitalType.objects.all(), many=True).data,
-            "extractivism_types": DeploymentCapitalTypeSerializer(
-                DeploymentCapitalType.objects.all(), many=True).data,
+            "extractivism_types": ExtractivismTypeSerializer(
+                ExtractivismType.objects.all(), many=True).data,
         }
         return Response(catalogs)

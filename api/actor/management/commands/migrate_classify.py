@@ -8,6 +8,8 @@ from actor.migrate import (
 from actor.models import Actor
 from actor.migrate.identify_networks import (
     IdentifyNetworks, add_comment_to_only_related)
+from classify.models import (
+    ParticipantType, Sector, InterestGroup, InterestType)
 
 
 class Command(BaseCommand):
@@ -82,4 +84,14 @@ class Command(BaseCommand):
 
         add_comment_to_only_related()
 
+        Actor.objects.filter(status_validation__isnull=True).update(
+            status_validation_id='original')
+        ParticipantType.objects.filter(status_validation__isnull=True)\
+            .update(status_validation_id='original')
+        Sector.objects.filter(status_validation__isnull=True)\
+            .update(status_validation_id='original')
+        InterestGroup.objects.filter(status_validation__isnull=True)\
+            .update(status_validation_id='original')
+        InterestType.objects.filter(status_validation__isnull=True)\
+            .update(status_validation_id='original')
 

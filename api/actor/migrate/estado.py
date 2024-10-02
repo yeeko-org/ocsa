@@ -12,9 +12,7 @@ class EstadoToActorMigration(ActorBase):
         super().__init__()
         estados = Estado.objects.all()
 
-        self.need_review, _ = StatusControl.objects.get_or_create(
-            name="need_review", group="validation",
-            public_name="Requiere revisión")
+        self.need_review = StatusControl.objects.get(name="need_review")
 
         for estado in estados:
             try:

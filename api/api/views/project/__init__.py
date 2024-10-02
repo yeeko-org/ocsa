@@ -25,7 +25,7 @@ class ProjectFilter(FilterSet):
     event_subtype = NumberFilter(
         field_name='mentions__events__event_subtype', lookup_expr='exact')
     extractivism_type = NumberFilter(
-        field_name='megaproject_type__deployment_capital_types',
+        field_name='megaproject_type__extractivism_types',
         lookup_expr='exact')
 
     class Meta:

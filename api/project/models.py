@@ -5,7 +5,7 @@ from space_time.models import Location
 from work_flux.models import StatusControl
 
 
-class DeploymentCapitalType(models.Model):
+class ExtractivismType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
@@ -13,26 +13,22 @@ class DeploymentCapitalType(models.Model):
     icon_image = models.ImageField(
         upload_to='icons/', blank=True, null=True)
     color = models.CharField(max_length=100, blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order', 'name']
         verbose_name = 'Tipo Despliegue Capital'
         verbose_name_plural = 'Tipos Despliegue Capital'
 
 
-# El registro de esta tabla es desde "cat_tipo_megaproyecto",
-# para el name (que viene de nombre)
-# sin embargo, deployment_capital_types lo vamos a construir
-# a partir de la tabla Proyecto, sin embargo, es posible que un
-# mismo tipo de megaproyecto tenga diferentes tipos de despliegue de
-# capital, en esos casos, debe marcarse el campo has_many_dct como True
 class MegaprojectType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    deployment_capital_types = models.ManyToManyField(
-        DeploymentCapitalType, blank=True)
+    extractivism_types = models.ManyToManyField(
+        ExtractivismType, blank=True)
     has_many_dct = models.BooleanField(
         default=False, verbose_name='Difiere en Tipo de Despliegue Capital')
     # common_affection_types = models.ManyToManyField(
@@ -40,30 +36,32 @@ class MegaprojectType(models.Model):
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=10)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Tipo de Megaproyecto'
         verbose_name_plural = 'Tipos de Megaproyecto'
 
 
-# Este no tiene mayor complicación y se genera con el campo Proyecto.escala
 class Scale(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
 
     def __str__(self):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Escala de los proyectos'
         verbose_name_plural = 'Escalas de los proyectos'
 
 
-# Viene de la tabla CSA
 class Conflict(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
@@ -76,32 +74,14 @@ class Conflict(models.Model):
         verbose_name_plural = 'Conflictos Socioambientales'
 
 
-# CASO 1, simple
-# Proyecto A --> Proyecto B
-# Proyecto B
-# Proyecto C (CLUSTER CREADO desde Proyecto B)
-# Proyecto A.parent_project = Proyecto C
-# Proyecto C.parent_project = Proyecto C
-
-# CASO 2, doble relación
-# Proyecto A --> Proyecto B
-# Proyecto B --> Proyecto A
-# Proyecto C (CLUSTER CREADO desde Proyecto B)
-# Proyecto A.parent_project = Proyecto C
-# Proyecto C.parent_project = Proyecto C
-
 class Project(models.Model):
     proyecto_id_ref = models.IntegerField(blank=True, null=True)
     legacy_id_mp = models.IntegerField(blank=True, null=True)
-
-    # Viene de Proyecto.nombre
     official_name = models.CharField(
         max_length=255, verbose_name='Nombre oficial', blank=True, null=True)
     common_name = models.CharField(
         max_length=255, verbose_name='Nombre común', blank=True, null=True)
     alternative_name = models.TextField(blank=True, null=True)
-    # Viene del campo Proyecto.especificaciones, excepto si su valor es "SD",
-    # en ese caso ignorarlo.
     description = models.TextField(blank=True, null=True)
     parent_project = models.ForeignKey(
         'self', on_delete=models.CASCADE,
@@ -109,12 +89,11 @@ class Project(models.Model):
         blank=True, null=True)
     others_parents = models.ManyToManyField(
         'self', blank=True, verbose_name='Otros proyectos en los que se agrupa')
-    # Campo Proyecto.csa
     conflict = models.ForeignKey(
         Conflict, on_delete=models.CASCADE, blank=True, null=True)
     megaproject_type = models.ForeignKey(
-        MegaprojectType, on_delete=models.CASCADE, blank=True, null=True)
-    # extensión tipo ??? c150
+        MegaprojectType, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='projects')
     scale = models.ForeignKey(
         Scale, on_delete=models.CASCADE, blank=True, null=True)
     status_project = models.ForeignKey(

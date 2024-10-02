@@ -4,79 +4,89 @@ from classify.models import ParticipantType, Belong, SectorGroup, Sector
 
 # Estos se generan al inicio, con los campos: (name, position, required_interests)
 init_participant_types = [
-    ('Promotor', 'support', False),
-    ('Financiador', 'support', False),
-    ('Represor', 'support', False),
-    ('Partidario', 'support', False),
-    ('Mediador', 'neutral', True),
-    ('Analista', 'neutral', False),
-    ('Atención a reclamos', 'neutral', False),
+    ('Financiador', 'support', False, 31),
+    ('Partidario', 'support', False, 32),
+    ('Represor', 'support', False, 34),
+    ('Promotor', 'support', False, 36),
+    ('Mediador', 'neutral', True, 20),
+    ('Analista', 'neutral', False, 25),
+    ('Atención a reclamos', 'neutral', False, 22),
     # Los GruposApoyo que tengan "Opositor" u "Opositores" en tipo_grupo_apoyo
     # Acompañamiento-apoyo (representante) con los afectados u opositores
-    ('Acompañante solidario', 'oppose', True),
-    ('Opositor', 'oppose', True),
-    ('Otro', 'other', True),
+    ('Acompañante solidario', 'oppose', True, 3),
+    ('Opositor', 'oppose', True, 1),
+    ('Otro', 'other', True, 51),
 
     # RICK: Parece una categoría distinta:
-    ('Ejecutor del Proyecto', 'support', False),
+    ('Ejecutor del Proyecto', 'support', False, 38),
     # RICK: Parece que es lo mismo que el campo "is_affected"
-    ('Beneficiario', 'support', True),
+    ('Beneficiario', 'support', True, 39),
     # ("Por definir (de violencias)", 'oppose', False),
 ]
 
 
 class ParticipantTypes:
     def __init__(self):
-        for name, position, required_interests in init_participant_types:
-            ParticipantType.objects.get_or_create(
-                name=name, position=position, required_interests=required_interests
-            )
+        for name, position, required_interests, order in init_participant_types:
+            pt, created = ParticipantType.objects.get_or_create(
+                name=name, position=position)
+            pt.order = order
+            pt.required_interests = required_interests
+            pt.save()
 
 
 # estos se deben agregar también, pero con is_temporal = True
 # Los grupos Opositores y PoblacionesAfectadas deben ir directo en su grupo
 # Estado tiene su filtro específico y se agregan otros_opositores de Opositores
 temporal_participant_types = [
-    ('Capital', 'support', False),
-    ('Opositores', 'oppose', True),
-    ('PoblacionesAfectadas', 'oppose', True),
-    ('Estado', 'support', False),
-    ("Por definir (de violencias)", 'undefined', False),
+    ('Capital', 'support', False, 41),
+    # ('Opositores', 'oppose', True, 10),
+    ('PoblacionesAfectadas', 'oppose', True, 11),
+    ('Estado', 'support', False, 42),
+    ("Por definir (de violencias)", 'undefined', False, 50),
     # Estos se van a sacar de la tabla Opositores.otros_opositores, pero no
     # se le van a asignar todos los campos (solo su relación con nota y proyecto)
-    ("otros_opositores", 'oppose', True),
+    ("otros_opositores", 'oppose', True, 12),
 ]
 
 
 class TemporalParticipantTypes:
     def __init__(self):
-        for name, position, required_interests in temporal_participant_types:
-            ParticipantType.objects.get_or_create(
+        for name, position, required_interests, order in temporal_participant_types:
+            pt, created = ParticipantType.objects.get_or_create(
                 name=name,
                 position=position,
-                required_interests=required_interests,
                 status_validation_id="need_reclassify"
             )
+            pt.order = order
+            pt.required_interests = required_interests
+            pt.save()
 
 
 class InitSectorGroups:
     def __init__(self):
         init_sector_groups = [
-            ('Individuos', False, None, 'face'),
-            ('Empresas privadas', True, 'private', 'business'),
-            ('Empresas estatales', True, 'public', 'assured_workload'),
-            ('Estado', True, 'public', 'account_balance'),
-            ('Contradictorio', True, 'conflict', 'report'),
-            ('Varios', True, None, 'report_problem'),
-            ('Individuos (Varios)', False, None, 'groups'),
+            ('Individuos', False, None, 'face', 8),
+            ('Empresas privadas', True, 'private', 'business', 1),
+            ('Empresas estatales', True, 'public', 'assured_workload', 2),
+            ('Estado', True, 'public', 'account_balance', 3),
+            ('Sociedad Civil', True, None, 'groups', 4),
+            ('Organizaciones Internacionales', True, None, 'public', 6),
+            ('Grupos no organizados', True, None, 'groups', 7),
+            ('Universidades', True, None, 'school', 5),
+            ('Contradictorio', True, 'conflict', 'report', 25),
+            ('Varios', True, None, 'report_problem', 26),
+            ('Individuos (Varios)', False, None, 'groups', 27),
         ]
-        for name, is_collective, capital_type, icon in init_sector_groups:
-            SectorGroup.objects.get_or_create(
+        for name, is_collective, capital_type, icon, order in init_sector_groups:
+            sector_group, _ = SectorGroup.objects.get_or_create(
                 name=name,
                 is_collective=is_collective,
                 capital_type=capital_type,
-                icon=icon
             )
+            sector_group.icon = icon
+            sector_group.order = order
+            sector_group.save()
 
 
 init_sectors = [
@@ -89,11 +99,11 @@ init_sectors = [
     ('Poder Ejecutivo Municipal', False, 'Estado', None),
     ('Poder Judicial', False, 'Estado', None),
     ('Poder Legislativo', False, 'Estado', None),
+    ('Empresariado', False, 'Individuos', False),
     ('Institución del Estado', False, 'Estado', 'could_reclassify'),
     ('Responsable No Estatal', False, 'Varios', 'could_reclassify'),
     ('Contradictorio', False, 'Contradictorio', 'need_reclassify'),
     ('Varios', False, 'Varios', 'need_reclassify'),
-    ('Empresariado', False, 'Individuos', False),
 ]
 
 
