@@ -141,7 +141,7 @@ class ActorBase:
     def get_sector_group_default(self) -> SectorGroup:
         if not hasattr(self, "_default_sector_group"):
             self._default_sector_group, _ = SectorGroup.objects.get_or_create(
-                name="Varios", is_collective=True)
+                name="Varios", defaults={"is_collective": True})
         return self._default_sector_group
 
     def set_sector(self, actor: Actor, sector: str):

@@ -15,7 +15,7 @@ class OpositorToActorMigration(ActorBase):
     def __init__(self):
         super().__init__()
         self.default_sg, _ = SectorGroup.objects.get_or_create(
-            name="Varios", is_collective=True)
+            name="Varios", defaults={"is_collective": True})
 
         self.set_sectors()
         self.set_indigenous_group()
