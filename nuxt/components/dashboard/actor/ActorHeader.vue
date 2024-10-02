@@ -2,20 +2,20 @@
 // export default defineComponent({
 //   name: "ActorHeader"
 // })
-import { defineProps } from 'vue'
+import {computed} from 'vue'
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
+import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
+import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 const mainStore = useMainStore()
 
-const { positions, cats } = storeToRefs(mainStore)
+const { positions, cats, groups } = storeToRefs(mainStore)
 
 const props = defineProps({
-  actor: {
-    type: Object,
-    required: true,
-  },
+  main: Object,
+  group: Object,
   show_details: {
     type: Boolean,
     required: false,
@@ -23,48 +23,66 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['open-panel'])
-
-const position = computed(() => {
-  return positions.value[props.actor.position]
+const actor = computed(() => props.main)
+const final_group = computed(() => {
+  return props.group || groups.value.find(gr => gr.key === 'actor')
 })
 
+// const emit = defineEmits(['open-panel'])
+
+const unique_projects = computed(() => {
+  let projects = actor.value.participants.map(
+    participant => participant.mention.project.official_name)
+  return [...new Set(projects)]
+})
 
 </script>
 <template>
-  <v-expansion-panel-title
-    class="pl-0 py-0"
-    color="blue-lighten-5"
-    style="min-height: 60px;"
-    @click="emit('open-panel')"
+  <HeaderCommon
+    :main="main"
+    :show_details="show_details"
+    :group="final_group"
   >
-    <v-icon>newspaper</v-icon>
-    <v-toolbar-title
-      class="text-subtitle-1 mr-6"
-      style="max-width: 300px;"
-    >
-      <div
+    <template #details>
+      <StatusChip
+        v-if="actor.status_validation"
+        :main="actor"
+        collection="validation"
+        field="status_validation"
+        small
+        label="Validación:"
+        class="mb-1"
+      />
+      <HeaderChip
+        :count="actor.mentions_count"
+        icon="newspaper"
+        label="mención"
+        label_plural="menciones"
+        color="deep-purple"
         class="ml-2"
-        style="text-wrap: pretty; width: 300px; max-height: 54px; overflow: hidden;"
-        v-tooltip:bottom="actor.name"
-      >{{ actor.name }}</div>
-    </v-toolbar-title>
-    <HeaderChip
-      :count="actor.mentions_count"
-      icon="newspaper"
-      label="mención"
-      label_plural="menciones"
-      color="deep-purple"
-      class="ml-2"
-    />
-    <ActorsChip
-      :main="actor"
-      :participants="actor.participants"
-      field="project"
-      subfield="official_name"
-      class="ml-2"
-    />
-  </v-expansion-panel-title>
+      />
+      <ActorsChip
+        :main="actor"
+        :participants="actor.participants"
+        field="project"
+        subfield="official_name"
+        class="ml-2"
+      />
+      <HeaderChip
+        :count="unique_projects.length"
+        :tooltip_complement="unique_projects.join('<br>')"
+        icon="factory"
+        label="proyecto"
+        label_plural="proyectos"
+        color="purple"
+        class="ml-2"
+      />
+      <span v-if="actor.network_seq" class="ml-2">
+        <v-icon color="deep-purple">lan</v-icon>
+        <span class="text-body-2">Red {{ actor.network_seq }}</span>
+      </span>
+    </template>
+  </HeaderCommon>
 
 </template>
 

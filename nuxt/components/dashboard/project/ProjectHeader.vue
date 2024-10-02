@@ -2,34 +2,44 @@
 import StatusChip from '~/components/dashboard/status/StatusChip.vue'
 import HeaderChip from '~/components/dashboard/common/HeaderChip.vue'
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
-import ImpactChip from "~/components/dashboard/common/ImpactChip.vue";
+import ImpactChip from "~/components/dashboard/impact/ImpactChip.vue";
 
-import { computed, defineProps } from 'vue'
+import { computed } from 'vue'
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
+import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 
 const mainStore = useMainStore()
-const { cats } = storeToRefs(mainStore)
+const { cats, groups } = storeToRefs(mainStore)
 
 const props = defineProps({
-  project: Object,
+  main: Object,
+  group: Object,
   show_details: {
     type: Boolean,
     default: false,
   },
 })
+const project = computed(() => {
+  return props.main
+})
 
-const emit = defineEmits(['open-project'])
+const final_group = computed(() => {
+  return props.group || groups.value.find(gr => gr.key === 'project')
+})
+
+
+// const emit = defineEmits(['open-panel'])
 
 const locations_count = computed(() => {
-  return props.project.locations.length
+  return project.value.locations.length
 })
 const mention_counts = computed(() => {
-  return props.project.mentions.length
+  return project.value.mentions.length
 })
 const states_tooltip = computed(() => {
-  let all_states = props.project.locations.map(loc => loc.state)
+  let all_states = project.value.locations.map(loc => loc.state)
   let states = [...new Set(all_states)]
   const full_states = states.reduce((coll, state) => {
     const curr_state = cats.value.states.find(st => st.id === Number(state))
@@ -45,83 +55,53 @@ const states_tooltip = computed(() => {
 </script>
 
 <template>
-  <v-expansion-panel-title
-    color="purple-lighten-5"
-    _class="pl-2 pr-3"
-    class="pl-0 py-0"
-    @click="emit('open-project')"
-    height="60"
-    style="min-height: 60px;"
+  <HeaderCommon
+    :main="main"
+    :show_details="show_details"
+    :group="final_group"
+    name_field="official_name"
   >
-<!--    <v-toolbar-->
-<!--      color="purple-lighten-5"-->
-<!--    >-->
-    <ExtractivismIcons
-      :project="project"
-    />
-      <v-toolbar-title
-        class="text-subtitle-1 mr-6"
-        style="max-width: 300px;"
-      >
-        <div
-          class="ml-2"
-          style="text-wrap: pretty; width: 300px; max-height: 54px; overflow: hidden;"
-          v-tooltip:bottom="project.official_name"
-        >{{ project.official_name }}</div>
-      </v-toolbar-title>
-      <template v-if="show_details">
-        <StatusChip
-          v-if="project.status_register"
-          :main="project"
-          collection="validation"
-          field="status_register"
-          left_label
-          label="Registro:"
-          class="mb-1"
-          bold_text
-        />
-        <HeaderChip
-          :count="mention_counts"
-          icon="newspaper"
-          label="nota"
-          label_plural="notas"
-          color="deep-purple"
-          class="mx-1"
-        />
-        <HeaderChip
-          :count="locations_count"
-          icon="location_on"
-          label="ubicación"
-          label_plural="ubicaciones"
-          color="primary"
-          :tooltip_complement="states_tooltip"
-          class="mx-1"
-        />
-        <ImpactChip
-          :mentions="project.mentions"
-        />
-        <ActorsChip
-          :main="project"
-        />
-
-      </template>
-      <v-btn
-        v-else
-        color="blue"
-        variant="plain"
-      >
-        cargando detalles...
-      </v-btn>
-
-<!--      <v-spacer></v-spacer>-->
-<!--      <v-icon-->
-<!--        color="purple"-->
-<!--        class="mr-2"-->
-<!--      >-->
-<!--        expand_more-->
-<!--      </v-icon>-->
-<!--    </v-toolbar>-->
-  </v-expansion-panel-title>
+    <template #icon>
+      <ExtractivismIcons
+        :project="main"
+      />
+    </template>
+    <template #details>
+      <StatusChip
+        v-if="project.status_register"
+        :main="project"
+        collection="register"
+        field="status_register"
+        left_label
+        label="Registro:"
+        class="mb-1"
+        bold_text
+      />
+      <HeaderChip
+        :count="mention_counts"
+        icon="newspaper"
+        label="nota"
+        label_plural="notas"
+        color="deep-purple"
+        class="mx-1"
+      />
+      <HeaderChip
+        :count="locations_count"
+        icon="location_on"
+        label="ubicación"
+        label_plural="ubicaciones"
+        color="primary"
+        :tooltip_complement="states_tooltip"
+        class="mx-1"
+      />
+      <ImpactChip
+        :mentions="project.mentions"
+      />
+      <ActorsChip
+        :main="project"
+      />
+    </template>
+  </HeaderCommon>
 
 </template>
 

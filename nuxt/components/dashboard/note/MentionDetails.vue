@@ -2,10 +2,11 @@
 
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import ImpactDetails from "~/components/dashboard/impact/ImpactDetails.vue";
-import GenericSelect from "~/components/dashboard/impact/GenericSelect.vue";
+import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 
-import { ref, defineProps } from 'vue'
+import { ref } from 'vue'
+import EventDetails from "~/components/dashboard/event/EventDetails.vue";
 
 const props = defineProps({
   mention: Object,
@@ -109,6 +110,7 @@ const props = defineProps({
       </v-card-text>
       <v-divider></v-divider>
       <ImpactDetails :mention="mention"/>
+      <EventDetails :mention="mention" v-if="mention.events" />
 
       <v-divider></v-divider>
 

@@ -1,13 +1,13 @@
 <script setup>
 
 import MentionDetails from "~/components/dashboard/note/MentionDetails.vue";
-import GenericSelect from "~/components/dashboard/impact/GenericSelect.vue";
+import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
-  full_note: {
+  full_main: {
     type: Object,
     required: true,
   },
@@ -20,6 +20,10 @@ const props = defineProps({
 const openNote = () => {
   console.log("open note")
 }
+
+const full_note = computed(() => {
+  return props.full_main
+})
 
 </script>
 
@@ -72,7 +76,7 @@ const openNote = () => {
           <StatusDetail
             :final_filters="full_note"
             field="status_register"
-            collection="validation"
+            collection="register"
             label="Status de registro"
             style="max-width: 300px;"
             density="default"

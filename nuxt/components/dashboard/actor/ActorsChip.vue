@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, defineProps } from 'vue'
+import { ref, computed } from 'vue'
 import { actorCounter } from "~/composables/actor_counter.js";
 
 const props = defineProps({
@@ -15,7 +15,7 @@ const props = defineProps({
 })
 
 const actor_by_position = computed(() => {
-  let all_participants = []
+  let all_participants
   if (props.participants){
     all_participants = props.participants.map(
       participant => ({...participant, ...participant.mention}) )

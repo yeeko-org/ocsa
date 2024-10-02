@@ -1,16 +1,22 @@
 <script setup>
 
-import { computed, defineProps } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   count: Number,
   icon: String,
-  label: String,
+  label: {
+    type: String,
+    default: 'elemento'
+  },
   // label_plural: {
   //   type: String,
   //   default: 'elementos'
   // },
-  label_plural: String,
+  label_plural: {
+    type: String,
+    default: 'elementos'
+  },
   color: String,
   tooltip_complement: String,
 })

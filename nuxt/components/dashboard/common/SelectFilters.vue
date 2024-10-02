@@ -1,8 +1,8 @@
 <script setup>
 import StatusDetail from "@/components/dashboard/status/StatusDetail";
 
-import { defineProps, ref, watch } from 'vue'
-import GenericSelect from "~/components/dashboard/impact/GenericSelect.vue";
+import { ref, watch } from 'vue'
+import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
 
 const props = defineProps({
   final_filters: Object,
@@ -32,7 +32,7 @@ const applyFilters = () => {
       :field="filter_box.collection"
       :label="`Status ${filter_box.name}`"
       clearable
-      hide_details
+      hide-details
       style="max-width: 300px; min-width: 200px;"
       @change-status="applyFilters"
     />
@@ -47,12 +47,13 @@ const applyFilters = () => {
         ? `Status ${filter_box.name}`
         : filter_box.title || filter_box.name"
       :item_id="filter_box.item_id"
+      :is_autocomplete="filter_box.is_autocomplete"
       clearable
-      hide_details
+      hide-details
       style="max-width: 300px; min-width: 200px;"
       @change-status="applyFilters"
     />
-
+<!--    <SelectState></SelectState>-->
     <h5 v-else>{{filter_box.title || filter_box.name}}</h5>
   </v-col>
 </template>

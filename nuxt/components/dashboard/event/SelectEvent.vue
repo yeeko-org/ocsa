@@ -6,18 +6,14 @@ const mainStore = useMainStore()
 
 const props = defineProps({
   final_filters: Object,
-  label: String,
-  collection: {
-    type: String,
-    default: "all",
-  },
+  event_group_id: Number,
   show_group: {
     type: Boolean,
     default: false,
   },
   field: {
     type: String,
-    default: "impact_type",
+    default: "event_subtype",
   },
   clearable: {
     type: Boolean,
@@ -30,53 +26,47 @@ const props = defineProps({
 })
 const emit = defineEmits(['delete-record'])
 
-const { impact_groups, cats } = storeToRefs(mainStore)
-const impact_type_full = computed(() => {
-  return impact_groups.value["all"].find(
-    impact_group => impact_group.id === props.final_filters.impact_type)
+const { impact_groups, cats, event_types, event_subtypes } = storeToRefs(mainStore)
+
+const event_subtype = computed(() => {
+  return event_subtypes.value.find(
+    event_subtype => event_subtype.id === props.final_filters.event_subtype)
 })
-const is_social = computed(() => {
-  if (!impact_type_full.value && props.final_filters.is_social !== undefined)
-    return props.final_filters.is_social
-  return impact_type_full.value.is_social
+
+const event_type = computed(() => {
+  if (!event_subtype.value)
+    return null
+  return event_subtype.value.event_type_obj
 })
 
 const items_built = computed(() => {
-  const final_collection = props.collection === "all"
-      ? is_social.value !== undefined
-        ? is_social.value
-          ? "social"
-          : "environmental"
-        : "all"
-      : props.collection
-  return impact_groups.value[final_collection]
+  if (props.final_filters.event_group_id){
+    return event_types.value.filter(
+      event_type => event_type.group === props.final_filters.event_group_id)
+  }
+  if (!event_type.value)
+    return event_types.value
+  return event_types.value.filter(
+    ev_type => ev_type.event_group.id === event_type.value.event_group.id)
 })
 
-const show_subtypes = computed(() => {
-  return impact_type_full.value && impact_type_full.value.has_subtype
-})
-
-const impact_subtypes = computed(() => {
-  if (!impact_type_full.value)
+const current_event_subtypes = computed(() => {
+  if (!event_type.value)
     return []
-  return cats.value.impact_subtypes.filter(
-    subtype => subtype.impact_type === impact_type_full.value.id)
+  return event_subtypes.value.filter(
+    event_subtype => event_subtype.event_type === event_type.value.id)
 })
 
-const main_width = computed(() => show_subtypes.value ? 200 : 260)
+const main_width = computed(() => 200)
 
 </script>
 
 <template>
   <div v-if="show_group" class="d-flex flex-column mr-2">
-    <v-chip
+    <v-icon
       class="mr-1"
-      :color="is_social ? 'teal' : 'green'"
-      min-width="150"
-      :prepend-icon="is_social ? 'groups' : 'eco'"
-    >
-      {{ is_social ? 'Social' : 'Ambiental' }}
-    </v-chip>
+      :icon="is_social ? 'groups' : 'eco'"
+    ></v-icon>
     <v-btn
       size="x-small"
       color="error"
@@ -88,11 +78,11 @@ const main_width = computed(() => show_subtypes.value ? 200 : 260)
     </v-btn>
   </div>
   <v-select
-    v-model="final_filters.impact_type"
+    v-model="final_filters.event_type"
     :items="items_built"
     item-title="name"
     item-value="id"
-    :label="label"
+    label="Tipo de evento"
     :density="density"
     variant="outlined"
     :clearable="clearable"
@@ -127,7 +117,7 @@ const main_width = computed(() => show_subtypes.value ? 200 : 260)
     :items="impact_subtypes"
     item-title="name"
     item-value="id"
-    label="Subtipo de afectación"
+    label="Subtipo de evento"
     :density="density"
     variant="outlined"
     :clearable="clearable"

@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 const mainStore = useMainStore()
@@ -54,6 +54,11 @@ const extractivism_type = computed({
   }
 })
 
+const editExtractivismType = () => {
+  console.log("editExtractivismType")
+  // extract_type_set.value = null
+}
+
 
 </script>
 
@@ -71,6 +76,9 @@ const extractivism_type = computed({
         _class="mx-1"
         variant="outlined"
       >
+        <template #append>
+            <v-icon @click="editExtractivismType">edit</v-icon>
+        </template>
       </v-select>
     </v-col>
     <v-col cols="7">

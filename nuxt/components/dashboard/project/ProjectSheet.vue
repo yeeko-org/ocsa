@@ -2,14 +2,14 @@
 
 import NoteHeader from "~/components/dashboard/note/NoteHeader.vue";
 import MentionDetails from "~/components/dashboard/note/MentionDetails.vue";
-import GenericSelect from "~/components/dashboard/impact/GenericSelect.vue";
+import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 import MegaProjectType from "~/components/dashboard/project/MegaProjectType.vue";
 
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
-  full_project: {
+  full_main: {
     type: Object,
     required: true,
   },
@@ -22,6 +22,10 @@ const props = defineProps({
 const openNote = () => {
   console.log("open note")
 }
+
+const full_project = computed(() => {
+  return props.full_main
+})
 
 </script>
 
@@ -68,7 +72,7 @@ const openNote = () => {
         />
       </v-card>
       <v-card v-if="full_project.mentions">
-        <v-card-title>
+        <v-card-title class="text-deep-purple">
           {{ full_project.mentions.length }} Notas:
         </v-card-title>
         <v-card-text>
@@ -78,7 +82,7 @@ const openNote = () => {
               :key="mention.id"
             >
               <NoteHeader
-                :note="mention.note"
+                :main="mention.note"
                 :mentions="[mention]"
                 :show_details="show_details"
                 @open-panel="openNote"
@@ -94,6 +98,7 @@ const openNote = () => {
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
+
         </v-card-text>
 
       </v-card>

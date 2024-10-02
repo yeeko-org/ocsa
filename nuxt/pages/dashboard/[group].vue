@@ -4,19 +4,14 @@ import {useMainStore} from '~/store/index'
 import {storeToRefs} from 'pinia'
 import _debounce from 'lodash/debounce'
 import SelectFilters from "~/components/dashboard/common/SelectFilters.vue";
-import PanelCommon from "~/components/dashboard/common/PanelCommon.vue";
-import ProjectHeader from "~/components/dashboard/project/ProjectHeader.vue";
-import ProjectSheet from "~/components/dashboard/project/ProjectSheet.vue";
-import NoteSheet from "~/components/dashboard/note/NoteSheet.vue";
-import NoteHeader from "~/components/dashboard/note/NoteHeader.vue";
-import ActorHeader from "~/components/dashboard/actor/ActorHeader.vue";
+import PanelList from "~/components/dashboard/common/PanelsResult.vue";
 
 const route = useRoute()
 const group_name = route.params.group
 
 const mainStore = useMainStore()
 const { fetchCatalogs, fetchElements } = mainStore
-const { double } = storeToRefs(mainStore)
+const { double, all_groups, cats_ready } = storeToRefs(mainStore)
 
 onBeforeMount(() => {
   fetchCatalogs()
@@ -29,14 +24,12 @@ const visible_filters = ref([])
 const filters_touched = ref(false)
 const total_count = ref(0)
 const current_filters = ref([])
-const open_panels = ref([])
 const show_details = ref(false)
 // rewrite the last line in typescript
 // const current_filters = ref<Array<{name: string, order: number, init_visible?: boolean, collection?: string, is_collection?: boolean, disabled?: boolean}>>([])
 
-const group_actions_enabled = ref(false)
 
-const pr_filters = {
+const init_filters = {
   status_register: null,
   status_location: null,
   extractivism_type: null,
@@ -49,29 +42,27 @@ const pr_filters = {
   event_type: null,
   sub_event_type: null,
 }
-const comm_filters = ref({
-  page: 1,
-  q: "",
-  sort_by: "send_petition",
-  page_size: 40,
-})
+
 const final_filters = ref({
   page: 1,
   sort_by: "send_petition",
   q: "",
   page_size: 40,
-  ...pr_filters,
+  ...init_filters,
 })
-const sel = ref({"selected_elems": []})
-// const selected_elems = ref([])
 
 const all_filters = [
   {
-    name: "de Registro", order: 1, init_visible: true,
+    name: "Tipo de Extr.", order: 0, init_visible: true,
+    key: "extractivism_type", title: "Tipo de Extractivismo",
+    collection: "extractivism_types",
+    groups: ['project', 'extractivism_type']
+  },{
+    name: "de Registro", order: 4, init_visible: true,
     collection: "status_validation", collection_type: "status",
     groups: ['project']
   },{
-    name: "de Ubicación", order: 2, init_visible: false,
+    name: "de Ubicación", order: 6, init_visible: false,
     collection: "status_location", disabled: true, collection_type: "status",
     groups: ['project']
   },{
@@ -80,58 +71,48 @@ const all_filters = [
     collection: "sources",
     groups: ['note']
   },{
-    name: "Tipo de participante", order: 1, init_visible: true,
+    name: "Tipo de participante", order: 2, init_visible: true,
     key: "participant_type", title: "Tipo de participante",
     collection: "participant_types",
     groups: ['actor']
   },{
-    name: "Pertenencia", order: 2, init_visible: true,
+    name: "Pertenencia", order: 3, init_visible: true,
     key: "belongs", title: "Grupo de pertenencia",
     collection: "belongs", item_id: "key_name",
     groups: ['actor']
   },{
-    name: "Tipo de Extr.", order: 5, init_visible: true,
-    key: "extractivism_type", title: "Tipo de Extractivismo",
-    collection: "deployment_capital_types",
-    groups: ['project']
-  },{
-    name: "Tipo de MP", order: 6, init_visible: false,
+    name: "Tipo de MP", order: 1, init_visible: false, is_autocomplete: true,
     key: "megaproject_type", title: "Tipo de Megaproyecto",
-    collection: "megaproject_types", groups: ['project']
+    collection: "megaproject_types", groups: ['project'],
   },{
-    name: "Escala", order: 7, init_visible: false, key: "scale",
+    name: "Escala", order: 5, init_visible: false, key: "scale",
     collection: "scales", groups: ['project']
   },{
-    name: "Estado", order: 10, init_visible: true, key: "state",
-    groups: ['project']
+    name: "Estado", order: 6, init_visible: true, key: "state",
+    collection: "states", groups: ['project']
   },{
-    name: "de Proyecto", order: 14, init_visible: false,
+    name: "st-Proyecto", order: 8, init_visible: false,
+    title: "Status de proyecto",
     collection: "status_project", groups: ['project']
   },{
-    name: "Af. social", order: 20, init_visible: true,
+    name: "Af. social", order: 9, init_visible: true,
     key: "social_impact", title: "Afectación social",
     collection: "social", collection_type: "impact",
     groups: ['project']
   },
   {
-    name: "Af. ambiental", order: 21, init_visible: true,
+    name: "Af. ambiental", order: 10, init_visible: true,
     key: "environment_impact", title: "Afectación ambiental",
     collection: "environmental", collection_type: "impact",
     groups: ['project']
   },{
-    name: "Tipo de Evento", order: 25, init_visible: false,
+    name: "Tipo de Evento", order: 11, init_visible: true,
     key: "event_type", collection: "event_types",
-    groups: ['project']
+    groups: ['project', 'event']
   },
 ]
 
-const groups = [
-  {name: "Proyectos", key: "project", color: 'purple'},
-  {name: "Notas", key: "note", color: 'deep-purple'},
-  {name: "Actores", key: "actor", color: 'blue'},
-]
-
-const group = computed(() => groups.find(g => g.key === group_name))
+const group = computed(() => all_groups.value.find(g => g.key === group_name))
 
 const group_filters = computed(() =>
     all_filters.filter(f => f.groups.includes(group_name)) )
@@ -145,6 +126,7 @@ const sorts = [
 
 onMounted(() => {
   changeFilters()
+  initCatalogs(false)
 })
 
 watch(
@@ -156,14 +138,25 @@ watch(
   {deep: true}
 )
 
+watch(
+  cats_ready, (val) => {
+    initCatalogs(val)
+  }
+)
+
+function initCatalogs(ready=null) {
+  if (group.value.parent && (ready || cats_ready.value)) {
+    applyFilters()
+  }
+}
+
 function changeFilters() {
-  console.log("changeFilters", group_filters.value)
   current_filters.value = group_filters.value.sort((a, b) => a.order - b.order)
   visible_filters.value = current_filters.value.filter(f => f.init_visible)
 }
 
 const debounceApplyFilters = _debounce(() => {
-  console.log("debounceApplyFilters")
+  // console.log("debounceApplyFilters")
   applyFilters()
 }, 600)
 
@@ -171,7 +164,8 @@ function applyFilters() {
   loading_fetch.value = true
   show_details.value = false
   // const function_name = group === 'project' ? fetchProjects : fetchNotes
-  fetchElements([group_name, final_filters.value]).then(res => {
+  const real_group = group.value.parent ? `catalogs/${group_name}` : group_name
+  fetchElements([real_group, final_filters.value]).then(res => {
     loading_fetch.value = false
     filters_touched.value = false
     total_count.value = res.total
@@ -188,20 +182,10 @@ function changeShowDetails() {
   })
 }
 
-
-function selectAll() {
-  console.log("selectAll")
-  // selected_elems.value = pet_file_ctrl.data_files.map(df => df.id)
-}
-
-function changeGroupActions(){
-  group_actions_enabled.value = !group_actions_enabled.value
-}
-
 </script>
 
 <template>
-  <v-card class="px-3 mt-3" flat>
+  <v-card class="px-3 my-3" flat>
     <v-row class="mx-0">
       <v-col cols="12" _class="py-0">
         <v-chip-group
@@ -218,7 +202,6 @@ function changeGroupActions(){
             :disabled="filter.disabled"
             class="mr-1 py-1"
             filter
-
             variant="tonal"
           >
             {{filter.name}}
@@ -232,7 +215,7 @@ function changeGroupActions(){
       <v-col cols="12" class="d-flex" order="last">
         <v-text-field
           v-model="final_filters.q"
-          label="Buscar proyecto"
+          :label="`Buscar ${group.singular || group.name || 'elementos'}`"
           outlined
           density="comfortable"
           clearable
@@ -240,9 +223,11 @@ function changeGroupActions(){
           hide-details
           _change="debounceApplyFilters"
           _blur="debounceApplyFilters"
+          class="mb-2 mt-1"
           max-width="300"
         ></v-text-field>
         <v-select
+          v-if="!group.parent"
           v-model="final_filters.sort_by"
           :items="sorts"
           item-title="text"
@@ -255,14 +240,14 @@ function changeGroupActions(){
           style="max-width: 180px;"
         ></v-select>
         <v-spacer></v-spacer>
-        <v-btn
-          color="accent"
-          variant="outlined"
-          text="Mostrar acciones"
-          class="mr-3"
-          @click="changeGroupActions"
-        ></v-btn>
-        <v-menu location="bottom">
+<!--        <v-btn-->
+<!--          color="accent"-->
+<!--          variant="outlined"-->
+<!--          text="Mostrar acciones"-->
+<!--          class="mr-3"-->
+<!--          @click="changeGroupActions"-->
+<!--        ></v-btn>-->
+        <v-menu location="bottom" v-if="!group.parent">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
@@ -292,50 +277,6 @@ function changeGroupActions(){
           </v-list>
         </v-menu>
       </v-col>
-      <v-col cols="12" order="last">
-        <v-card class="pa-3" variant="outlined" v-if="group_actions_enabled">
-          Acciones grupales:
-          <span
-            v-if="sel.selected_elems.length"
-            class=""
-          >({{sel.selected_elems.length}}):</span>
-          <v-btn
-            variant="outlined"
-            color="accent"
-            class="ml-3"
-            @click="selectAll"
-          >
-            <v-icon class="mr-2">fact_check</v-icon>
-            Seleccionar todo
-          </v-btn>
-          <v-btn
-            outlined
-            color="accent"
-            class="ml-3"
-            _click="wantMoveFiles"
-            :disabled="!sel.selected_elems.length"
-          >
-            <v-icon class="mr-2">merge</v-icon>
-            Fusionar
-          </v-btn>
-          <v-btn
-            _disabled="!selected_files.files.length"
-            outlined
-            color="error"
-            class="ml-3"
-          >
-            <v-icon class="mr-2">delete</v-icon>
-            Eliminar
-          </v-btn>
-          <v-btn
-            icon="close"
-            class="float-right"
-            size="small"
-            variant="text"
-            @click="changeGroupActions"
-          ></v-btn>
-        </v-card>
-      </v-col>
     </v-row>
     <v-progress-linear
       v-if="loading_fetch"
@@ -344,62 +285,11 @@ function changeGroupActions(){
       color="primary"
     ></v-progress-linear>
   </v-card>
-  <v-card>
-    {{total_count}} Resultados
-    | {{Math.ceil(total_count / final_filters.page_size)}} páginas
-    <v-expansion-panels
-      multiple
-      v-model="open_panels"
-    >
-      <PanelCommon
-        v-for="elem in results"
-        :key="elem.id"
-        :group="group"
-        :main="elem"
-        :show_details="show_details"
-        :sel="sel"
-      >
-        <template #header="{openMain}">
-          <ProjectHeader
-            v-if="group.key === 'project'"
-            :project="elem"
-            :show_details="show_details"
-            @open-project="openMain"
-          />
-          <NoteHeader
-            v-else-if="group.key === 'note'"
-            :note="elem"
-            :show_details="show_details"
-            @open-panel="openMain"
-          />
-          <ActorHeader
-            v-else-if="group.key === 'actor'"
-            :actor="elem"
-            :show_details="show_details"
-            @open-panel="openMain"
-          />
-        </template>
-        <template #sheet="{full_main}">
-          <ProjectSheet
-            v-if="group.key === 'project'"
-            :full_project="full_main"
-            :show_details="show_details"
-          />
-          <NoteSheet
-            v-else-if="group.key === 'note'"
-            :full_note="full_main"
-            :show_details="show_details"
-          />
-        </template>
-      </PanelCommon>
-    </v-expansion-panels>
-    <v-card-actions>
-      <v-pagination
-        v-model="final_filters.page"
-        :length="Math.ceil(total_count / final_filters.page_size)"
-        :total-visible="11"
-        rounded="circle"
-      ></v-pagination>
-    </v-card-actions>
-  </v-card>
+  <PanelList
+    :results="results"
+    :group="group"
+    :show_details="show_details"
+    :final_filters="final_filters"
+    :total_count
+  />
 </template>

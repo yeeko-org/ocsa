@@ -1,5 +1,5 @@
 <script setup>
-import {defineComponent, ref, computed, defineProps} from 'vue'
+import {defineComponent, ref, computed} from 'vue'
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'
 // export default defineComponent({
@@ -55,6 +55,34 @@ const items_built = computed(() => {
     variant="outlined"
     clearable
   >
+    <template #item="{ item, props: {onClick, title, value} }" v-if="true">
+      <v-list-item
+        @click="onClick"
+        :title="title"
+        :value="value"
+      >
+        <template v-slot:prepend>
+          <v-icon
+            :color="item.raw.color || 'grey'"
+            :icon="item.raw.icon || 'trip_origin'"
+          ></v-icon>
+        </template>
+      </v-list-item>
+    </template>
+    <template #selection="{ item }">
+      <div
+        :class="`text-${item.raw.color || 'grey'}`"
+        class="d-flex pb-1 pt-2"
+      >
+        <v-icon
+          class="mr-2"
+          :color="item.raw.color || 'grey'"
+          :icon="item.raw.icon || 'trip_origin'"
+        ></v-icon>
+        {{ item.title }}
+      </div>
+    </template>
+
   </v-select>
 </template>
 

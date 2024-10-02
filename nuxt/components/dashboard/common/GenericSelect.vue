@@ -1,6 +1,6 @@
 <script setup>
-import {defineComponent, ref, computed, defineProps} from 'vue'
-import { useMainStore } from '~/store'
+import {defineComponent, ref, computed} from 'vue'
+import { useMainStore } from '~/store/index.js'
 import { storeToRefs } from 'pinia'
 const mainStore = useMainStore()
 
@@ -17,6 +17,10 @@ const props = defineProps({
   density: {
     type: String,
     default: "compact",
+  },
+  is_autocomplete: {
+    type: Boolean,
+    default: false,
   },
   // hide_details: {
   //   type: Boolean,
@@ -44,7 +48,8 @@ const items_built = computed(() => {
 </script>
 
 <template>
-  <v-select
+  <v-autocomplete
+    v-if="is_autocomplete"
     v-model="final_filters[field]"
     :items="items_built"
     :item-title="item_title"
@@ -53,8 +58,19 @@ const items_built = computed(() => {
     variant="outlined"
     :clearable="clearable"
     _change="changeStatus"
-  >
-  </v-select>
+  ></v-autocomplete>
+  <v-select
+    v-else
+    v-model="final_filters[field]"
+    :items="items_built"
+    :item-title="item_title"
+    :item-value="item_value"
+    :density="density"
+    variant="outlined"
+    :clearable="clearable"
+    _change="changeStatus"
+  ></v-select>
+
 </template>
 
 <style scoped>

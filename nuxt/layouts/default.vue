@@ -1,68 +1,25 @@
-<script setup lang="ts">
+<script setup>
 import { computed, onMounted, ref } from 'vue'
 
 const menu_drawer = ref(false)
-const menu_content = [
-  {
-    title: 'Notas',
-    component: "ProviderList",
-    to: 'note',
-    icon: 'newspaper',
-    catalogs: [
-      {title: 'Medios (Fuentes)', to: 'source'},
-    ]
-  },
-  {
-    title: 'Proyectos',
-    component:"ControlFilter",
-    to: 'project',
-    // icon: 'corporate_fare'},
-    // icon: 'flood'},
-    // icon: 'stadium'},
-    // icon: 'real_estate_agent'},
-    // icon: 'holiday_village'},
-    // icon: 'engineering'},
-    icon: 'factory',
-    catalogs: [
-      {title: 'Tipos de extractivismo', to: 'extractivism_type'},
-      {title: 'Estados de proyectos', to: 'status_project'},
-      {title: 'Escalas', to: 'project_type'},
-      {title: 'Afectaciones sociales', to: 'social_impact'},
-      {title: 'Afectaciones ambientales', to: 'environment_impact'},
-    ]
+import { menu_content } from "~/composables/menu.js";
+import {useMainStore} from "~/store/index.js";
+import {storeToRefs} from "pinia";
 
-  },
-  {
-    title: 'Conflictos',
-    component: "ControlFilter",
-    to: 'conflict',
-    icon: 'local_fire_department'
-  },
-  {
-    title: 'Actores',
-    component: "UpdateHome",
-    to: 'actor',
-    // icon: 'account_balance'
-    icon: 'recent_actors',
-    catalogs: [
-      {title: 'Sectores', to: 'sector'},
-      {title: 'Grupos de pertenencia', to: 'group'},
-      {title: 'Tipo de participación', to: 'participation_type'},
-      {title: 'Grupo de interés', to: 'interest_group'},
-    ]
-  },
-  {
-    title: 'Eventos',
-    component: "ActivityHolder",
-    to: 'event',
-    // icon: 'work_history'
-    icon: 'notifications_active',
-    catalogs: [
-      {title: 'Tipos de eventos', to: 'event_type'},
-      {title: 'Roles en los eventos', to: 'event_role'},
-    ]
-  },
-]
+const mainStore = useMainStore()
+const { all_groups } = storeToRefs(mainStore)
+const route = useRoute()
+const group = computed(() => {
+  // console.log('route', route)
+  const group_name = route.params.group
+  const dashboard = {
+    title: 'Dashboard',
+    icon: 'dashboard',
+    key: 'dashboard',
+  }
+  return all_groups.value.find(g => g.key === group_name) || dashboard
+})
+// const icon = computed(() => group.value.icon || group.parent ?
 
 </script>
 
@@ -81,13 +38,14 @@ const menu_content = [
         color="white"
       ></v-app-bar-nav-icon>
       <v-toolbar-title class="d-flex align-center">
-        <v-icon class="mr-3" v-if="false">
-          current_component.icon
+        <v-icon class="mr-3" color="white">
+          {{ group.icon || (group.parent ? group.parent.icon : 'dashboard') }}
         </v-icon>
-        <span>
-          current_component.title
+        <span class="text-white">
+          {{ group.name }}
         </span>
         <v-btn
+          v-if="false"
           icon="category"
           v-tooltip:bottom="'Categorías de ___'"
         ></v-btn>
@@ -111,7 +69,7 @@ const menu_content = [
       width="280"
       mini-variant
     >
-      <v-list nav>
+      <v-list nav open-strategy="multiple">
         <v-list-item>
           <template v-slot:prepend v-if="false">
             <v-icon>dashboard</v-icon>
@@ -128,34 +86,35 @@ const menu_content = [
         >
           <v-list-group
             v-if="item.catalogs"
-            :key="item.title"
-            :value="item.title"
+            :key="item.name"
+            :value="item.name"
           >
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
-                :title="item.title"
-                :value="item.title"
+                :title="item.name"
+                :value="item.name"
                 :prepend-icon="item.icon"
-                :to="`/dashboard/${item.to}`"
+                :to="`/dashboard/${item.key}`"
               ></v-list-item>
             </template>
             <v-list-item
               v-for="(sub_item, i) in item.catalogs"
               :key="i"
               _prepend-icon="category"
-              :title="sub_item.title"
-              :value="sub_item.title"
-              :to="`/dashboard/catalog/${sub_item.to}`"
+              :title="sub_item.name"
+              :value="sub_item.name"
+              _to="`/dashboard/catalog/${sub_item.key}`"
+              :to="`/dashboard/${sub_item.key}`"
             ></v-list-item>
           </v-list-group>
           <v-list-item
             v-else
-            :key="item.title"
+            :key="item.name"
             active-class="accent--text"
-            :to="`/dashboard/${item.to}`"
+            :to="`/dashboard/${item.key}`"
             :prepend-icon="item.icon"
-            :title="item.title"
+            :title="item.name"
           ></v-list-item>
         </template>
       </v-list>

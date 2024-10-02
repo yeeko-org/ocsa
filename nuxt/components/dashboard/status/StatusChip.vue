@@ -89,10 +89,8 @@ const item_built = computed(() => {
     class="d-flex text-body-3 align-center"
     :class="props.left_label ? 'flex-row mb-1' : 'flex-column'"
   >
-
     <span
       v-if="!props.hide_details"
-      _class="text-caption grey--text text--darken-1"
       class="text-caption text-grey-darken-1"
       :class="props.left_label ? 'mr-2' : 'mb-n1'"
     >
@@ -107,18 +105,18 @@ const item_built = computed(() => {
     <v-chip
       v-else
       :color="item_built.color || 'grey'"
-      _small="props.disabled || props.small"
-      :size="props.disabled || props.small ? 'small' : 'default'"
+      :size="(props.disabled || props.small) ? 'small' : 'default'"
       :disabled="props.disabled"
       :icon="props.only_icon"
       :class="`${item_built.back_text} ${props.bold_text ? 'font-weight-bold' : ''}`"
+      variant="flat"
     >
       <v-icon
         v-if="props.show_icon"
         :color="item_built.color_text"
         class="mr-1"
         _small="props.disabled || props.small"
-        :size="props.disabled || props.small ? 'small' : 'default'"
+        :size="(props.disabled || props.small) ? 'small' : 'default'"
       >
         {{(!item_built.icon || item_built.icon === 'mdi-check-circle')
           ? 'fiber_manual_record'
