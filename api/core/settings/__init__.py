@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))
 
 WSGI_APPLICATION = 'core.wsgi.application'
 AUTH_USER_MODEL = 'profile_auth.User'
@@ -20,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'rest_framework',
     'corsheaders',
     # 'rest_framework.authtoken',
@@ -90,11 +92,11 @@ else:
 
     default_database = {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / DATABASE_NAME
+        'NAME': os.path.join(BASE_DIR, DATABASE_NAME)
     }
 
 if DATABASE_SCHEMA:
-    default_database['OPTIONS'] = {
+    default_database['OPTIONS'] = {  # type: ignore
         'options': f'-c search_path={DATABASE_SCHEMA}',
     }
 
@@ -164,11 +166,11 @@ if DATABASE_LEGACY_NAME:
 
         legacy = {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / DATABASE_LEGACY_NAME
+            'NAME': os.path.join(BASE_DIR, DATABASE_LEGACY_NAME)
         }
 
     if DATABASE_LEGACY_SCHEMA:
-        legacy['OPTIONS'] = {
+        legacy['OPTIONS'] = { # type: ignore
             'options': f'-c search_path={DATABASE_LEGACY_SCHEMA}',
         }
 

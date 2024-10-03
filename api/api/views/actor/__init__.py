@@ -1,10 +1,11 @@
-from django.db.models import Count, F
+from django.db.models import F
 from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
+from rest_framework.request import Request
 
 from actor.models import Actor, Member, OriginReference, Participant
 
@@ -39,24 +40,22 @@ class ActorFilter(FilterSet):
 
 
 class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
+    request: Request
     queryset = Actor.objects.all().distinct()\
         .annotate(
-            mentions_count=Count('participants'),
             sector_group=F('sector__sector_group')
     )\
         .select_related("parent_actor", "parent_actor__sector")\
         .prefetch_related("participants", "origin_references")
-    # permission_classes = [permissions.IsAuthenticated]
+
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
 
     filterset_class = ActorFilter
 
-    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
-    search_fields = [
-        "name",
-    ]
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+
     ordering_fields = ['id', 'name', 'mentions_count']
     ordering = ['id']
 
@@ -98,6 +97,15 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
             .update(actor=to_obj)
         OriginReference.objects.filter(actor=from_obj)\
             .update(actor=to_obj)
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+
+        search_query = self.request.query_params.get('q', '')
+        if search_query:
+            queryset = queryset.filter(name__unaccent__icontains=search_query)
+
+        return queryset
 
 
 class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
