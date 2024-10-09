@@ -49,7 +49,7 @@ class EventViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
 
     search_fields = [
-        "description",
+        "name",
     ]
     ordering_fields = ['id', 'date']
     ordering = ['id']
