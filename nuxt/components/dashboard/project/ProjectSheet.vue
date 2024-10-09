@@ -7,6 +7,7 @@ import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 import MegaProjectType from "~/components/dashboard/project/MegaProjectType.vue";
 
 import { ref, computed } from 'vue'
+import ProjectEdit from "~/components/dashboard/project/ProjectEdit.vue";
 
 const props = defineProps({
   full_main: {
@@ -39,36 +40,9 @@ const full_project = computed(() => {
       class="mt-n2 mb-n4 pa-3"
     >
       <v-card class="mb-3 pa-3">
-        <div class="d-flex">
-          <v-text-field
-            v-model="full_project.official_name"
-            label="Nombre oficial"
-            width="400"
-            max-width="400"
-            variant="outlined"
-          >
-          </v-text-field>
-          <StatusDetail
-            :final_filters="full_project"
-            field="status_register"
-            collection="validation"
-            label="Status de registro"
-            style="max-width: 300px;"
-          />
-        </div>
-        <MegaProjectType
-          :project="full_project"
-        />
-        <GenericSelect
-          :final_filters="full_project"
-          collection="scales"
-          field="scale"
-          label="Escala"
-          clearable
-          hide_details
-          style="max-width: 300px; min-width: 200px;"
-          _change-status="applyFilters"
-          density="comfortable"
+        <ProjectEdit
+          :full_main="full_project"
+          is_edit
         />
       </v-card>
       <v-card v-if="full_project.mentions">

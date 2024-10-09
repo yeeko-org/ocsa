@@ -4,7 +4,7 @@ import {useMainStore} from '~/store/index'
 import {storeToRefs} from 'pinia'
 import _debounce from 'lodash/debounce'
 import SelectFilters from "~/components/dashboard/common/SelectFilters.vue";
-import PanelList from "~/components/dashboard/common/PanelsResult.vue";
+import PanelResult from "~/components/dashboard/common/PanelsResult.vue";
 
 const route = useRoute()
 const group_name = route.params.group
@@ -45,7 +45,7 @@ const init_filters = {
 
 const final_filters = ref({
   page: 1,
-  sort_by: "send_petition",
+  ordering: null,
   q: "",
   page_size: 40,
   ...init_filters,
@@ -59,7 +59,7 @@ const all_filters = [
     groups: ['project', 'extractivism_type']
   },{
     name: "de Registro", order: 4, init_visible: true,
-    collection: "status_validation", collection_type: "status",
+    collection: "status_register", collection_type: "status",
     groups: ['project']
   },{
     name: "de Ubicación", order: 6, init_visible: false,
@@ -106,7 +106,7 @@ const all_filters = [
     collection: "environmental", collection_type: "impact",
     groups: ['project']
   },{
-    name: "Tipo de Evento", order: 11, init_visible: true,
+    name: "Tipo de Evento", order: 11, init_visible: false,
     key: "event_type", collection: "event_types",
     groups: ['project', 'event']
   },
@@ -117,12 +117,31 @@ const group = computed(() => all_groups.value.find(g => g.key === group_name))
 const group_filters = computed(() =>
     all_filters.filter(f => f.groups.includes(group_name)) )
 
-const sorts = [
-  {text: 'Fecha de registro', value: 'send_petition'},
-  {text: 'Nombre', value: 'name'},
-  // {text: 'Status solicitud', value: 'status_petition'},
-  // {text: 'Status de datos', value: 'status_data'},
-]
+const common_sorts = {
+  'name': 'Nombre',
+  'official_name': 'Nombre oficial',
+  'status_validation__order': 'Status de Validación',
+  'status_register__order': 'Status de Registro',
+  'status_location__order': 'Status de Ubicación',
+  'count': 'Cantidad',
+  'id': 'Fecha de creación',
+}
+
+const final_sorts = computed(() => {
+  if (!group.value.sorts && !group.value.same_sorts)
+    return []
+  let same_sorts = {}
+  if (group.value.same_sorts)
+    same_sorts = group.value.same_sorts.reduce((coll, sort) =>(
+      {...coll, [sort]: common_sorts[sort]}
+    ), {})
+  console.log("same_sorts", same_sorts)
+  let joined_sorts = {...same_sorts, ...(group.value.sorts || {})}
+  return Object.entries(joined_sorts).map(([key, value]) => {
+    console.log("key", key, "value", value)
+    return {value: key, title: value}
+  })
+})
 
 onMounted(() => {
   changeFilters()
@@ -152,7 +171,11 @@ function initCatalogs(ready=null) {
 
 function changeFilters() {
   current_filters.value = group_filters.value.sort((a, b) => a.order - b.order)
-  visible_filters.value = current_filters.value.filter(f => f.init_visible)
+  console.log("group in changeFilters", group.value)
+  if (group.value.simplified_filters)
+    visible_filters.value = current_filters.value
+  else
+    visible_filters.value = current_filters.value.filter(f => f.init_visible)
 }
 
 const debounceApplyFilters = _debounce(() => {
@@ -185,9 +208,9 @@ function changeShowDetails() {
 </script>
 
 <template>
-  <v-card class="px-3 my-3" flat>
+  <v-card class="py-3" flat>
     <v-row class="mx-0">
-      <v-col cols="12" _class="py-0">
+      <v-col cols="12" _class="py-0" v-if="!group.simplified_filters">
         <v-chip-group
           v-model="visible_filters"
           multiple
@@ -209,10 +232,20 @@ function changeShowDetails() {
         </v-chip-group>
       </v-col>
       <SelectFilters
+        v-if="!group.simplified_filters"
         :final_filters="final_filters"
         :visible_filters="visible_filters"
       />
-      <v-col cols="12" class="d-flex" order="last">
+      <v-col
+        cols="12"
+        class="d-flex mb-3 mt-1 px-1"
+        :order="group.simplified_filters ? 1 : 'last'"
+      >
+        <SelectFilters
+          v-if="group.simplified_filters"
+          :final_filters="final_filters"
+          :visible_filters="visible_filters"
+        />
         <v-text-field
           v-model="final_filters.q"
           :label="`Buscar ${group.singular || group.name || 'elementos'}`"
@@ -223,21 +256,20 @@ function changeShowDetails() {
           hide-details
           _change="debounceApplyFilters"
           _blur="debounceApplyFilters"
-          class="mb-2 mt-1"
           max-width="300"
         ></v-text-field>
         <v-select
-          v-if="!group.parent"
-          v-model="final_filters.sort_by"
-          :items="sorts"
-          item-title="text"
+          v-if="final_sorts.length"
+          v-model="final_filters.ordering"
+          :items="final_sorts"
+          item-title="title"
           item-value="value"
           label="Ordenar por"
           density="comfortable"
           variant="outlined"
           hide-details
-          class="py-1 ml-3"
-          style="max-width: 180px;"
+          class="ml-3"
+          style="max-width: 220px;"
         ></v-select>
         <v-spacer></v-spacer>
 <!--        <v-btn-->
@@ -247,35 +279,37 @@ function changeShowDetails() {
 <!--          class="mr-3"-->
 <!--          @click="changeGroupActions"-->
 <!--        ></v-btn>-->
-        <v-menu location="bottom" v-if="!group.parent">
-          <template v-slot:activator="{ props }">
-            <v-btn
-              v-bind="props"
-              color="green"
-              variant="elevated"
-              dark
-              append-icon="table_chart"
-            >
-              Descargar Excel
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item
-              title="Todos los registros"
-            >
-              <template v-slot:prepend>
-                <v-icon icon="filter_list_off" color="grey"></v-icon>
-              </template>
-            </v-list-item>
-            <v-list-item
-              title="Solo filtrados"
-            >
-              <template v-slot:prepend>
-                <v-icon icon="filter_list" color="accent"></v-icon>
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+        <v-col cols="auto" order="12">
+          <v-menu location="bottom" v-if="!group.parent">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                color="green"
+                variant="elevated"
+                dark
+                append-icon="table_chart"
+              >
+                Descargar Excel
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item
+                title="Todos los registros"
+              >
+                <template v-slot:prepend>
+                  <v-icon icon="filter_list_off" color="grey"></v-icon>
+                </template>
+              </v-list-item>
+              <v-list-item
+                title="Solo filtrados"
+              >
+                <template v-slot:prepend>
+                  <v-icon icon="filter_list" color="accent"></v-icon>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </v-col>
       </v-col>
     </v-row>
     <v-progress-linear
@@ -285,7 +319,7 @@ function changeShowDetails() {
       color="primary"
     ></v-progress-linear>
   </v-card>
-  <PanelList
+  <PanelResult
     :results="results"
     :group="group"
     :show_details="show_details"

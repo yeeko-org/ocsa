@@ -1,10 +1,9 @@
 <script setup>
 
 import MentionDetails from "~/components/dashboard/note/MentionDetails.vue";
-import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
-import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 
 import { ref } from 'vue'
+import NoteEdit from "~/components/dashboard/note/NoteEdit.vue";
 
 const props = defineProps({
   full_main: {
@@ -38,50 +37,11 @@ const full_note = computed(() => {
       class="mt-n2 mb-n4 pa-3"
     >
       <v-card class="mb-3 pa-3">
-        <v-card-text class="d-flex flex-wrap">
-          <v-text-field
-            v-model="full_note.title"
-            label="Título de la nota"
-            variant="outlined"
-            style="width: 100%;"
-          >
-          </v-text-field>
-          <GenericSelect
-            :final_filters="full_note"
-            collection="sources"
-            field="source"
-            label="Medio o fuente"
-            clearable
-            hide_details
-            style="width: 200px;"
-            class="mr-2"
-            density="default"
-          />
-          <v-text-field
-            v-model="full_note.section"
-            label="Sección"
-            variant="outlined"
-            class="mr-2"
-            style="width: 200px;"
-          >
-          </v-text-field>
-          <v-text-field
-            v-model="full_note.link"
-            label="Enlace a la nota"
-            variant="outlined"
-            class="mr-2"
-            style="width: 600px;"
-          >
-          </v-text-field>
-          <StatusDetail
-            :final_filters="full_note"
-            field="status_register"
-            collection="register"
-            label="Status de registro"
-            style="max-width: 300px;"
-            density="default"
-          />
-        </v-card-text>
+        <NoteEdit
+          :full_main="full_note"
+          :is_edit="true"
+        />
+
       </v-card>
       <v-card v-if="full_note.mentions">
         <v-card-title>

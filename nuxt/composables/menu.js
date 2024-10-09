@@ -13,6 +13,7 @@ export const menu_content = [
     singular: 'nota',
     header: "NoteHeader",
     sheet: "NoteSheet",
+    edit: "NoteEdit",
     key: 'note',
     color: 'deep-purple',
     icon: 'newspaper',
@@ -26,6 +27,7 @@ export const menu_content = [
     singular: 'proyecto',
     header: "ProjectHeader",
     sheet: "ProjectSheet",
+    edit: "ProjectEdit",
     key: 'project',
     // icon: 'corporate_fare'},
     // icon: 'flood'},
@@ -35,6 +37,8 @@ export const menu_content = [
     // icon: 'engineering'},
     icon: 'factory',
     color: 'purple',
+    // 'id', 'name', 'mentions_count'
+    same_sorts: ['id', 'status_register__order', 'official_name', 'status_location__order'],
     catalogs: [
       {
         name: 'Tipos de extractivismo',
@@ -44,6 +48,9 @@ export const menu_content = [
         sheet: "MegaProjectTypeSheet",
         edit: "MegaProjectTypeEdit",
         meta_key: 'project',
+        simplified_filters: true,
+        sorts: {'count': 'Cantidad de proyectos'},
+        same_sorts: ['status_validation__order', 'count'],
       },
       {name: 'Estados de proyectos', key: 'status_project',
         header: "HeaderGeneric", sheet: "SheetCommon", meta_key: 'generic'},
@@ -55,8 +62,21 @@ export const menu_content = [
       {name: 'Afectaciones ambientales', key: 'environment_impact',
         icon: 'eco', color: 'green',
         header: "HeaderGeneric", sheet: "SheetCommon", meta_key: 'generic'},
-    ]
-
+      // {
+      //   name: 'Subafectaciones',
+      //   key: 'impact_subtype',
+      //   icon: 'groups',
+      //   color: 'teal',
+      //   header: "HeaderGeneric",
+      //   sheet: "SheetCommon",
+      //   header: "SubImpactHeader",
+      //   sheet: "SubImpactSheet",
+      //   edit: "SubImpactEdit",
+      //   meta_key: 'generic',
+      //   simplified_filters: true,
+      //   sorts: {'count': 'Cantidad de proyectos'},
+      // },
+    ],
   },
   {
     name: 'Conflictos',
@@ -77,6 +97,8 @@ export const menu_content = [
     // icon: 'account_balance'
     icon: 'recent_actors',
     color: 'blue',
+    sorts: {'mentions_count': 'Cantidad de menciones'},
+    same_sorts: ['status_validation__order', 'name'],
     catalogs: [
       {name: 'Sectores', key: 'sector',
         header: "HeaderGeneric", sheet: "SheetCommon", meta_key: 'generic'},
@@ -96,6 +118,7 @@ export const menu_content = [
     // icon: 'work_history'
     icon: 'notifications_active',
     color: 'light-blue',
+    simplified_filters: true,
     catalogs: [
       {name: 'Tipos de eventos', key: 'event_type',
         header: "HeaderGeneric", sheet: "SheetCommon", meta_key: 'generic'},

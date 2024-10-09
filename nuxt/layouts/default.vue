@@ -120,7 +120,7 @@ const group = computed(() => {
       </v-list>
     </v-navigation-drawer>
     <v-main>
-      <v-container style="width: 100%;">
+      <v-container style="width: 100%;" class="pt-0">
         <client-only>
           <NuxtPage />
         </client-only>

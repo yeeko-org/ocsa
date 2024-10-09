@@ -22,7 +22,7 @@ const applyFilters = () => {
     :key="filter_box.name"
     :order="filter_box.order"
     cols="auto"
-    class="px-2"
+    class="pr-3 pl-0 py-0"
   >
     <StatusDetail
       v-if="filter_box.collection && filter_box.collection_type === 'status'"
@@ -50,6 +50,7 @@ const applyFilters = () => {
       :is_autocomplete="filter_box.is_autocomplete"
       clearable
       hide-details
+      density="comfortable"
       style="max-width: 300px; min-width: 200px;"
       @change-status="applyFilters"
     />
