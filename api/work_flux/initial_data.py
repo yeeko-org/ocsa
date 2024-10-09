@@ -38,10 +38,10 @@ class InitStatus:
         ]
         order = -1
         for name, group, public_name, color, icon, is_public in init_status:
-            status, created = StatusControl.objects.get_or_create(
-                name=name,
-                group=group,
+            status, _ = StatusControl.objects.get_or_create(
+                name=name
             )
+            status.group = group
             status.public_name = public_name
             status.color = color
             status.icon = icon

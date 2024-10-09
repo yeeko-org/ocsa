@@ -62,7 +62,8 @@ class ProjectViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
         "common_name",
         # "description"
     ]
-    ordering_fields = ['id', 'official_name']
+    ordering_fields = [
+        'id', 'official_name', 'status_register__order', 'status_location__order']
     ordering = ['id']
 
     serializer_class = ProjectBasicSerializer

@@ -30,7 +30,8 @@ from source.models import Source
 from work_flux.models import StatusControl
 
 from space_time.models import StatusProject
-from project.models import MegaprojectType, Project, ExtractivismType
+from project.models import (
+    MegaprojectType, Project, ExtractivismType, Scale)
 
 from api.views.catalogs.serializers import (
     ParticipantTypeSerializer,
@@ -49,6 +50,8 @@ from api.views.catalogs.serializers import (
     RoleSerializer,
     SourceSerializer,
     StatusControlSerializer,
+
+    ScaleSerializer,
     StatusProjectSerializer,
     ExtractivismTypeSerializer,
     MegaprojectTypeCountSerializer,
@@ -180,8 +183,17 @@ class EventRoleViewSet(viewsets.ModelViewSet):
     serializer_class = EventRoleSerializer
 
 
+class ImpactSubtypeFilter(FilterSet):
+
+    class Meta:
+        model = ImpactSubtype
+        fields = {'impact_type': ['exact']}
+
+
 class ImpactSubtypeViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
+    from django.db.models import Count
+
     permission_classes = [permissions.AllowAny]
     queryset = ImpactSubtype.objects.all()
     serializer_class = ImpactSubtypeSerializer
@@ -213,6 +225,13 @@ class StatusControlViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     queryset = StatusControl.objects.all()
     serializer_class = StatusControlSerializer
+
+
+class ScaleViewSet(viewsets.ModelViewSet):
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    queryset = Scale.objects.all()
+    serializer_class = ScaleSerializer
 
 
 class StatusProjectViewSet(viewsets.ModelViewSet):
