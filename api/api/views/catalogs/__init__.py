@@ -242,7 +242,10 @@ class MegaprojectTypeViewSet(viewsets.ModelViewSet):
     # from django.db.models import Count, F
     from django.db.models import Count
 
-    queryset = MegaprojectType.objects.all().annotate(count=Count('projects'))
+    queryset = MegaprojectType.objects.all()\
+        .annotate(count=Count('projects'))\
+        .prefetch_related('extractivism_types', 'projects', 'status_validation')\
+        .distinct()
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
 
@@ -250,6 +253,7 @@ class MegaprojectTypeViewSet(viewsets.ModelViewSet):
     filterset_class = MegaprojectTypeFilter
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name']
+    ordering_fields = ['name', 'count', 'status_validation__order']
 
     serializer_class = MegaprojectTypeCountSerializer
 

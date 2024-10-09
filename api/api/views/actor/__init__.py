@@ -39,13 +39,14 @@ class ActorFilter(FilterSet):
 
 
 class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
-    queryset = Actor.objects.all().distinct()\
+    queryset = Actor.objects.all()\
         .annotate(
-            mentions_count=Count('participants'),
+            # mentions_count=Count('participants'),
             sector_group=F('sector__sector_group')
-    )\
+        )\
         .select_related("parent_actor", "parent_actor__sector")\
-        .prefetch_related("participants", "origin_references")
+        .prefetch_related("participants", "origin_references")\
+        .distinct()
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
 
