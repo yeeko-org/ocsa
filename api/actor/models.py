@@ -179,7 +179,7 @@ LEGACY_MODELS = (
     ('Capital', 'Capital'),
     ('Estado', 'Estado'),
     ('Opositores', 'Opositores'),
-    ('Poblacione', 'PoblacionesAfectadas'),
+    ('PoblacionesAfectadas', 'PoblacionesAfectadas'),
     ('GruposApoyo', 'GruposApoyo'),
 )
 

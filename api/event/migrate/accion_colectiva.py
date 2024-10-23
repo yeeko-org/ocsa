@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 from event.migrate.event_base import EventBase
 from actor.models import Participant
 from classify.models import SectorGroup, Sector
-from event.models import (Event, EventGroup, EventLocation, EventRole,
+from event.models import (Event, EventGroup, EventLocation, InvolvedRole,
                           EventSubtype, EventType, Involved)
 from ocsa_legacy.models import (
     AccionColectivaToUbicacion, FormaAC, Opositores, OpositoresToAC,
@@ -29,9 +29,10 @@ class MigrateAccionToEvent(EventBase):
             self.accion_colectiva, forma_ac_nombre, subforma_ac_nombre)
 
     def set_involved(self, participant, role_name: str):
-        event_role, _ = EventRole.objects.get_or_create(name=role_name)
+        involved_role, _ = InvolvedRole.objects.get_or_create(name=role_name)
         Involved.objects.create(
-            event=self.event, participant=participant, event_role=event_role,
+            event=self.event, participant=participant,
+            involved_role=involved_role,
         )
 
     def set_not_location(self):
@@ -80,8 +81,12 @@ class AccionesColectivasToEventMigrate:
                 self.errors.append([accion_colectiva, e])
 
     def forma_accion_colectiva(self):
-        ac_group, _ = EventGroup.objects.get_or_create(
+        ac_group, created = EventGroup.objects.get_or_create(
             name="Acciones Colectivas", model_origin="FormaAC")
+        if created:
+            ac_group.icon = 'draw'
+            ac_group.color = 'blue'
+            ac_group.save()
 
         for forma_accion_colectiva in FormaAC.objects.all():
             forma_ac_nombre = forma_accion_colectiva.nombre
@@ -97,7 +102,7 @@ class AccionesColectivasToEventMigrate:
             event_type = EventType.objects.create(
                 name=forma_ac_nombre,
                 description=forma_accion_colectiva.descripcion,
-                group=ac_group
+                event_group=ac_group
             )
             self.events_type[forma_accion_colectiva.pk] = event_type
 

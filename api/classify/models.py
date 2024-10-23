@@ -4,8 +4,6 @@ from work_flux.models import StatusControl
 
 
 POSITION_CHOICES = (
-    ('undefined', 'No definido'),
-    ('maybe_support', 'Posiblemente a favor'),
     ('support', 'A favor'),
     ('oppose', 'En contra'),
     ('neutral', 'Neutral'),
@@ -13,11 +11,31 @@ POSITION_CHOICES = (
 )
 
 
+class ParticipantGroup(models.Model):
+
+    name = models.CharField(max_length=255)
+    key_name = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    icon = models.CharField(max_length=255, blank=True, null=True)
+    color = models.CharField(max_length=255, blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Grupo de Participantes'
+        verbose_name_plural = 'Grupos de Participantes'
+
+
 class ParticipantType(models.Model):
 
     name = models.CharField(max_length=255)
     position = models.CharField(
         max_length=14, choices=POSITION_CHOICES, default='undefined')
+    participant_group = models.ForeignKey(
+        ParticipantGroup, on_delete=models.CASCADE, blank=True, null=True)
     required_interests = models.BooleanField(
         default=True, verbose_name='Se requerirá que se agreguen intereses')
     status_validation = models.ForeignKey(
@@ -53,6 +71,8 @@ class Belong(models.Model):
 class IndigenousGroup(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -120,8 +140,24 @@ INTEREST_CLUSTERS = [
 
 
 class InterestGroup(models.Model):
-    cluster = models.CharField(
-        max_length=20, choices=INTEREST_CLUSTERS, default='otro')
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
+    icon = models.CharField(max_length=255, blank=True, null=True)
+    color = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Agrupador de tipos de interés'
+        verbose_name_plural = 'Agrupadores de tipos de interés'
+
+
+class InterestType(models.Model):
+
+    interest_group = models.ForeignKey(
+        InterestGroup, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     participant_types = models.ManyToManyField(
@@ -134,13 +170,13 @@ class InterestGroup(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Agrupador de tipos de interés'
-        verbose_name_plural = 'Agrupadores de tipos de interés'
+        verbose_name = 'Tipo de interés'
+        verbose_name_plural = 'Tipos de interés'
 
 
-class InterestType(models.Model):
-    group = models.ForeignKey(
-        InterestGroup, on_delete=models.CASCADE)
+class InterestSubtype(models.Model):
+    interest_type = models.ForeignKey(
+        InterestType, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     status_validation = models.ForeignKey(
@@ -151,5 +187,6 @@ class InterestType(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Tipo de Interés'
-        verbose_name_plural = 'Tipos de Interés'
+        verbose_name = 'Subtipo de interés'
+        verbose_name_plural = 'Subtipos de interés'
+

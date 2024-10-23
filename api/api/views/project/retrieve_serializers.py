@@ -5,7 +5,7 @@ from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
     ImpactSerializer, ActorBasicSerializer)
 from project.models import (
-    Conflict, ExtractivismType, MegaprojectType, Project, Scale)
+    Conflict, ExtractivismType, MegaprojectType, Project)
 from source.models import Note, Mention
 from space_time.models import StatusProject
 
@@ -28,12 +28,6 @@ class MegaprojectTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MegaprojectType
-        fields = '__all__'
-
-
-class ScaleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Scale
         fields = '__all__'
 
 

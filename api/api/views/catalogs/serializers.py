@@ -1,28 +1,13 @@
 from rest_framework import serializers
 
-from classify.models import (
-    ParticipantType,
-    Belong,
-    IndigenousGroup,
-    SectorGroup,
-    Sector,
-    InterestGroup,
-    InterestType
-)
-from event.models import (
-    EventGroup,
-    EventType,
-    EventSubtype,
-    EventRole,)
-from project.models import MegaprojectType, Scale, ExtractivismType
-
-from impact.models import ImpactSubtype, ImpactType
+from impact.models import ImpactSubtype, ImpactType, ImpactGroup
 from profile_auth.models import Role
 from source.models import Source
 from work_flux.models import StatusControl
-from api.views.project.list_serializers import ProjectBasicSerializer
 
 from space_time.models import StatusProject
+
+from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
 
 
 class CommonCount(serializers.ModelSerializer):
@@ -41,88 +26,9 @@ class StatusControlSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ParticipantTypeSerializer(serializers.ModelSerializer):
-    # status_validation = StatusControlSerializer()
-
+class ImpactGroupSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ParticipantType
-        fields = "__all__"
-
-
-class BelongSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Belong
-        fields = "__all__"
-
-
-class IndigenousGroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IndigenousGroup
-        fields = "__all__"
-
-
-class SectorGroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SectorGroup
-        fields = "__all__"
-
-
-class SectorSerializer(serializers.ModelSerializer):
-    # sector_group = SectorGroupSerializer()
-    # common_participant_types = ParticipantTypeSerializer(many=True)
-    # common_belongs = BelongSerializer(many=True)
-    # status_validation = StatusControlSerializer()
-
-    class Meta:
-        model = Sector
-        fields = "__all__"
-
-
-class InterestGroupSerializer(serializers.ModelSerializer):
-    # participant_types = ParticipantTypeSerializer(many=True)
-
-    class Meta:
-        model = InterestGroup
-        fields = "__all__"
-
-
-class InterestTypeSerializer(serializers.ModelSerializer):
-    # group = InterestGroupSerializer()
-
-    class Meta:
-        model = InterestType
-        fields = "__all__"
-
-
-class EventGroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EventGroup
-        fields = "__all__"
-
-
-class EventTypeSerializer(serializers.ModelSerializer):
-    # group = EventGroupSerializer()
-    # status_validation = StatusControlSerializer()
-
-    class Meta:
-        model = EventType
-        fields = "__all__"
-
-
-class EventSubtypeSerializer(serializers.ModelSerializer):
-    # event_types = EventTypeSerializer(many=True)
-    # status_validation = StatusControlSerializer()
-
-    class Meta:
-        model = EventSubtype
-        fields = "__all__"
-
-
-class EventRoleSerializer(serializers.ModelSerializer):
-    # event_group = serializers.ReadOnlyField()
-
-    class Meta:
-        model = EventRole
+        model = ImpactGroup
         fields = "__all__"
 
 
@@ -152,35 +58,26 @@ class SourceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ScaleSerializer(serializers.ModelSerializer):
+class LevelSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Scale
+        model = Level
         fields = "__all__"
 
 
-class ExtractivismTypeSerializer(serializers.ModelSerializer):
+class CollectionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExtractivismType
+        model = Collection
         fields = "__all__"
 
 
-class MegaprojectTypeSerializer(serializers.ModelSerializer):
+class CollectionLinkSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MegaprojectType
+        model = CollectionLink
         fields = "__all__"
 
 
-class MegaprojectTypeCountSerializer(CommonCount):
-
+class FilterGroupSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MegaprojectType
-        fields = "__all__"
-
-
-class MegaprojectTypeFullSerializer(MegaprojectTypeSerializer):
-    projects = ProjectBasicSerializer(many=True)
-
-    class Meta:
-        model = MegaprojectType
+        model = FilterGroup
         fields = "__all__"
 

@@ -11,8 +11,8 @@ class Country(models.Model):
 
     class Meta:
         ordering = ["name"]
-        verbose_name = 'Country'
-        verbose_name_plural = 'Countries'
+        verbose_name = 'Pais'
+        verbose_name_plural = 'Paises'
 
 
 class StatusProject(models.Model):

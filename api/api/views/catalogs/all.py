@@ -5,51 +5,67 @@ from rest_framework import permissions
 
 from classify.models import (
     ParticipantType,
+    ParticipantGroup,
     Belong,
     IndigenousGroup,
     SectorGroup,
     Sector,
     InterestGroup,
-    InterestType
+    InterestType,
+    InterestSubtype,
 )
 from event.models import (
     EventGroup,
     EventType,
     EventSubtype,
-    EventRole,)
+    InvolvedRole,)
 
-from space_time.models import State
-from project.models import MegaprojectType, Scale, ExtractivismType
+from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
 
-from impact.models import ImpactSubtype, ImpactType
+from space_time.models import State, Country
+from project.models import MegaprojectType, ExtractivismType
+
+from impact.models import ImpactSubtype, ImpactType, ImpactGroup
 from profile_auth.models import Role
 from source.models import Source, StatusProject
 from work_flux.models import StatusControl
 
 from api.views.catalogs.serializers import (
-    ParticipantTypeSerializer,
-    BelongSerializer,
-    IndigenousGroupSerializer,
-    SectorGroupSerializer,
-    SectorSerializer,
-    InterestGroupSerializer,
-    InterestTypeSerializer,
-    EventGroupSerializer,
-    EventTypeSerializer,
-    EventSubtypeSerializer,
-    EventRoleSerializer,
+    ImpactGroupSerializer,
     ImpactSubtypeSerializer,
     ImpactTypeSerializer,
     RoleSerializer,
     SourceSerializer,
     StatusProjectSerializer,
     StatusControlSerializer,
+    LevelSerializer,
+    CollectionSerializer,
+    CollectionLinkSerializer,
+    FilterGroupSerializer
+)
+from api.views.catalogs.project_serializers import (
     MegaprojectTypeSerializer,
-    ScaleSerializer,
-    ExtractivismTypeSerializer
+    ExtractivismTypeSerializer)
+from api.views.catalogs.classify_serializers import (
+    ParticipantTypeSerializer,
+    ParticipantGroupSerializer,
+    BelongSerializer,
+    IndigenousGroupSerializer,
+    SectorGroupSerializer,
+    SectorSerializer,
+    InterestGroupSerializer,
+    InterestTypeSerializer,
+    InterestSubtypeSerializer
 )
 
-from api.views.space_time.serializers import StateListSerializer
+from api.views.catalogs.event_serializers import (
+    EventGroupSerializer,
+    EventTypeSerializer,
+    EventSubtypeSerializer,
+    InvolvedRoleSerializer)
+from api.views.space_time.serializers import (
+    StateListSerializer, CountrySerializer)
+from actor.models import Actor
 
 
 class CatalogsView(APIView):
@@ -59,9 +75,19 @@ class CatalogsView(APIView):
         sectors = Sector.objects\
             .filter(name__isnull=False)\
             .exclude(name__exact='')
+        networks = Actor.objects\
+            .filter(network_seq__isnull=False)\
+            .values_list('network_seq', flat=True)\
+            .distinct()
+        print("networks", networks)
+        network_list_sorted = sorted(list(networks))
+        final_networks = [{"name": f"Red {i}", "id": i}
+                          for i in network_list_sorted]
         catalogs = {
             "participant_types": ParticipantTypeSerializer(
                 ParticipantType.objects.all(), many=True).data,
+            "participant_groups": ParticipantGroupSerializer(
+                ParticipantGroup.objects.all(), many=True).data,
             "belongs": BelongSerializer(
                 Belong.objects.all(), many=True).data,
             "indigenous_groups": IndigenousGroupSerializer(
@@ -69,22 +95,31 @@ class CatalogsView(APIView):
             "sector_groups": SectorGroupSerializer(
                 SectorGroup.objects.all(), many=True).data,
             "sectors": SectorSerializer(sectors, many=True).data,
+            "networks": final_networks,
+
             "interest_groups": InterestGroupSerializer(
                 InterestGroup.objects.all(), many=True).data,
             "interest_types": InterestTypeSerializer(
                 InterestType.objects.all(), many=True).data,
+            "interest_subtypes": InterestSubtypeSerializer(
+                InterestSubtype.objects.all(), many=True).data,
+
             "event_groups": EventGroupSerializer(
                 EventGroup.objects.all(), many=True).data,
             "event_types": EventTypeSerializer(
                 EventType.objects.all(), many=True).data,
             "event_subtypes": EventSubtypeSerializer(
                 EventSubtype.objects.all(), many=True).data,
-            "event_roles": EventRoleSerializer(
-                EventRole.objects.all(), many=True).data,
+            "involved_roles": InvolvedRoleSerializer(
+                InvolvedRole.objects.all(), many=True).data,
+
+            "impact_groups": ImpactGroupSerializer(
+                ImpactGroup.objects.all(), many=True).data,
             "impact_subtypes": ImpactSubtypeSerializer(
                 ImpactSubtype.objects.all(), many=True).data,
             "impact_types": ImpactTypeSerializer(
                 ImpactType.objects.all(), many=True).data,
+
             "roles": RoleSerializer(
                 Role.objects.all(), many=True).data,
             "sources": SourceSerializer(
@@ -95,11 +130,20 @@ class CatalogsView(APIView):
                 StatusControl.objects.all(), many=True).data,
             "states": StateListSerializer(
                 State.objects.all(), many=True).data,
+            "countries": CountrySerializer(
+                Country.objects.all(), many=True).data,
             "megaproject_types": MegaprojectTypeSerializer(
                 MegaprojectType.objects.all(), many=True).data,
-            "scales": ScaleSerializer(
-                Scale.objects.all(), many=True).data,
             "extractivism_types": ExtractivismTypeSerializer(
                 ExtractivismType.objects.all(), many=True).data,
+
+            "levels": LevelSerializer(
+                Level.objects.all(), many=True).data,
+            "collections": CollectionSerializer(
+                Collection.objects.all(), many=True).data,
+            "collection_links": CollectionLinkSerializer(
+                CollectionLink.objects.all(), many=True).data,
+            "filter_groups": FilterGroupSerializer(
+                FilterGroup.objects.all(), many=True).data,
         }
         return Response(catalogs)

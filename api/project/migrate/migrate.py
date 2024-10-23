@@ -1,6 +1,8 @@
 from typing import Dict, Optional
-from ocsa_legacy.models import CSA, Proyecto, TipoDespliegueCapital, TipoMegaproyecto
-from project.models import Conflict, ExtractivismType, MegaprojectType, Project, Scale
+from ocsa_legacy.models import (
+    CSA, Proyecto, TipoDespliegueCapital, TipoMegaproyecto)
+from project.models import (
+    Conflict, ExtractivismType, MegaprojectType, Project)
 
 
 class ProyectoToProject:
@@ -11,7 +13,6 @@ class ProyectoToProject:
         self.conflicts: Dict[str, Conflict] = {}
         self.mega_project_types: Dict[str, MegaprojectType] = {}
         self.extractivism_types: Dict[str, ExtractivismType] = {}
-        self.scales: Dict[str, Scale] = {}
         self.delete_all()
         # TRUNCATE
         # formula_rx,
@@ -46,7 +47,6 @@ class ProyectoToProject:
         Conflict.objects.all().delete()
         ExtractivismType.objects.all().delete()
         MegaprojectType.objects.all().delete()
-        Scale.objects.all().delete()
         self.errors = []
 
     def set_conflicts(self):
@@ -184,15 +184,6 @@ class ProyectoToProject:
             tipo_despliegue_capital_name.strip())
         megaproject_type.extractivism_types.add(extractivism_type)
 
-    def get_scale(self, escala: Optional[str]) -> Optional[Scale]:
-        if not escala:
-            return None
-        if escala in self.scales:
-            return self.scales[escala]
-        scale, _ = Scale.objects.get_or_create(name=escala)
-        self.scales[escala] = scale
-        return scale
-
     def get_project(self, proyecto: Proyecto) -> Project:
         project = Project.objects.filter(proyecto_id_ref=proyecto.pk).first()
         if project:
@@ -212,10 +203,11 @@ class ProyectoToProject:
             proyecto.tipo_megaproyecto,
             proyecto.tipo_despliegue_capital)
 
+        is_grouper = proyecto.escala == "Cluster"
         project = Project.objects.create(
             legacy_id_mp=proyecto.id_mp,
             official_name=proyecto.nombre,
-            scale=self.get_scale(proyecto.escala),
+            is_grouper=is_grouper,
             megaproject_type=megaproject_type,
             description=description,
             conflict=conflict,
@@ -250,7 +242,7 @@ class ProyectoToProject:
             official_name=name,
             conflict=project_b.conflict,
             megaproject_type=project_b.megaproject_type,
-            scale=self.get_scale("Agrupador artificial"),
+            is_grouper=True,
         )
 
         project_a.parent_project = project_c  # type: ignore

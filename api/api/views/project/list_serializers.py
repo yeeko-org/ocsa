@@ -78,6 +78,5 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "megaproject_type",
             "locations",
             "status_register",
-            "scale",
             "status_project",
         ]

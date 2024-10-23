@@ -31,7 +31,7 @@ class EventBase(ActorBase):
         event_type, created = EventType.objects.get_or_create(
             name=event_type_name)
         if created:
-            event_type.group = EventGroup.objects.get(name=group_name)
+            event_type.event_group = EventGroup.objects.get(name=group_name)
             event_type.save()
         if not event_subtype_name or event_subtype_name == "NE":
             event_subtype, _ = EventSubtype.objects.get_or_create(

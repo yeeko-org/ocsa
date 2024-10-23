@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models import JSONField
 from space_time.models import StatusProject
 from space_time.models import Location
 from work_flux.models import StatusControl
@@ -20,8 +19,8 @@ class ExtractivismType(models.Model):
 
     class Meta:
         ordering = ['order', 'name']
-        verbose_name = 'Tipo Despliegue Capital'
-        verbose_name_plural = 'Tipos Despliegue Capital'
+        verbose_name = 'Tipo de Extractivismo'
+        verbose_name_plural = 'Tipos de Extractivismo'
 
 
 class MegaprojectType(models.Model):
@@ -45,21 +44,6 @@ class MegaprojectType(models.Model):
         ordering = ['order']
         verbose_name = 'Tipo de Megaproyecto'
         verbose_name_plural = 'Tipos de Megaproyecto'
-
-
-class Scale(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    help_text = models.TextField(blank=True, null=True)
-    order = models.SmallIntegerField(default=5)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ['order']
-        verbose_name = 'Escala de los proyectos'
-        verbose_name_plural = 'Escalas de los proyectos'
 
 
 class Conflict(models.Model):
@@ -94,8 +78,7 @@ class Project(models.Model):
     megaproject_type = models.ForeignKey(
         MegaprojectType, on_delete=models.CASCADE, blank=True, null=True,
         related_name='projects')
-    scale = models.ForeignKey(
-        Scale, on_delete=models.CASCADE, blank=True, null=True)
+    is_grouper = models.BooleanField(default=False)
     status_project = models.ForeignKey(
         StatusProject, on_delete=models.CASCADE, blank=True, null=True)
     status_register = models.ForeignKey(

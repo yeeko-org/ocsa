@@ -1,5 +1,42 @@
 from work_flux.models import StatusControl
-from classify.models import ParticipantType, Belong, SectorGroup, Sector
+from classify.models import (
+    ParticipantType, Belong, SectorGroup, Sector, ParticipantGroup)
+
+
+init_participant_groups = {
+    "oppose": {
+        "icon": "record_voice_over", "color": "lime", "order": 1,
+        "name": "En contra"
+    },
+    "neutral": {
+        "icon": "gavel", "color": "blue-grey""", "order": 2,
+        "name": "Neutral"
+    },
+    "support": {
+        "icon": "thumb_up", "color": "teal", "order": 3,
+        "name": "A favor"
+    },
+    "other": {
+        "icon": "help", "color": "black", "order": 5,
+        "name": "Otro"
+    }
+}
+
+
+class InitParticipantGroups:
+
+    def __init__(self):
+        for position, data in init_participant_groups.items():
+            ParticipantGroup.objects.get_or_create(
+                key_name=position,
+                name=data["name"],
+                defaults={
+                    "description": "",
+                    "icon": data["icon"],
+                    "order": data["order"],
+                    "color": data["color"]
+                }
+            )
 
 
 # Estos se generan al inicio, con los campos: (name, position, required_interests)
@@ -43,7 +80,7 @@ temporal_participant_types = [
     # ('Opositores', 'oppose', True, 10),
     ('PoblacionesAfectadas', 'oppose', True, 11),
     ('Estado', 'support', False, 42),
-    ("Por definir (de violencias)", 'undefined', False, 50),
+    ("Por definir (de violencias)", 'other', False, 50),
     # Estos se van a sacar de la tabla Opositores.otros_opositores, pero no
     # se le van a asignar todos los campos (solo su relación con nota y proyecto)
     ("otros_opositores", 'oppose', True, 12),
@@ -53,14 +90,15 @@ temporal_participant_types = [
 class TemporalParticipantTypes:
     def __init__(self):
         for name, position, required_interests, order in temporal_participant_types:
-            pt, created = ParticipantType.objects.get_or_create(
+            ParticipantType.objects.get_or_create(
                 name=name,
                 position=position,
-                status_validation_id="need_reclassify"
+                status_validation_id="need_reclassify",
+                defaults={
+                    'order': order,
+                    'required_interests': required_interests
+                }
             )
-            pt.order = order
-            pt.required_interests = required_interests
-            pt.save()
 
 
 class InitSectorGroups:
@@ -79,14 +117,15 @@ class InitSectorGroups:
             ('Individuos (Varios)', False, None, 'groups', 27),
         ]
         for name, is_collective, capital_type, icon, order in init_sector_groups:
-            sector_group, _ = SectorGroup.objects.get_or_create(
+            SectorGroup.objects.get_or_create(
                 name=name,
                 is_collective=is_collective,
                 capital_type=capital_type,
+                defaults={
+                    'icon': icon,
+                    'order': order
+                }
             )
-            sector_group.icon = icon
-            sector_group.order = order
-            sector_group.save()
 
 
 init_sectors = [

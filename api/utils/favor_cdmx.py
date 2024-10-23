@@ -1,8 +1,3 @@
-
-
-# import json and filter by keys and values
-import json
-import csv
 from typing import List, Dict
 
 # Example of data
@@ -48,8 +43,6 @@ from typing import List, Dict
 #     "oposicion": []
 # },
 
-# import data in utf-8
-data = json.load(open('utils/all_notes.json', 'r', encoding='utf-8'))
 
 # filter by key estados: "Ciudad de México" and "tipo_despliegue": contains "Hiperurbanización"
 def filter_data(data: List[Dict[str, str]]) -> List[Dict[str, str]]:
@@ -60,11 +53,9 @@ def filter_data(data: List[Dict[str, str]]) -> List[Dict[str, str]]:
     return notes
 
 
-filtered_data = filter_data(data)
-
-
 # write csv file with filtered data in utf-8
 def write_csv(all_data: List[Dict[str, str]]) -> None:
+    import csv
     from django.conf import settings
     base_dir = settings.BASE_DIR
     # is_local = settings.IS_LOCAL
@@ -84,5 +75,12 @@ def write_csv(all_data: List[Dict[str, str]]) -> None:
     file.close()
 
 
-write_csv(filtered_data)
+def main():
+    import json
+
+    data = json.load(open('utils/all_notes.json', 'r', encoding='utf-8'))
+
+    filtered_data = filter_data(data)
+
+    write_csv(filtered_data)
 

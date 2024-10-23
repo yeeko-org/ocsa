@@ -33,7 +33,6 @@ class ProjectFilter(FilterSet):
         fields = {
             'status_register': ['exact'],
             'megaproject_type': ['exact'],
-            'scale': ['exact'],
             'status_project': ['exact'],
         }
 

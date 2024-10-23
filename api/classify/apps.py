@@ -10,12 +10,11 @@ class ClassifyConfig(AppConfig):
     def ready(self) -> None:
         from .initial_data import (
             ParticipantTypes, TemporalParticipantTypes, InitSectorGroups, InitSector, InitBelongs)
-        from work_flux.initial_data import InitStatus
+
         _ready = super().ready()
         valid_commands = ["runserver", "migrate_classify"]
         if any([command in sys.argv for command in valid_commands]):
             print('Cargando datos iniciales de clasificadores de actores...')
-            InitStatus()
             ParticipantTypes()
             InitSectorGroups()
             TemporalParticipantTypes()

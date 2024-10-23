@@ -22,7 +22,7 @@ from event.models import (
     EventGroup,
     EventType,
     EventSubtype,
-    EventRole,)
+    InvolvedRole,)
 
 from impact.models import ImpactSubtype, ImpactType
 from profile_auth.models import Role
@@ -30,10 +30,15 @@ from source.models import Source
 from work_flux.models import StatusControl
 
 from space_time.models import StatusProject
-from project.models import (
-    MegaprojectType, Project, ExtractivismType, Scale)
+from project.models import MegaprojectType, Project, ExtractivismType
 
-from api.views.catalogs.serializers import (
+from api.views.catalogs.event_serializers import (
+    EventGroupSerializer,
+    EventTypeSerializer,
+    EventSubtypeSerializer,
+    InvolvedRoleSerializer)
+
+from api.views.catalogs.classify_serializers import (
     ParticipantTypeSerializer,
     BelongSerializer,
     IndigenousGroupSerializer,
@@ -41,23 +46,21 @@ from api.views.catalogs.serializers import (
     SectorSerializer,
     InterestGroupSerializer,
     InterestTypeSerializer,
-    EventGroupSerializer,
-    EventTypeSerializer,
-    EventSubtypeSerializer,
-    EventRoleSerializer,
+)
+from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer,
     ImpactTypeSerializer,
     RoleSerializer,
     SourceSerializer,
     StatusControlSerializer,
 
-    ScaleSerializer,
     StatusProjectSerializer,
+)
+from api.views.catalogs.project_serializers import (
     ExtractivismTypeSerializer,
     MegaprojectTypeCountSerializer,
     MegaprojectTypeFullSerializer,
 )
-
 from .all import CatalogsView  # noqa
 
 
@@ -172,15 +175,15 @@ class EventSubtypeViewSet(viewsets.ModelViewSet):
     serializer_class = EventSubtypeSerializer
 
 
-class EventRoleViewSet(viewsets.ModelViewSet):
+class InvolvedRoleViewSet(viewsets.ModelViewSet):
     # from django.db.models import Count, F
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
-    queryset = EventRole.objects.all()
+    queryset = InvolvedRole.objects.all()
     # .annotate(
     #     event_group=F('event_type__event_group')
     # )
-    serializer_class = EventRoleSerializer
+    serializer_class = InvolvedRoleSerializer
 
 
 class ImpactSubtypeFilter(FilterSet):
@@ -225,13 +228,6 @@ class StatusControlViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     queryset = StatusControl.objects.all()
     serializer_class = StatusControlSerializer
-
-
-class ScaleViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    queryset = Scale.objects.all()
-    serializer_class = ScaleSerializer
 
 
 class StatusProjectViewSet(viewsets.ModelViewSet):

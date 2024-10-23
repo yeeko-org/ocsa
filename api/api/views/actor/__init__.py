@@ -36,6 +36,7 @@ class ActorFilter(FilterSet):
             'sector': ['exact'],
             'indigenous_group': ['exact'],
             'belongs': ['exact'],
+            'network_seq': ['exact'],
         }
 
 
@@ -104,8 +105,8 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
 
         search_query = self.request.query_params.get('q', '')
         if search_query:
-            # queryset = queryset.filter(name__unaccent__icontains=search_query)
-            queryset = queryset.filter(name__icontains=search_query)
+            queryset = queryset.filter(name__unaccent__icontains=search_query)
+            # queryset = queryset.filter(name__icontains=search_query)
 
         return queryset
 

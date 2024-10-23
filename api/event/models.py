@@ -11,6 +11,7 @@ class EventGroup(models.Model):
         max_length=80, blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
     order = models.SmallIntegerField(default=2)
+    color = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         ordering = ['order']
@@ -22,7 +23,7 @@ class EventType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
-    group = models.ForeignKey(
+    event_group = models.ForeignKey(
         EventGroup, on_delete=models.CASCADE, blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
@@ -76,7 +77,7 @@ class Event(models.Model):
         verbose_name_plural = 'Eventos'
 
 
-class EventRole(models.Model):
+class InvolvedRole(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
@@ -87,16 +88,16 @@ class EventRole(models.Model):
 
     class Meta:
         ordering = ['order']
-        verbose_name = 'Rol en Evento'
-        verbose_name_plural = 'Roles en Eventos'
+        verbose_name = 'Rol en Actividad'
+        verbose_name_plural = 'Roles en Actividades'
 
 
 class Involved(models.Model):
     event = models.ForeignKey(
         Event, on_delete=models.CASCADE, related_name='involvements')
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
-    event_role = models.ForeignKey(
-        EventRole, on_delete=models.CASCADE, blank=True, null=True)
+    involved_role = models.ForeignKey(
+        InvolvedRole, on_delete=models.CASCADE, blank=True, null=True)
     number_women = models.IntegerField(blank=True, null=True)
     number_men = models.IntegerField(blank=True, null=True)
     number_mix = models.IntegerField(blank=True, null=True)

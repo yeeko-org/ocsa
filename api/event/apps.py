@@ -7,9 +7,9 @@ class EventConfig(AppConfig):
     name = "event"
 
     def ready(self) -> None:
-        from .models import EventRole
+        from .models import InvolvedRole
         _ready = super().ready()
-        init_event_roles = [
+        init_involved_roles = [
             "Victimario",
             "Responsable",
             "Víctima",
@@ -17,9 +17,9 @@ class EventConfig(AppConfig):
 
         valid_commands = ["runserver", "migrate_eventos"]
         if any([command in sys.argv for command in valid_commands]):
-            print('Cargando datos iniciales de EventRole...')
-            for role in init_event_roles:
-                EventRole.objects.get_or_create(name=role)
+            print('Cargando datos iniciales de InvolvedRole...')
+            for role in init_involved_roles:
+                InvolvedRole.objects.get_or_create(name=role)
             print("Datos iniciales cargados.")
 
         return _ready

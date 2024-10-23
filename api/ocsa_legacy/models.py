@@ -1202,8 +1202,8 @@ class SectorSocial(CustomModel):
 # );
 
 # ANTES DE COMENZAR:
-# Crear los registros iniciales de EventRole (idéntico a lo que hicimos
-# con init_participant_types (checar el modelo EventRole
+# Crear los registros iniciales de InvolvedRole (idéntico a lo que hicimos
+# con init_participant_types (checar el modelo InvolvedRole
 # INTRODUCCIÓN:
 # La Tabla violencias se guardará en la tabla Event, pero algunos datos se
 # guardarán en la tabla Actor. cada combinación de hecho_violencia y

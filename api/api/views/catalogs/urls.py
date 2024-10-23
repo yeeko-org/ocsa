@@ -10,7 +10,7 @@ from api.views.catalogs import (
     EventGroupViewSet,
     EventTypeViewSet,
     EventSubtypeViewSet,
-    EventRoleViewSet,
+    InvolvedRoleViewSet,
     ImpactSubtypeViewSet,
     ImpactTypeViewSet,
     RoleViewSet,
@@ -35,7 +35,7 @@ router.register(r'interest_type', InterestTypeViewSet, basename='catalog_interes
 router.register(r'event_group', EventGroupViewSet, basename='catalog_event_group')
 router.register(r'event_type', EventTypeViewSet, basename='catalog_event_type')
 router.register(r'event_subtype', EventSubtypeViewSet, basename='catalog_event_subtype')
-router.register(r'event_role', EventRoleViewSet, basename='catalog_event_role')
+router.register(r'involved_roles', InvolvedRoleViewSet, basename='catalog_event_role')
 router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impact_subtype')
 router.register(r'impact_type', ImpactTypeViewSet, basename='catalog_impact_type')
 router.register(r'role', RoleViewSet, basename='catalog_role')

@@ -1,5 +1,5 @@
 from actor.migrate.common import ActorBase
-from impact.models import Impact, ImpactType
+from impact.models import Impact, ImpactType, ImpactGroup
 from ocsa_legacy.models import (
     AfectacionEcologica, AfectacionSocial, TipoAfectacionEcologica,
     TipoAfectacionSocial)
@@ -16,11 +16,13 @@ class AfectacionToImpact(ActorBase):
     def get_impact_type(self) -> ImpactType:
         if isinstance(self.afectacion, AfectacionEcologica):
             tipo = self.afectacion.tipo_ae
+            group = ImpactGroup.objects.get(is_social=False)
         else:
+            group = ImpactGroup.objects.get(is_social=True)
             tipo = self.afectacion.tipo_as
 
         tipo_nombre = getattr(tipo, "nombre")
-        return ImpactType.objects.get(name=tipo_nombre)
+        return ImpactType.objects.get(name=tipo_nombre, impact_group=group)
 
     def migrate(self) -> None:
         if isinstance(self.afectacion, AfectacionEcologica):
@@ -61,31 +63,22 @@ class AfectacionesToImpactMigrate:
         # TipoAfectacionEcologica - -> ImpactType con is_social = False
         tipo_afectacion_ecologica = TipoAfectacionEcologica.objects.all()
         for tipo in tipo_afectacion_ecologica:
-            impact_type, is_created = ImpactType.objects.get_or_create(
-                name=tipo.nombre
-            )
-
-            if is_created:
-                impact_type.is_social = False
-                impact_type.description = tipo.descripcion
-                impact_type.save()
+            self.save_impact_type(False, tipo.nombre)
 
     def tipo_afectacion_social(self) -> None:
-        # TipoAfectacionSocial ->  ImpactType con is_social = True
-        # tendrá has_subtype = True para los siguientes strings:
-        # ["Afectaciones a la salud", "Otros medios de vida afectados"]
         tipo_afectacion_social = TipoAfectacionSocial.objects.all()
         for tipo in tipo_afectacion_social:
-            impact_type, is_created = ImpactType.objects.get_or_create(
-                name=tipo.nombre
-            )
+            self.save_impact_type(True, tipo.nombre)
 
-            subtype = [
-                "Afectaciones a la salud",
-                "Otros medios de vida afectados"]
+    def save_impact_type(self, is_social: bool, name: str) -> None:
+        impact_group = ImpactGroup.objects.get(is_social=is_social)
+        subtype = [
+            "Afectaciones a la salud",
+            "Otros medios de vida afectados"]
 
-            if is_created:
-                impact_type.is_social = True
-                impact_type.description = tipo.descripcion
-                impact_type.has_subtype = tipo.nombre in subtype
-                impact_type.save()
+        ImpactType.objects.get_or_create(
+            name=name,
+            # is_social=is_social,
+            impact_group=impact_group,
+            has_subtype=name in subtype
+        )

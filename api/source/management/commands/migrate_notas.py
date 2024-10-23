@@ -8,6 +8,8 @@ class Command(BaseCommand):
     help = 'Migracion de Notas a Note'
 
     def handle(self, *args, **options):
+        from work_flux.initial_data import InitStatus
+        InitStatus()
         migration = NotaToNote()
 
         for nota, error in migration.errors:
@@ -17,4 +19,3 @@ class Command(BaseCommand):
 
         Note.objects.filter(status_register__isnull=True)\
             .update(status_register_id="approved_v1")
-

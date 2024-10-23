@@ -4,7 +4,7 @@ from event.migrate.event_base import EventBase
 from actor.models import Participant
 from classify.models import SectorGroup, Sector
 from event.models import (
-    Event, EventGroup, EventRole, EventSubtype, EventType, Involved)
+    Event, EventGroup, InvolvedRole, EventSubtype, EventType, Involved)
 from ocsa_legacy.models import (
     FormaHechoViolencia, HechosViolencia, SectorSocial, Violencia)
 
@@ -151,9 +151,11 @@ class MigrateViolenciaToEvent(EventBase):
             self.responsables[resp_type].append(participant)
 
     def set_involved(self, participant, role_name: str):
-        event_role, _ = EventRole.objects.get_or_create(name=role_name)
+        involved_role, _ = InvolvedRole.objects.get_or_create(name=role_name)
         Involved.objects.create(
-            event=self.event, participant=participant, event_role=event_role,
+            event=self.event,
+            participant=participant,
+            involved_role=involved_role,
             number_women=self.number_women,
             number_men=self.number_men,
             number_mix=self.number_mix
@@ -186,15 +188,20 @@ class ViolenciaToEventMigrate:
                 print(error_)
 
     def hecho_violencia(self):
-        default_group, _ = EventGroup.objects.get_or_create(
+        default_group, created = EventGroup.objects.get_or_create(
             name="Violencia", model_origin="HechosViolencia")
+        if created:
+            default_group.icon = 'local_fire_department'
+            default_group.color = 'red'
+            default_group.save()
+
         for h_violencia in HechosViolencia.objects.all():
             if EventType.objects.filter(name=h_violencia.nombre).exists():
                 continue
             EventType.objects.create(
                 name=h_violencia.nombre,
                 description=h_violencia.descripcion,
-                group=default_group
+                event_group=default_group
             )
 
     def forma_hecho_violencia(self):
