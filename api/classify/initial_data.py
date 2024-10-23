@@ -65,10 +65,13 @@ init_participant_types = [
 class ParticipantTypes:
     def __init__(self):
         for name, position, required_interests, order in init_participant_types:
+            participant_group = ParticipantGroup.objects.get(
+                key_name=position)
             pt, created = ParticipantType.objects.get_or_create(
                 name=name, position=position)
             pt.order = order
             pt.required_interests = required_interests
+            pt.participant_group = participant_group
             pt.save()
 
 
@@ -90,15 +93,17 @@ temporal_participant_types = [
 class TemporalParticipantTypes:
     def __init__(self):
         for name, position, required_interests, order in temporal_participant_types:
-            ParticipantType.objects.get_or_create(
+            participant_group = ParticipantGroup.objects.get(
+                key_name=position)
+            pt, _ = ParticipantType.objects.get_or_create(
                 name=name,
                 position=position,
                 status_validation_id="need_reclassify",
-                defaults={
-                    'order': order,
-                    'required_interests': required_interests
-                }
             )
+            pt.order = order
+            pt.required_interests = required_interests
+            pt.participant_group = participant_group
+            pt.save()
 
 
 class InitSectorGroups:

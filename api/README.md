@@ -12,10 +12,8 @@ python .\manage.py  load_states_data
 python .\manage.py  load_municipios
 python .\manage.py  load_localidades
 python .\manage.py  migrate_ubicaciones
-
 python .\manage.py  migrate_notas
 python .\manage.py  migrate_proyectos
-
 python .\manage.py  migrate_classify
 python .\manage.py  migrate_events
 python .\manage.py  migrate_afectaciones

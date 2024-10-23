@@ -10,6 +10,6 @@ class Command(BaseCommand):
         print('Cargando datos iniciales de ps_schema')
         InitLevels()
         InitCollections()
-        InitCollectionLinks()
         InitFilterGroups()
+        InitCollectionLinks()
         print('Datos iniciales de ps_schema cargados')
