@@ -1,4 +1,6 @@
+import re
 from django.db import models
+from django.utils.text import slugify
 
 from project.models import Project
 from space_time.models import StatusProject
@@ -22,11 +24,19 @@ class Source(models.Model):
         verbose_name_plural = 'Fuentes de información'
 
 
+def clean_text(text):
+    slugified_text = slugify(text)
+    cleaned_text = slugified_text.replace('-', ' ').replace('_', ' ')
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
+    return cleaned_text
+
+
 class Note(CommentsMixin, models.Model):
     nota_id_ref = models.IntegerField(blank=True, null=True)
     title = models.CharField(max_length=255)
     old_id = models.IntegerField(blank=True, null=True)
     author = models.CharField(max_length=255, blank=True, null=True)
+    slug_title = models.CharField(max_length=255, blank=True, null=True)
     # En teoría, tendría que haber 2 fuentes, La Jornada y Reforma,
     # pero sí hay más, pues hay que registrarlas, pero con is_news=False
     source = models.ForeignKey(
@@ -49,12 +59,38 @@ class Note(CommentsMixin, models.Model):
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
 
+    files: models.QuerySet["NoteFile"]
+
+    def set_slug_title(self, save=True):
+        self.slug_title = clean_text(self.title)
+        if save:
+            self.save()
+
     def __str__(self):
         return self.title
 
     class Meta:
         verbose_name = 'Nota'
         verbose_name_plural = 'Notas'
+
+
+def upload_to_note_file(instance, filename):
+    return f'note_file/{instance.note.pk}/{filename}'
+
+
+class NoteFile(models.Model):
+    note = models.ForeignKey(
+        Note, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField(upload_to=upload_to_note_file, max_length=255)
+    old_ref = models.CharField(max_length=255, blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.file.name if self.file else 'Archivo sin nombre'
+
+    class Meta:
+        verbose_name = 'Archivo de nota'
+        verbose_name_plural = 'Archivos de nota'
 
 
 class Mention(CommentsMixin, models.Model):

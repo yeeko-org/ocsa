@@ -108,6 +108,25 @@ class Project(models.Model):
         verbose_name_plural = 'Proyectos'
 
 
+def upload_to_project_file(instance, filename):
+    return f'project_file/{instance.project.pk}/{filename}'
+
+
+class ProjectFile(models.Model):
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField(upload_to=upload_to_project_file, max_length=255)
+    old_ref = models.CharField(max_length=255, blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.file.name if self.file else 'Archivo sin nombre'
+
+    class Meta:
+        verbose_name = 'Archivo de proyecto'
+        verbose_name_plural = 'Archivos de proyecto'
+
+
 class ProjectLocation(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name='locations')

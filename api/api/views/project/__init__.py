@@ -6,11 +6,12 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
+from api.views.action_file import ActionFileMixin
 from project.models import Project, ProjectLocation
 from source.models import Mention
 from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
 from .list_serializers import ProjectBasicSerializer
-from .retrieve_serializers import ProjectFullSerializer
+from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
 
 class ProjectFilter(FilterSet):
@@ -37,7 +38,7 @@ class ProjectFilter(FilterSet):
         }
 
 
-class ProjectViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
+class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
@@ -67,11 +68,14 @@ class ProjectViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
     serializer_class = ProjectBasicSerializer
 
+    action_add_file_param = "project"
+
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': ProjectFullSerializer,
             'create': ProjectCreateSerializer,
-            'update': ProjectEditSerializer
+            'update': ProjectEditSerializer,
+            'add_file': ProjectFileSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 

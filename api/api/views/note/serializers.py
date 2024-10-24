@@ -5,7 +5,7 @@ from api.views.project.list_serializers import (
 from api.views.project.retrieve_serializers import (
     ConflictSerializer, ProjectFullSerializer)
 from project.models import Project
-from source.models import Mention, Note, StatusHistory
+from source.models import Mention, Note, NoteFile, StatusHistory
 from event.models import Event, Involved
 
 
@@ -68,6 +68,12 @@ class MentionMegaFullSerializer(MentionFullSerializer):
     events = EventSerializer(many=True)
 
 
+class NoteFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NoteFile
+        fields = ['id', 'file', 'uploaded_at']
+
+
 class NoteSerializer(serializers.ModelSerializer):
     mentions = MentionFullSerializer(many=True)
 
@@ -77,6 +83,7 @@ class NoteSerializer(serializers.ModelSerializer):
 
 
 class NoteFullSerializer(serializers.ModelSerializer):
+    files = NoteFileSerializer(many=True)
     mentions = MentionMegaFullSerializer(many=True)
 
     class Meta:

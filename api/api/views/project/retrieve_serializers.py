@@ -5,7 +5,7 @@ from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
     ImpactSerializer, ActorBasicSerializer)
 from project.models import (
-    Conflict, ExtractivismType, MegaprojectType, Project)
+    Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
 from space_time.models import StatusProject
 
@@ -56,7 +56,14 @@ class MentionFullSerializer(serializers.ModelSerializer):
         exclude = ['project']
 
 
+class ProjectFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectFile
+        fields = ['id', 'file', 'uploaded_at']
+
+
 class ProjectFullSerializer(serializers.ModelSerializer):
+    files = ProjectFileSerializer(many=True)
     parent_project = serializers.SerializerMethodField()
     conflict = ConflictSerializer()
     mentions = MentionFullSerializer(many=True)
