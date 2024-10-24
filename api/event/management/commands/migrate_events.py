@@ -46,6 +46,7 @@ class Command(BaseCommand):
 
         self.migrate_violencia()
         self.migrate_accion_colectiva()
+        self.clean_participant_types()
 
         EventType.objects.filter(status_validation__isnull=True)\
             .update(status_validation_id='original')
@@ -70,3 +71,34 @@ class Command(BaseCommand):
                 f"Error with accion_colectiva {accion_colectiva.pk}: {accion_colectiva}")
             print(error)
             print()
+
+    def clean_participant_types(self):
+
+        from actor.models import Participant
+        all_participants = Participant.objects.all()
+        combinations = {}
+        for participant in all_participants:
+            # print(participant.participant_types.all().count())
+            # break
+            count = participant.participant_types.all().count()
+            if count > 1:
+                cleaned = False
+                print(participant.actor)
+                all_participant_types = participant.participant_types.all()
+                for participant_type in all_participant_types:
+                    print(participant_type)
+                together = tuple(all_participant_types)
+                for participant_type in all_participant_types:
+                    if participant_type.status_validation_id == 'need_reclassify':
+                        participant.participant_types.remove(participant_type)
+                        cleaned = True
+                        break
+                # print()
+                if not cleaned:
+                    combinations.setdefault(together, 0)
+                    combinations[together] += 1
+                # status_validation_id
+        for combination, count in combinations.items():
+            print(combination, count)
+
+

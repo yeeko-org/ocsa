@@ -36,9 +36,12 @@ class EventBase(ActorBase):
         if not event_subtype_name or event_subtype_name == "NE":
             event_subtype, _ = EventSubtype.objects.get_or_create(
                 name=f"No Especificado de {event_type_name}")
-        else:
+        elif event_subtype_name:
             event_subtype, _ = EventSubtype.objects.get_or_create(
                 name=event_subtype_name)
+        else:
+            event_subtype, _ = EventSubtype.objects.get_or_create(
+                name="No Especificado")
 
         event_subtype.event_types.add(event_type)
         event_subtype.save()

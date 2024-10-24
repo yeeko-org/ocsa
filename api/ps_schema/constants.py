@@ -87,23 +87,23 @@ all_collections = {
     "impact": [
         {
             "snake_name": "impact_group",
-            "name": "Grupo de Impacto",
-            "plural_name": "Grupos de Impacto",
+            "name": "Grupo de Afectación",
+            "plural_name": "Grupos de Afectación",
             "model_name": "ImpactGroup",
             "level": "category_group",
         },
         {
             "snake_name": "impact_type",
-            "name": "Tipo de Impacto",
-            "plural_name": "Tipos de Impacto",
+            "name": "Tipo de Afectación",
+            "plural_name": "Tipos de Afectación",
             "model_name": "ImpactType",
             "level": "category_type",
             "status_group": "validation",
         },
         {
             "snake_name": "impact_subtype",
-            "name": "Subtipo de Impacto",
-            "plural_name": "Subtipos de Impacto",
+            "name": "Subtipo de Afectación",
+            "plural_name": "Subtipos de Afectación",
             "model_name": "ImpactSubtype",
             "level": "category_subtype",
             "optional_category": True,
@@ -111,8 +111,8 @@ all_collections = {
         },
         {
             "snake_name": "impact",
-            "name": "Impacto",
-            "plural_name": "Impactos",
+            "name": "Afectación",
+            "plural_name": "Afectaciones",
             "model_name": "Impact",
             "level": "secondary",
         }
@@ -619,6 +619,7 @@ collection_links = [
         "parent": "classify-participant_type",
         "child": "actor-participant",
         "link_type": "category",
+        "is_multiple": True,
         "is_mandatory": True,
     },
     {

@@ -30,6 +30,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             'mentions__impacts',
             'mentions__participants',
             'mentions__participants__actor',
+            'mentions__participants__interests',
             'mentions__events',
             'mentions__events__involvements',
         )

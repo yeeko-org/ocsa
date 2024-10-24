@@ -111,6 +111,8 @@ class AccionesColectivasToEventMigrate:
             nombre = forma.nombre
             if not nombre:
                 continue
+            if not forma.id_forma_ac:
+                continue
 
             event_subtype, is_created = EventSubtype.objects.get_or_create(
                 name=nombre

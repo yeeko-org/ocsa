@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from actor.models import Actor, Participant
+from actor.models import Actor, Participant, Interest
 from impact.models import Impact
 from project.models import Project, ProjectLocation
 from source.models import Mention, Note
@@ -13,8 +13,16 @@ class ActorBasicSerializer(serializers.ModelSerializer):
         exclude = ['std_name', 'capital_id_ref']
 
 
+class InterestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Interest
+        exclude = ['participant']
+
+
 class ParticipantSerializer(serializers.ModelSerializer):
     actor = ActorBasicSerializer()
+    interests = InterestSerializer(many=True)
 
     class Meta:
         model = Participant
