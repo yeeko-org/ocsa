@@ -2,6 +2,7 @@ import pandas as pd
 from django.core.management.base import BaseCommand
 
 from project.models import Project
+from space_time.models import Location
 
 
 class Command(BaseCommand):
@@ -64,6 +65,7 @@ class Command(BaseCommand):
         except Project.DoesNotExist:
             return
 
-        project.latitude = lat_dd
-        project.longitude = lon_dd
+        Location.objects.filter(projects__project=project).update(
+            latitude=lat_dd, longitude=lon_dd)
+
         project.save()
