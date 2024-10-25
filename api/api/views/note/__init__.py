@@ -1,11 +1,12 @@
 from django_filters import FilterSet, DateFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, mixins
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 from api.views.action_file import ActionFileMixin
-from source.models import Note
+from source.models import Note, NoteFile
 
 from api.pagination import CustomPagination
 from api.views.note.serializers import (
@@ -36,8 +37,6 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
             'mentions__events',
             'mentions__events__involvements',
     )
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
 
@@ -62,3 +61,8 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
             'add_file': NoteFileSerializer
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+
+class NoteFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+    queryset = NoteFile.objects.all()
+    serializer_class = NoteFileSerializer

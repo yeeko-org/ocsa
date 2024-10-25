@@ -1,13 +1,14 @@
 from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, mixins
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.viewsets import GenericViewSet
 
 from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
 from api.views.action_file import ActionFileMixin
-from project.models import Project, ProjectLocation
+from project.models import Project, ProjectFile, ProjectLocation
 from source.models import Mention
 from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
 from .list_serializers import ProjectBasicSerializer
@@ -87,3 +88,10 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
             .update(project=to_obj)
         Mention.objects.filter(project=from_obj)\
             .update(project=to_obj)
+
+
+class ProjectFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+    queryset = ProjectFile.objects.all()
+    serializer_class = ProjectFileSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, OrderingFilter]
