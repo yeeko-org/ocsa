@@ -16,4 +16,5 @@ class Role(models.Model):
 
 class User(AbstractUser):
     phone = models.CharField(max_length=100, blank=True)
-    role = models.ManyToManyField(Role, blank=True)
+    # role = models.ManyToManyField(Role, blank=True)
+    full_editor = models.BooleanField(default=False)

@@ -79,7 +79,7 @@ class InitFilterGroups:
                 group.get('category_type', None), None)
             filter_group.category_subtype = collections_dict.get(
                 group.get('category_subtype', None), None)
-            filter_group.add_config = group.get('add_config', {})
+            filter_group.addl_config = group.get('addl_config', {})
             filter_group.save()
             # print("-" * 50)
 

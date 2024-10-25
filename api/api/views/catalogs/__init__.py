@@ -3,9 +3,8 @@ from django_filters import FilterSet, NumberFilter
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from api.pagination import CustomPagination
-from rest_framework.decorators import action
-
-from rest_framework.response import Response
+# from rest_framework.decorators import action
+# from rest_framework.response import Response
 
 from actor.models import Actor, Participant
 from api.merge_mix import FromToModelSerializer, MergeSerializerMixin
@@ -24,7 +23,6 @@ from event.models import (
     EventSubtype,
     InvolvedRole,)
 
-from impact.models import ImpactSubtype, ImpactType
 from profile_auth.models import Role
 from source.models import Source
 from work_flux.models import StatusControl
@@ -48,12 +46,9 @@ from api.views.catalogs.classify_serializers import (
     InterestTypeSerializer,
 )
 from api.views.catalogs.serializers import (
-    ImpactSubtypeSerializer,
-    ImpactTypeSerializer,
     RoleSerializer,
     SourceSerializer,
     StatusControlSerializer,
-
     StatusProjectSerializer,
 )
 from api.views.catalogs.project_serializers import (
@@ -139,7 +134,6 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
         Actor.objects.filter(sector=from_obj)\
             .update(sector=to_obj)
 
-
 class InterestGroupViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
@@ -184,29 +178,6 @@ class InvolvedRoleViewSet(viewsets.ModelViewSet):
     #     event_group=F('event_type__event_group')
     # )
     serializer_class = InvolvedRoleSerializer
-
-
-class ImpactSubtypeFilter(FilterSet):
-
-    class Meta:
-        model = ImpactSubtype
-        fields = {'impact_type': ['exact']}
-
-
-class ImpactSubtypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    from django.db.models import Count
-
-    permission_classes = [permissions.AllowAny]
-    queryset = ImpactSubtype.objects.all()
-    serializer_class = ImpactSubtypeSerializer
-
-
-class ImpactTypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    queryset = ImpactType.objects.all()
-    serializer_class = ImpactTypeSerializer
 
 
 class RoleViewSet(viewsets.ModelViewSet):

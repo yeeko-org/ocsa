@@ -10,7 +10,7 @@ all_collections = {
             "color": 'deep-purple',
             "icon": 'newspaper',
             "all_filters": [
-                {"source_types": {"hidden": False}},
+                {"filter_name": "source_types", "hidden": False},
             ],
         },
         {
@@ -50,9 +50,11 @@ all_collections = {
                 'status_location__order'
             ],
             "all_filters": [
-                {"project_types": {"hidden": False}},
-                {"states": {"hidden": False}},
-                {"status_projects": {"hidden": True}},
+                {"filter_name": "project_types", "hidden": False},
+                {"filter_name": "states", "hidden": False},
+                {"filter_name": "status_projects", "hidden": True},
+                {"filter_name": "impact_types", "hidden": True},
+                {"filter_name": "event_types", "hidden": True},
             ],
         },
         {
@@ -132,11 +134,11 @@ all_collections = {
                 {'mentions_count': 'Cantidad de menciones'},
             ],
             "all_filters": [
-                {"participant_types": {"hidden": False}},
-                {"belongs": {"hidden": False}},
-                {"indigenous_groups": {"hidden": True}},
-                {"sectors": {"hidden": False}},
-                {"countries": {"hidden": True}},
+                {"filter_name": "participant_types", "hidden": False},
+                {"filter_name": "belongs", "hidden": False},
+                {"filter_name": "indigenous_groups", "hidden": True},
+                {"filter_name": "sectors", "hidden": False},
+                {"filter_name": "countries", "hidden": True},
             ],
         },
         {
@@ -241,8 +243,8 @@ all_collections = {
             "model_name": "EventGroup",
             "level": "category_group",
             "all_filters": [
-                {"event_types": {"hidden": False}},
-                # {"involved_roles": {"hidden": False}},
+                {"filter_name": "event_types", "hidden": False},
+                # {"name": "involved_roles", "hidden": False},
             ],
         },
         {

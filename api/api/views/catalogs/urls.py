@@ -11,14 +11,14 @@ from api.views.catalogs import (
     EventTypeViewSet,
     EventSubtypeViewSet,
     InvolvedRoleViewSet,
-    ImpactSubtypeViewSet,
-    ImpactTypeViewSet,
     RoleViewSet,
     SourceViewSet,
     StatusControlViewSet,
     # ExtractivismTypeViewSet,
     MegaprojectTypeViewSet
 )
+from api.views.catalogs.impact_views import (
+    ImpactSubtypeViewSet, ImpactTypeViewSet)
 
 from rest_framework import routers
 
