@@ -63,6 +63,6 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
         return action_serializer.get(self.action, self.serializer_class)
 
 
-class NoteFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+class NoteFileViewSet(mixins.DestroyModelMixin, GenericViewSet):
     queryset = NoteFile.objects.all()
     serializer_class = NoteFileSerializer
