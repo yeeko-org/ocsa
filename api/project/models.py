@@ -88,6 +88,10 @@ class Project(models.Model):
         StatusControl, on_delete=models.CASCADE, blank=True, null=True,
         related_name='project_location')
     comments = models.TextField(blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+
+    files: models.QuerySet["ProjectFile"]
 
     def __str__(self):
         return self.official_name or self.common_name or "Proyecto sin nombre"
