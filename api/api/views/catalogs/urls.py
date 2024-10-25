@@ -13,7 +13,6 @@ from api.views.catalogs import (
     InvolvedRoleViewSet,
     ImpactSubtypeViewSet,
     ImpactTypeViewSet,
-    RoleViewSet,
     SourceViewSet,
     StatusControlViewSet,
     # ExtractivismTypeViewSet,
@@ -38,7 +37,6 @@ router.register(r'event_subtype', EventSubtypeViewSet, basename='catalog_event_s
 router.register(r'involved_roles', InvolvedRoleViewSet, basename='catalog_event_role')
 router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impact_subtype')
 router.register(r'impact_type', ImpactTypeViewSet, basename='catalog_impact_type')
-router.register(r'role', RoleViewSet, basename='catalog_role')
 router.register(r'source', SourceViewSet, basename='catalog_source')
 router.register(r'status_control', StatusControlViewSet, basename='catalog_status_control')
 router.register(r'extractivism_type', MegaprojectTypeViewSet, basename='catalog_extractivism_type')

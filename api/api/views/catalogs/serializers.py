@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup
-from profile_auth.models import Role
 from source.models import Source
 from work_flux.models import StatusControl
 
@@ -46,10 +45,6 @@ class ImpactSubtypeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Role
-        fields = "__all__"
 
 
 class SourceSerializer(serializers.ModelSerializer):

@@ -25,7 +25,6 @@ from event.models import (
     InvolvedRole,)
 
 from impact.models import ImpactSubtype, ImpactType
-from profile_auth.models import Role
 from source.models import Source
 from work_flux.models import StatusControl
 
@@ -50,7 +49,6 @@ from api.views.catalogs.classify_serializers import (
 from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer,
     ImpactTypeSerializer,
-    RoleSerializer,
     SourceSerializer,
     StatusControlSerializer,
 
@@ -134,7 +132,7 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
     def get_from_obj(self, from_id):
         return Sector.objects.get(id=from_id)
-    
+
     def update_relations_merge(self, from_obj, to_obj):
         Actor.objects.filter(sector=from_obj)\
             .update(sector=to_obj)
@@ -207,13 +205,6 @@ class ImpactTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     queryset = ImpactType.objects.all()
     serializer_class = ImpactTypeSerializer
-
-
-class RoleViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    queryset = Role.objects.all()
-    serializer_class = RoleSerializer
 
 
 class SourceViewSet(viewsets.ModelViewSet):
