@@ -40,4 +40,8 @@ fixture/
 
 media/
 old_files/
+note_old_files/
+project_old_files/
 migrate_files_exit.json
+project_migrate_files_exit.json
+note_migrate_files_exit.json

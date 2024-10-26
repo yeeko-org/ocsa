@@ -12,14 +12,17 @@ from project.models import Project, ProjectFile
 
 
 class Command(BaseCommand):
-    help = 'Move files to their corresponding Project directory and handle duplicates by adding a unique identifier.'
+    help = ('Move files to their corresponding Project directory and handle '
+            'duplicates by adding a unique identifier.')
 
     def add_arguments(self, parser):
 
         parser.add_argument(
-            '--source', type=str, help='Directory to search for files', default='media/old_files')
+            '--source', type=str, help='Directory to search for files',
+            default='media/old_files')
         parser.add_argument(
-            '--output', type=str, help='Output JSON file path', default='migrate_files_exit.json')
+            '--output', type=str, help='Output JSON file path',
+            default='project_migrate_files_exit.json')
 
     def handle(self, *args, **options):
         self.source_folder = options['source']
@@ -64,6 +67,8 @@ class Command(BaseCommand):
         if not isinstance(file_name, str) or not file_name:
             return
 
+        file_name = file_name.lower().replace("mp ", "")
+
         try:
             project = self.find_project(file_name)
         except Project.DoesNotExist:
@@ -99,24 +104,38 @@ class Command(BaseCommand):
             new_filename = f"{file_name}_{unique_suffix}{file_ext}"
             destination_file = os.path.join(
                 destination_dir, new_filename)
-            print(
-                f"Archivo duplicado encontrado. Guardando como: {new_filename}")
         try:
-            ProjectFile.objects.create(project=project, file=os.path.join(
-                f'project_file/{project.pk}', os.path.basename(destination_file)))
+            ProjectFile.objects.create(
+                project=project,
+                file=os.path.join(
+                    f'project_file/{project.pk}',
+                    os.path.basename(destination_file)
+                ))
         except DataError as e:
             self.unreferenced_files.append({
                 "full_path": file_path,
                 "error": str(e),
                 "new_path": os.path.join(
-                    f'project_file/{project.pk}', os.path.basename(destination_file))
+                    f'project_file/{project.pk}',
+                    os.path.basename(destination_file))
             })
             return
 
         shutil.move(file_path, destination_file)
 
     def find_project(self, file_name: str) -> Project:
-        return Project.objects.get(nota_id_ref=int(file_name))
+        proyecto_id_ref = ""
+        for char in file_name.strip():
+            if char.isdigit():
+                proyecto_id_ref += char
+            else:
+                break
+
+        if not proyecto_id_ref.isdigit():
+            raise ValueError(
+                "file_name no tiene el formato correcto.")
+
+        return Project.objects.get(proyecto_id_ref=int(proyecto_id_ref))
 
     def generate_unique_suffix(self, filename):
         """Genera un sufijo único para evitar archivos duplicados."""
