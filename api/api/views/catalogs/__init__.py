@@ -23,7 +23,7 @@ from event.models import (
     EventSubtype,
     InvolvedRole,)
 
-from profile_auth.models import Role
+from impact.models import ImpactSubtype, ImpactType
 from source.models import Source
 from work_flux.models import StatusControl
 
@@ -46,12 +46,14 @@ from api.views.catalogs.classify_serializers import (
     InterestTypeSerializer,
 )
 from api.views.catalogs.serializers import (
-    RoleSerializer,
+    ImpactSubtypeSerializer,
+    ImpactTypeSerializer,
     SourceSerializer,
     StatusControlSerializer,
     StatusProjectSerializer,
 )
 from api.views.catalogs.project_serializers import (
+    ExtractivismTypeFullSerializer,
     ExtractivismTypeSerializer,
     MegaprojectTypeCountSerializer,
     MegaprojectTypeFullSerializer,
@@ -129,7 +131,7 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
     def get_from_obj(self, from_id):
         return Sector.objects.get(id=from_id)
-    
+
     def update_relations_merge(self, from_obj, to_obj):
         Actor.objects.filter(sector=from_obj)\
             .update(sector=to_obj)
@@ -180,11 +182,27 @@ class InvolvedRoleViewSet(viewsets.ModelViewSet):
     serializer_class = InvolvedRoleSerializer
 
 
-class RoleViewSet(viewsets.ModelViewSet):
+class ImpactSubtypeFilter(FilterSet):
+
+    class Meta:
+        model = ImpactSubtype
+        fields = {'impact_type': ['exact']}
+
+
+class ImpactSubtypeViewSet(viewsets.ModelViewSet):
+    # permission_classes = [permissions.IsAuthenticated]
+    from django.db.models import Count
+
+    permission_classes = [permissions.AllowAny]
+    queryset = ImpactSubtype.objects.all()
+    serializer_class = ImpactSubtypeSerializer
+
+
+class ImpactTypeViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
-    queryset = Role.objects.all()
-    serializer_class = RoleSerializer
+    queryset = ImpactType.objects.all()
+    serializer_class = ImpactTypeSerializer
 
 
 class SourceViewSet(viewsets.ModelViewSet):
@@ -214,6 +232,19 @@ class StatusProjectViewSet(viewsets.ModelViewSet):
 #     queryset = ExtractivismType.objects.all()
 #     serializer_class = ExtractivismTypeSerializer
 
+class BaseFilter(FilterSet):
+    pass
+
+
+class BaseViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+
+    pagination_class = CustomPagination
+    filterset_class = BaseFilter
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name']
+    ordering_fields = ['name', 'count', 'status_validation__order']
+
 
 class MegaprojectTypeFilter(FilterSet):
     extractivism_type = NumberFilter(
@@ -222,6 +253,20 @@ class MegaprojectTypeFilter(FilterSet):
     class Meta:
         model = MegaprojectType
         fields = {'status_validation': ['exact']}
+
+
+class ExtractivismTypeViewSet(BaseViewSet):
+    queryset = ExtractivismType.objects.all()
+    serializer_class = ExtractivismTypeSerializer
+    filterset_fields = ['status_validation']
+
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': ExtractivismTypeFullSerializer,
+            'create': ExtractivismTypeSerializer,
+            'update': ExtractivismTypeSerializer
+        }
+        return action_serializer.get(self.action, self.serializer_class)
 
 
 class MegaprojectTypeViewSet(viewsets.ModelViewSet):
@@ -236,7 +281,9 @@ class MegaprojectTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
-    filterset_class = MegaprojectTypeFilter
+    # filterset_class = MegaprojectTypeFilter
+    # filterset_class = BaseFilter
+    filterset_fields = ['status_validation', 'extractivism_types']
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name']
     ordering_fields = ['name', 'count', 'status_validation__order']

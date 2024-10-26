@@ -178,6 +178,7 @@ all_collections = {
             "plural_name": "Grupos de Pertenencia (Vulnerabilidades)",
             "model_name": "Belong",
             "level": "category_subtype",
+            "cat_params": {"item_id": "key_name"},
         },
         {
             "snake_name": "indigenous_group",

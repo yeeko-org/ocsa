@@ -36,3 +36,8 @@ fixture/
 
 # workspace files are user-specific
 .vscode
+
+
+media/
+old_files/
+migrate_files_exit.json

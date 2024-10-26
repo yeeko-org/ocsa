@@ -1,16 +1,18 @@
 from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, mixins
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.viewsets import GenericViewSet
 
 from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
-from project.models import Project, ProjectLocation
+from api.views.action_file import ActionFileMixin
+from project.models import Project, ProjectFile, ProjectLocation
 from source.models import Mention
 from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
 from .list_serializers import ProjectBasicSerializer
-from .retrieve_serializers import ProjectFullSerializer
+from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
 
 class ProjectFilter(FilterSet):
@@ -37,7 +39,7 @@ class ProjectFilter(FilterSet):
         }
 
 
-class ProjectViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
+class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
@@ -67,11 +69,14 @@ class ProjectViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
 
     serializer_class = ProjectBasicSerializer
 
+    action_add_file_param = "project"
+
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': ProjectFullSerializer,
             'create': ProjectCreateSerializer,
-            'update': ProjectEditSerializer
+            'update': ProjectEditSerializer,
+            'add_file': ProjectFileSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 
@@ -83,3 +88,10 @@ class ProjectViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
             .update(project=to_obj)
         Mention.objects.filter(project=from_obj)\
             .update(project=to_obj)
+
+
+class ProjectFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+    queryset = ProjectFile.objects.all()
+    serializer_class = ProjectFileSerializer
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, OrderingFilter]

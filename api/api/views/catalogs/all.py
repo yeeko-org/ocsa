@@ -26,7 +26,6 @@ from space_time.models import State, Country
 from project.models import MegaprojectType, ExtractivismType
 
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup
-from profile_auth.models import Role
 from source.models import Source, StatusProject
 from work_flux.models import StatusControl
 
@@ -34,7 +33,6 @@ from api.views.catalogs.serializers import (
     ImpactGroupSerializer,
     ImpactSubtypeSerializer,
     ImpactTypeSerializer,
-    RoleSerializer,
     SourceSerializer,
     StatusProjectSerializer,
     StatusControlSerializer,
@@ -120,8 +118,6 @@ class CatalogsView(APIView):
             "impact_types": ImpactTypeSerializer(
                 ImpactType.objects.all(), many=True).data,
 
-            "roles": RoleSerializer(
-                Role.objects.all(), many=True).data,
             "sources": SourceSerializer(
                 Source.objects.all(), many=True).data,
             "status_project": StatusProjectSerializer(

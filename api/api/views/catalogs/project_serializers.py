@@ -6,12 +6,6 @@ from api.views.project.list_serializers import ProjectBasicSerializer
 from api.views.catalogs.serializers import CommonCount
 
 
-class ExtractivismTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExtractivismType
-        fields = "__all__"
-
-
 class MegaprojectTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MegaprojectType
@@ -30,5 +24,21 @@ class MegaprojectTypeFullSerializer(MegaprojectTypeSerializer):
 
     class Meta:
         model = MegaprojectType
+        fields = "__all__"
+
+
+class ExtractivismTypeSerializer(serializers.ModelSerializer):
+    megaproject_types = MegaprojectTypeCountSerializer(many=True)
+
+    class Meta:
+        model = ExtractivismType
+        fields = "__all__"
+
+
+class ExtractivismTypeFullSerializer(serializers.ModelSerializer):
+    megaproject_types = MegaprojectTypeCountSerializer(many=True)
+
+    class Meta:
+        model = ExtractivismType
         fields = "__all__"
 

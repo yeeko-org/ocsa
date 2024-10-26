@@ -6,7 +6,7 @@ from event.models import (Event, EventGroup, EventLocation, InvolvedRole,
                           EventSubtype, EventType, Involved)
 from ocsa_legacy.models import (
     AccionColectivaToUbicacion, FormaAC, Opositores, OpositoresToAC,
-    SectorSocial, AccionesColectivas, SubformaAC)
+    AccionesColectivas, SubformaAC)
 from space_time.models import Location
 
 
