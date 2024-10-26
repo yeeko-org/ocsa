@@ -55,6 +55,7 @@ from api.views.catalogs.serializers import (
     StatusProjectSerializer,
 )
 from api.views.catalogs.project_serializers import (
+    ExtractivismTypeFullSerializer,
     ExtractivismTypeSerializer,
     MegaprojectTypeCountSerializer,
     MegaprojectTypeFullSerializer,
@@ -234,6 +235,19 @@ class StatusProjectViewSet(viewsets.ModelViewSet):
 #     queryset = ExtractivismType.objects.all()
 #     serializer_class = ExtractivismTypeSerializer
 
+class BaseFilter(FilterSet):
+    pass
+
+
+class BaseViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+
+    pagination_class = CustomPagination
+    filterset_class = BaseFilter
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name']
+    ordering_fields = ['name', 'count', 'status_validation__order']
+
 
 class MegaprojectTypeFilter(FilterSet):
     extractivism_type = NumberFilter(
@@ -242,6 +256,20 @@ class MegaprojectTypeFilter(FilterSet):
     class Meta:
         model = MegaprojectType
         fields = {'status_validation': ['exact']}
+
+
+class ExtractivismTypeViewSet(BaseViewSet):
+    queryset = ExtractivismType.objects.all()
+    serializer_class = ExtractivismTypeSerializer
+    filterset_fields = ['status_validation']
+
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': ExtractivismTypeFullSerializer,
+            'create': ExtractivismTypeSerializer,
+            'update': ExtractivismTypeSerializer
+        }
+        return action_serializer.get(self.action, self.serializer_class)
 
 
 class MegaprojectTypeViewSet(viewsets.ModelViewSet):
@@ -256,7 +284,9 @@ class MegaprojectTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
-    filterset_class = MegaprojectTypeFilter
+    # filterset_class = MegaprojectTypeFilter
+    # filterset_class = BaseFilter
+    filterset_fields = ['status_validation', 'extractivism_types']
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name']
     ordering_fields = ['name', 'count', 'status_validation__order']

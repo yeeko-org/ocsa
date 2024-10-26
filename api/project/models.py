@@ -27,7 +27,7 @@ class MegaprojectType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     extractivism_types = models.ManyToManyField(
-        ExtractivismType, blank=True)
+        ExtractivismType, blank=True, related_name='megaproject_types')
     has_many_dct = models.BooleanField(
         default=False, verbose_name='Difiere en Tipo de Despliegue Capital')
     # common_affection_types = models.ManyToManyField(
