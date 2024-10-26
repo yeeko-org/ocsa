@@ -2,22 +2,41 @@
 import { computed, onMounted, ref } from 'vue'
 
 const menu_drawer = ref(false)
-import { menu_content } from "~/composables/menu.js";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 
 const mainStore = useMainStore()
-const { all_groups } = storeToRefs(mainStore)
+const { schemas, current_collection_data } = storeToRefs(mainStore)
+// const { fetchCatalogs } = mainStore
 const route = useRoute()
-const group = computed(() => {
+
+onBeforeMount(() => {
+  console.log("cats_ready")
+//   fetchCatalogs().then(() => {
+//     console.log("cats_ready")
+//   })
+})
+
+
+const collection_data = computed(() => {
   // console.log('route', route)
-  const group_name = route.params.group
+  // const group_name = route.params.group
   const dashboard = {
     title: 'Dashboard',
+    name: 'Dashboard',
+    plural_name: 'Dashboard',
     icon: 'dashboard',
     key: 'dashboard',
   }
-  return all_groups.value.find(g => g.key === group_name) || dashboard
+  // return all_groups.value.find(g => g.key === group_name) || dashboard
+  return current_collection_data.value || dashboard
+})
+  // let main_collections = data.collections.filter(
+  //   coll => ['primary', 'secondary'].includes(coll.level))
+const main_collections = computed(() => {
+  if (!schemas.value.collections) return []
+  return schemas.value.collections.filter(
+    coll => ['primary', 'secondary'].includes(coll.level))
 })
 // const icon = computed(() => group.value.icon || group.parent ?
 
@@ -39,15 +58,15 @@ const group = computed(() => {
       ></v-app-bar-nav-icon>
       <v-toolbar-title class="d-flex align-center">
         <v-icon class="mr-3" color="white">
-          {{ group.icon || (group.parent ? group.parent.icon : 'dashboard') }}
+          {{ collection_data.icon || (collection_data.parent ? collection_data.parent.icon : 'dashboard') }}
         </v-icon>
         <span class="text-white">
-          {{ group.name }}
+          {{ collection_data.plural_name }}
         </span>
         <v-btn
           v-if="false"
           icon="category"
-          v-tooltip:bottom="'Categorías de ___'"
+          _v-tooltip:bottom="'Categorías de ___'"
         ></v-btn>
       </v-toolbar-title>
       <v-spacer></v-spacer>
@@ -57,7 +76,7 @@ const group = computed(() => {
         light
         outlined
         icon="logout"
-        v-tooltip:bottom="'Cerrar sesión'"
+        _v-tooltip:bottom="'Cerrar sesión'"
       >
       </v-btn>
     </v-app-bar>
@@ -81,48 +100,55 @@ const group = computed(() => {
             Interfaz de gestión
           </v-list-item-subtitle>
         </v-list-item>
+        <v-divider></v-divider>
         <template
-          v-for="item in menu_content"
+          v-for="collection in main_collections"
         >
           <v-list-group
-            v-if="item.catalogs"
-            :key="item.name"
-            :value="item.name"
+            v-if="collection.catalog_groups.length"
+            :key="collection.snake_name"
+            :value="collection.name"
           >
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
-                :title="item.name"
-                :value="item.name"
-                :prepend-icon="item.icon"
-                :to="`/dashboard/${item.key}`"
+                :title="collection.plural_name"
+                :value="collection.snake_name"
+                :prepend-icon="collection.icon || 'category'"
+                :base-color="collection.color ? `${collection.color}` : 'grey-darken-1'"
+                :to="`/dashboard/${collection.snake_name}`"
+                _to="`/dashboard/catalog/${sub_item.key}`"
+                :class="collection.level === 'primary' ? '' : 'ml-2'"
               ></v-list-item>
             </template>
             <v-list-item
-              v-for="(sub_item, i) in item.catalogs"
+              v-for="(sub_coll, i) in collection.catalog_groups"
               :key="i"
               _prepend-icon="category"
-              :title="sub_item.name"
-              :value="sub_item.name"
+              :title="sub_coll.name"
+              :value="sub_coll.key_name"
               _to="`/dashboard/catalog/${sub_item.key}`"
-              :to="`/dashboard/${sub_item.key}`"
+              :to="`/dashboard/catalog/${sub_coll.key_name}`"
             ></v-list-item>
           </v-list-group>
           <v-list-item
             v-else
-            :key="item.name"
+            :key="collection.snake_name"
             active-class="accent--text"
-            :to="`/dashboard/${item.key}`"
-            :prepend-icon="item.icon"
-            :title="item.name"
+            :to="`/dashboard/${collection.snake_name}`"
+            :prepend-icon="collection.icon"
+            :title="collection.name"
           ></v-list-item>
         </template>
       </v-list>
     </v-navigation-drawer>
     <v-main>
-      <v-container style="width: 100%;" class="pt-0">
+      <v-container
+        style="width: 100%;"
+        class="pt-0"
+      >
         <client-only>
-          <NuxtPage />
+          <NuxtPage/>
         </client-only>
       </v-container>
     </v-main>

@@ -6,7 +6,7 @@ import {ref, computed, shallowRef, nextTick} from 'vue'
 
 const props = defineProps({
   results: Array,
-  group: Object,
+  collection_data: Object,
   sel: Object,
   show_details: {
     type: Boolean,
@@ -21,19 +21,41 @@ const header_component = shallowRef('')
 const sheet_component = shallowRef('')
 const edit_component = shallowRef('')
 
-const route_key = computed(() => props.group.meta_key || props.group.key)
-const header_name = computed(() => props.group.header)
-const sheet_name = computed(() => props.group.sheet)
-const edit_name = computed(() => props.group.edit)
-import(`~/components/dashboard/${route_key.value}/${header_name.value}.vue`).then(module => {
-  header_component.value = module.default
-})
-import(`~/components/dashboard/${route_key.value}/${sheet_name.value}.vue`).then(module => {
-  sheet_component.value = module.default
-})
-import(`~/components/dashboard/${route_key.value}/${edit_name.value}.vue`).then(module => {
-  edit_component.value = module.default
-})
+const route_key = computed(() => props.collection_data.app_label)
+const snake_name = computed(() => props.collection_data.snake_name)
+const header_name = computed(() => `${props.collection_data.model_name}Header`)
+const sheet_name = computed(() => `${props.collection_data.model_name}Sheet`)
+const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
+
+import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${header_name.value}.vue`)
+  .then(module => {
+    header_component.value = module.default
+  })
+  .catch(e => {
+    import(`~/components/dashboard/generic/HeaderGeneric.vue`).then(module => {
+      header_component.value = module.default
+    })
+  })
+
+import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${sheet_name.value}.vue`)
+  .then(module => {
+    sheet_component.value = module.default
+  })
+  .catch(e => {
+    import(`~/components/dashboard/generic/SheetCommon.vue`).then(module => {
+      sheet_component.value = module.default
+    })
+  })
+
+import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
+  .then(module => {
+    edit_component.value = module.default
+  })
+  .catch(e => {
+    import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
+      edit_component.value = module.default
+    })
+  })
 
 function changeShowDetails() {
   nextTick(() => {
@@ -53,7 +75,7 @@ function changeShowDetails() {
     <PanelCommon
       v-for="elem in results"
       :key="elem.id"
-      :group="group"
+      :collection_data="collection_data"
       :main="elem"
       :sel="sel"
       @finish-open="changeShowDetails"
@@ -65,9 +87,18 @@ function changeShowDetails() {
         <component
           :is="header_component"
           :main="elem"
-          :group="group"
+          :group="collection_data"
           :show_details="show_details"
           @open-panel="openMain"
+        />
+      </template>
+      <template
+        #edit="{full_main}"
+      >
+        <component
+          :is="edit_component"
+          :full_main="full_main"
+          is_edit
         />
       </template>
       <template
@@ -78,11 +109,11 @@ function changeShowDetails() {
           :is="sheet_component"
           :full_main="full_main"
           :show_details="main_show_details"
+          :collection_data="collection_data"
         />
       </template>
     </PanelCommon>
   </v-expansion-panels>
-
 </template>
 
 <style scoped>

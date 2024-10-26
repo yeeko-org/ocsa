@@ -5,7 +5,7 @@ import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import ImpactChip from "~/components/dashboard/impact/ImpactChip.vue";
 
 import { computed } from 'vue'
-import { useMainStore } from '~/store'
+import { useMainStore } from '~/store/index.js'
 import { storeToRefs } from 'pinia'
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
@@ -95,7 +95,9 @@ const states_tooltip = computed(() => {
         class="mx-1"
       />
       <ImpactChip
-        :mentions="project.mentions"
+        :main_array="project.mentions"
+        filter_group_name="impact_types"
+        child_field="impacts"
       />
       <ActorsChip
         :main="project"

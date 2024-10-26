@@ -18,18 +18,7 @@ const full_event = ref(props.full_main)
 </script>
 
 <template>
-  <v-expansion-panel-text
-    class="ml-n16 mr-n6"
-    color="blue-lighten-5"
-  >
-    <v-sheet
-      v-if="full_event"
-      color="deep-purple-lighten-5"
-      class="mt-n2 mb-n4 pa-3"
-    >
-      {{ full_event }}
-    </v-sheet>
-  </v-expansion-panel-text>
+  {{ full_event }}
 </template>
 
 <style scoped>

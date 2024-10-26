@@ -13,7 +13,7 @@ const props = defineProps({
   final_filters: Object,
   collection: String,
   field: String,
-  collection_type: {
+  collection_group: {
     type: String,
     default: "status",
   },
@@ -38,7 +38,7 @@ const props = defineProps({
 const { status, cats } = storeToRefs(mainStore)
 const items_built = computed(() => {
   const status_collection = props.collection.split('_')[1]
-  return props.collection_type === "status"
+  return props.collection_group === "status"
       ? status.value[props.collection]
       : cats.value[props.collection]
 })

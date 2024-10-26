@@ -4,7 +4,7 @@ import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'
 
 const mainStore = useMainStore()
-const { cats, positions } = storeToRefs(mainStore)
+const { all_nodes } = storeToRefs(mainStore)
 const props = defineProps({
   project: Object,
   megaproject_type: Object,
@@ -15,49 +15,50 @@ const props = defineProps({
   },
 })
 
-const final_megaproject_type = computed(() => {
-  if (props.megaproject_type)
-    return props.megaproject_type
-  return cats.value.megaproject_types.find(
-    mp_type => props.project.megaproject_type === mp_type.id)
+const megaproject_type_node = computed(() => {
+  const mp_type_id = props.megaproject_type ?
+    props.megaproject_type.id : props.project.megaproject_type
+  return all_nodes.value.project_types.find(
+    pt => pt.id === `subtype_${mp_type_id}`)
 })
 
 const original_types = computed(() => {
-  if (!final_megaproject_type.value)
+  if (!megaproject_type_node.value)
     return []
-  const extractivism_obj = final_megaproject_type.value.extractivism_obj
-  if (extractivism_obj.original_types)
-    return extractivism_obj.original_types
-  return [extractivism_obj]
+  const extractivism_type = megaproject_type_node.value.parent.data
+  if (extractivism_type.original_types)
+    return extractivism_type.original_types
+  return [extractivism_type]
 })
 
 </script>
 
 <template>
-  <div class="d-flex">
+  <div class="d-flex" v-if="true">
     <v-chip
       v-if="show_name"
       class="mr-1"
-      :color="final_megaproject_type.extractivism_obj.color"
+      :color="megaproject_type_node.parent.data.color"
       size="small"
     >
-      {{ final_megaproject_type.name }}
+      {{ megaproject_type_node.data.name }}
     </v-chip>
     <div
-      v-for="ext_type in original_types"
-      :key="ext_type.id"
+      v-for="text_type in original_types"
+      :key="text_type.id"
     >
       <v-icon
-        :color="ext_type.color"
+        :color="text_type.color"
         :class="is_small ? '' : 'mr-1'"
+        :size="is_small ? '16' : 'default'"
       >
-        {{ ext_type.icon }}
+        {{ text_type.icon }}
       </v-icon>
       <v-tooltip
         activator="parent"
         location="bottom"
       >
-        {{ ext_type.name }}
+        {{ text_type.name }}
       </v-tooltip>
     </div>
   </div>

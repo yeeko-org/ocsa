@@ -36,17 +36,6 @@ const props = defineProps({
     <MegaProjectType
       :project="full_main"
     />
-    <GenericSelect
-      :final_filters="full_main"
-      collection="scales"
-      field="scale"
-      label="Escala"
-      clearable
-      hide_details
-      style="max-width: 300px; min-width: 200px;"
-      _change-status="applyFilters"
-      density="comfortable"
-    />
   </v-card-text>
 </template>
 

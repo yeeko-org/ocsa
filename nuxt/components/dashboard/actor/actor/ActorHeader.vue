@@ -3,7 +3,7 @@
 //   name: "ActorHeader"
 // })
 import {computed} from 'vue'
-import { useMainStore } from '~/store'
+import { useMainStore } from '~/store/index.js'
 import { storeToRefs } from 'pinia'
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
@@ -11,7 +11,7 @@ import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 const mainStore = useMainStore()
 
-const { positions, cats, groups } = storeToRefs(mainStore)
+const { cats, groups } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,

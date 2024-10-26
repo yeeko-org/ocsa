@@ -38,7 +38,8 @@ export const menu_content = [
     icon: 'factory',
     color: 'purple',
     // 'id', 'name', 'mentions_count'
-    same_sorts: ['id', 'status_register__order', 'official_name', 'status_location__order'],
+    same_sorts: [
+      'id', 'status_register__order', 'official_name', 'status_location__order'],
     catalogs: [
       {
         name: 'Tipos de extractivismo',
@@ -53,8 +54,6 @@ export const menu_content = [
         same_sorts: ['status_validation__order', 'count'],
       },
       {name: 'Estados de proyectos', key: 'status_project',
-        header: "HeaderGeneric", sheet: "SheetCommon", meta_key: 'generic'},
-      {name: 'Escalas', key: 'project_type',
         header: "HeaderGeneric", sheet: "SheetCommon", meta_key: 'generic'},
       {name: 'Afectaciones sociales', key: 'social_impact',
         icon: 'groups', color: 'teal',
@@ -122,7 +121,7 @@ export const menu_content = [
     catalogs: [
       {name: 'Tipos de eventos', key: 'event_type',
         header: "HeaderGeneric", sheet: "SheetCommon", meta_key: 'generic'},
-      {name: 'Roles en los eventos', key: 'event_role',
+      {name: 'Roles en las acciones', key: 'involved_role',
         header: "HeaderGeneric", sheet: "SheetCommon", meta_key: 'generic'},
     ]
   },

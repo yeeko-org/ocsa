@@ -3,7 +3,7 @@
 import {computed} from "vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 
-import {useMainStore} from '~/store/index'
+import {useMainStore} from '~/store/index.js'
 import {storeToRefs} from 'pinia'
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";

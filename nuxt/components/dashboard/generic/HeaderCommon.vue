@@ -19,6 +19,8 @@ const title_width = computed(() => {
   return ['project', 'note'].includes(props.group.key) ? 300 : 350
 })
 const title_text = computed(() => {
+  // console.log('props.main', props.main)
+  // console.log('props.name_field', props.name_field)
   return props.main[props.name_field] || 'Título genérico'
 })
 
@@ -41,7 +43,11 @@ const emit = defineEmits(['open-panel'])
     style="min-height: 60px;"
   >
     <slot name="icon">
-      <v-icon>{{ props.group.icon }}</v-icon>
+      <v-icon
+        :color="main.color || props.group.color || 'black'"
+      >
+        {{ main.icon || props.group.icon }}
+      </v-icon>
     </slot>
     <v-toolbar-title
       class="text-subtitle-1 mr-4"

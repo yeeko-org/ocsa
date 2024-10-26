@@ -5,7 +5,7 @@ import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import ImpactChip from "~/components/dashboard/impact/ImpactChip.vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 
-import {useMainStore} from '~/store/index'
+import {useMainStore} from '~/store/index.js'
 import {storeToRefs} from 'pinia'
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
@@ -59,7 +59,9 @@ const final_mentions = computed(() => {
         class="mb-1"
       />
       <ImpactChip
-        :mentions="final_mentions"
+        :main_array="final_mentions"
+        filter_group_name="impact_types"
+        child_field="impacts"
       />
       <HeaderChip
         :count="2"

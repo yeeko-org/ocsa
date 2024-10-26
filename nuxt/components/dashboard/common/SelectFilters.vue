@@ -3,6 +3,7 @@ import StatusDetail from "@/components/dashboard/status/StatusDetail";
 
 import { ref, watch } from 'vue'
 import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
+import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 
 const props = defineProps({
   final_filters: Object,
@@ -22,13 +23,14 @@ const applyFilters = () => {
     :key="filter_box.name"
     :order="filter_box.order"
     cols="auto"
-    class="pr-3 pl-0 py-0"
+    class="pr-3 pl-0 py-0 d-flex"
   >
+<!--      _v-if="filter_box.collection && filter_box.collection_group === 'status'"-->
     <StatusDetail
-      v-if="filter_box.collection && filter_box.collection_type === 'status'"
+      v-if="filter_box.collection"
       :final_filters="final_filters"
-      :collection="filter_box.collection.split('_')[1]"
-      collection_type="status"
+      :collection="filter_box.key_name"
+      collection_group="status"
       :field="filter_box.collection"
       :label="`Status ${filter_box.name}`"
       clearable
@@ -36,23 +38,48 @@ const applyFilters = () => {
       style="max-width: 300px; min-width: 200px;"
       @change-status="applyFilters"
     />
-    <GenericSelect
-      v-else-if="filter_box.collection"
-      :final_filters="final_filters"
-      :collection="filter_box.collection"
-      :collection_type="filter_box.collection_type"
-      :field="filter_box.key"
-      _label="`Status ${filter_box.name}`"
-      :label="filter_box.collection_type === 'status'
-        ? `Status ${filter_box.name}`
-        : filter_box.title || filter_box.name"
-      :item_id="filter_box.item_id"
-      :is_autocomplete="filter_box.is_autocomplete"
-      clearable
-      hide-details
-      density="comfortable"
-      style="max-width: 300px; min-width: 200px;"
-      @change-status="applyFilters"
+<!--    <GenericSelect-->
+<!--      _v-else-if="!filter_box.category_group && !filter_box.category_type"-->
+<!--      v-else-if="false"-->
+<!--      :filter_group_name="filter_box.key_name"-->
+<!--      :final_filters="final_filters"-->
+<!--      :collection="filter_box.category_subtype"-->
+<!--      :collection_group="filter_box.collection_group"-->
+<!--      :field="filter_box.key"-->
+<!--      _label="`Status ${filter_box.name}`"-->
+<!--      :label="filter_box.name"-->
+<!--      :item_id="filter_box.item_id"-->
+<!--      :is_autocomplete="filter_box.is_autocomplete"-->
+<!--      clearable-->
+<!--      hide-details-->
+<!--      density="comfortable"-->
+<!--      style="max-width: 300px; min-width: 200px;"-->
+<!--      @change-status="applyFilters"-->
+<!--    />-->
+<!--    <SelectGroup-->
+<!--      v-else-if="filter_box.collection && false"-->
+<!--      :final_filters="final_filters"-->
+<!--      :collection="filter_box.collection"-->
+<!--      :collection_group="filter_box.collection_group"-->
+<!--      :field="filter_box.key"-->
+<!--      _label="`Status ${filter_box.name}`"-->
+<!--      :label="filter_box.collection_group === 'status'-->
+<!--        ? `Status ${filter_box.name}`-->
+<!--        : filter_box.title || filter_box.name"-->
+<!--      :item_id="filter_box.item_id"-->
+<!--      :is_autocomplete="filter_box.is_autocomplete"-->
+<!--      clearable-->
+<!--      hide-details-->
+<!--      density="comfortable"-->
+<!--      style="max-width: 300px; min-width: 200px;"-->
+<!--      @change-status="applyFilters"-->
+<!--    />-->
+    <SelectGroup
+      v-else-if="filter_box.key_name"
+      :filter_group_name="filter_box.key_name"
+      :main_object="final_filters"
+      :category_group_value="filter_box.category_group_value"
+      is_filter
     />
 <!--    <SelectState></SelectState>-->
     <h5 v-else>{{filter_box.title || filter_box.name}}</h5>

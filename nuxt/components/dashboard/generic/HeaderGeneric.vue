@@ -27,7 +27,6 @@ const project = computed(() => {
     :main="main"
     :show_details="show_details"
     :group="group"
-    name_field="name"
   >
   </HeaderCommon>
 

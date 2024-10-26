@@ -7,7 +7,8 @@ const mainStore = useMainStore()
 const props = defineProps({
   final_filters: Object,
   collection: String,
-  collection_type: String,
+  filter_group_name: String,
+  collection_group: String,
   field: String,
   item_id: String,
   clearable: {
@@ -28,21 +29,28 @@ const props = defineProps({
   // },
 })
 
-const { status, cats, impact_groups } = storeToRefs(mainStore)
-const is_status = computed(() => props.collection_type === "status")
-const item_title = computed(() => {
-  return is_status.value ? "public_name" : "name"
+const { status, cats, all_nodes } = storeToRefs(mainStore)
+
+// const is_status = computed(() => props.collection_group === "status")
+
+const root_node = computed(() => {
+  return all_nodes.value[props.filter_group_name]
 })
+
 const item_value = computed(() => {
-  return props.item_id || (is_status.value ? "name" : "id")
+  return props.item_id || 'id'
 })
+
 const items_built = computed(() => {
-  if (is_status.value)
-    return status.value[props.collection]
-  else if (props.collection_type === "impact")
-    return impact_groups.value[props.collection]
-  else
-    return cats.value[props.collection]
+  return cats.value[`${props.collection}s`]
+  // if (props.collection_group === "impact")
+  //   return cats.value["impact_types"].filter(
+  //     impact_type => impact_type.impact_group === props.collection)
+  //   // return impact_groups.value[props.collection]
+  // else{
+  //   // console.log("cats", cats.value)
+  //   return cats.value[`${props.collection}s`]
+  // }
 })
 
 </script>
@@ -52,7 +60,7 @@ const items_built = computed(() => {
     v-if="is_autocomplete"
     v-model="final_filters[field]"
     :items="items_built"
-    :item-title="item_title"
+    item-title="name"
     :item-value="item_value"
     :density="density"
     variant="outlined"
@@ -63,7 +71,7 @@ const items_built = computed(() => {
     v-else
     v-model="final_filters[field]"
     :items="items_built"
-    :item-title="item_title"
+    item-title="name"
     :item-value="item_value"
     :density="density"
     variant="outlined"

@@ -3,13 +3,7 @@ import ApiService from "./common";
 import colorMixin from "~/mixins/colorMixin";
 // import { mande } from 'mande'
 import { menu_content } from "~/composables/menu.js";
-
-const group_list = [
-  {name: "Notas", key: "note", color: 'deep-purple', icon: 'newspaper'},
-  {name: "Proyectos", key: "project", color: 'purple', icon: 'factory'},
-  {name: "Actores", key: "actor", color: 'blue', icon: 'people'},
-  {name: "Eventos", key: "event", color: 'light-blue', icon: 'notifications_active'},
-]
+import * as d3 from 'd3';
 
 const calculate_status = (status_control) => {
   return status_control.reduce((obj, st) => {
@@ -20,27 +14,6 @@ const calculate_status = (status_control) => {
       obj[st.group] = [st]
     return obj
   }, {})
-}
-
-const buildFullMenu = () => {
-  return menu_content.reduce((arr, group) => {
-    arr.push(group)
-    if (group.catalogs)
-      group.catalogs.forEach(catalog => {
-        arr.push({...catalog, parent: group})
-      })
-    return arr
-  }, [])
-
-}
-
-const calculate_impact_groups = (impact_types) => {
-  return impact_types.reduce((obj, it) => {
-    const group = it.is_social ? 'social' : 'environmental'
-    obj[group].push(it)
-    obj['all'].push(it)
-    return obj
-  }, {"social": [], "environmental": [], "all": []})
 }
 
 const build_positions = () => {
@@ -58,100 +31,186 @@ const build_positions = () => {
   }
 }
 
-const calc_megaproject_types = (data) => {
-  let extractivism_types = data.extractivism_types.reduce((obj, mp) => {
-    obj[mp.id] = mp
+const calculateSchemas = (data) => {
+  let filter_groups = data.filter_groups.map(fg => {
+    fg.links = data.collection_links.filter(cl =>
+      cl.filter_group === fg.key_name)
+    return {...fg, ...fg.addl_config}
+  })
+  let collections = data.collections.map(coll => {
+    coll.catalog_groups =  filter_groups.reduce((arr, new_fg) => {
+      if (new_fg.main_collection !== coll.snake_name)
+        return arr
+      if (new_fg.category_group)
+        new_fg.category_groups = data[`${new_fg.category_group}s`] || []
+      return [...arr, new_fg]
+    }, [])
+    coll.categories = data.collection_links.filter(
+      cl => cl.child === coll.snake_name && cl.link_type === 'category')
+    coll.child_relations = data.collection_links.filter(cl =>
+      cl.parent === coll.snake_name && cl.link_type)
+    coll.parent_relations = data.collection_links.filter(cl =>
+      cl.child === coll.snake_name && cl.link_type !== 'category'
+    )
+    return coll
+  })
+  // console.log("collections", collections)
+  let collections_dict = collections.reduce((obj, coll) => {
+    obj[coll.snake_name] = coll
     return obj
   }, {})
-  extractivism_types['other'] = {
-    id: 'other',
-    name: 'No definidos (con subtipos)',
-    color: 'black',
-    icon: 'help',
-    description: 'Otro tipo de capital',
-    help_text: 'OTRO'
+  const filters_dict = filter_groups.reduce((obj, fg) => {
+    obj[fg.key_name] = fg
+    return obj
+  }, {})
+  // console.log("filters_dict", filters_dict)
+  // LINK TYPES
+  // category
+  // grouper
+  // relational
+
+  // FILTER FIELDS
+  // category_group
+  // category_type
+  // category_subtype
+
+  // COLLECTION LEVELS
+  // primary
+  // secondary
+  // relational
+  // category_group
+  // category_type
+  // category_subtype
+  return {
+    "collections": collections,
+    "collections_dict": collections_dict,
+    "filter_groups": filter_groups,
+    "levels": data.levels,
+    "collection_links": data.collection_links,
+    "filters_dict": filters_dict,
   }
-  const mp_types = data.megaproject_types.map(mpt => {
-    const extrac_types = mpt.extractivism_types
-    if (!extrac_types){
-      console.log("No extractivism types 1", mpt)
-      return mpt
+}
+
+const calculateNewCats = (data, schemas) => {
+  let all_nodes = {}
+  schemas.filter_groups.forEach(fg => {
+    if (fg.key_name === 'geographicals')
+      return
+    const is_multiple = fg.links.some(l => l.is_multiple)
+    // console.log("filter_group:", fg.key_name, is_multiple)
+    // v-else-if="!filter_box.category_group && !filter_box.category_type"
+    const subtype_key = fg.category_subtype
+    const type_key = fg.category_type
+    const group_key = fg.category_group
+    let subtypes = data[`${subtype_key}s`] || data[subtype_key]
+    if (subtype_key === 'country')
+      subtypes = data.countries
+    let types = data[`${type_key}s`] || []
+    let groups = data[`${group_key}s`] || []
+    let root = {
+      new_id: "root",
+      parent: null,
+      name: "root",
     }
-    const count = extrac_types.length
-    if (count === 1)
-      mpt.extractivism_obj = extractivism_types[extrac_types[0]]
-    else if (count > 1){
-      const names = extrac_types.map(et => extractivism_types[et].name)
-      const id = extrac_types.join('-')
-      const extractivism_obj = {
-        id: id,
-        name: `Mixto: ${names.join(', ')}`,
-        color: "black",
-        icon: "group_work",
-        original_types: extrac_types.map(et => extractivism_types[et]),
-        description: "Varios tipos de capital",
-        help_text: "VARIOS"
+    root = {...root, ...fg}
+    let new_types = []
+    let types_dict = {}
+    subtypes = subtypes.map(st => {
+      if (is_multiple){
+        let all_types = st[`${type_key}s`]
+        all_types.forEach(t => {
+          if (!types_dict[t])
+            types_dict[t] = []
+          types_dict[t].push(st)
+        })
+        if (all_types.length === 1)
+          st.parent_id = `type_${all_types[0]}`
+        else{
+          const first_type = types.find(t => t.id === all_types[0])
+          let new_type_key = ''
+          if (!first_type){
+            new_type_key = 'other'
+          }
+          else if (group_key)
+            new_type_key = first_type[`${group_key}`]
+          const join_id = all_types.join('_')
+          const names = all_types.map(t =>
+            types.find(tt => tt.id === t).name)
+          st.parent_id = `type_${join_id}`
+          if (!new_types.find(t => t.id === join_id)){
+            let new_type = {
+              id: join_id,
+              name: `Mixto: ${names ? names.join(', ') : 'desconocidos'}`,
+              original_types: all_types.map(t =>
+                types.find(tt => tt.id === t)),
+              parent_id: `type_${all_types[0]}`,
+              new_id: `type_${join_id}`,
+              color: "black",
+              icon: "group_work",
+              is_mix: true,
+            }
+            if (group_key)
+              new_type[group_key] = new_type_key
+            new_types.push(new_type)
+          }
+        }
       }
-      extractivism_types[id] = extractivism_obj
-      mpt.extractivism_obj = extractivism_obj
-    }
-    else
-      mpt.extractivism_obj = extractivism_types['other']
-    return mpt
-  })
-  return [mp_types, extractivism_types]
-}
-
-const compute_counts = (result, original_elements) => {
-  result.data.results = result.data.results.map(nmp => {
-    const mp = original_elements.find(mp => mp.id === nmp.id)
-    // mp.count = nmp.count
-    return {...mp, count: nmp.count}
-  })
-  return result.data
-}
-
-const calc_event_subtypes = (data) => {
-  let event_types = data.event_types.reduce((obj, it) => {
-    it.event_group = data.event_groups.find(eg => eg.id === it.group)
-    obj[it.id] = it
-    return obj
-  }, {})
-  const event_subtypes = data.event_subtypes.map(subtype => {
-    const ev_types = subtype.event_types
-    if (!ev_types) {
-      console.log("No event types 1", subtype)
-      return subtype
-    }
-    const count = ev_types.length
-    if (count === 1)
-      subtype.event_type_obj = event_types[ev_types[0]]
-    else if (count > 1) {
-      const names = ev_types.map(et => event_types[et].name)
-      const id = ev_types.join('-')
-      const event_obj = {
-        id: id,
-        name: `Mixto: ${names.join(', ')}`,
-        original_types: ev_types.map(et => event_types[et]),
-        help_text: "VARIOS",
-        event_group: event_types[ev_types[0]].event_group
+      else{
+        const value = st[type_key]
+        st.parent_id = type_key ? `type_${value}` : "root"
       }
-      event_types[id] = event_obj
-      subtype.event_type_obj = event_obj
-    } else {
-      console.log("No event types 2", subtype)
-      // subtype.event_obj = event_types['other']
-    }
-    return subtype
-  })
-  return [event_subtypes, event_types]
+      st.new_id = `subtype_${st.id}`
+      return st
+    })
+    types = [...types, ...new_types]
+    types = types.map(t => {
+      if (group_key && !t[group_key]) {
+        console.log("No group key", t)
+      }
+      t.parent_id = group_key ? `group_${t[group_key]}` : "root"
+      t.new_id = `type_${t.id}`
+      if (is_multiple)
+        t.all_childs = types_dict[t.id]
+      return t
+    })
+    groups = groups.map(g => {
+      g.parent_id = "root"
+      g.new_id = `group_${g.id}`
+      return g
+    })
+    const all_data = [...subtypes, ...types, ...groups, root]
 
+    try{
+      all_nodes[fg.key_name] = d3.stratify()
+        .id(d => d.new_id)
+        .parentId(d => d.parent_id)
+        (all_data)
+      // find id 'subtype_1' and get all children
+      // console.log("new_cats", new_cats[fg.key_name].find(d => d.id === 'subtype_1').descendants())
+    }
+    catch (e){
+      console.log("Error", e)
+      console.log("all_data", all_data)
+      console.log("subtype_key", subtype_key)
+      console.log("type_key", type_key)
+      console.log("group_key", group_key)
+
+      console.log("subtypes", subtypes)
+      console.log("types", types)
+      console.log("groups", groups)
+    }
+  })
+  // console.log("new_cats", all_nodes)
+  return all_nodes
 }
+
 
 export const useMainStore = defineStore('main', {
   state: () => ({
     counter: 0,
-    cats: {},
+    cats: null,
+    all_nodes: {},
+    schemas: {},
     cats_ready: false,
     userData: {},
     projects: [],
@@ -163,45 +222,65 @@ export const useMainStore = defineStore('main', {
     megaproject_types: [],
     event_types: {},
     event_subtypes: [],
+    current_filter_group: null,
+    current_filter_group_data: null,
+    current_collection: null,
+    current_collection_data: null,
     groups: menu_content,
-    all_groups: buildFullMenu(),
   }),
   actions: {
     increment() {
       // `this` is the store instance
       this.counter++
     },
+    setFilterGroup(group) {
+      this.current_filter_group = group
+      if (this.cats_ready)
+        this.setFilterGroupData()
+    },
+    setFilterGroupData() {
+      this.current_filter_group_data = this.all_nodes[
+        this.current_filter_group]
+    },
+    setCollection(group) {
+      this.current_collection = group
+      if (this.cats_ready)
+        this.setCollectionData()
+    },
+    setCollectionData() {
+      this.current_collection_data = this.schemas.collections_dict[
+        this.current_collection]
+    },
     fetchCatalogs() {
-      ApiService.get('/catalogs/all/')
-        .then(({data}) => {
-          console.log("fetchCatalogs data", data)
-          this.cats = data
-          this.cats_ready = true
-          this.status = calculate_status(data.status_control)
-          this.status_project = calculate_status(data.status_project)
-          this.impact_groups = calculate_impact_groups(data.impact_types)
-          const result = calc_megaproject_types(data)
-          this.megaproject_types = result[0]
-          this.extractivism_types = result[1]
-          const result_event = calc_event_subtypes(data)
-          this.event_subtypes = result_event[0]
-          this.event_types = result_event[1]
-          // console.log("impact_groups", this.impact_groups)
-          return data
-        })
-        .catch(error => {
-          console.error(error)
-        })
+      console.log("fetchCatalogs init")
+      return new Promise((resolve) => {
+        ApiService.get('/catalogs/all/')
+          .then(({data}) => {
+            // console.log("fetchCatalogs data", data)
+            this.cats = data
+            this.schemas = calculateSchemas(data)
+            // console.log("schemas", this.schemas)
+            this.all_nodes = calculateNewCats(data, this.schemas)
+            this.status = calculate_status(data.status_control)
+            this.status_project = calculate_status(data.status_project)
+            this.setCollectionData()
+            this.setFilterGroupData()
+            this.cats_ready = true
+            console.log("fetchCatalogs end")
+            resolve(data)
+          })
+          .catch(error => {
+            console.error(error)
+          })
+      })
     },
     async fetchElements([group, params]) {
       // console.log('fetchElements', group, params)
       try {
         const result = await ApiService.get(`/${group}/`, {params: params})
-        if (group.includes('catalogs/')){
-          const real_group = group.split('/')[1]
-          if (real_group === 'extractivism_type')
-            return compute_counts(result, this.megaproject_types)
-        }
+        // if (group.includes('catalogs/')){
+        //   const real_group = group.split('/')[1]
+        // }
         return result.data
       } catch (error) {
         console.error(error)
@@ -209,6 +288,27 @@ export const useMainStore = defineStore('main', {
     },
     getSimple([group, id]) {
       return ApiService.get(`/${group}/${id}/`)
+        .then(response => {
+          return response.data
+        })
+        .catch(error => {
+          console.error(error)
+        })
+    },
+    // saveSimple([group, data]) {
+    //   return ApiService.post(`/${group}/`, data)
+    //     .then(response => {
+    //       return response.data
+    //     })
+    //     .catch(error => {
+    //       console.error(error)
+    //     })
+    // },
+    saveSimple([group, data]) {
+      const id = data.id
+      const method = id ? 'put' : 'post'
+      const last_id = id ? `${id}/` : ''
+      return ApiService[method](`/${group}/${last_id}`, data)
         .then(response => {
           return response.data
         })
@@ -254,17 +354,8 @@ export const useMainStore = defineStore('main', {
           status_dict[group_key][st.name] = st
         })
       })
-      console.log("status_dict", status_dict)
+      // console.log("status_dict", status_dict)
       return status_dict
-    },
-    impact_types() {
-      if (!this.cats || !this.cats.impact_types)
-        return []
-      return this.cats.impact_types.reduce((obj, it) => {
-        const group = it.is_social ? 'social' : 'environmental'
-        obj[group].push(it)
-        return obj
-      }, {"social": [], "environmental": []})
     },
   },
 })

@@ -37,6 +37,7 @@ const props = defineProps({
     </v-col>
     <v-col>
       <GenericSelect
+        v-if="false"
         :final_filters="full_main"
         field="extractivism_types"
         collection="extractivism_types"
