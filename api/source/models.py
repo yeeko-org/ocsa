@@ -60,6 +60,7 @@ class Note(CommentsMixin, models.Model):
     # comments = models.TextField(blank=True, null=True)
 
     files: models.QuerySet["NoteFile"]
+    status_register_id = str | None
 
     def set_slug_title(self, save=True):
         self.slug_title = clean_text(self.title)
