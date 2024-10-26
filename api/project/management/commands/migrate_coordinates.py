@@ -1,8 +1,9 @@
 import pandas as pd
 from django.core.management.base import BaseCommand
 
-from project.models import Project
+from project.models import Project, ProjectLocation
 from space_time.models import Location
+from work_flux.models import StatusControl
 
 
 class Command(BaseCommand):
@@ -23,13 +24,22 @@ class Command(BaseCommand):
                     'El archivo debe contener las columnas "Latitud" y "Longitud"'))
                 return
 
-            for _, row in df.iterrows():
+            _ = StatusControl.objects.get_or_create(
+                name="new_location",
+                public_name="new_location",
+            )
+
+            for index, row in df.iterrows():
                 mp_id = row['ID']
                 lat_dms = row['LATITUD']
                 lon_dms = row['LONGITUD']
-
-                lat_dd = self.dms_to_dd(lat_dms)
-                lon_dd = self.dms_to_dd(lon_dms)
+                try:
+                    lat_dd = self.dms_to_dd(lat_dms)
+                    lon_dd = self.dms_to_dd(lon_dms)
+                except ValueError as e:
+                    self.stdout.write(self.style.ERROR(
+                        f"Error convirtiendo coordenadas {index}: {e}"))
+                    continue
 
                 self.set_project_coordinates(mp_id, lat_dd, lon_dd)
 
@@ -37,10 +47,14 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(
                 f"Error leyendo el archivo: {e}"))
 
-    def dms_to_dd(self, dms):
+    def dms_to_dd(self, dms: str) -> float:
+
+        dms = dms.replace("°", "° ").replace("'", "' ")\
+            .replace('"', '" ')
 
         try:
             parts = dms.split(" ")
+            parts = [part for part in parts if part]
             degrees = float(parts[0][:-1])
             minutes = float(parts[1][:-1])
             seconds = float(parts[2][:-1])
@@ -65,7 +79,31 @@ class Command(BaseCommand):
         except Project.DoesNotExist:
             return
 
-        Location.objects.filter(projects__project=project).update(
-            latitude=lat_dd, longitude=lon_dd)
+        locations = Location.objects.filter(projects__project=project)
+        exist_location = False
+        for location in locations:
+            # latitude y longitude redondeadas comparadas con
+            # lat_dd y lon_dd redondeadas
+            if not location.latitude or not location.longitude:
+                continue
+            if (
+                round(location.latitude, 3) == round(lat_dd, 3) and
+                round(location.longitude, 3) == round(lon_dd, 6)
+            ):
+                exist_location = True
+                break
+        if exist_location:
+            return
 
-        project.save()
+        location = Location.objects.create(
+            latitude=lat_dd,
+            longitude=lon_dd
+        )
+
+        _ = ProjectLocation.objects.create(
+            project=project,
+            location=location,
+            status_register_id="new_location"
+        )
+        self.stdout.write(self.style.SUCCESS(
+            f"Coordenadas registradas para el proyecto {project} en {location}"))

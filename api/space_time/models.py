@@ -150,6 +150,8 @@ class Location(models.Model):
     ubicacion_id_ref = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
+        if self.latitude and self.longitude:
+            return f"{self.latitude}, {self.longitude}"
         return f"{self.state or 'sin entidad'} - {self.details}"
 
     class Meta:
