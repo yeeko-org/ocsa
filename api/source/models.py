@@ -57,7 +57,7 @@ class Note(CommentsMixin, models.Model):
         related_name='reviewers')
     status_register = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
+    # comments = models.TextField(blank=True, null=True)
 
     files: models.QuerySet["NoteFile"]
     status_register_id = str | None
@@ -104,7 +104,7 @@ class Mention(CommentsMixin, models.Model):
     date_filled = models.DateField(blank=True, null=True)
     # status_register = models.ForeignKey(
     #     StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
+    # comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.note

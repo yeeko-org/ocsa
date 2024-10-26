@@ -15,7 +15,7 @@ from api.views.catalogs import (
     ImpactTypeViewSet,
     SourceViewSet,
     StatusControlViewSet,
-    # ExtractivismTypeViewSet,
+    ExtractivismTypeViewSet,
     MegaprojectTypeViewSet
 )
 
@@ -39,7 +39,8 @@ router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impac
 router.register(r'impact_type', ImpactTypeViewSet, basename='catalog_impact_type')
 router.register(r'source', SourceViewSet, basename='catalog_source')
 router.register(r'status_control', StatusControlViewSet, basename='catalog_status_control')
-router.register(r'extractivism_type', MegaprojectTypeViewSet, basename='catalog_extractivism_type')
+router.register(r'extractivism_type', ExtractivismTypeViewSet, basename='catalog_extractivism_type')
+router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')
 # router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')
 
 urlpatterns = [
