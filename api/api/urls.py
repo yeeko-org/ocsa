@@ -1,11 +1,11 @@
 from django.urls import include, path
 
 from api.views.actor import ActorViewSet, ActorMiniListViewSet
-from api.views.catalogs import CatalogsView
 from api.views.project import ProjectViewSet, ProjectFileViewSet
 from api.views.note import NoteViewSet, NoteFileViewSet
 from api.views.event import EventViewSet
 
+from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -20,6 +20,7 @@ router.register(r'event', EventViewSet, basename='event')
 
 
 urlpatterns = [
+    path('login/', obtain_auth_token, name='api-login'),
     path('catalogs/', include('api.views.catalogs.urls')),
     path('space_time/', include('api.views.space_time.urls')),
     path('', include(router.urls)),
