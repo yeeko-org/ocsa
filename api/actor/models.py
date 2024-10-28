@@ -103,7 +103,7 @@ class Actor(CommentsMixin, models.Model):
         return self.sector.sector_group_id if self.sector else None  # type: ignore
 
     def __str__(self):
-        return self.name
+        return self.official_name or self.name
 
     class Meta:
         verbose_name = 'Actor'
@@ -164,7 +164,6 @@ class Interest(models.Model):
         Participant, on_delete=models.CASCADE, related_name='interests')
     interest_type = models.ForeignKey(
         InterestType, on_delete=models.CASCADE, blank=True, null=True)
-
     text = models.TextField()
 
     def __str__(self):

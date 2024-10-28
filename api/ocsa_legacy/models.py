@@ -394,6 +394,14 @@ class RegistroNotas(CustomModel):
         db_table = 'registro_notas'
 
 
+def owner_count():
+    from django.db.models import Count
+    all_records = RegistroNotas.objects.all()
+    return all_records.values('owner').annotate(
+        count=Count('owner')).order_by('owner')
+
+
+
 # CREATE TABLE ocs.estatus_proyectos (
 #     id integer NOT NULL,
 #     nota_id integer,  --ForeignKey

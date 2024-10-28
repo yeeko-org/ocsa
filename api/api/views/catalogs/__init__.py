@@ -3,9 +3,8 @@ from django_filters import FilterSet, NumberFilter
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from api.pagination import CustomPagination
-from rest_framework.decorators import action
-
-from rest_framework.response import Response
+# from rest_framework.decorators import action
+# from rest_framework.response import Response
 
 from actor.models import Actor, Participant
 from api.merge_mix import FromToModelSerializer, MergeSerializerMixin
@@ -51,7 +50,6 @@ from api.views.catalogs.serializers import (
     ImpactTypeSerializer,
     SourceSerializer,
     StatusControlSerializer,
-
     StatusProjectSerializer,
 )
 from api.views.catalogs.project_serializers import (
@@ -137,7 +135,6 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
     def update_relations_merge(self, from_obj, to_obj):
         Actor.objects.filter(sector=from_obj)\
             .update(sector=to_obj)
-
 
 class InterestGroupViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]

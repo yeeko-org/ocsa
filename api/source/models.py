@@ -107,7 +107,7 @@ class Mention(CommentsMixin, models.Model):
     # comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.note
+        return f'{self.note} - {self.project}'
 
     class Meta:
         verbose_name = 'Mención de proyecto en nota'

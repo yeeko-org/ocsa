@@ -39,31 +39,30 @@ class InitParticipantGroups:
             )
 
 
-# Estos se generan al inicio, con los campos: (name, position, required_interests)
-init_participant_types = [
-    ('Financiador', 'support', False, 31),
-    ('Partidario', 'support', False, 32),
-    ('Represor', 'support', False, 34),
-    ('Promotor', 'support', False, 36),
-    ('Mediador', 'neutral', True, 20),
-    ('Analista', 'neutral', False, 25),
-    ('Atención a reclamos', 'neutral', False, 22),
-    # Los GruposApoyo que tengan "Opositor" u "Opositores" en tipo_grupo_apoyo
-    # Acompañamiento-apoyo (representante) con los afectados u opositores
-    ('Acompañante solidario', 'oppose', True, 3),
-    ('Opositor', 'oppose', True, 1),
-    ('Otro', 'other', True, 51),
-
-    # RICK: Parece una categoría distinta:
-    ('Ejecutor del Proyecto', 'support', False, 38),
-    # RICK: Parece que es lo mismo que el campo "is_affected"
-    ('Beneficiario', 'support', True, 39),
-    # ("Por definir (de violencias)", 'oppose', False),
-]
-
-
 class ParticipantTypes:
     def __init__(self):
+
+        # Estos se generan al inicio, con los campos: (name, position, required_interests)
+        init_participant_types = [
+            ('Financiador', 'support', False, 31),
+            ('Partidario', 'support', False, 32),
+            ('Represor', 'support', False, 34),
+            ('Promotor', 'support', False, 36),
+            ('Mediador', 'neutral', True, 20),
+            ('Analista', 'neutral', False, 25),
+            ('Atención a reclamos', 'neutral', False, 22),
+            # Los GruposApoyo que tengan "Opositor" u "Opositores" en tipo_grupo_apoyo
+            # Acompañamiento-apoyo (representante) con los afectados u opositores
+            ('Acompañante solidario', 'oppose', True, 3),
+            ('Opositor', 'oppose', True, 1),
+            ('Otro', 'other', True, 51),
+
+            # RICK: Parece una categoría distinta:
+            ('Ejecutor del Proyecto', 'support', False, 38),
+            # RICK: Parece que es lo mismo que el campo "is_affected"
+            ('Beneficiario', 'support', True, 39),
+            # ("Por definir (de violencias)", 'oppose', False),
+        ]
         for name, position, required_interests, order in init_participant_types:
             participant_group = ParticipantGroup.objects.get(
                 key_name=position)
@@ -75,23 +74,22 @@ class ParticipantTypes:
             pt.save()
 
 
-# estos se deben agregar también, pero con is_temporal = True
-# Los grupos Opositores y PoblacionesAfectadas deben ir directo en su grupo
-# Estado tiene su filtro específico y se agregan otros_opositores de Opositores
-temporal_participant_types = [
-    ('Capital', 'support', False, 41),
-    # ('Opositores', 'oppose', True, 10),
-    ('PoblacionesAfectadas', 'oppose', True, 11),
-    ('Estado', 'support', False, 42),
-    ("Por definir (de violencias)", 'other', False, 50),
-    # Estos se van a sacar de la tabla Opositores.otros_opositores, pero no
-    # se le van a asignar todos los campos (solo su relación con nota y proyecto)
-    ("otros_opositores", 'oppose', True, 12),
-]
-
-
 class TemporalParticipantTypes:
     def __init__(self):
+        # estos se deben agregar también, pero con is_temporal = True
+        # Los grupos Opositores y PoblacionesAfectadas deben ir directo en su grupo
+        # Estado tiene su filtro específico y se agregan otros_opositores de Opositores
+        temporal_participant_types = [
+            ('Capital', 'support', False, 41),
+            # ('Opositores', 'oppose', True, 10),
+            ('PoblacionesAfectadas', 'oppose', True, 11),
+            ('Estado', 'support', False, 42),
+            ("Por definir (de violencias)", 'other', False, 50),
+            # Estos se van a sacar de la tabla Opositores.otros_opositores, pero no
+            # se le van a asignar todos los campos (solo su relación con nota y proyecto)
+            ("otros_opositores", 'oppose', True, 12),
+        ]
+
         for name, position, required_interests, order in temporal_participant_types:
             participant_group = ParticipantGroup.objects.get(
                 key_name=position)

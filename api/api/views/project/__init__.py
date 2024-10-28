@@ -18,9 +18,9 @@ from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 class ProjectFilter(FilterSet):
     state = NumberFilter(
         field_name='locations__location__state', lookup_expr='exact')
-    social_impact = NumberFilter(
+    impact_type = NumberFilter(
         field_name='mentions__impacts__impact_type', lookup_expr='exact')
-    social_subimpact = NumberFilter(
+    impact_subtype = NumberFilter(
         field_name='mentions__impacts__impact_subtype', lookup_expr='exact')
     event_type = NumberFilter(
         field_name='mentions__events__event_type', lookup_expr='exact')
