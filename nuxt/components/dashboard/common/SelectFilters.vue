@@ -8,6 +8,7 @@ import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 const props = defineProps({
   final_filters: Object,
   visible_filters: Array,
+  filter_group: Object,
 })
 const emit = defineEmits(['apply-filters'])
 
@@ -31,13 +32,24 @@ const applyFilters = () => {
       :final_filters="final_filters"
       :collection="filter_box.key_name"
       collection_group="status"
-      :field="filter_box.collection"
-      :label="`Status ${filter_box.name}`"
       clearable
       hide-details
       style="max-width: 300px; min-width: 200px;"
       @change-status="applyFilters"
     />
+
+    <SelectGroup
+      v-else-if="filter_box.key_name"
+      :filter_group_name="filter_box.key_name"
+      :main_object="final_filters"
+      :category_group_value="filter_box.category_group_value"
+      :forced_level="filter_box.forced_level"
+      is_filter
+    />
+    <h5 v-else>{{filter_box.title || filter_box.name}}</h5>
+  </v-col>
+</template>
+
 <!--    <GenericSelect-->
 <!--      _v-else-if="!filter_box.category_group && !filter_box.category_type"-->
 <!--      v-else-if="false"-->
@@ -74,14 +86,3 @@ const applyFilters = () => {
 <!--      style="max-width: 300px; min-width: 200px;"-->
 <!--      @change-status="applyFilters"-->
 <!--    />-->
-    <SelectGroup
-      v-else-if="filter_box.key_name"
-      :filter_group_name="filter_box.key_name"
-      :main_object="final_filters"
-      :category_group_value="filter_box.category_group_value"
-      is_filter
-    />
-<!--    <SelectState></SelectState>-->
-    <h5 v-else>{{filter_box.title || filter_box.name}}</h5>
-  </v-col>
-</template>

@@ -65,14 +65,12 @@ onMounted(() => {
   changeFilters()
 })
 
-const debounceApplyFilters = _debounce(() => {
-  applyFilters()
-}, 600)
-
-
 const collection_data = computed(() => {
   // console.log("parent_collectionRef", parent_collectionRef.value)
   return props.parent_collection || current_collection_data.value
+})
+const simplified_filters = computed(() =>{
+  return current_filters.value.length <= 3
 })
 
 watch(
@@ -86,16 +84,12 @@ watch(
   {deep: true}
 )
 
-function changeShowDetails() {
-  nextTick(() => {
-    setTimeout(() => {
-      show_details.value = true
-    }, 10)
-  })
-}
-
 const is_category = computed(() =>
   collection_data.value.level.includes('category'))
+
+const debounceApplyFilters = _debounce(() => {
+  applyFilters()
+}, 600)
 
 function applyFilters() {
   loading_fetch.value = true
@@ -103,18 +97,29 @@ function applyFilters() {
   let collection_name = collection_data.value.snake_name
   if (is_category.value)
     collection_name = `catalogs/${collection_name}`
-
+  results.value = []
   fetchElements([collection_name, final_filters.value]).then(res => {
     loading_fetch.value = false
-    total_count.value = res.total
-    results.value = res.results
+    if (!res.results){
+      total_count.value = res.length
+      results.value = res
+    }
+    else{
+      total_count.value = res.total
+      results.value = res.results
+    }
     changeShowDetails()
   })
 }
 
-const simplified_filters = computed(() =>{
-  return current_filters.value.length <= 3
-})
+
+function changeShowDetails() {
+  nextTick(() => {
+    setTimeout(() => {
+      show_details.value = true
+    }, 10)
+  })
+}
 
 function resetFilters() {
   if (!is_category.value)
@@ -136,9 +141,9 @@ function changeFilters() {
   if (!collection_data.value)
     return
   const all_filters = collection_data.value.all_filters
-  console.log("collection_data", collection_data.value)
-  console.log("level_name", props.level_name)
-  console.log("filter_group", props.filter_group)
+  // console.log("collection_data", collection_data.value)
+  // console.log("level_name", props.level_name)
+  // console.log("filter_group", props.filter_group)
   let collection_filters = all_filters.reduce((arr, f) => {
     const filter_data = schemas.value.filters_dict[f.filter_name]
     const new_filter = {...filter_data, ...f}
@@ -158,19 +163,36 @@ function changeFilters() {
     arr.push(new_filter)
     return arr
   }, [])
-  const status_group = collection_data.value.status_group
-  if (status_group)
-    collection_filters.push(status_filters[status_group])
-
   // console.log("collection_filters", collection_filters)
+  if (props.filter_group){
+    console.log("filter_group", props.filter_group)
+    const fg = props.filter_group
+    const new_filter_group = {
+      ...props.filter_group,
+      short_name: `${fg.short_prev} ${fg.name}`,
+      name: `${fg.prev} ${fg.name}`,
+      forced_level: props.level_name,
+    }
+    collection_filters.push(new_filter_group)
+  }
+  const status_groups = collection_data.value.status_groups || []
+  // if (status_group)
+  //   collection_filters.push(status_filters[status_group])
+  status_groups.forEach(sg => {
+    collection_filters.push(status_filters[sg])
+  })
+
   // f => f.collection === current_collection.value)
   // current_filters.value = group_filters.value.sort((a, b) => a.order - b.order)
   current_filters.value = collection_filters
+
   // console.log("group in changeFilters", group)
   if (collection_filters.length <= 3)
     visible_filters.value = current_filters.value
   else
     visible_filters.value = current_filters.value.filter(f => !f.hidden)
+  console.log("visible_filters", visible_filters.value)
+  console.log("collection_data", collection_data.value)
 }
 
 </script>
@@ -259,7 +281,7 @@ function changeFilters() {
       v-if="loading_fetch"
       indeterminate
       height="10"
-      color="primary"
+      color="accent"
     ></v-progress-linear>
   </v-card>
   <PanelResult

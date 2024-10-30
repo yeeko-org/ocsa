@@ -94,9 +94,7 @@ const merge_fields = ref([])
       <StatusDetail
         v-if="!is_massive_edit || merge_fields.includes('status_validation')"
         :final_filters="full_main"
-        field="status_validation"
         collection="validation"
-        label="Status de validación"
         style="max-width: 300px;"
         class="ml-2"
         density="default"

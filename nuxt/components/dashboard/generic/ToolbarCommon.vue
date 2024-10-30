@@ -13,6 +13,15 @@ const props = defineProps({
   hide_select: Boolean,
   second_level: Boolean,
   slot_before: Boolean,
+  two_columns: Boolean,
+  cols: {
+    type: Number,
+    default: 12,
+  },
+  color: {
+    type: String,
+    default: 'indigo',
+  },
 })
 
 const mainStore = useMainStore()
@@ -60,79 +69,120 @@ const deleteRecord = (index) => {
 
 
 <template>
-  <v-card class="mx-2 my-2" elevation="4" variant="flat" color="grey-lighten-5">
-    <v-toolbar
-      color="grey-lighten-3"
-      _clipped-left="second_level"
-      _class="second_level ? 'ml-6 pr-8' : ''"
-      :height="second_level ? 32 : 46"
+  <v-col :cols="cols" class="py-2 px-2">
+    <v-card
+      :class="second_level ? 'mt-2' : ''"
+      elevation="4"
+      variant="elevated"
+      :color="`${color}-lighten-${second_level ? 4 : 3}`"
     >
-      <v-toolbar-title
-        style="min-width: 300px;"
-        :class="second_level ? '' : 'text-h6'"
+      <v-toolbar
+        :color="`${color}-lighten-${second_level ? 2 : 1}`"
+        _clipped-left="second_level"
+        _class="second_level ? 'ml-6 pr-8' : ''"
+        :height="second_level ? 32 : 46"
       >
-  <!--      Eventos ({{mention.events.length}})-->
-        {{child_collection.plural_name}} ({{main_object[field].length}})
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <template v-if="filter_group.category_groups">
-        <v-btn
-          v-for="group in filter_group.category_groups"
-          :key="group.name"
-          class="ml-2 text-none"
-          color="green"
-          stacked
-          @click="addItem(group)"
+        <v-toolbar-title
+          style="min-width: 300px;"
+          :class="second_level ? '' : 'text-h6'"
         >
-          <v-badge color="transparent" icon="add">
-            <v-icon
-              :color="group.color"
-              :icon="group.icon"
-            ></v-icon>
-          </v-badge>
+    <!--      Eventos ({{mention.events.length}})-->
+          {{child_collection.plural_name}} ({{main_object[field].length}})
+        </v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn
+          class="hidden-xs-only"
+          icon
+          :size="second_level ? 'small' : 'default'"
+        >
+          <v-icon>question_mark</v-icon>
         </v-btn>
-      </template>
-      <v-btn
-        v-else
-        class="ml-2 text-none"
-        color="green"
-        stacked
-        @click="addItem()"
+        <template v-if="filter_group.category_groups">
+          <v-btn
+            v-for="group in filter_group.category_groups"
+            :key="group.name"
+            class="ml-2 text-none"
+            :color="group.color"
+            variant="flat"
+            @click="addItem(group)"
+          >
+            <v-badge color="transparent" icon="add">
+              <v-icon
+                color="white"
+                :icon="group.icon"
+              ></v-icon>
+            </v-badge>
+          </v-btn>
+        </template>
+        <v-btn
+          v-else
+          class="mr-2 text-none"
+          color="success"
+          variant="flat"
+          @click="addItem()"
+          :size="second_level ? 'small' : 'default'"
+        >
+          <v-icon>add</v-icon>
+        </v-btn>
+      </v-toolbar>
+      <v-card
+        v-for="(item, index) in main_object[field]"
+        :key="index"
+        class="ma-2"
+        elevation="2"
+        variant="flat"
+        :color="second_level ? 'white' : `${color}-lighten-5`"
       >
-        <v-badge color="transparent" icon="add">
-          <v-icon
-            color="primary"
-            icon="add"
-          ></v-icon>
-        </v-badge>
-      </v-btn>
-    </v-toolbar>
-
-    <v-row
-      cols="12"
-      v-for="(item, index) in main_object[field]"
-      :key="index"
-      class="d-flex mb-3 mt-1 flex-wrap"
-      :class="{'ml-6': second_level}"
-    >
-      <v-col cols="12">
-        <slot name="rows_init" :item="item">
-        </slot>
-      </v-col>
-      <v-col cols="12">
-        <div v-if="!hide_select" class="d-flex">
-          <SelectGroup
-            :filter_group_name="filter_group_name"
-            :main_collection="child_collection"
-            :main_object="item"
-            @delete-record="deleteRecord(index)"
-          />
-        </div>
-        <slot name="rows" :item="item">
-        </slot>
-      </v-col>
-    </v-row>
-  </v-card>
+        <v-row
+          no-gutters
+          class="d-flex flex-wrap"
+          _class="{'ml-6': second_level && !two_columns}"
+        >
+          <v-col
+            :cols="two_columns ? 6 : 12"
+            class="pa-2"
+          >
+            <slot name="rows_init" :item="item">
+            </slot>
+            <div v-if="!hide_select" class="d-flex flex-wrap">
+              <SelectGroup
+                :filter_group_name="filter_group_name"
+                :main_collection="child_collection"
+                :main_object="item"
+                @delete-record="deleteRecord(index)"
+              />
+            </div>
+            <slot name="rows" :item="item">
+            </slot>
+          </v-col>
+          <v-col
+            v-if="two_columns"
+            cols="6"
+            class="my-0"
+          >
+            <slot name="second-column" :item="item">
+            </slot>
+          </v-col>
+        </v-row>
+      </v-card>
+      <v-alert
+        v-if="!main_object[field].length"
+        type="warning"
+        variant="flat"
+        border="start"
+        :text="`Debes agregar al menos un ${child_collection.name}`"
+      >
+        <v-btn
+          color="success"
+          class="ml-2"
+          variant="tonal"
+          @click="addItem()"
+        >
+          Agregar
+        </v-btn>
+      </v-alert>
+    </v-card>
+  </v-col>
 </template>
 
 <style scoped>

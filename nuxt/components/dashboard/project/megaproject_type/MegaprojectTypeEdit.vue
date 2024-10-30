@@ -51,9 +51,7 @@ const props = defineProps({
     <v-col>
       <StatusDetail
         :final_filters="full_main"
-        field="status_validation"
         collection="validation"
-        label="Status de validación"
         _style="max-width: 300px;"
         width="300"
         :clearable="false"

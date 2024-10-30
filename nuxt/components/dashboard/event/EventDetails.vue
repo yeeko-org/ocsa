@@ -42,7 +42,7 @@ const addEvent = (mention, detail) => {
     >
       <v-badge color="transparent" icon="add">
         <v-icon
-          color="primary"
+          color="accent"
           :icon="group.icon"
         ></v-icon>
       </v-badge>

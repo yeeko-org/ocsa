@@ -11,11 +11,11 @@ import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 
 const mainStore = useMainStore()
-const { cats, groups } = storeToRefs(mainStore)
+const { cats } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,
-  group: Object,
+  collection_data: Object,
   show_details: {
     type: Boolean,
     default: false,
@@ -24,11 +24,6 @@ const props = defineProps({
 const project = computed(() => {
   return props.main
 })
-
-const final_group = computed(() => {
-  return props.group || groups.value.find(gr => gr.key === 'project')
-})
-
 
 // const emit = defineEmits(['open-panel'])
 
@@ -58,7 +53,7 @@ const states_tooltip = computed(() => {
   <HeaderCommon
     :main="main"
     :show_details="show_details"
-    :group="final_group"
+    :collection_data="collection_data"
     name_field="official_name"
   >
     <template #icon>
@@ -71,9 +66,7 @@ const states_tooltip = computed(() => {
         v-if="project.status_register"
         :main="project"
         collection="register"
-        field="status_register"
         left_label
-        label="Registro:"
         class="mb-1"
         bold_text
       />
@@ -90,7 +83,7 @@ const states_tooltip = computed(() => {
         icon="location_on"
         label="ubicación"
         label_plural="ubicaciones"
-        color="primary"
+        color="indigo"
         :tooltip_complement="states_tooltip"
         class="mx-1"
       />

@@ -10,7 +10,7 @@ const { cats } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,
-  group: Object,
+  collection_data: Object,
   show_details: {
     type: Boolean,
     default: false,
@@ -26,7 +26,7 @@ const project = computed(() => {
   <HeaderCommon
     :main="main"
     :show_details="show_details"
-    :group="group"
+    :collection_data="collection_data"
   >
   </HeaderCommon>
 

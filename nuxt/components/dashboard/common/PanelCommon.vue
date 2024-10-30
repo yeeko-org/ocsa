@@ -1,6 +1,7 @@
 <script setup>
 import {ref, computed, nextTick} from 'vue'
 import {useMainStore} from "~/store/index.js";
+import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 
 const mainStore = useMainStore()
 const { getSimple, saveSimple, editSimple } = mainStore
@@ -46,9 +47,9 @@ const openMain = () => {
 const background_color = computed(() => {
   const coll = props.collection_data
   if (!coll)
-    return 'grey-lighten-5'
+    return 'secondary-lighten-5'
   const base_color = coll.color ||
-    (coll.parent ? (coll.parent.color || 'grey') : 'grey')
+    (coll.parent ? (coll.parent.color || 'blue-grey') : 'blue-grey')
   return `${base_color}-lighten-5`
 })
 
@@ -83,7 +84,7 @@ function saveRecord() {
     <div class="flex-grow-1">
       <slot name="header" :main="main" :openMain="openMain">
         <v-expansion-panel-title>
-          Título genérico =
+          Cargando detalles...
         </v-expansion-panel-title>
       </slot>
       <v-expansion-panel-text
@@ -95,10 +96,31 @@ function saveRecord() {
           :color="`${background_color}-lighten-5`"
           class="mt-n2 mb-n4 pa-3"
         >
-          <v-card class="mb-3 pa-3">
+          <v-card class="mb-3 pa-3" elevation="8">
             <v-card-text
               class="d-flex flex-wrap"
             >
+
+              <div class="d-flex" style="width: 100%;">
+                <v-text-field
+                  v-model="full_main.name"
+                  label="Nombre"
+                  class="mr-2"
+                  style="width: 300px;"
+                />
+                <v-spacer></v-spacer>
+                <template v-if="collection_data.status_groups">
+                  <StatusDetail
+                    v-for="status_group in collection_data.status_groups"
+                    :final_filters="full_main"
+                    :collection="status_group"
+                    style="max-width: 300px;"
+                    density="default"
+                  />
+                </template>
+
+              </div>
+
               <slot name="edit" :full_main="full_main">
                 EDICIÓN (REVISAR PORQUE NO ES NORMAL)
               </slot>
@@ -106,7 +128,7 @@ function saveRecord() {
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn
-                color="primary"
+                color="accent"
                 variant="elevated"
                 @click="saveRecord"
               >

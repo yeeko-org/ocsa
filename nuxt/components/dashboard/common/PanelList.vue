@@ -87,7 +87,7 @@ function changeShowDetails() {
         <component
           :is="header_component"
           :main="elem"
-          :group="collection_data"
+          :collection_data="collection_data"
           :show_details="show_details"
           @open-panel="openMain"
         />

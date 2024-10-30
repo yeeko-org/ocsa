@@ -3,7 +3,6 @@
 import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
 
 import { ref } from 'vue'
-import NoteEdit from "~/components/dashboard/source/note/NoteEdit.vue";
 
 const props = defineProps({
   full_main: {
@@ -14,6 +13,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  collection_data: Object,
 })
 const new_mention = ref({})
 const dialog_mention = ref(false)
@@ -33,14 +33,14 @@ const addMention = () => {
 </script>
 
 <template>
-  <v-card v-if="full_note.mentions">
+  <v-card v-if="full_note.mentions" elevation="5">
     <v-card-title>
       <div class="d-flex">
         {{ full_note.mentions.length }} menciones de proyectos
         <v-spacer></v-spacer>
         <v-btn
           @click="addMention"
-          color="primary"
+          color="accent"
           variant="outlined"
           prepend-icon="add"
           text="Agregar mención"
@@ -58,7 +58,7 @@ const addMention = () => {
       </v-row>
     </v-card-text>
   </v-card>
-  <v-card class="my-3">
+  <v-card class="my-3" elevation="3">
     <v-card-title>
       -----
     </v-card-title>

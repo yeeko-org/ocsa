@@ -1,21 +1,13 @@
 <script setup>
-// export default defineComponent({
-//   name: "ActorHeader"
-// })
 import {computed} from 'vue'
-import { useMainStore } from '~/store/index.js'
-import { storeToRefs } from 'pinia'
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
-const mainStore = useMainStore()
-
-const { cats, groups } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,
-  group: Object,
+  collection_data: Object,
   show_details: {
     type: Boolean,
     required: false,
@@ -24,11 +16,6 @@ const props = defineProps({
 })
 
 const actor = computed(() => props.main)
-const final_group = computed(() => {
-  return props.group || groups.value.find(gr => gr.key === 'actor')
-})
-
-// const emit = defineEmits(['open-panel'])
 
 const unique_projects = computed(() => {
   let projects = actor.value.participants.map(
@@ -41,18 +28,9 @@ const unique_projects = computed(() => {
   <HeaderCommon
     :main="main"
     :show_details="show_details"
-    :group="final_group"
+    :collection_data="collection_data"
   >
     <template #details>
-      <StatusChip
-        v-if="actor.status_validation"
-        :main="actor"
-        collection="validation"
-        field="status_validation"
-        small
-        label="Validación:"
-        class="mb-1"
-      />
       <HeaderChip
         :count="actor.mentions_count"
         icon="newspaper"

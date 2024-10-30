@@ -91,15 +91,17 @@ const all_selected = computed(() => {
     v-if="group_actions_enabled || true"
     class="px-2 py-1 d-flex align-center justify-space-between"
     variant="tonal"
-    color="blue lighten-4"
+    _color="blue lighten-4"
+    color="secondary"
   >
     <v-btn
-      color="primary"
+      color="accent"
       @click="addItem"
       class="mr-3"
     >
       <v-icon>add</v-icon>
-      Agregar {{props.collection_data.name}}
+      Agregar registro
+<!--      {{props.collection_data.name}}-->
     </v-btn>
     <v-spacer></v-spacer>
     <v-divider vertical class="mx-2" color="blue"></v-divider>
@@ -121,6 +123,7 @@ const all_selected = computed(() => {
       outlined
       color="accent"
       class="ml-3"
+      variant="elevated"
       @click="wantMerge"
       :disabled="!sel.selected_elems.length"
     >

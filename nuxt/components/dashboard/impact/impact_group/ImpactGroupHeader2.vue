@@ -11,7 +11,7 @@ const { groups } = storeToRefs(mainStore)
 const props = defineProps({
   main: Object,
   mentions: Array,
-  group: Object,
+  collection_data: Object,
   show_details: {
     type: Boolean,
     default: false,
@@ -19,11 +19,6 @@ const props = defineProps({
   parent: String,
 })
 
-const final_group = computed(() => {
-  return props.group || groups.value.find(gr => gr.key === 'note')
-})
-
-const note = computed(() => props.main)
 // const emit = defineEmits(['open-panel'])
 
 
@@ -33,7 +28,7 @@ const note = computed(() => props.main)
   <HeaderCommon
     :main="main"
     :show_details="show_details"
-    :group="final_group"
+    :collection_data="collection_data"
   >
   </HeaderCommon>
 </template>

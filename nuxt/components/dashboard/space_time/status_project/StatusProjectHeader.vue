@@ -1,20 +1,23 @@
 <script setup>
 
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
+
+import {useMainStore} from '~/store/index.js'
+import {storeToRefs} from 'pinia'
+const mainStore = useMainStore()
+const { groups } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,
+  mentions: Array,
   collection_data: Object,
   show_details: {
     type: Boolean,
     default: false,
   },
+  parent: String,
 })
 
-const megaproject_types_count = computed(() => {
-  return props.main.megaproject_types?.length
-})
 
 </script>
 
@@ -23,20 +26,11 @@ const megaproject_types_count = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
-    name_field="name"
   >
     <template #details>
-      <HeaderChip
-        :count="megaproject_types_count"
-        icon="category"
-        label="proyecto"
-        label_plural="tipos de megaproyecto"
-        color="purple"
-        class="mx-1"
-      />
+      holi
     </template>
   </HeaderCommon>
-
 </template>
 
 <style scoped>

@@ -8,12 +8,12 @@ import {storeToRefs} from 'pinia'
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
 const mainStore = useMainStore()
-const { groups, event_types, event_subtypes } = storeToRefs(mainStore)
+const { event_subtypes } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,
   mentions: Array,
-  group: Object,
+  collection_data: Object,
   is_small: Boolean,
   show_details: {
     type: Boolean,
@@ -22,17 +22,14 @@ const props = defineProps({
   parent: String,
 })
 
-const final_group = computed(() => {
-  return props.group || groups.value.find(gr => gr.key === 'event')
-})
-
 const involvement_count = computed(() => {
   return props.main.involvements.length
 })
 
 const event_subtype = computed(() => {
-  return event_subtypes.value.find(
-    subtype => props.main.event_subtype === subtype.id)
+  return null
+  // return event_subtypes.value.find(
+  //   subtype => props.main.event_subtype === subtype.id)
 })
 
 const final_event_types = computed(() => {
@@ -51,7 +48,7 @@ const final_event_types = computed(() => {
   <HeaderCommon
     :main="main"
     :show_details="show_details"
-    :group="final_group"
+    :collection_data="collection_data"
     name_field="title"
   >
     <template #icon v-if="final_event_types.length">

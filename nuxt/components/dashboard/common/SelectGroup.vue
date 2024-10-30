@@ -15,6 +15,7 @@ const props = defineProps({
   is_filter: Boolean,
   main_collection: Object,
   category_group_value: Number,
+  forced_level: String,
 })
 
 const emit = defineEmits(['delete-record'])
@@ -33,7 +34,14 @@ const subcategory_is_multiple = computed(() => {
 })
 
 const level_names = computed(() => {
+  let done = false
   return levels.reduce((acc, level) => {
+    if (done)
+      return acc
+    if (props.forced_level === level){
+      done = true
+      return acc
+    }
     const cat_name = filter_group.value[`category_${level}`]
     if (cat_name)
       acc[level] = cat_name
@@ -137,11 +145,22 @@ const subtype_field = computed(() => {
 })
 
 const type_label = computed(() => {
+  console.log("collections", collections.value)
+  console.log("filter_node", filter_node.value)
   if (!collections.value.type)
     return "??"
   if (props.is_filter && group_object.value && level_names.value.group)
     return `${collections.value.type.name} ${group_object.value.name}`
   return collections.value.type.name
+})
+
+const display_subtype = computed(() => {
+  // v-if="level_names.type && (forced_level ? (main_object[level_names.type] || type_items) : true)"
+  if (!level_names.value.type)
+    return false
+  return props.forced_level
+    ? (props.main_object[level_names.value.type] || type_items.value)
+    : true
 })
 
 </script>
@@ -180,11 +199,23 @@ const type_label = computed(() => {
     >
     </v-btn>
   </template>
-  <div v-else-if="collections.group && false">
-
+  <div v-else-if="collections.group && forced_level">
+    <v-select
+      v-model="main_object[level_names.group]"
+      :items="filter_group.category_groups"
+      item-title="name"
+      item-value="id"
+      :label="collections.group.name"
+      variant="outlined"
+      :clearable="is_filter"
+      style="max-width: 250px; min-width: 250px;"
+      class="ml-2"
+      _style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
+    >
+    </v-select>
   </div>
   <v-select
-    v-if="level_names.type"
+    v-if="display_subtype"
     v-model="main_object[level_names.type]"
     :items="type_items"
     item-title="name"
@@ -215,7 +246,7 @@ const type_label = computed(() => {
 <!--    </template>-->
   </v-select>
   <v-select
-    v-if="subtype_items"
+    v-if="subtype_items && level_names.subtype"
     v-model="main_object[subtype_field]"
     :items="subtype_items"
     item-title="name"

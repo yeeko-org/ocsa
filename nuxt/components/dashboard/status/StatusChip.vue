@@ -8,18 +8,9 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  field: {
-    type: String,
-    required: true,
-  },
   collection: {
     type: String,
     required: true,
-  },
-  label: {
-    type: String,
-    required: false,
-    default: "Status",
   },
   hide_details: {
     type: Boolean,
@@ -65,14 +56,13 @@ const props = defineProps({
 const mainStore = useMainStore();
 
 const want_edit_note = ref(false);
-const textLight = ref('white--text');
-const textDark = ref('black--text');
 
 const { status_dict } = storeToRefs(mainStore);
 
 // Compute item_built using the status_dict and props
+const field = computed(() => `status_${props.collection}`);
 const item_built = computed(() => {
-  const status_field = props.main[props.field];
+  const status_field = props.main[field.value];
   return status_dict.value[props.collection][status_field] ||
     {
       public_name: "Sin definir",
@@ -82,6 +72,11 @@ const item_built = computed(() => {
       back_text: "grey--text text--darken-1",
     };
 });
+
+const label = computed(() => {
+  return props.collection === 'register' ? 'Registro:' : 'Validación:';
+})
+
 </script>
 
 <template>
@@ -94,7 +89,7 @@ const item_built = computed(() => {
       class="text-caption text-grey-darken-1"
       :class="props.left_label ? 'mr-2' : 'mb-n1'"
     >
-      {{ props.label }}
+      {{ label }}
     </span>
     <v-icon
       v-if="props.x_small"

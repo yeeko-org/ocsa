@@ -27,9 +27,7 @@ const props = defineProps({
       </v-text-field>
       <StatusDetail
         :final_filters="full_main"
-        field="status_register"
         collection="register"
-        label="Status de registro"
         style="max-width: 300px;"
       />
     </div>

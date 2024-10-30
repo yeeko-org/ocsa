@@ -5,18 +5,14 @@ import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import ImpactChip from "~/components/dashboard/impact/ImpactChip.vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 
-import {useMainStore} from '~/store/index.js'
-import {storeToRefs} from 'pinia'
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
-const mainStore = useMainStore()
-const { groups } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,
   mentions: Array,
-  group: Object,
+  collection_data: Object,
   show_details: {
     type: Boolean,
     default: false,
@@ -24,9 +20,6 @@ const props = defineProps({
   parent: String,
 })
 
-const final_group = computed(() => {
-  return props.group || groups.value.find(gr => gr.key === 'note')
-})
 
 const note = computed(() => props.main)
 // const emit = defineEmits(['open-panel'])
@@ -41,7 +34,7 @@ const final_mentions = computed(() => {
   <HeaderCommon
     :main="main"
     :show_details="show_details"
-    :group="final_group"
+    :collection_data="collection_data"
     name_field="title"
   >
     <template #details>
@@ -50,12 +43,10 @@ const final_mentions = computed(() => {
         :mentions="final_mentions"
       />
       <StatusChip
-        v-if="note.status_register"
+        v-if="note.status_register && false"
         :main="note"
         collection="register"
-        field="status_register"
         small
-        label="Registro:"
         class="mb-1"
       />
       <ImpactChip

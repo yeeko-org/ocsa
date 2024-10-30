@@ -12,14 +12,13 @@ const mainStore = useMainStore()
 const props = defineProps({
   final_filters: Object,
   collection: String,
-  field: String,
   collection_group: {
     type: String,
     default: "status",
   },
   density: {
     type: String,
-    default: "compact",
+    default: "default",
   },
   // label: {
   //   type: String,
@@ -42,6 +41,10 @@ const items_built = computed(() => {
       ? status.value[props.collection]
       : cats.value[props.collection]
 })
+const label = computed(() => {
+  return "Status de " + (props.collection === 'register' ? 'registro:' : 'validación:')
+})
+const field = computed(() => `status_${props.collection}`);
 
 </script>
 
@@ -54,6 +57,7 @@ const items_built = computed(() => {
     :density="density"
     variant="outlined"
     clearable
+    :label="label"
   >
     <template #item="{ item, props: {onClick, title, value} }" v-if="true">
       <v-list-item
