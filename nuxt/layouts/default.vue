@@ -46,11 +46,12 @@ const main_collections = computed(() => {
   <v-app>
     <v-app-bar
       app
-      color="cyan"
+      color="primary"
       dark
       flat
       class="mt-n1"
       clipped-left
+      height="48"
     >
       <v-app-bar-nav-icon
         @click.stop="menu_drawer = !menu_drawer"

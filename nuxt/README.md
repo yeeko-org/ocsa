@@ -73,3 +73,6 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+La clave para poder comenzar:
+pm2 start --name "ocsa" node .output/server/index.mjs

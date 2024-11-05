@@ -24,7 +24,7 @@ const levels = ['group', 'type', 'subtype']
 const options_tab = ref('group')
 
 const need_tabs = computed(() => {
-  console.log('current_filter_group_data', current_filter_group_data.value)
+  // console.log('current_filter_group_data', current_filter_group_data.value)
   let filter_data = current_filter_group_data.value
   if (!filter_data)
     return false
@@ -69,7 +69,7 @@ const group_results = computed(() => {
       v-else
       v-model="options_tab"
       grow
-      bg-color="primary"
+      bg-color="accent"
     >
       <v-tab
         v-for="(collection, key) in collections"

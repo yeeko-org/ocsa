@@ -14,9 +14,8 @@ export default defineNuxtRouteMiddleware((to, from, next) => {
     setCollection(to.params.group)
   else if (to.params.model)
     setFilterGroup(to.params.model)
-
   if (cats_ready) {
-    next()
+    // next()
     return
   }
   fetchCatalogs()

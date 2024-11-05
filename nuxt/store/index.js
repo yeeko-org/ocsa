@@ -221,7 +221,6 @@ export const useMainStore = defineStore('main', {
     extractivism_types: {},
     megaproject_types: [],
     event_types: {},
-    event_subtypes: [],
     current_filter_group: null,
     current_filter_group_data: null,
     current_collection: null,

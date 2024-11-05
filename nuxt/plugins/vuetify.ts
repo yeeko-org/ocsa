@@ -10,13 +10,28 @@ export default defineNuxtPlugin((app) => {
     components: {
       VDateInput
     },
+    theme: {
+      themes: {
+        light: {
+          dark: false,
+          colors: {
+            // primary: colors.indigo.darken1,
+            // secondary: '#424242',
+            // accent: colors.teal.accent4,
+            primary: "#ff002f",
+            secondary: "#d7a997",
+            accent: "#1e1e1e",
+          }
+        }
+      }
+    },
     icons: {
       defaultSet: 'md',
       aliases,
       sets: {
         md,
       }
-    },
+    }
   })
   app.vueApp.use(vuetify)
 })

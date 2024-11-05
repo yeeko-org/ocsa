@@ -1,4 +1,3 @@
-import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 // import fs from 'fs'
 // import path from 'path'
 export default defineNuxtConfig({
