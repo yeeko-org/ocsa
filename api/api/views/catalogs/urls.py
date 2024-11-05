@@ -2,7 +2,6 @@ from django.urls import include, path
 from api.views.catalogs import (
     ParticipantTypeViewSet,
     BelongViewSet,
-    IndigenousGroupViewSet,
     SectorGroupViewSet,
     SectorViewSet,
     InterestGroupViewSet,
@@ -13,9 +12,11 @@ from api.views.catalogs import (
     InvolvedRoleViewSet,
     SourceViewSet,
     StatusControlViewSet,
+    StatusProjectViewSet,
     ExtractivismTypeViewSet,
     MegaprojectTypeViewSet
 )
+# from api.views.actor.classify_views import IndigenousGroupViewSet
 from api.views.catalogs.impact_views import (
     ImpactSubtypeViewSet, ImpactTypeViewSet)
 
@@ -26,7 +27,7 @@ from api.views.catalogs.all import CatalogsView
 router = routers.DefaultRouter()
 router.register(r'participant_type', ParticipantTypeViewSet, basename='catalog_participant_type')
 router.register(r'belong', BelongViewSet, basename='catalog_belong')
-router.register(r'indigenous_group', IndigenousGroupViewSet, basename='catalog_indigenous_group')
+# router.register(r'indigenous_group', IndigenousGroupViewSet, basename='catalog_indigenous_group')
 router.register(r'sector_group', SectorGroupViewSet, basename='catalog_sector_group')
 router.register(r'sector', SectorViewSet, basename='catalog_sector')
 router.register(r'interest_group', InterestGroupViewSet, basename='catalog_interest_group')
@@ -39,6 +40,8 @@ router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impac
 router.register(r'impact_type', ImpactTypeViewSet, basename='catalog_impact_type')
 router.register(r'source', SourceViewSet, basename='catalog_source')
 router.register(r'status_control', StatusControlViewSet, basename='catalog_status_control')
+router.register(r'status_project', StatusProjectViewSet, basename='catalog_status_project')
+
 router.register(r'extractivism_type', ExtractivismTypeViewSet, basename='catalog_extractivism_type')
 router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')
 # router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')

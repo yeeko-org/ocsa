@@ -6,7 +6,7 @@ all_collections = {
             "plural_name": "Notas",
             "model_name": "Note",
             "level": "primary",
-            "status_group": "register",
+            "status_groups": ["register"],
             "color": 'deep-purple',
             "icon": 'newspaper',
             "all_filters": [
@@ -29,8 +29,8 @@ all_collections = {
         },
         {
             "snake_name": "status_history",
-            "name": "Historial de estatus de proyecto",
-            "plural_name": "Historiales de estatus de proyectos",
+            "name": "Historial de estatus",
+            "plural_name": "Historial de estatus",
             "model_name": "StatusHistory",
             "level": "secondary",
         },
@@ -42,11 +42,11 @@ all_collections = {
             "plural_name": "Proyectos",
             "model_name": "Project",
             "level": "primary",
-            "status_group": "register",
+            "status_groups": ["validation"],
             "icon": 'factory',
             "color": 'purple',
             "sort_fields": [
-                'id', 'status_register__order', 'official_name',
+                'id', 'status_validation__order', 'official_name',
                 'status_location__order'
             ],
             "all_filters": [
@@ -64,7 +64,8 @@ all_collections = {
             "model_name": "ExtractivismType",
             "level": "category_type",
             "sort_fields": [
-                'status_validation__order', 'count',
+                # 'status_validation__order',
+                'count',
                 {'count': 'Cantidad de proyectos'},
             ],
         },
@@ -74,7 +75,7 @@ all_collections = {
             "plural_name": "Tipos de Megaproyecto",
             "model_name": "MegaprojectType",
             "level": "category_subtype",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "conflict",
@@ -84,6 +85,15 @@ all_collections = {
             "level": "primary",
             "icon": 'local_fire_department',
             "color": 'lime',
+            "status_groups": ["validation"],
+        },
+        {
+            "snake_name": "project_location",
+            "name": "Ubicación de Proyecto",
+            "plural_name": "Ubicaciones de Proyecto",
+            "model_name": "ProjectLocation",
+            "level": "relational",
+            "status_groups": ["location"],
         },
     ],
     "impact": [
@@ -100,7 +110,7 @@ all_collections = {
             "plural_name": "Tipos de Afectación",
             "model_name": "ImpactType",
             "level": "category_type",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "impact_subtype",
@@ -109,7 +119,7 @@ all_collections = {
             "model_name": "ImpactSubtype",
             "level": "category_subtype",
             "optional_category": True,
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "impact",
@@ -126,7 +136,7 @@ all_collections = {
             "plural_name": "Actores",
             "model_name": "Actor",
             "level": "primary",
-            "status_group": "validation",
+            "status_groups": ["validation"],
             "icon": 'recent_actors',
             "color": 'blue',
             "sort_fields": [
@@ -154,23 +164,24 @@ all_collections = {
             "plural_name": "Intereses",
             "model_name": "Interest",
             "level": "secondary",
+            "color": "cyan",
         },
     ],
     "classify": [
         {
             "snake_name": "participant_group",
-            "name": "Grupo de Participantes",
-            "plural_name": "Grupos de Participantes",
+            "name": "Tipo de Part.",
+            "plural_name": "Tipos de Participación",
             "model_name": "ParticipantGroup",
             "level": "category_type",
         },
         {
             "snake_name": "participant_type",
-            "name": "Tipo de Participación en Proyecto",
-            "plural_name": "Tipos de Participación en Proyecto",
+            "name": "Subtipo de Part.",
+            "plural_name": "Subtipos de Participación en Proyecto",
             "model_name": "ParticipantType",
             "level": "category_subtype",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "belong",
@@ -186,7 +197,7 @@ all_collections = {
             "plural_name": "Grupos Indígenas",
             "model_name": "IndigenousGroup",
             "level": "category_subtype",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "sector_group",
@@ -194,6 +205,7 @@ all_collections = {
             "plural_name": "Grupos Sectoriales",
             "model_name": "SectorGroup",
             "level": "category_type",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "sector",
@@ -201,7 +213,7 @@ all_collections = {
             "plural_name": "Sectores",
             "model_name": "Sector",
             "level": "category_subtype",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "interest_group",
@@ -216,7 +228,7 @@ all_collections = {
             "plural_name": "Tipos de interés",
             "model_name": "InterestType",
             "level": "category_subtype",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "interest_subtype",
@@ -224,7 +236,7 @@ all_collections = {
             "plural_name": "Subtipos de interés",
             "model_name": "InterestSubtype",
             "level": "category_subtype",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
     ],
     "event": [
@@ -235,7 +247,7 @@ all_collections = {
             "model_name": "Event",
             "level": "secondary",
             "icon": 'notifications_active',
-            "color": 'light-blue',
+            "color": 'lime',
         },
         {
             "snake_name": "event_group",
@@ -254,7 +266,7 @@ all_collections = {
             "plural_name": "Tipos de Eventos",
             "model_name": "EventType",
             "level": "category_type",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "event_subtype",
@@ -262,7 +274,7 @@ all_collections = {
             "plural_name": "Subtipos de Eventos",
             "model_name": "EventSubtype",
             "level": "category_subtype",
-            "status_group": "validation",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "involved_role",
@@ -284,6 +296,7 @@ all_collections = {
             "plural_name": "Ubicaciones de Eventos",
             "model_name": "EventLocation",
             "level": "relational",
+            "status_groups": ["location"],
         },
     ],
     "space_time": [
@@ -293,6 +306,7 @@ all_collections = {
             "plural_name": "Paises",
             "model_name": "Country",
             "level": "category_subtype",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "status_project",
@@ -300,6 +314,7 @@ all_collections = {
             "plural_name": "Status de Proyectos",
             "model_name": "StatusProject",
             "level": "category_subtype",
+            "status_groups": ["validation"],
         },
         {
             "snake_name": "state",

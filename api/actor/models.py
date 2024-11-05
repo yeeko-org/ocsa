@@ -60,7 +60,8 @@ class Actor(CommentsMixin, models.Model):
         max_length=15, choices=GEO_REACH_CHOICES, blank=True, null=True)
     belongs = models.ManyToManyField(Belong, blank=True)
     indigenous_group = models.ForeignKey(
-        IndigenousGroup, on_delete=models.CASCADE, blank=True, null=True)
+        IndigenousGroup, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='actors')
 
     capital_extension = JSONField(blank=True, null=True)
     # True cuando Opositor.mujer tiene valor y su id es mayor o igual a 2
@@ -68,7 +69,7 @@ class Actor(CommentsMixin, models.Model):
         max_length=10, choices=SEX_CHOICES, blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    # comments = models.TextField(blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
 
     capital_id_ref = models.IntegerField(blank=True, null=True)
 

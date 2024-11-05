@@ -1,17 +1,14 @@
 from rest_framework import viewsets, permissions
 from django_filters import FilterSet, NumberFilter
-from rest_framework.filters import SearchFilter, OrderingFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from api.pagination import CustomPagination
+from django.db.models import Count
 # from rest_framework.decorators import action
 # from rest_framework.response import Response
 
 from actor.models import Actor, Participant
-from api.merge_mix import FromToModelSerializer, MergeSerializerMixin
+from api.merge_mix import MergeSerializerMixin
 from classify.models import (
     ParticipantType,
     Belong,
-    IndigenousGroup,
     SectorGroup,
     Sector,
     InterestGroup,
@@ -28,7 +25,7 @@ from source.models import Source
 from work_flux.models import StatusControl
 
 from space_time.models import StatusProject
-from project.models import MegaprojectType, Project, ExtractivismType
+from project.models import MegaprojectType, ExtractivismType
 
 from api.views.catalogs.event_serializers import (
     EventGroupSerializer,
@@ -39,7 +36,6 @@ from api.views.catalogs.event_serializers import (
 from api.views.catalogs.classify_serializers import (
     ParticipantTypeSerializer,
     BelongSerializer,
-    IndigenousGroupSerializer,
     SectorGroupSerializer,
     SectorSerializer,
     InterestGroupSerializer,
@@ -59,6 +55,7 @@ from api.views.catalogs.project_serializers import (
     MegaprojectTypeFullSerializer,
 )
 from .all import CatalogsView  # noqa
+from ..common_views import BaseViewSet, BaseStatusViewSet
 
 
 class ParticipantTypeViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
@@ -95,20 +92,6 @@ class BelongViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
             .update(common_belongs=to_obj)
 
 
-class IndigenousGroupViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    queryset = IndigenousGroup.objects.all()
-    serializer_class = IndigenousGroupSerializer
-
-    def get_from_obj(self, from_id):
-        return IndigenousGroup.objects.get(id=from_id)
-
-    def update_relations_merge(self, from_obj, to_obj):
-        Actor.objects.filter(indigenous_group=from_obj)\
-            .update(indigenous_group=to_obj)
-
-
 class SectorGroupViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
@@ -135,6 +118,7 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
     def update_relations_merge(self, from_obj, to_obj):
         Actor.objects.filter(sector=from_obj)\
             .update(sector=to_obj)
+
 
 class InterestGroupViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
@@ -172,7 +156,6 @@ class EventSubtypeViewSet(viewsets.ModelViewSet):
 
 
 class InvolvedRoleViewSet(viewsets.ModelViewSet):
-    # from django.db.models import Count, F
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
     queryset = InvolvedRole.objects.all()
@@ -191,7 +174,6 @@ class ImpactSubtypeFilter(FilterSet):
 
 class ImpactSubtypeViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
-    from django.db.models import Count
 
     permission_classes = [permissions.AllowAny]
     queryset = ImpactSubtype.objects.all()
@@ -219,31 +201,24 @@ class StatusControlViewSet(viewsets.ModelViewSet):
     serializer_class = StatusControlSerializer
 
 
-class StatusProjectViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    queryset = StatusProject.objects.all()
+class StatusProjectViewSet(BaseStatusViewSet):
+    queryset = StatusProject.objects.all()\
+        .annotate(count=Count('projects'))\
+        .distinct()
     serializer_class = StatusProjectSerializer
 
 
-# class ExtractivismTypeViewSet(viewsets.ModelViewSet):
-#     # permission_classes = [permissions.IsAuthenticated]
-#     permission_classes = [permissions.AllowAny]
-#     queryset = ExtractivismType.objects.all()
-#     serializer_class = ExtractivismTypeSerializer
+class ExtractivismTypeViewSet(BaseViewSet):
+    queryset = ExtractivismType.objects.all()
+    serializer_class = ExtractivismTypeSerializer
 
-class BaseFilter(FilterSet):
-    pass
-
-
-class BaseViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
-
-    pagination_class = CustomPagination
-    filterset_class = BaseFilter
-    filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name']
-    ordering_fields = ['name', 'count', 'status_validation__order']
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': ExtractivismTypeFullSerializer,
+            'create': ExtractivismTypeSerializer,
+            'update': ExtractivismTypeSerializer
+        }
+        return action_serializer.get(self.action, self.serializer_class)
 
 
 class MegaprojectTypeFilter(FilterSet):
@@ -255,39 +230,14 @@ class MegaprojectTypeFilter(FilterSet):
         fields = {'status_validation': ['exact']}
 
 
-class ExtractivismTypeViewSet(BaseViewSet):
-    queryset = ExtractivismType.objects.all()
-    serializer_class = ExtractivismTypeSerializer
-    filterset_fields = ['status_validation']
-
-    def get_serializer_class(self):
-        action_serializer = {
-            'retrieve': ExtractivismTypeFullSerializer,
-            'create': ExtractivismTypeSerializer,
-            'update': ExtractivismTypeSerializer
-        }
-        return action_serializer.get(self.action, self.serializer_class)
-
-
-class MegaprojectTypeViewSet(viewsets.ModelViewSet):
-    # from django.db.models import Count, F
-    from django.db.models import Count
+class MegaprojectTypeViewSet(BaseViewSet):
 
     queryset = MegaprojectType.objects.all()\
         .annotate(count=Count('projects'))\
         .prefetch_related('extractivism_types', 'projects', 'status_validation')\
         .distinct()
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
 
-    pagination_class = CustomPagination
-    # filterset_class = MegaprojectTypeFilter
-    # filterset_class = BaseFilter
-    filterset_fields = ['status_validation', 'extractivism_types']
-    filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name']
-    ordering_fields = ['name', 'count', 'status_validation__order']
-
+    filterset_class = MegaprojectTypeFilter
     serializer_class = MegaprojectTypeCountSerializer
 
     def get_serializer_class(self):

@@ -13,8 +13,9 @@ from api.merge_mix import FromToModelSerializer, MergeSerializerMixin
 from api.pagination import CustomPagination
 from api.views.actor.massive_chages_serializers import MassiveChangeSerializer
 from api.views.actor.serializers import (
-    ActorBaseSerializer, ActorMiniSerializer, ActorCreateSerializer, ActorEditeSerializer,
-    ActorFullSerializer)
+    ActorBaseSerializer, ActorMiniSerializer, ActorCreateSerializer,
+    ActorEditeSerializer, ActorFullSerializer
+)
 
 
 class ActorFilter(FilterSet):
@@ -128,3 +129,5 @@ class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
 
 class ActorMiniListViewSet(ActorViewMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = ActorMiniSerializer
+
+

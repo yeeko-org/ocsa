@@ -10,7 +10,7 @@ class ClassifyConfig(AppConfig):
     def ready(self) -> None:
         from .initial_data import (
             ParticipantTypes, TemporalParticipantTypes, InitSectorGroups,
-            InitSector, InitBelongs, InitParticipantGroups)
+            InitSector, InitBelongs, InitParticipantGroups, InitInterestTypes)
 
         _ready = super().ready()
         valid_commands = ["runserver", "migrate_classify"]
@@ -22,5 +22,6 @@ class ClassifyConfig(AppConfig):
             TemporalParticipantTypes()
             InitSector()
             InitBelongs()
+            InitInterestTypes()
             print('Datos iniciales cargados.')
         return _ready

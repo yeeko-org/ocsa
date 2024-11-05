@@ -23,6 +23,45 @@ class InitLevels:
             )
 
 
+def field_of_models(collection: Collection):
+    from django.apps import apps
+    from django.db.models import CharField, TextField
+    app_name = collection.app_label
+    if not app_name:
+        raise Exception("app_name is required")
+    model_name = collection.model_name
+    my_model = apps.get_model(app_name, model_name)
+    all_fields = my_model._meta.get_fields(
+        include_parents=False, include_hidden=False)
+    fields = []
+    for field in all_fields:
+        field_type = "simple"
+        if field.one_to_many:
+            field_type = "one_to_many"
+        elif field.is_relation:
+            field_type = "relation"
+        complement = "_id" if field.is_relation else ""
+        # field_name = f"{field.name}{complement}"
+        # is_string = isinstance(field, TextField) or is_char
+        is_char = isinstance(field, CharField)
+        final_field = {
+            "name": field.name,
+            "real_name": f"{field.name}{complement}",
+            "field_type": field_type,
+            "verbose_name": field.verbose_name,
+            "is_string": isinstance(field, TextField) or is_char,
+            "is_massive": False,
+            "is_editable": True,
+        }
+        if is_char:
+            final_field["max_length"] = field.max_length
+        # set related_name if exists
+        if field.is_relation:
+            final_field["related_name"] = field.related_query_name()
+        fields.append(final_field)
+    return fields
+
+
 class InitCollections:
 
     def __init__(self):
@@ -40,8 +79,11 @@ class InitCollections:
                 new_collection.name = collection['name']
                 new_collection.plural_name = collection['plural_name']
                 new_collection.model_name = collection['model_name']
-                new_collection.status_group = collection.get('status_group', None)
-                new_collection.optional_category = collection.get('optional_category', False)
+                # new_collection.status_group = collection.get('status_group', None)
+                new_collection.status_groups = collection.get(
+                    'status_groups', None)
+                new_collection.optional_category = collection.get(
+                    'optional_category', False)
                 new_collection.icon = collection.get('icon', None)
                 new_collection.color = collection.get('color', None)
                 new_collection.order = order_base + order
@@ -49,6 +91,9 @@ class InitCollections:
                 new_collection.save()
                 # print(f"Order: {order_base + order}\n{defaults}")
             order_base += 10
+        for collection in Collection.objects.all():
+            collection.fields = field_of_models(collection)
+            collection.save()
 
 
 class InitFilterGroups:

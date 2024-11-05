@@ -49,6 +49,9 @@ class MegaprojectType(models.Model):
 class Conflict(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -80,8 +83,9 @@ class Project(models.Model):
         related_name='projects')
     is_grouper = models.BooleanField(default=False)
     status_project = models.ForeignKey(
-        StatusProject, on_delete=models.CASCADE, blank=True, null=True)
-    status_register = models.ForeignKey(
+        StatusProject, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='projects')
+    status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True,
         related_name='project_register')
     status_location = models.ForeignKey(
@@ -134,7 +138,7 @@ class ProjectLocation(models.Model):
         Project, on_delete=models.CASCADE, related_name='locations')
     location = models.ForeignKey(
         Location, on_delete=models.CASCADE, related_name='projects')
-    status_register = models.ForeignKey(
+    status_location = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):

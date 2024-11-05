@@ -5,9 +5,7 @@ from django_filters import FilterSet, NumberFilter
 from api.pagination import CustomPagination
 from impact.models import ImpactSubtype, ImpactType
 from api.views.catalogs.serializers import (
-    ImpactSubtypeSerializer,
-    ImpactTypeSerializer)
-
+    ImpactSubtypeSerializer, ImpactTypeSerializer)
 
 
 class ImpactSubtypeFilter(FilterSet):

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from api.views.common_serializers import CommonCount
 from classify.models import (
     ParticipantType,
     ParticipantGroup,
@@ -31,12 +31,6 @@ class ParticipantGroupSerializer(serializers.ModelSerializer):
 class BelongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Belong
-        fields = "__all__"
-
-
-class IndigenousGroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IndigenousGroup
         fields = "__all__"
 
 
@@ -77,4 +71,11 @@ class InterestSubtypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InterestSubtype
+        fields = "__all__"
+
+
+class IndigenousGroupSerializer(CommonCount):
+
+    class Meta:
+        model = IndigenousGroup
         fields = "__all__"

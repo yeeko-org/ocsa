@@ -5,7 +5,7 @@ from actor.migrate.poblacion_afectada import PoblacionAfectadaToActorMigration
 from actor.migrate.status_project import MigrateStatusProject
 from actor.migrate import (
     CapitalToActorMigration, EstadoToActorMigration, OpositorToActorMigration)
-from actor.models import Actor
+from actor.models import Actor, Interest
 from actor.migrate.identify_networks import (
     IdentifyNetworks, add_comment_to_only_related)
 from classify.models import (
@@ -90,8 +90,15 @@ class Command(BaseCommand):
             .update(status_validation_id='original')
         Sector.objects.filter(status_validation__isnull=True)\
             .update(status_validation_id='original')
-        InterestType.objects.filter(status_validation__isnull=True)\
-            .update(status_validation_id='original')
-        InterestSubtype.objects.filter(status_validation__isnull=True)\
-            .update(status_validation_id='original')
-
+        # InterestType.objects.filter(status_validation__isnull=True)\
+        #     .update(status_validation_id='original')
+        # InterestSubtype.objects.filter(status_validation__isnull=True)\
+        #     .update(status_validation_id='original')
+        default_ig = InterestGroup.objects.get(name='por definir')
+        default_it = InterestType.objects.get(name='por definir')
+        default_is = InterestSubtype.objects.get(name='por definir')
+        Interest.objects.all().update(
+            interest_group=default_ig,
+            interest_type=default_it,
+            interest_subtype=default_is
+        )

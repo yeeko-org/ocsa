@@ -1,7 +1,7 @@
 from work_flux.models import StatusControl
 from classify.models import (
-    ParticipantType, Belong, SectorGroup, Sector, ParticipantGroup)
-
+    ParticipantType, Belong, SectorGroup, Sector, ParticipantGroup,
+    InterestGroup, InterestType, InterestSubtype)
 
 init_participant_groups = {
     "oppose": {
@@ -200,3 +200,32 @@ class InitBelongs:
                 name=value,
                 icon=icon
             )
+
+
+class InitInterestTypes:
+
+    InterestGroup.objects.get_or_create(
+        name="Denuncia", defaults={"icon": "report", "order": 1})
+    InterestGroup.objects.get_or_create(
+        name="Reclamo", defaults={"icon": "gavel", "order": 2})
+    undefined_ig, _ = InterestGroup.objects.get_or_create(
+        name="Por definir", defaults={"icon": "help", "order": 3})
+    undefined_ig_it, _ = InterestType.objects.get_or_create(
+        name="por definir",
+        interest_group=undefined_ig,
+        defaults={
+            "order": 1,
+            "status_validation_id": "need_reclassify"
+        }
+    )
+    InterestSubtype.objects.get_or_create(
+        name="por definir",
+        interest_type=undefined_ig_it,
+        defaults={
+            "order": 1,
+            "status_validation_id": "need_reclassify"
+        }
+    )
+
+
+

@@ -4,7 +4,7 @@ from actor.models import Actor, OriginReference, Participant
 from project.models import Project
 from source.models import Mention, Note
 from space_time.models import Location
-
+# from api.views.catalogs.serializers import ProjectBaseSerializer
 from api.views.project.list_serializers import NoteBasicSerializer
 
 
@@ -127,3 +127,5 @@ class ActorCreateSerializer(serializers.ModelSerializer):
 
 class ActorEditeSerializer(ActorCreateSerializer):
     pass
+
+

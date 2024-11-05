@@ -27,6 +27,7 @@ class EventType(models.Model):
         EventGroup, on_delete=models.CASCADE, blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=20)
 
     def __str__(self):
@@ -44,6 +45,7 @@ class EventSubtype(models.Model):
     event_types = models.ManyToManyField(EventType, blank=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=10)
 
     def __str__(self):
@@ -114,7 +116,7 @@ class EventLocation(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     location = models.ForeignKey(
         Location, on_delete=models.CASCADE)
-    status_register = models.ForeignKey(
+    status_location = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):

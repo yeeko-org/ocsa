@@ -27,9 +27,10 @@ class ImpactType(models.Model):
     short_name = models.CharField(
         max_length=50, blank=True, null=True, help_text='Nombre corto')
     # is_social = models.BooleanField(default=True)
-    order = models.SmallIntegerField(default=0)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -47,6 +48,7 @@ class ImpactSubtype(models.Model):
     help_text = models.TextField(blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=0)
 
     def __str__(self):

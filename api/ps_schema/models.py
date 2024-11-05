@@ -26,6 +26,7 @@ class Collection(models.Model):
     GROUP_CHOICES = [
         ("register", "Registro"),
         ("validation", "Validación"),
+        ('location', 'Ubicación'),
     ]
 
     snake_name = models.CharField(
@@ -46,18 +47,20 @@ class Collection(models.Model):
     order = models.SmallIntegerField(
         default=5, verbose_name="Orden")
     icon = models.CharField(
-        max_length=225, blank=True, null=True, verbose_name="Icono")
+        max_length=225, blank=True, null=True, verbose_name="Ícono")
     color = models.CharField(
         max_length=225, blank=True, null=True, verbose_name="Color")
     help_text = models.TextField(
         blank=True, null=True, verbose_name="Texto de ayuda")
+    fields = models.JSONField(default=list, verbose_name="Campos")
     sort_fields = models.JSONField(
         default=list, verbose_name="Campos de ordenamiento")
 
     optional_category = models.BooleanField(
         default=False, verbose_name="Colección opcional")
-    status_group = models.CharField(
-        max_length=20, choices=GROUP_CHOICES, blank=True, null=True)
+    # status_group = models.CharField(
+    #     max_length=20, choices=GROUP_CHOICES, blank=True, null=True)
+    status_groups = models.JSONField(blank=True, null=True)
     all_filters = models.JSONField(
         default=list, verbose_name="Grupos de filtros")
 

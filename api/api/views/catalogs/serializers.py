@@ -1,19 +1,18 @@
 from rest_framework import serializers
 
+from api.views.common_serializers import CommonCount
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup
 from source.models import Source
+# from project.models import Project
 from work_flux.models import StatusControl
-
+# from api.views.actor.serializers import ProjectBaseSerializer
 from space_time.models import StatusProject
 
 from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
 
 
-class CommonCount(serializers.ModelSerializer):
-    count = serializers.ReadOnlyField()
+class StatusProjectSerializer(CommonCount):
 
-
-class StatusProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = StatusProject
         fields = "__all__"
@@ -43,8 +42,6 @@ class ImpactSubtypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImpactSubtype
         fields = "__all__"
-
-
 
 
 class SourceSerializer(serializers.ModelSerializer):

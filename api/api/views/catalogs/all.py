@@ -39,7 +39,7 @@ from api.views.catalogs.serializers import (
     LevelSerializer,
     CollectionSerializer,
     CollectionLinkSerializer,
-    FilterGroupSerializer
+    FilterGroupSerializer,
 )
 from api.views.catalogs.project_serializers import (
     MegaprojectTypeSerializer,
@@ -48,21 +48,24 @@ from api.views.catalogs.classify_serializers import (
     ParticipantTypeSerializer,
     ParticipantGroupSerializer,
     BelongSerializer,
-    IndigenousGroupSerializer,
     SectorGroupSerializer,
     SectorSerializer,
     InterestGroupSerializer,
     InterestTypeSerializer,
-    InterestSubtypeSerializer
+    InterestSubtypeSerializer,
+    IndigenousGroupSerializer,
 )
 
 from api.views.catalogs.event_serializers import (
     EventGroupSerializer,
     EventTypeSerializer,
     EventSubtypeSerializer,
-    InvolvedRoleSerializer)
+    InvolvedRoleSerializer,
+)
 from api.views.space_time.serializers import (
-    StateListSerializer, CountrySerializer)
+    StateListSerializer,
+    CountrySerializer,
+)
 from actor.models import Actor
 
 

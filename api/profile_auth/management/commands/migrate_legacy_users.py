@@ -29,7 +29,8 @@ class Command(BaseCommand):
             notes_count = notes_query.count()
             if notes_count == 0:
                 self.stdout.write(
-                    self.style.ERROR(f"Note with title {title} not found"))
+                    self.style.ERROR(
+                        f"Not found: Note with title {title}, owner: {owner}"))
 
                 not_found += 1
                 continue

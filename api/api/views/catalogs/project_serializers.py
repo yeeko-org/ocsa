@@ -3,7 +3,7 @@ from rest_framework import serializers
 from project.models import MegaprojectType, ExtractivismType
 
 from api.views.project.list_serializers import ProjectBasicSerializer
-from api.views.catalogs.serializers import CommonCount
+from api.views.common_serializers import CommonCount
 
 
 class MegaprojectTypeSerializer(serializers.ModelSerializer):
@@ -28,7 +28,8 @@ class MegaprojectTypeFullSerializer(MegaprojectTypeSerializer):
 
 
 class ExtractivismTypeSerializer(serializers.ModelSerializer):
-    megaproject_types = MegaprojectTypeCountSerializer(many=True)
+    megaproject_types = MegaprojectTypeCountSerializer(
+        many=True, read_only=True)
 
     class Meta:
         model = ExtractivismType

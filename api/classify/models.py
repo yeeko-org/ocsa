@@ -25,8 +25,8 @@ class ParticipantGroup(models.Model):
 
     class Meta:
         ordering = ['order']
-        verbose_name = 'Grupo de Participantes'
-        verbose_name_plural = 'Grupos de Participantes'
+        verbose_name = 'Tipo de Participante'
+        verbose_name_plural = 'Tipos de Participantes'
 
 
 class ParticipantType(models.Model):
@@ -40,6 +40,7 @@ class ParticipantType(models.Model):
         default=True, verbose_name='Se requerirá que se agreguen intereses')
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=5)
 
@@ -48,8 +49,8 @@ class ParticipantType(models.Model):
 
     class Meta:
         ordering = ['order']
-        verbose_name = 'Tipo de Participación en Proyecto'
-        verbose_name_plural = 'Tipos de Participación en Proyecto'
+        verbose_name = 'Subtipo de Participación en Proyecto'
+        verbose_name_plural = 'Subtipo de Participación en Proyecto'
 
 
 class Belong(models.Model):
@@ -73,6 +74,7 @@ class IndigenousGroup(models.Model):
     description = models.TextField(blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -98,7 +100,10 @@ class SectorGroup(models.Model):
     capital_type = models.CharField(
         max_length=10, choices=CAPITAL_TYPES, blank=True, null=True)
     icon = models.CharField(max_length=90, blank=True, null=True)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     order = models.SmallIntegerField(default=10)
+    comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -120,6 +125,7 @@ class Sector(models.Model):
         Belong, blank=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=50)
 
     def __str__(self):
@@ -164,6 +170,7 @@ class InterestType(models.Model):
         ParticipantType, blank=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=5)
 
     def __str__(self):
@@ -181,6 +188,7 @@ class InterestSubtype(models.Model):
     description = models.TextField(blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=20)
 
     def __str__(self):

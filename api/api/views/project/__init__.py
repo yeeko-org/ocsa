@@ -33,7 +33,7 @@ class ProjectFilter(FilterSet):
     class Meta:
         model = Project
         fields = {
-            'status_register': ['exact'],
+            'status_validation': ['exact'],
             'megaproject_type': ['exact'],
             'status_project': ['exact'],
         }
@@ -64,7 +64,7 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
         # "description"
     ]
     ordering_fields = [
-        'id', 'official_name', 'status_register__order', 'status_location__order']
+        'id', 'official_name', 'status_validation__order', 'status_location__order']
     ordering = ['id']
 
     serializer_class = ProjectBasicSerializer

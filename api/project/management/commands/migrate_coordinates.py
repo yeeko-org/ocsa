@@ -3,7 +3,6 @@ from django.core.management.base import BaseCommand
 
 from project.models import Project, ProjectLocation
 from space_time.models import Location
-from work_flux.models import StatusControl
 
 
 class Command(BaseCommand):
@@ -23,11 +22,6 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(
                     'El archivo debe contener las columnas "Latitud" y "Longitud"'))
                 return
-
-            _ = StatusControl.objects.get_or_create(
-                name="new_location",
-                public_name="new_location",
-            )
 
             for index, row in df.iterrows():
                 mp_id = row['ID']
@@ -88,7 +82,7 @@ class Command(BaseCommand):
                 continue
             if (
                 round(location.latitude, 3) == round(lat_dd, 3) and
-                round(location.longitude, 3) == round(lon_dd, 6)
+                round(location.longitude, 3) == round(lon_dd, 3)
             ):
                 exist_location = True
                 break
@@ -103,7 +97,9 @@ class Command(BaseCommand):
         _ = ProjectLocation.objects.create(
             project=project,
             location=location,
-            status_register_id="new_location"
+            status_location_id="approved_v1"
         )
+        project.status_location_id = "approved_v1"
+        project.save()
         self.stdout.write(self.style.SUCCESS(
             f"Coordenadas registradas para el proyecto {project} en {location}"))
