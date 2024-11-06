@@ -95,7 +95,7 @@ class MigrateViolenciaToEvent(EventBase):
 
         project_name = self.mention.project.name
         sector_s_name = (
-            f"Víctima del sector {sector_s_name} del proyecto {name}")
+            f"Víctima del sector {sector_s_name} del proyecto {project_name}")
         sector_social_actor, _ = self.get_actor(sector_s_name)
 
         similar_count = Sector.objects.filter(
@@ -115,7 +115,7 @@ class MigrateViolenciaToEvent(EventBase):
             sector_social_actor, self.mention, get_object=True)
 
     def get_not_generic_name(self, name: str) -> str:
-        return f"{name} del proyecto {self.mention.project.sname}"
+        return f"{name} del proyecto {self.mention.project.name}"
 
     def set_responsables(self, resp_type: str):
         field = f"responsable_{resp_type}_desc"
