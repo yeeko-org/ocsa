@@ -7,7 +7,6 @@ from api.views.project.list_serializers import (
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
-from space_time.models import StatusProject
 
 
 class ConflictSerializer(serializers.ModelSerializer):
@@ -66,11 +65,15 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     files = ProjectFileSerializer(many=True)
     parent_project = serializers.SerializerMethodField()
     conflict = ConflictSerializer()
+    extractivism_type = serializers.SerializerMethodField()
     mentions = MentionFullSerializer(many=True)
 
     def get_parent_project(self, obj):
         if obj.parent_project:
             return ProjectFullSerializer(obj.parent_project).data
+
+    def get_extractivism_type(self, obj):
+        return None
 
     class Meta:
         model = Project

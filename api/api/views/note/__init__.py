@@ -1,7 +1,6 @@
 from django_filters import FilterSet, DateFilter
 from django_filters.rest_framework import DjangoFilterBackend
-
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, permissions
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -27,6 +26,7 @@ class NoteFilter(FilterSet):
 
 
 class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
     queryset = Note.objects.all()\
         .prefetch_related(
             'mentions',

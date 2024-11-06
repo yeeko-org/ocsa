@@ -37,7 +37,7 @@ class Command(BaseCommand):
         all_projects = Project.objects.all()
         for project in all_projects:
             if not project.files.exists():
-                self.projects_without_files.append(project.official_name)
+                self.projects_without_files.append(project.name)
 
         result_data = {
             "unreferenced_files": self.unreferenced_files,

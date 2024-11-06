@@ -25,7 +25,7 @@ class InitLevels:
 
 def field_of_models(collection: Collection):
     from django.apps import apps
-    from django.db.models import CharField, TextField
+    from django.db.models import CharField, TextField, IntegerField
     app_name = collection.app_label
     if not app_name:
         raise Exception("app_name is required")
@@ -35,30 +35,65 @@ def field_of_models(collection: Collection):
         include_parents=False, include_hidden=False)
     fields = []
     for field in all_fields:
-        field_type = "simple"
+        relation_type = "simple"
         if field.one_to_many:
-            field_type = "one_to_many"
+            relation_type = "one_to_many"
         elif field.is_relation:
-            field_type = "relation"
+            if field.many_to_many:
+                relation_type = "many_to_many"
+            elif field.one_to_one:
+                relation_type = "one_to_one"
+            else:
+                relation_type = "relation"
+
         complement = "_id" if field.is_relation else ""
         # field_name = f"{field.name}{complement}"
         # is_string = isinstance(field, TextField) or is_char
+        field_type = "unknown"
+        width = 100
+        if isinstance(field, TextField):
+            field_type = "text"
+            width = 200
+        if isinstance(field, CharField):
+            field_type = "char"
+            width = 150
+        if isinstance(field, IntegerField):
+            field_type = "integer"
+            width = 80
+
         is_char = isinstance(field, CharField)
         final_field = {
             "name": field.name,
             "real_name": f"{field.name}{complement}",
+            "relation_type": relation_type,
             "field_type": field_type,
-            "verbose_name": field.verbose_name,
             "is_string": isinstance(field, TextField) or is_char,
             "is_massive": False,
             "is_editable": True,
+            "width": width,
         }
+        try:
+            final_field["verbose_name"] = field.verbose_name
+        except AttributeError:
+            pass
         if is_char:
             final_field["max_length"] = field.max_length
         # set related_name if exists
+        final_field["is_primary_key"] = field.primary_key
         if field.is_relation:
-            final_field["related_name"] = field.related_query_name()
+            try:
+                final_field["related_name"] = field.related_query_name()
+            except TypeError:
+                pass
+            try:
+                meta = field.related_model._meta
+                final_field["related_model"] = meta.object_name
+                final_field["related_app_label"] = meta.app_label
+            except AttributeError:
+                pass
         fields.append(final_field)
+    # sort_by_relation_type = sorted(
+    #     fields, key=lambda x: x['relation_type'])
     return fields
 
 

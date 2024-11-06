@@ -79,12 +79,13 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             "id",
+            "name",
             "official_name",
             "description",
             "comments",
             "mentions",
             "megaproject_type",
             "locations",
-            "status_register",
+            "status_validation",
             "status_project",
         ]

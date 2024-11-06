@@ -206,7 +206,7 @@ class ProyectoToProject:
         is_grouper = proyecto.escala == "Cluster"
         project = Project.objects.create(
             legacy_id_mp=proyecto.id_mp,
-            official_name=proyecto.nombre,
+            name=proyecto.nombre,
             is_grouper=is_grouper,
             megaproject_type=megaproject_type,
             description=description,
@@ -237,9 +237,9 @@ class ProyectoToProject:
             project_a.save()
             return
 
-        name = f"AGRUPADOR CREADO desde {project_b.official_name}"
+        name = f"AGRUPADOR CREADO desde {project_b.name}"
         project_c, _ = Project.objects.get_or_create(
-            official_name=name,
+            name=name,
             conflict=project_b.conflict,
             megaproject_type=project_b.megaproject_type,
             is_grouper=True,

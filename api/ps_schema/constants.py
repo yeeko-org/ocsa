@@ -46,7 +46,7 @@ all_collections = {
             "icon": 'factory',
             "color": 'purple',
             "sort_fields": [
-                'id', 'status_validation__order', 'official_name',
+                'id', 'status_validation__order', 'name',
                 'status_location__order'
             ],
             "all_filters": [

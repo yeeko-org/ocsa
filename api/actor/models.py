@@ -104,7 +104,7 @@ class Actor(CommentsMixin, models.Model):
         return self.sector.sector_group_id if self.sector else None  # type: ignore
 
     def __str__(self):
-        return self.official_name or self.name
+        return self.name
 
     class Meta:
         verbose_name = 'Actor'
