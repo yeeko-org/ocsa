@@ -204,28 +204,31 @@ class InitBelongs:
 
 class InitInterestTypes:
 
-    InterestGroup.objects.get_or_create(
-        name="Denuncia", defaults={"icon": "report", "order": 1})
-    InterestGroup.objects.get_or_create(
-        name="Reclamo", defaults={"icon": "gavel", "order": 2})
-    undefined_ig, _ = InterestGroup.objects.get_or_create(
-        name="Por definir", defaults={"icon": "help", "order": 3})
-    undefined_ig_it, _ = InterestType.objects.get_or_create(
-        name="por definir",
-        interest_group=undefined_ig,
-        defaults={
-            "order": 1,
-            "status_validation_id": "need_reclassify"
-        }
-    )
-    InterestSubtype.objects.get_or_create(
-        name="por definir",
-        interest_type=undefined_ig_it,
-        defaults={
-            "order": 1,
-            "status_validation_id": "need_reclassify"
-        }
-    )
+    def __init__(self):
+
+
+        InterestGroup.objects.get_or_create(
+            name="Denuncia", defaults={"icon": "report", "order": 1})
+        InterestGroup.objects.get_or_create(
+            name="Reclamo", defaults={"icon": "gavel", "order": 2})
+        undefined_ig, _ = InterestGroup.objects.get_or_create(
+            name="Por definir", defaults={"icon": "help", "order": 3})
+        undefined_ig_it, _ = InterestType.objects.get_or_create(
+            name="por definir",
+            interest_group=undefined_ig,
+            defaults={
+                "order": 1,
+                "status_validation_id": "need_reclassify"
+            }
+        )
+        InterestSubtype.objects.get_or_create(
+            name="por definir",
+            interest_type=undefined_ig_it,
+            defaults={
+                "order": 1,
+                "status_validation_id": "need_reclassify"
+            }
+        )
 
 
 
