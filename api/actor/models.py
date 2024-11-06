@@ -5,7 +5,7 @@ from space_time.models import Country
 from django.db.models import JSONField
 from work_flux.models import StatusControl, CommentsMixin
 from classify.models import (
-    ParticipantType, Belong, IndigenousGroup, Sector, InterestType)
+    InterestSubtype, ParticipantType, Belong, IndigenousGroup, Sector)
 # from work_flux.models import StatusRegister
 
 
@@ -163,8 +163,9 @@ class Participant(models.Model):
 class Interest(models.Model):
     participant = models.ForeignKey(
         Participant, on_delete=models.CASCADE, related_name='interests')
-    interest_type = models.ForeignKey(
-        InterestType, on_delete=models.CASCADE, blank=True, null=True)
+    interest_subtype = models.ForeignKey(
+        InterestSubtype, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='interests')
     text = models.TextField()
 
     def __str__(self):

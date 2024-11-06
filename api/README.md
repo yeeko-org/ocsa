@@ -5,6 +5,7 @@ los datos de ubicacion tienen que cargarse primero antes de las migracion de dat
 orden de ejecucion de migracion de datos:
 
 python .\manage.py  migrate
+python .\manage.py  runserver
 
 python .\manage.py  migrate_ps_schemas
 

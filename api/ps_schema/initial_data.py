@@ -79,7 +79,7 @@ def field_of_models(collection: Collection):
         if is_char:
             final_field["max_length"] = field.max_length
         # set related_name if exists
-        final_field["is_primary_key"] = field.primary_key
+        # final_field["is_primary_key"] = field.primary_key
         if field.is_relation:
             try:
                 final_field["related_name"] = field.related_query_name()

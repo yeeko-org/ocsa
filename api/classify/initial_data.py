@@ -212,7 +212,7 @@ class InitInterestTypes:
         InterestGroup.objects.get_or_create(
             name="Reclamo", defaults={"icon": "gavel", "order": 2})
         undefined_ig, _ = InterestGroup.objects.get_or_create(
-            name="Por definir", defaults={"icon": "help", "order": 3})
+            name="por definir", defaults={"icon": "help", "order": 3})
         undefined_ig_it, _ = InterestType.objects.get_or_create(
             name="por definir",
             interest_group=undefined_ig,
