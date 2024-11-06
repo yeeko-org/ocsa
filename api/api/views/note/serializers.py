@@ -83,8 +83,8 @@ class NoteSerializer(serializers.ModelSerializer):
 
 
 class NoteFullSerializer(serializers.ModelSerializer):
-    files = NoteFileSerializer(many=True)
-    mentions = MentionMegaFullSerializer(many=True)
+    files = NoteFileSerializer(many=True, read_only=True)
+    mentions = MentionMegaFullSerializer(many=True, read_only=True)
 
     class Meta:
         model = Note
