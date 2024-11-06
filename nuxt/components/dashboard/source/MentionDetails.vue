@@ -4,6 +4,7 @@ import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
 import { computed } from "vue";
+import ActorSearch from "~/components/dashboard/actor/ActorSearch.vue";
 
 const props = defineProps({
   mention: Object,
@@ -12,7 +13,8 @@ const props = defineProps({
     default: false,
   },
 })
-
+const dialog_search = ref(false)
+const actor_in_edition = ref(null)
 const all_actors = computed(() => {
   return props.mention.participants.map(participant => {
     return {...participant.actor, ...participant}
@@ -21,6 +23,8 @@ const all_actors = computed(() => {
 
 function editItem(item) {
   console.log("edit item", item)
+  actor_in_edition.value = item
+  dialog_search.value = true
 }
 
 function saveMention() {
@@ -35,9 +39,9 @@ function saveMention() {
     _md="is_full ? 6 : 12"
   >
     <v-card variant="outlined" color="indigo-lighten-1">
-      <div class="px-3 py-2" v-if="is_full">
+      <div class="px-3 py-2" v-if="mention.project">
         <div class="text-h6">
-          {{ mention.project.official_name }}
+          {{ mention.project.name }}
         </div>
         <div class="d-flex flex-wrap">
           <StatusChip
@@ -55,38 +59,46 @@ function saveMention() {
           />
         </div>
       </div>
-      <div class="px-3 py-2" v-else-if="mention.note">
-        <div class="text-h6 d-flex">
-          <v-icon>
-            newspaper
-          </v-icon>
-          {{ mention.note.title }}
-          <v-btn
-            v-if="mention.note.link"
-            color="accent"
-            icon
-            :href="mention.note.link"
-            target="_blank"
-            class="ml-2"
-            size="small"
-            variant="text"
-          >
-            <v-icon>open_in_new</v-icon>
-          </v-btn>
-        </div>
-        <div class="d-flex flex-wrap">
-          <span v-if="mention.note.section">
-            <b>Sección:</b> {{ mention.note.section }}
-          </span>
-          <StatusChip
-            :main="mention.note"
-            collection="register"
-            left_label
-            class="mb-1"
-            bold_text
-          />
-        </div>
+      <div v-else>
+        <v-btn
+          color="accent"
+          variant="elevated"
+        >
+          Agregar proyecto
+        </v-btn>
       </div>
+<!--      <div class="px-3 py-2" v-else-if="mention.note">-->
+<!--        <div class="text-h6 d-flex">-->
+<!--          <v-icon>-->
+<!--            newspaper-->
+<!--          </v-icon>-->
+<!--          {{ mention.note.title }}-->
+<!--          <v-btn-->
+<!--            v-if="mention.note.link"-->
+<!--            color="accent"-->
+<!--            icon-->
+<!--            :href="mention.note.link"-->
+<!--            target="_blank"-->
+<!--            class="ml-2"-->
+<!--            size="small"-->
+<!--            variant="text"-->
+<!--          >-->
+<!--            <v-icon>open_in_new</v-icon>-->
+<!--          </v-btn>-->
+<!--        </div>-->
+<!--        <div class="d-flex flex-wrap">-->
+<!--          <span v-if="mention.note.section">-->
+<!--            <b>Sección:</b> {{ mention.note.section }}-->
+<!--          </span>-->
+<!--          <StatusChip-->
+<!--            :main="mention.note"-->
+<!--            collection="register"-->
+<!--            left_label-->
+<!--            class="mb-1"-->
+<!--            bold_text-->
+<!--          />-->
+<!--        </div>-->
+<!--      </div>-->
       <v-divider></v-divider>
       <v-row class="py-3 mx-0">
         <ToolbarCommon
@@ -139,20 +151,28 @@ function saveMention() {
           field="participants"
           slot_before
           two_columns
+          :additional_fields="['interests']"
           color="blue"
         >
           <template #rows_init="{ item }">
             <v-chip
-              class="py-1 mb-2"
+              v-if="item.actor"
+              class="mb-2"
               prepend-icon="recent_actors"
               :text="item.actor.name"
               color="indigo lighten-4"
-              closable
-              close-icon="edit"
-              close-label="Editar"
-              @click:close="editItem(item)"
+              append-icon="edit"
+              @click="editItem(item)"
             >
             </v-chip>
+            <v-btn
+              v-else
+              color="accent"
+              variant="elevated"
+              @click="editItem(item)"
+            >
+              Agregar participante
+            </v-btn>
           </template>
           <template #second-column="{ item }">
             <ToolbarCommon
@@ -189,6 +209,7 @@ function saveMention() {
           field="events"
           two_columns
           color="lime"
+          :additional_fields="['involvements']"
         >
           <template #rows="{ item }">
             <v-text-field
@@ -270,6 +291,12 @@ function saveMention() {
         </v-col>
       </v-row>
     </v-card>
+    <v-dialog v-model="dialog_search">
+      <ActorSearch
+        :full_main="actor_in_edition"
+        @close-dialog="dialog_search = false"
+      />
+    </v-dialog>
   </v-col>
 </template>
 

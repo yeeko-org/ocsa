@@ -28,6 +28,14 @@ const full_note = computed(() => {
 
 const addMention = () => {
   console.log("add mention")
+  const new_mention = {
+    note: props.full_main.id,
+    events: [],
+    impacts: [],
+    participants: [],
+    status_history: [],
+  }
+  props.full_main.mentions.push(new_mention)
 }
 
 </script>

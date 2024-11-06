@@ -1,6 +1,6 @@
 <script setup>
 
-import {computed} from "vue";
+import {computed, nextTick} from "vue";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 const mainStore = useMainStore()
@@ -11,8 +11,12 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  filter_group_name: String,
+  filter_group_name: {
+    type: String,
+    required: true,
+  },
   is_filter: Boolean,
+  is_toolbar: Boolean,
   main_collection: Object,
   category_group_value: Number,
   forced_level: String,
@@ -145,8 +149,8 @@ const subtype_field = computed(() => {
 })
 
 const type_label = computed(() => {
-  console.log("collections", collections.value)
-  console.log("filter_node", filter_node.value)
+  // console.log("collections", collections.value)
+  // console.log("filter_node", filter_node.value)
   if (!collections.value.type)
     return "??"
   if (props.is_filter && group_object.value && level_names.value.group)
@@ -154,7 +158,7 @@ const type_label = computed(() => {
   return collections.value.type.name
 })
 
-const display_subtype = computed(() => {
+const display_type = computed(() => {
   // v-if="level_names.type && (forced_level ? (main_object[level_names.type] || type_items) : true)"
   if (!level_names.value.type)
     return false
@@ -162,42 +166,71 @@ const display_subtype = computed(() => {
     ? (props.main_object[level_names.value.type] || type_items.value)
     : true
 })
+const display_indirect_type = computed(() => {
+  if (props.is_filter)
+    return false
+  return props.main_object[level_names.value.type] === undefined
+})
+
+const subtype_object = computed(() => {
+  return 2
+})
+
+nextTick(() => {
+  setTimeout(() => {
+    if (props.is_filter || props.is_toolbar)
+      return
+    if (props.main_object[level_names.value.subtype]
+        && !props.main_object[level_names.value.type]){
+      if (nodes.value.subtype)
+        props.main_object[level_names.value.type] = nodes.value.subtype.parent.data.id
+    }
+  }, 10)
+})
+
 
 </script>
 
 <template>
-  <template v-if="!is_filter">
-    <div
-      v-if="collections.group && !is_filter"
-      class="d-flex mr-2 flex-column"
-    >
-      <v-chip
-        class="mr-1"
-        :color="group_object.color"
-        min-width="150"
-        :prepend-icon="group_object.icon"
-      >
-        {{ group_object.name }}
-      </v-chip>
+  <template v-if="is_toolbar">
+    <v-col cols="12" class="d-flex px-0 pt-1">
       <v-btn
-        size="x-small"
-        color="error"
-        variant="outlined"
-        class="mt-1"
         @click="emit('delete-record')"
+        icon="delete"
+        color="error"
+        variant="text"
+        class="mr-2 mt-n2 ml-n2"
       >
-        Eliminar
       </v-btn>
-    </div>
-    <v-btn
-      v-else
-      @click="emit('delete-record')"
-      icon="delete"
-      color="error"
-      variant="tonal"
-      class="mr-2"
-    >
-    </v-btn>
+      <slot name="chip">
+        <div
+          v-if="collections.group && is_toolbar"
+          class="d-flex mr-2 flex-column"
+        >
+          <v-chip
+            class="mr-1"
+            :color="group_object.color"
+            min-width="150"
+            :prepend-icon="group_object.icon"
+          >
+            {{ group_object.name }}
+          </v-chip>
+  <!--        <v-btn-->
+  <!--          size="x-small"-->
+  <!--          color="error"-->
+  <!--          variant="outlined"-->
+  <!--          class="mt-1"-->
+  <!--          @click="emit('delete-record')"-->
+  <!--        >-->
+  <!--          Eliminar-->
+  <!--        </v-btn>-->
+        </div>
+        <v-chip v-else variant="outlined" color="grey" min-width="150" label>
+          {{ main_collection.name }}
+        </v-chip>
+      </slot>
+
+    </v-col>
   </template>
   <div v-else-if="collections.group && forced_level">
     <v-select
@@ -214,21 +247,27 @@ const display_subtype = computed(() => {
     >
     </v-select>
   </div>
-  <v-select
-    v-if="display_subtype"
-    v-model="main_object[level_names.type]"
-    :items="type_items"
-    item-title="name"
-    item-value="id"
-    :label="type_label"
-    _density="density"
-    variant="outlined"
-    :clearable="is_filter"
-    style="max-width: 250px; min-width: 250px;"
-    class="ml-2"
-    _style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
-  >
+  <template v-if="display_type">
+<!--    <div-->
+<!--      v-if="display_indirect_type"-->
+<!--    >-->
+<!--      Hola mundo {{subtype_object}}-->
+<!--    </div>-->
 
+<!--      v-else-->
+    <v-select
+      v-model="main_object[level_names.type]"
+      :items="type_items"
+      item-title="name"
+      item-value="id"
+      :label="type_label"
+      _density="density"
+      variant="outlined"
+      :clearable="is_filter"
+      style="max-width: 250px; min-width: 250px;"
+      class="ml-2"
+      _style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
+    >
 <!--    <template #item="{ item, props: {onClick, title, value} }" v-if="true">-->
 <!--      <v-list-item-->
 <!--        @click="onClick"-->
@@ -244,7 +283,10 @@ const display_subtype = computed(() => {
 <!--        </v-list-item-subtitle>-->
 <!--      </v-list-item>-->
 <!--    </template>-->
-  </v-select>
+    </v-select>
+  </template>
+
+
   <v-select
     v-if="subtype_items && level_names.subtype"
     v-model="main_object[subtype_field]"

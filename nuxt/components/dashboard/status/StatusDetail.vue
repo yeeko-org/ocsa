@@ -12,6 +12,7 @@ const mainStore = useMainStore()
 const props = defineProps({
   final_filters: Object,
   collection: String,
+  is_filter: Boolean,
   collection_group: {
     type: String,
     default: "status",
@@ -54,10 +55,11 @@ const field = computed(() => `status_${props.collection}`);
     :items="items_built"
     item-title="public_name"
     item-value="name"
-    :density="density"
+    density="comfortable"
     variant="outlined"
-    clearable
+    :clearable="is_filter"
     :label="label"
+    width="320"
   >
     <template #item="{ item, props: {onClick, title, value} }" v-if="true">
       <v-list-item

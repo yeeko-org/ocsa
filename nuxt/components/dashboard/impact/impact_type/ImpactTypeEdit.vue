@@ -91,15 +91,6 @@ const merge_fields = ref([])
         label="¿Tiene subtipos?"
         class="ml-2"
       />
-      <StatusDetail
-        v-if="!is_massive_edit || merge_fields.includes('status_validation')"
-        :final_filters="full_main"
-        collection="validation"
-        style="max-width: 300px;"
-        class="ml-2"
-        density="default"
-        :clearable="false"
-      />
     </v-col>
     <v-col cols="12">
       <v-textarea

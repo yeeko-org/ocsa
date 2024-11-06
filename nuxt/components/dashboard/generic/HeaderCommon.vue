@@ -2,6 +2,7 @@
 import {computed, nextTick, watch} from "vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import {show_details} from "~/composables/fetch.js";
+import CommentIcon from "~/components/dashboard/common/CommentIcon.vue";
 
 const props = defineProps({
   main: Object,
@@ -30,6 +31,8 @@ const title_text = computed(() => {
 })
 
 const background_color = computed(() => {
+  // console.log("main", props.main)
+  // console.log("collection", props.collection_data)
   const base_color = props.collection_data.color || 'blue-grey'
   return `${base_color}-lighten-5`
 })
@@ -120,6 +123,11 @@ const emit = defineEmits(['open-panel'])
           class="ml-1"
         />
       </template>
+      <CommentIcon
+        v-if="main.comments"
+        :main="main"
+        class="ml-1"
+      />
       <slot  name="details">
         ---
       </slot>

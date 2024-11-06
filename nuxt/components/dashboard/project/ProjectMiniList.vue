@@ -19,14 +19,14 @@ const props = defineProps({
       v-for="mention in mentions"
       class="ml-2 text-grey-darken-2 d-flex"
       style="width: 250px; max-height: 16px; overflow: hidden;"
-      v-tooltip:bottom="mention.project.official_name"
+      v-tooltip:bottom="mention.project.name"
     >
       <ExtractivismIcons
         :project="mention.project"
         is_small
       />
       <span class="ml-1">
-      {{ mention.project.official_name }}
+      {{ mention.project.name }}
     </span>
     </div>
   </div>

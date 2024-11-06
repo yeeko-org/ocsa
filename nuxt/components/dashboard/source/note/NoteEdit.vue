@@ -1,9 +1,10 @@
 <script setup>
+import dayjs from 'dayjs'
 
 import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
-import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
-import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
+import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 const props = defineProps({
+  is_massive_edit: Boolean,
   is_edit: Boolean,
   full_main: {
     type: Object,
@@ -17,6 +18,11 @@ const addMention = () => {
     props.full_main.mentions = []
   }
   props.full_main.mentions.push({})
+}
+
+function editDate(date) {
+  console.log("edit date", date)
+  props.full_main.date = dayjs(date).format('YYYY-MM-DD')
 }
 
 </script>
@@ -41,14 +47,32 @@ const addMention = () => {
     class="mr-2"
     density="default"
   />
-  <v-text-field
-    v-model="full_main.section"
-    label="Sección"
-    variant="outlined"
-    class="mr-2"
-    style="width: 200px;"
-  >
-  </v-text-field>
+  <div class="d-flex" style="width: 100%;">
+    <SelectGroup
+      :main_object="full_main"
+      filter_group_name="source_types"
+
+    />
+    <v-text-field
+      v-model="full_main.section"
+      label="Sección"
+      variant="outlined"
+      class="ml-2"
+      style="width: 200px;"
+    >
+    </v-text-field>
+<!--    <SelectDate-->
+<!--      :init_date="full_main.date"-->
+<!--      @update:date="editDate($event)"-->
+<!--    />-->
+    <v-date-input
+      v-model="full_main.date_raw"
+      @update:modelValue="editDate"
+      label="Fecha de la nota"
+      class="ml-2"
+      max-width="368"
+    ></v-date-input>
+  </div>
   <v-text-field
     v-model="full_main.link"
     label="Enlace a la nota"
@@ -57,12 +81,6 @@ const addMention = () => {
     style="width: 600px;"
   >
   </v-text-field>
-  <StatusDetail
-    :final_filters="full_main"
-    collection="register"
-    style="max-width: 300px;"
-    density="default"
-  />
 <!--  <v-card v-if="full_main">-->
 <!--    <v-card-title>-->
 <!--      <div class="d-flex">-->

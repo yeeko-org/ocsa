@@ -1,8 +1,9 @@
 <script setup>
 import {ref, computed, nextTick} from 'vue'
-import {useMainStore} from "~/store/index.js";
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
+import Comments from "~/components/dashboard/common/Comments.vue";
 
+import {useMainStore} from "~/store/index.js";
 const mainStore = useMainStore()
 const { getSimple, saveSimple, editSimple } = mainStore
 
@@ -27,7 +28,6 @@ const final_snake_name = computed(() => {
     snake_name = `catalogs/${snake_name}`
   return snake_name
 })
-
 
 const openMain = () => {
   // const group = props.group
@@ -100,12 +100,13 @@ function saveRecord() {
             <v-card-text
               class="d-flex flex-wrap"
             >
-
               <div class="d-flex" style="width: 100%;">
                 <v-text-field
+                  v-if="collection_data.fields.some(f => f.name === name_field)"
                   v-model="full_main.name"
                   label="Nombre"
                   class="mr-2"
+                  variant="outlined"
                   style="width: 300px;"
                 />
                 <v-spacer></v-spacer>
@@ -118,7 +119,10 @@ function saveRecord() {
                     density="default"
                   />
                 </template>
-
+                <Comments
+                  v-if="collection_data.fields.some(f => f.name === 'comments')"
+                  :main="full_main"
+                />
               </div>
 
               <slot name="edit" :full_main="full_main">

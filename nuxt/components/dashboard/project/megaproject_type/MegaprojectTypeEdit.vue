@@ -16,15 +16,6 @@ const props = defineProps({
 
 <template>
   <v-row>
-    <v-col cols="auto">
-      <v-text-field
-        v-model="full_main.name"
-        label="Nombre del tipo de megaproyecto"
-        width="360"
-        variant="outlined"
-      >
-      </v-text-field>
-    </v-col>
     <v-col>
       <v-text-field
         v-model="full_main.order"
@@ -34,28 +25,6 @@ const props = defineProps({
         variant="outlined"
       >
       </v-text-field>
-    </v-col>
-    <v-col>
-      <GenericSelect
-        v-if="false"
-        :final_filters="full_main"
-        field="extractivism_types"
-        collection="extractivism_types"
-        label="Tipos de extractivismo"
-        :clearable="false"
-        density="default"
-        width="260"
-        multiple
-      />
-    </v-col>
-    <v-col>
-      <StatusDetail
-        :final_filters="full_main"
-        collection="validation"
-        _style="max-width: 300px;"
-        width="300"
-        :clearable="false"
-      />
     </v-col>
     <v-col cols="12">
       <v-textarea

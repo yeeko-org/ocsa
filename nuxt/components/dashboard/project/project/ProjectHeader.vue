@@ -54,7 +54,7 @@ const states_tooltip = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
-    name_field="official_name"
+    name_field="name"
   >
     <template #icon>
       <ExtractivismIcons

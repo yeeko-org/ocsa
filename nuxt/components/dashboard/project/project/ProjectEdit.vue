@@ -1,9 +1,8 @@
 <script setup>
 
-import MegaProjectType from "~/components/dashboard/project/MegaProjectType.vue";
-import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
-import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
+import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 const props = defineProps({
+  is_massive_edit: Boolean,
   is_edit: Boolean,
   full_main: {
     type: Object,
@@ -14,25 +13,11 @@ const props = defineProps({
 
 
 <template>
-  <v-card-text>
-
-    <div class="d-flex">
-      <v-text-field
-        v-model="full_main.official_name"
-        label="Nombre oficial"
-        width="400"
-        max-width="400"
-        variant="outlined"
-      >
-      </v-text-field>
-      <StatusDetail
-        :final_filters="full_main"
-        collection="register"
-        style="max-width: 300px;"
-      />
-    </div>
-    <MegaProjectType
-      :project="full_main"
+  <v-card-text class="pa-0 d-flex">
+    <SelectGroup
+      :main_object="full_main"
+      filter_group_name="project_types"
+      category_group_value="project_type"
     />
   </v-card-text>
 </template>

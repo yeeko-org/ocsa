@@ -2,6 +2,9 @@
 
 import PanelList from "~/components/dashboard/common/PanelList.vue";
 import {ref, computed, shallowRef, nextTick} from 'vue'
+import {useMainStore} from "~/store/index.js";
+const mainStore = useMainStore()
+const { saveSimple } = mainStore
 
 const props = defineProps({
   results: Array,
@@ -78,6 +81,27 @@ function addItem() {
 function closeDialog() {
   dialog_edit.value = false
   // element_to_edit.value = null
+}
+
+const final_snake_name = computed(() => {
+  let snake_name = props.collection_data.snake_name
+  const level = props.collection_data.level
+  if (level.includes('category'))
+    snake_name = `catalogs/${snake_name}`
+  return snake_name
+})
+
+
+function saveNewElement() {
+  console.log("saveNewElement", element_to_edit.value)
+  const snake_name = final_snake_name.value
+  console.log('snake_name', snake_name)
+  saveSimple([snake_name, element_to_edit.value]).then((res) => {
+    console.log('res', res)
+    // add res at the beginning of the list
+    props.results.unshift(res)
+  })
+  closeDialog()
 }
 
 const all_selected = computed(() => {
@@ -212,6 +236,7 @@ const all_selected = computed(() => {
         <v-btn
           color="accent"
           variant="elevated"
+          @click="saveNewElement"
         >
           Guardar
         </v-btn>

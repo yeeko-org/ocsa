@@ -39,7 +39,7 @@ export const menu_content = [
     color: 'purple',
     // 'id', 'name', 'mentions_count'
     same_sorts: [
-      'id', 'status_register__order', 'official_name', 'status_location__order'],
+      'id', 'status_register__order', 'name', 'status_location__order'],
     catalogs: [
       {
         name: 'Tipos de extractivismo',

@@ -12,7 +12,10 @@ import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 const props = defineProps({
   main: Object,
   mentions: Array,
-  collection_data: Object,
+  collection_data: {
+    type: Object,
+    required: true,
+  },
   show_details: {
     type: Boolean,
     default: false,

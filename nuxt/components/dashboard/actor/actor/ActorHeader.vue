@@ -4,6 +4,7 @@ import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
+import BelongIcons from "~/components/dashboard/classify/BelongIcons.vue";
 
 const props = defineProps({
   main: Object,
@@ -19,7 +20,7 @@ const actor = computed(() => props.main)
 
 const unique_projects = computed(() => {
   let projects = actor.value.participants.map(
-    participant => participant.mention.project.official_name)
+    participant => participant.mention.project.name)
   return [...new Set(projects)]
 })
 
@@ -43,7 +44,7 @@ const unique_projects = computed(() => {
         :main="actor"
         :participants="actor.participants"
         field="project"
-        subfield="official_name"
+        subfield="name"
         class="ml-2"
       />
       <HeaderChip
@@ -55,6 +56,7 @@ const unique_projects = computed(() => {
         color="purple"
         class="ml-2"
       />
+      <BelongIcons :actor="actor"/>
       <span v-if="actor.network_seq" class="ml-2">
         <v-icon color="deep-purple">lan</v-icon>
         <span class="text-body-2">Red {{ actor.network_seq }}</span>

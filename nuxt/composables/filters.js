@@ -96,7 +96,6 @@ const all_filters_old = ref([
 
 const common_sorts = {
   'name': 'Nombre',
-  'official_name': 'Nombre oficial',
   'status_validation__order': 'Status de Validación',
   'status_register__order': 'Status de Registro',
   'status_location__order': 'Status de Ubicación',

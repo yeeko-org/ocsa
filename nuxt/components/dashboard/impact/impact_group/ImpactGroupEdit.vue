@@ -1,34 +1,19 @@
 <script setup>
+import CommonGroupEdit from "~/components/dashboard/generic/CommonGroupEdit.vue";
+
 const props = defineProps({
   is_edit: Boolean,
+  is_massive_edit: Boolean,
   full_main: {
     type: Object,
     required: true,
   },
 })
+
 </script>
 
 <template>
-  <v-text-field
-    v-model="full_main.name"
-    label="Nombre del grupo"
-    variant="outlined"
-    style="max-width: 400px;"
-  />
-  <v-text-field
-    v-model="full_main.icon"
-    label="Ícono (material icons)"
-    variant="outlined"
-    class="ml-2"
-    style="max-width: 200px;"
-  />
-  <v-text-field
-    v-model="full_main.color"
-    label="Color"
-    variant="outlined"
-    class="ml-2"
-    style="max-width: 200px;"
-  />
+  <CommonGroupEdit :full_main="full_main" />
 </template>
 
 <style scoped>

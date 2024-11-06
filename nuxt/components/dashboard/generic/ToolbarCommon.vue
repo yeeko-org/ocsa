@@ -9,7 +9,11 @@ const props = defineProps({
   main_collection_name: String,  // Mention
   filter_group_name: String,  // event_types
   child_relation_name: String,  // event
-  field: String,  // events
+  additional_fields: Array,
+  field: {
+    type: String,
+    required: true,
+  }, // events
   hide_select: Boolean,
   second_level: Boolean,
   slot_before: Boolean,
@@ -53,9 +57,27 @@ const child_collection = computed(() =>
 // const field = computed(() => `${props.child_relation_name}s`)
 
 const addItem = (group=null) => {
+  console.log("child_collection", child_collection.value)
   let new_child = {}
   if (group)
     new_child[filter_group.value.category_group] = group.id
+  new_child[props.main_collection_name] = props.main_object.id
+  child_collection.value.fields.forEach(field => {
+    if (field.relation_type === 'one_to_many')
+      return
+    if (['id', [props.main_collection_name]].includes(field.name))
+      return
+    if (field.relation_type === 'many_to_many')
+      new_child[field.name] = []
+    else
+      new_child[field.name] = null
+  })
+  if (props.additional_fields){
+    props.additional_fields.forEach((field, idx) => {
+      new_child[field] = []
+    })
+  }
+  console.log("new_child", new_child)
   // props.collection[props.field].push(new_child)
   props.main_object[props.field].push(new_child)
 }
@@ -64,6 +86,17 @@ const deleteRecord = (index) => {
   console.log("index", index)
   // props.main_object[field.value].splice(index, 1)
 }
+const total_count = computed(() => {
+  try {
+    return props.main_object[props.field].length
+  } catch (e) {
+    console.log("error", e)
+    console.log("main_object", props.main_object)
+    console.log("field", props.field)
+    return 0
+  }
+
+})
 
 </script>
 
@@ -87,11 +120,12 @@ const deleteRecord = (index) => {
           :class="second_level ? '' : 'text-h6'"
         >
     <!--      Eventos ({{mention.events.length}})-->
-          {{child_collection.plural_name}} ({{main_object[field].length}})
+          {{child_collection.plural_name}}
+          {{total_count}}
+<!--          ({{main_object[field].length}})-->
         </v-toolbar-title>
-        <v-spacer></v-spacer>
         <v-btn
-          class="hidden-xs-only"
+          class="hidden-xs-only px-0"
           icon
           :size="second_level ? 'small' : 'default'"
         >
@@ -101,10 +135,12 @@ const deleteRecord = (index) => {
           <v-btn
             v-for="group in filter_group.category_groups"
             :key="group.name"
-            class="ml-2 text-none"
+            class="ml-1 text-none"
             :color="group.color"
             variant="flat"
+            icon
             @click="addItem(group)"
+            :size="second_level ? 'small' : 'default'"
           >
             <v-badge color="transparent" icon="add">
               <v-icon
@@ -112,6 +148,12 @@ const deleteRecord = (index) => {
                 :icon="group.icon"
               ></v-icon>
             </v-badge>
+            <v-tooltip
+              activator="parent"
+              location="top"
+            >
+              Agregar {{group.name}}
+            </v-tooltip>
           </v-btn>
         </template>
         <v-btn
@@ -142,15 +184,20 @@ const deleteRecord = (index) => {
             :cols="two_columns ? 6 : 12"
             class="pa-2"
           >
-            <slot name="rows_init" :item="item">
-            </slot>
             <div v-if="!hide_select" class="d-flex flex-wrap">
               <SelectGroup
                 :filter_group_name="filter_group_name"
                 :main_collection="child_collection"
                 :main_object="item"
+                is_toolbar
                 @delete-record="deleteRecord(index)"
-              />
+              >
+                <template #chip>
+                  <slot name="rows_init" :item="item">
+                  </slot>
+                </template>
+
+              </SelectGroup>
             </div>
             <slot name="rows" :item="item">
             </slot>
@@ -166,14 +213,14 @@ const deleteRecord = (index) => {
         </v-row>
       </v-card>
       <v-alert
-        v-if="!main_object[field].length"
+        v-if="total_count === 0"
         type="warning"
         variant="flat"
         border="start"
         :text="`Debes agregar al menos un ${child_collection.name}`"
       >
         <v-btn
-          color="success"
+          color="white"
           class="ml-2"
           variant="tonal"
           @click="addItem()"

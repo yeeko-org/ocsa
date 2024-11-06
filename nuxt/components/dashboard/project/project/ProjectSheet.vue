@@ -5,6 +5,11 @@ import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
 
 import { ref, computed } from 'vue'
 import ProjectEdit from "~/components/dashboard/project/project/ProjectEdit.vue";
+import {useMainStore} from "~/store/index";
+import {storeToRefs} from "pinia";
+import PanelList from "~/components/dashboard/common/PanelList.vue";
+const mainStore = useMainStore()
+const { schemas } = storeToRefs(mainStore)
 
 const props = defineProps({
   full_main: {
@@ -17,12 +22,27 @@ const props = defineProps({
   },
 })
 
+const note_collection = computed(() => {
+  return schemas.value.collections_dict['note']
+})
+
 const openNote = () => {
   console.log("open note")
 }
 
 const full_project = computed(() => {
   return props.full_main
+})
+
+const related_notes = computed(() => {
+  return full_project.value.mentions.map(mention => {
+    const full_mention = {...mention, project: full_project.value}
+    return {
+      ...mention.note,
+      mentions: [full_mention]
+    }
+  })
+
 })
 
 </script>
@@ -33,29 +53,12 @@ const full_project = computed(() => {
       {{ full_project.mentions.length }} Notas:
     </v-card-title>
     <v-card-text>
-      <v-expansion-panels multiple>
-        <v-expansion-panel
-          v-for="mention in full_project.mentions"
-          :key="mention.id"
-        >
-          <NoteHeader
-            :main="mention.note"
-            :mentions="[mention]"
-            :show_details="show_details"
-            @open-panel="openNote"
-            parent="project"
-          />
-          <v-expansion-panel-text
-            _class="ml-n16 mr-n6"
-            color="deep-purple-lighten-5"
-          >
-            <MentionDetails
-              :mention="mention"
-            />
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
-
+      <PanelList
+        v-if="true"
+        :results="related_notes"
+        :collection_data="note_collection"
+        :show_details="show_details"
+      />
     </v-card-text>
 
   </v-card>
