@@ -31,7 +31,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['update-date'])
+const emits = defineEmits(['update-date'])
 
 // Reactive data
 const showMenuDate = ref(false)
@@ -54,7 +54,7 @@ const computedDateFormatted = computed({
     // Convert to 'YYYY-MM-DD' format and emit
     console.log('newDate', newDate)
     realDate.value = dayjs(newDate).format('YYYY-MM-DD')
-    emit('update-date', realDate.value)
+    emits('update-date', realDate.value)
   },
 })
 
@@ -79,7 +79,7 @@ watch(() => props.init_date, (newVal) => {
 function saveDate() {
   console.log('saveDate')
   realDate.value = parseDate(computedDateFormatted.value)
-  emit('update-date', realDate.value)
+  emits('update-date', realDate.value)
   showMenuDate.value = false
 }
 

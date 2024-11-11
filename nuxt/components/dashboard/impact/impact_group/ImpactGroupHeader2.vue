@@ -19,7 +19,7 @@ const props = defineProps({
   parent: String,
 })
 
-// const emit = defineEmits(['open-panel'])
+// const emits = defineEmits(['open-panel'])
 
 
 </script>

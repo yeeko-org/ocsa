@@ -25,7 +25,7 @@ const props = defineProps({
 
 
 const note = computed(() => props.main)
-// const emit = defineEmits(['open-panel'])
+// const emits = defineEmits(['open-panel'])
 
 const final_mentions = computed(() => {
   return props.mentions || note.value.mentions

@@ -1,6 +1,6 @@
 import { useMainStore } from '~/store'
 
-export function actorCounter(participants, field='actor', subfield='name') {
+export function actorCounter(participants, field='actor_full', subfield='name') {
   const mainStore = useMainStore()
   const { cats, positions } = mainStore
   const participant_types = cats.participant_types

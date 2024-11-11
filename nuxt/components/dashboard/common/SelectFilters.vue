@@ -10,11 +10,11 @@ const props = defineProps({
   visible_filters: Array,
   filter_group: Object,
 })
-const emit = defineEmits(['apply-filters'])
+const emits = defineEmits(['apply-filters'])
 
 const applyFilters = () => {
   console.log("debounce apply filters")
-  emit('apply-filters')
+  emits('apply-filters')
 }
 
 </script>

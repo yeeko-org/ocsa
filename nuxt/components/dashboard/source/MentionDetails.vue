@@ -3,8 +3,14 @@
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
-import { computed } from "vue";
+import {computed, watch} from "vue";
 import ActorSearch from "~/components/dashboard/actor/ActorSearch.vue";
+import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
+import {storeToRefs} from "pinia";
+import {useMainStore} from "~/store/index.js";
+const mainStore = useMainStore()
+const { schemas } = storeToRefs(mainStore)
+const { saveSimple } = mainStore
 
 const props = defineProps({
   mention: Object,
@@ -14,21 +20,92 @@ const props = defineProps({
   },
 })
 const dialog_search = ref(false)
+const dialog_edit = ref(false)
 const actor_in_edition = ref(null)
+const total_requests = ref(0)
+const resolved_requests = ref(0)
+
+
+const actor_collection = computed(() => {
+  return schemas.value.collections_dict['actor']
+})
 const all_actors = computed(() => {
   return props.mention.participants.map(participant => {
-    return {...participant.actor, ...participant}
+    return {...participant.actor_full, ...participant}
   })
 })
 
 function editItem(item) {
-  console.log("edit item", item)
-  actor_in_edition.value = item
+  actor_in_edition.value = item.actor_full
+  dialog_edit.value = true
+}
+function searchItem(item) {
+  console.log("searchItem")
   dialog_search.value = true
 }
 
+function saveOneToMany(snake_name, main_item) {
+  // console.log("save one to many")
+  const main_schema = schemas.value.collections_dict[snake_name]
+  const one_to_many = main_schema.fields.filter(
+    field => field.relation_type === 'one_to_many')
+  one_to_many.forEach(field => {
+    if (['involved', "eventlocation"].includes(field.name))
+      return
+    const related_collection = schemas.value.collections_dict[
+        field.related_model]
+    // console.log("related_collection", related_collection)
+    const snake_name2 = related_collection.snake_name
+    console.log("main_item", main_item)
+    console.log("field", field.name)
+    main_item[field.name].forEach(item => {
+      saveOneToMany(snake_name2, item)
+      total_requests.value += 1
+      saveSimple([snake_name2, item]).then(response => {
+        console.log(`response ${snake_name2}`, response)
+        resolved_requests.value += 1
+      })
+    })
+  })
+}
+
 function saveMention() {
-  console.log("save mention")
+  console.log("save mention", schemas.value)
+  // const mention_schema = schemas.value.collections_dict['mention']
+  total_requests.value = 0
+  saveOneToMany('mention', props.mention)
+}
+
+watch(() => resolved_requests.value, (value) => {
+  if (value === total_requests.value){
+    console.log("mention", props.mention)
+    saveSimple(['mention', props.mention]).then(response => {
+      console.log("response main", response)
+    })
+  }
+})
+
+function saveParticipant(actor) {
+  console.log("save participant", actor)
+  const params = {
+    mention: props.mention.id,
+    actor: actor.id,
+  }
+  saveSimple(['participant', params]).then(response => {
+    console.log("response", response)
+    props.mention.participants.unshift(response)
+    dialog_search.value = false
+  })
+}
+
+function closeDialog(event) {
+  // dialog_search.value = false
+  console.log("close dialog", event)
+  if (event)
+    saveParticipant(event)
+  else
+    dialog_search.value = false
+
 }
 
 </script>
@@ -41,11 +118,11 @@ function saveMention() {
     <v-card variant="outlined" color="indigo-lighten-1">
       <div class="px-3 py-2" v-if="mention.project">
         <div class="text-h6">
-          {{ mention.project.name }}
+          {{ mention.project_full.name }}
         </div>
         <div class="d-flex flex-wrap">
           <StatusChip
-            v-if="mention.project.status_register"
+            v-if="mention.project_full.status_register"
             :main="mention.project"
             collection="register"
             left_label
@@ -53,7 +130,7 @@ function saveMention() {
             bold_text
           />
           <ExtractivismIcons
-            :project="mention.project"
+            :project="mention.project_full"
             show_name
             class="ml-2"
           />
@@ -100,7 +177,7 @@ function saveMention() {
 <!--        </div>-->
 <!--      </div>-->
       <v-divider></v-divider>
-      <v-row class="py-3 mx-0">
+      <v-row class="py-3 mx-0" v-if="mention.id">
         <ToolbarCommon
           :cols="5"
           v-if="true"
@@ -153,13 +230,15 @@ function saveMention() {
           two_columns
           :additional_fields="['interests']"
           color="blue"
+          emit_add
+          @add-item="searchItem"
         >
           <template #rows_init="{ item }">
             <v-chip
-              v-if="item.actor"
+              v-if="item.actor_full"
               class="mb-2"
               prepend-icon="recent_actors"
-              :text="item.actor.name"
+              :text="item.actor_full.name"
               color="indigo lighten-4"
               append-icon="edit"
               @click="editItem(item)"
@@ -169,7 +248,7 @@ function saveMention() {
               v-else
               color="accent"
               variant="elevated"
-              @click="editItem(item)"
+              @click="searchItem(item)"
             >
               Agregar participante
             </v-btn>
@@ -291,7 +370,22 @@ function saveMention() {
         </v-col>
       </v-row>
     </v-card>
-    <v-dialog v-model="dialog_search">
+    <v-dialog
+      v-model="dialog_search"
+      max-width="920"
+    >
+      <v-card height="800">
+        <v-card-text class="py-0">
+
+          <CollectionDisplay
+            :parent_collection="actor_collection"
+            is_mini
+            @select-item="closeDialog($event)"
+          />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="dialog_edit">
       <ActorSearch
         :full_main="actor_in_edition"
         @close-dialog="dialog_search = false"

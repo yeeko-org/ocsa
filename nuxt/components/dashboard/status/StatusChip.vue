@@ -110,7 +110,6 @@ const label = computed(() => {
         v-if="props.show_icon"
         :color="item_built.color_text"
         class="mr-1"
-        _small="props.disabled || props.small"
         :size="(props.disabled || props.small) ? 'small' : 'default'"
       >
         {{(!item_built.icon || item_built.icon === 'mdi-check-circle')
@@ -130,6 +129,7 @@ const label = computed(() => {
         style="max-width: 400px;"
         :class="item_built.back_text"
       >
+        <b>{{item_built.public_name}}</b> <br>
         {{item_built.description || 'Sin descripción'}}
       </div>
     </v-tooltip>

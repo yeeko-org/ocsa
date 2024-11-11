@@ -2,9 +2,9 @@
 
 import {computed, nextTick, ref} from "vue";
 
-import { useMainStore } from '~/store/index.js'
 import { storeToRefs } from 'pinia'
 import PanelList from "~/components/dashboard/common/PanelList.vue";
+import { useMainStore } from '~/store/index.js'
 const mainStore = useMainStore()
 const { groups, all_nodes, schemas } = storeToRefs(mainStore)
 

@@ -65,43 +65,43 @@ const group_results = computed(() => {
       v-if="!need_tabs"
       :parent_collection="collections.subtype"
     />
-    <v-tabs
-      v-else
-      v-model="options_tab"
-      grow
-      bg-color="accent"
-    >
-      <v-tab
-        v-for="(collection, key) in collections"
-        :key="key"
-        :href="`#${key}`"
-        @click="setCollection(collection.snake_name)"
+    <template v-else>
+      <v-tabs
+        v-model="options_tab"
+        grow
+        bg-color="accent"
       >
-        {{ collection.plural_name }}
-      </v-tab>
-    </v-tabs>
-    <v-tabs-window v-model="options_tab">
-      <v-tabs-window-item
-        v-for="(collection, key) in collections"
-        :key="key"
-        :value="key"
-      >
-        <PanelList
-          v-if="key === 'group'"
-          :results="group_results"
-          :collection_data="collection"
-          show_details
-        />
-        <CollectionDisplay
-          v-else
-          :parent_collection="collection"
-          :level_name="key"
-          :filter_group="filter_group"
-        />
+        <v-tab
+          v-for="(collection, key) in collections"
+          :key="key"
+          :href="`#${key}`"
+          @click="setCollection(collection.snake_name)"
+        >
+          {{ collection.plural_name }}
+        </v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="options_tab">
+        <v-tabs-window-item
+          v-for="(collection, key) in collections"
+          :key="key"
+          :value="key"
+        >
+          <PanelList
+            v-if="key === 'group'"
+            :results="group_results"
+            :collection_data="collection"
+            show_details
+          />
+          <CollectionDisplay
+            v-else
+            :parent_collection="collection"
+            :level_name="key"
+            :filter_group="filter_group"
+          />
 
-      </v-tabs-window-item>
-    </v-tabs-window>
-
+        </v-tabs-window-item>
+      </v-tabs-window>
+    </template>
   </div>
   <v-progress-linear
     v-else

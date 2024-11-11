@@ -25,7 +25,7 @@ const project = computed(() => {
   return props.main
 })
 
-// const emit = defineEmits(['open-panel'])
+// const emits = defineEmits(['open-panel'])
 
 const locations_count = computed(() => {
   return project.value.locations.length

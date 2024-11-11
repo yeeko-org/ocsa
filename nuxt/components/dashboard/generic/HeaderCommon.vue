@@ -58,18 +58,17 @@ function changeShowDetails(){
 
 function wantOpenPanel(){
   if (!is_active.value)
-    emit('open-panel')
+    emits('open-panel')
   is_active.value = !is_active.value
 }
 
-const emit = defineEmits(['open-panel'])
+const emits = defineEmits(['open-panel'])
 
 </script>
 
 <template>
   <v-expansion-panel-title
     id="expansion-header"
-    _ref="expansion_header"
     ref="expansionHeader"
     :color="background_color"
     class="pl-0 py-0"

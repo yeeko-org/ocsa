@@ -1,16 +1,28 @@
 <script setup>
 
+import EditCommon from "~/components/dashboard/common/EditCommon.vue";
+import ActorEdit from "~/components/dashboard/actor/actor/ActorEdit.vue";
+import {saveElement} from "~/composables/save_elements.js";
+
 const props = defineProps({
   full_main: {
     type: Object,
     required: true,
   },
 })
-const emit = defineEmits(['close-dialog'])
+const emits = defineEmits(['close-dialog'])
 const dialog = ref(false)
 function saveActor() {
   console.log('saveActor')
 }
+
+function saveItem({res, is_new}) {
+  console.log('saveItem', res, is_new)
+  // saveElement(props.collection_data, props.main).then((res) => {
+  //   props.results.unshift(res)
+  // })
+}
+
 </script>
 
 <template>
@@ -26,29 +38,24 @@ function saveActor() {
       <v-btn
         icon="close"
         variant="text"
-        @click="emit('close-dialog')"
+        @click="emits('close-dialog')"
       >
       </v-btn>
     </v-card-title>
-    <v-card-text>
-      <v-text-field
-        v-model="full_main.name"
-        label="Nombre del actor"
-        variant="outlined"
-        class="mb-2"
-      />
-      <v-text-field
-        v-model="full_main.official_name"
-        label="Nombre oficial del actor"
-        variant="outlined"
-        class="mb-2"
-      />
-    </v-card-text>
-    <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn color="blue darken-1" variant="text" @click="dialog = false">Cancelar</v-btn>
-      <v-btn color="blue darken-1" variant="text" @click="saveActor">Guardar</v-btn>
-    </v-card-actions>
+    <EditCommon
+      :full_main="full_main"
+      collection_name="actor"
+      @item-saved="saveItem"
+    >
+      <template #edit="{full_main}">
+        <ActorEdit :full_main="full_main" />
+      </template>
+    </EditCommon>
+<!--    <v-card-actions>-->
+<!--      <v-spacer></v-spacer>-->
+<!--      <v-btn color="blue darken-1" variant="text" @click="dialog = false">Cancelar</v-btn>-->
+<!--      <v-btn color="blue darken-1" variant="text" @click="saveActor">Guardar</v-btn>-->
+<!--    </v-card-actions>-->
   </v-card>
 </template>
 

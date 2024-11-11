@@ -1,11 +1,9 @@
 <script setup>
-import {ref, computed, nextTick} from 'vue'
-import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
-import Comments from "~/components/dashboard/common/Comments.vue";
+import {ref, computed, nextTick, shallowRef} from 'vue'
+import { getElement } from "~/composables/save_elements.js";
+import EditCommon from "~/components/dashboard/common/EditCommon.vue";
+import {saveElement} from "~/composables/save_elements.js";
 
-import {useMainStore} from "~/store/index.js";
-const mainStore = useMainStore()
-const { getSimple, saveSimple, editSimple } = mainStore
 
 const props = defineProps({
   main: Object,
@@ -18,16 +16,23 @@ const props = defineProps({
 })
 
 const full_main = ref({})
+const edit_component = shallowRef('')
+const route_key = computed(() => props.collection_data.app_label)
+const snake_name = computed(() => props.collection_data.snake_name)
+const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
 
-const emit = defineEmits(['finish-open'])
+const emits = defineEmits(['finish-open', 'item-saved'])
 
-const final_snake_name = computed(() => {
-  let snake_name = props.collection_data.snake_name
-  const level = props.collection_data.level
-  if (level.includes('category'))
-    snake_name = `catalogs/${snake_name}`
-  return snake_name
-})
+import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
+  .then(module => {
+    edit_component.value = module.default
+  })
+  .catch(e => {
+    import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
+      edit_component.value = module.default
+    })
+  })
+
 
 const openMain = () => {
   // const group = props.group
@@ -35,12 +40,13 @@ const openMain = () => {
   const level = props.collection_data.level
   console.log('level', level)
   if (level === 'category_group'){
-    emit('finish-open')
+    emits('finish-open')
     return
   }
-  getSimple([final_snake_name.value, props.main.id]).then((res) => {
+
+  getElement(props.collection_data, props.main.id).then((res) => {
     full_main.value = res
-    emit('finish-open')
+    emits('finish-open')
   })
 }
 
@@ -53,13 +59,6 @@ const background_color = computed(() => {
   return `${base_color}-lighten-5`
 })
 
-function saveRecord() {
-  const snake_name = final_snake_name.value
-  saveSimple([snake_name, full_main.value]).then((res) => {
-    console.log('res', res)
-  })
-
-}
 
 </script>
 
@@ -96,50 +95,20 @@ function saveRecord() {
           :color="`${background_color}-lighten-5`"
           class="mt-n2 mb-n4 pa-3"
         >
-          <v-card class="mb-3 pa-3" elevation="8">
-            <v-card-text
-              class="d-flex flex-wrap"
-            >
-              <div class="d-flex" style="width: 100%;">
-                <v-text-field
-                  v-if="collection_data.fields.some(f => f.name === name_field)"
-                  v-model="full_main.name"
-                  label="Nombre"
-                  class="mr-2"
-                  variant="outlined"
-                  style="width: 300px;"
-                />
-                <v-spacer></v-spacer>
-                <template v-if="collection_data.status_groups">
-                  <StatusDetail
-                    v-for="status_group in collection_data.status_groups"
-                    :final_filters="full_main"
-                    :collection="status_group"
-                    style="max-width: 300px;"
-                    density="default"
-                  />
-                </template>
-                <Comments
-                  v-if="collection_data.fields.some(f => f.name === 'comments')"
-                  :main="full_main"
-                />
-              </div>
-
-              <slot name="edit" :full_main="full_main">
-                EDICIÓN (REVISAR PORQUE NO ES NORMAL)
-              </slot>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn
-                color="accent"
-                variant="elevated"
-                @click="saveRecord"
-              >
-                Guardar
-              </v-btn>
-            </v-card-actions>
-          </v-card>
+          <EditCommon
+            :full_main="full_main"
+            :collection_data="collection_data"
+            :name_field="name_field"
+            @item-saved="emits('item-saved', $event)"
+          >
+            <template v-slot:edit="{ full_main }">
+              <component
+                :is="edit_component"
+                :full_main="full_main"
+                is_edit
+              />
+            </template>
+          </EditCommon>
           <slot name="sheet" :full_main="full_main">
             Contenido genérico 3
           </slot>

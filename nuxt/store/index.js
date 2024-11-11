@@ -57,6 +57,7 @@ const calculateSchemas = (data) => {
   // console.log("collections", collections)
   let collections_dict = collections.reduce((obj, coll) => {
     obj[coll.snake_name] = coll
+    obj[coll.model_name] = coll
     return obj
   }, {})
   const filters_dict = filter_groups.reduce((obj, fg) => {
@@ -303,11 +304,12 @@ export const useMainStore = defineStore('main', {
     //       console.error(error)
     //     })
     // },
-    saveSimple([group, data]) {
+    saveSimple([collection, data]) {
+      console.log("saveSimple", collection, data)
       const id = data.id
       const method = id ? 'put' : 'post'
       const last_id = id ? `${id}/` : ''
-      return ApiService[method](`/${group}/${last_id}`, data)
+      return ApiService[method](`/${collection}/${last_id}`, data)
         .then(response => {
           return response.data
         })
@@ -315,6 +317,15 @@ export const useMainStore = defineStore('main', {
           console.error(error)
         })
     },
+    deleteSimple([group, id]) {
+      return ApiService.delete(`/${group}/${id}/`)
+        .then(() => {
+          return id
+        })
+        .catch(error => {
+          console.error(error)
+        })
+    }
     // async registerUser(login, password) {
     //   const api = mande('/api/users')
     //   try {

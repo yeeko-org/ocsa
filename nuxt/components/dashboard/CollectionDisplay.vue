@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref, onBeforeMount, watch, nextTick} from "vue";
+import {computed, onMounted, ref, onBeforeMount, watch, nextTick } from "vue";
 import {useMainStore} from '~/store/index'
 import SelectFilters from "~/components/dashboard/common/SelectFilters.vue";
 import PanelResult from "~/components/dashboard/common/PanelsResult.vue";
@@ -21,17 +21,15 @@ const mainStore = useMainStore()
 
 const {
   schemas,
-  current_collection,
   current_collection_data,
 } = storeToRefs(mainStore)
-const {
-  fetchElements,
-} = mainStore
+const { fetchElements } = mainStore
 
 const props = defineProps({
   parent_collection: Object,
   level_name: String,
   filter_group: Object,
+  is_mini: Boolean,
 })
 
 const init_filters = {
@@ -51,10 +49,11 @@ const final_filters = ref({
 })
 const temp_reset = ref(false)
 
-// const parent_collectionRef = toRef(props, 'parent_collection')
-
 const visible_filters = ref([])
 const current_filters = ref([])
+// const panel_result = useTemplateRef('panel-result')
+const childRef = ref(null)
+const emits = defineEmits(['select-item'])
 
 onBeforeMount(() => {
   // console.log("beforeMount")
@@ -66,7 +65,6 @@ onMounted(() => {
 })
 
 const collection_data = computed(() => {
-  // console.log("parent_collectionRef", parent_collectionRef.value)
   return props.parent_collection || current_collection_data.value
 })
 const simplified_filters = computed(() =>{
@@ -195,10 +193,39 @@ function changeFilters() {
   console.log("collection_data", collection_data.value)
 }
 
+function addItem() {
+  childRef.value.addItem()
+  // console.log("addItem in CollectionDisplay")
+  // console.log("panel_result", panel_result)
+  // const ref_panel_result = panel_result.value
+  // console.log("ref_panel_result", ref_panel_result)
+  // ref_panel_result.addItem()
+}
+function selectItem(item) {
+  emits('select-item', item)
+}
+
+
 </script>
 
 <template>
-  <v-card class="pt-3" flat>
+  <v-card class="pt-3" flat style="width: 100%;">
+    <template v-if="is_mini">
+      <v-card-title class="text-h5 d-flex align-center">
+        Busca y elige un proyecto
+        <v-spacer></v-spacer>
+        <v-btn
+          icon="close"
+          variant="text"
+          @click="emits('select-item', null)"
+        >
+        </v-btn>
+      </v-card-title>
+      <v-card-subtitle class="d-flex align-center">
+        Si no encuentras el proyecto, puedes crear uno nuevo.
+        <v-spacer></v-spacer>
+      </v-card-subtitle>
+    </template>
     <v-row class="mx-0" v-if="collection_data">
       <v-col cols="12" _class="py-0" v-if="!simplified_filters">
         <v-chip-group
@@ -271,9 +298,17 @@ function changeFilters() {
 <!--        ></v-btn>-->
         <v-col cols="auto" order="12">
           <ExportButton
-            v-if="collection_data.level === 'primary'"
+            v-if="collection_data.level === 'primary' && !is_mini"
           />
-
+          <v-btn
+            v-else-if="is_mini"
+            color="accent"
+            @click="addItem"
+            class="mr-3"
+          >
+            <v-icon>add</v-icon>
+            Agregar {{ collection_data.name }}
+          </v-btn>
         </v-col>
       </v-col>
     </v-row>
@@ -283,12 +318,15 @@ function changeFilters() {
       height="10"
       color="accent"
     ></v-progress-linear>
+    <PanelResult
+      :results="results"
+      :collection_data="collection_data"
+      :show_details="show_details"
+      :final_filters="final_filters"
+      :total_count="total_count"
+      :is_mini="is_mini"
+      ref="childRef"
+      @select-item="selectItem"
+    />
   </v-card>
-  <PanelResult
-    :results="results"
-    :collection_data="collection_data"
-    :show_details="show_details"
-    :final_filters="final_filters"
-    :total_count="total_count"
-  />
 </template>

@@ -1,8 +1,15 @@
 <script setup>
 
-import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
+import {computed, ref} from 'vue'
 
-import { ref } from 'vue'
+import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
+import {storeToRefs} from "pinia";
+import {useMainStore} from "~/store/index.js";
+import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
+const mainStore = useMainStore()
+const { saveSimple } = mainStore
+const { schemas } = storeToRefs(mainStore)
+
 
 const props = defineProps({
   full_main: {
@@ -17,6 +24,7 @@ const props = defineProps({
 })
 const new_mention = ref({})
 const dialog_mention = ref(false)
+const dialog_search = ref(false)
 
 const openNote = () => {
   console.log("open note")
@@ -26,16 +34,37 @@ const full_note = computed(() => {
   return props.full_main
 })
 
+const project_collection = computed(() => {
+  return schemas.value.collections_dict['project']
+})
 const addMention = () => {
-  console.log("add mention")
-  const new_mention = {
+  console.log("add mention 2")
+  dialog_search.value = true
+}
+
+const SaveMention = (project) => {
+  console.log("save mention", project)
+  const params = {
+    project: project.id,
     note: props.full_main.id,
-    events: [],
-    impacts: [],
-    participants: [],
-    status_history: [],
   }
-  props.full_main.mentions.push(new_mention)
+  saveSimple(['mention', params]).then(response => {
+    console.log("response", response)
+    full_note.value.mentions.unshift(response)
+    dialog_search.value = false
+  })
+}
+
+function closeDialog(event) {
+  // dialog_search.value = false
+  console.log("close dialog", event)
+  if (event) {
+    // project_in_edition.value = event
+    SaveMention(event)
+  }
+  else {
+    dialog_search.value = false
+  }
 }
 
 </script>
@@ -65,15 +94,29 @@ const addMention = () => {
         />
       </v-row>
     </v-card-text>
+    <v-dialog
+      v-model="dialog_search"
+      max-width="920"
+    >
+      <v-card height="800">
+        <v-card-text class="py-0">
+          <CollectionDisplay
+            :parent_collection="project_collection"
+            is_mini
+            @select-item="closeDialog($event)"
+          />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-card>
-  <v-card class="my-3" elevation="3">
-    <v-card-title>
-      -----
-    </v-card-title>
-    <v-card-text v-if="!full_note.mentions">
-      {{full_note}}
-    </v-card-text>
-  </v-card>
+<!--  <v-card class="my-3" elevation="3">-->
+<!--    <v-card-title>-->
+<!--      -&#45;&#45;&#45;&#45;-->
+<!--    </v-card-title>-->
+<!--    <v-card-text v-if="!full_note.mentions">-->
+<!--      {{full_note}}-->
+<!--    </v-card-text>-->
+<!--  </v-card>-->
 </template>
 
 <style scoped>

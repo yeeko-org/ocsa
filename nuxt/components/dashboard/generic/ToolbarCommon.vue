@@ -18,6 +18,7 @@ const props = defineProps({
   second_level: Boolean,
   slot_before: Boolean,
   two_columns: Boolean,
+  emit_add: Boolean,
   cols: {
     type: Number,
     default: 12,
@@ -28,12 +29,19 @@ const props = defineProps({
   },
 })
 
+const dialog_delete = ref(false)
+const delete_text = ref('')
+const record_to_delete = ref({})
+
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
+const { deleteSimple } = mainStore
+
+const emits = defineEmits(['add-item'])
 
 const filter_group = computed(() =>
   schemas.value.filter_groups.find(
-    group => group.key_name === props.filter_group_name)
+    cat_group => cat_group.key_name === props.filter_group_name)
 )
 
 const main_collection = computed(() =>
@@ -58,6 +66,10 @@ const child_collection = computed(() =>
 
 const addItem = (group=null) => {
   console.log("child_collection", child_collection.value)
+  if (props.emit_add){
+    emits('add-item')
+    return
+  }
   let new_child = {}
   if (group)
     new_child[filter_group.value.category_group] = group.id
@@ -65,7 +77,7 @@ const addItem = (group=null) => {
   child_collection.value.fields.forEach(field => {
     if (field.relation_type === 'one_to_many')
       return
-    if (['id', [props.main_collection_name]].includes(field.name))
+    if (['id', props.main_collection_name].includes(field.name))
       return
     if (field.relation_type === 'many_to_many')
       new_child[field.name] = []
@@ -82,9 +94,31 @@ const addItem = (group=null) => {
   props.main_object[props.field].push(new_child)
 }
 
-const deleteRecord = (index) => {
-  console.log("index", index)
+const wantDeleteRecord = (item, index) => {
+  record_to_delete.value = { item, index }
+  dialog_delete.value = true
   // props.main_object[field.value].splice(index, 1)
+}
+
+const deleteRecord = () => {
+  // console.log("record_to_delete", record_to_delete.value)
+  if (delete_text.value !== 'eliminar')
+    return
+  const {item, index} = record_to_delete.value
+  // console.log("item", item)
+  // console.log("index", index)
+  if (item.id){
+    deleteSimple([child_collection.value.snake_name, item.id])
+      .then(() => {
+        props.main_object[props.field].splice(index, 1)
+      })
+  }
+  else
+    props.main_object[props.field].splice(index, 1)
+  dialog_delete.value = false
+  record_to_delete.value = {}
+  // props.main_object[props.field].splice(index, 1)
+  // dialog_delete.value = false
 }
 const total_count = computed(() => {
   try {
@@ -119,10 +153,7 @@ const total_count = computed(() => {
           style="min-width: 300px;"
           :class="second_level ? '' : 'text-h6'"
         >
-    <!--      Eventos ({{mention.events.length}})-->
-          {{child_collection.plural_name}}
-          {{total_count}}
-<!--          ({{main_object[field].length}})-->
+          {{child_collection.plural_name}} ({{total_count}})
         </v-toolbar-title>
         <v-btn
           class="hidden-xs-only px-0"
@@ -133,26 +164,26 @@ const total_count = computed(() => {
         </v-btn>
         <template v-if="filter_group.category_groups">
           <v-btn
-            v-for="group in filter_group.category_groups"
-            :key="group.name"
+            v-for="cat_group in filter_group.category_groups"
+            :key="cat_group.name"
             class="ml-1 text-none"
-            :color="group.color"
+            :color="cat_group.color"
             variant="flat"
             icon
-            @click="addItem(group)"
+            @click="addItem(cat_group)"
             :size="second_level ? 'small' : 'default'"
           >
             <v-badge color="transparent" icon="add">
               <v-icon
                 color="white"
-                :icon="group.icon"
+                :icon="cat_group.icon"
               ></v-icon>
             </v-badge>
             <v-tooltip
               activator="parent"
               location="top"
             >
-              Agregar {{group.name}}
+              Agregar {{cat_group.name}}
             </v-tooltip>
           </v-btn>
         </template>
@@ -190,7 +221,7 @@ const total_count = computed(() => {
                 :main_collection="child_collection"
                 :main_object="item"
                 is_toolbar
-                @delete-record="deleteRecord(index)"
+                @delete-record="wantDeleteRecord(item, index)"
               >
                 <template #chip>
                   <slot name="rows_init" :item="item">
@@ -229,6 +260,49 @@ const total_count = computed(() => {
         </v-btn>
       </v-alert>
     </v-card>
+    <v-dialog
+      v-model="dialog_delete"
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title>
+          ¿Confirmas la eliminación de este registro?
+        </v-card-title>
+        <v-card-subtitle>
+          Esta acción no se puede deshacer
+        </v-card-subtitle>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="delete_text"
+                label="Escribe 'eliminar' para confirmar"
+                outlined
+                dense
+                clearable
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn
+            color="accent"
+            variant="outlined"
+            @click="dialog_delete = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            variant="elevated"
+            @click="deleteRecord"
+          >
+            Eliminar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-col>
 </template>
 

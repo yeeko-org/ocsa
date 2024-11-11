@@ -1,7 +1,6 @@
 <script setup>
 import dayjs from 'dayjs'
 
-import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
 import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 const props = defineProps({
   is_massive_edit: Boolean,
@@ -12,13 +11,13 @@ const props = defineProps({
   },
 })
 
-const addMention = () => {
-  console.log("add mention")
-  if (!props.full_main.mentions) {
-    props.full_main.mentions = []
-  }
-  props.full_main.mentions.push({})
-}
+// const addMention = () => {
+//   console.log("add mention")
+//   if (!props.full_main.mentions) {
+//     props.full_main.mentions = []
+//   }
+//   props.full_main.mentions.push({})
+// }
 
 function editDate(date) {
   console.log("edit date", date)
@@ -35,23 +34,10 @@ function editDate(date) {
     style="width: 100%;"
   >
   </v-text-field>
-  <GenericSelect
-    v-if="false"
-    :final_filters="full_main"
-    collection="sources"
-    field="source"
-    label="Medio o fuente"
-    clearable
-    hide_details
-    style="width: 200px;"
-    class="mr-2"
-    density="default"
-  />
   <div class="d-flex" style="width: 100%;">
     <SelectGroup
       :main_object="full_main"
       filter_group_name="source_types"
-
     />
     <v-text-field
       v-model="full_main.section"
@@ -81,31 +67,6 @@ function editDate(date) {
     style="width: 600px;"
   >
   </v-text-field>
-<!--  <v-card v-if="full_main">-->
-<!--    <v-card-title>-->
-<!--      <div class="d-flex">-->
-<!--        {{ full_main.mentions.length }} menciones de proyectos-->
-<!--        <v-spacer></v-spacer>-->
-<!--        <v-btn-->
-<!--          @click="addMention"-->
-<!--          color="primary"-->
-<!--          variant="outlined"-->
-<!--          prepend-icon="add"-->
-<!--          text="Agregar mención"-->
-<!--        ></v-btn>-->
-<!--      </div>-->
-<!--    </v-card-title>-->
-<!--    <v-card-text>-->
-<!--      <v-row>-->
-<!--        <MentionDetails-->
-<!--          v-for="mention in full_main.mentions"-->
-<!--          :key="mention.id"-->
-<!--          :mention="mention"-->
-<!--          is_full-->
-<!--        />-->
-<!--      </v-row>-->
-<!--    </v-card-text>-->
-<!--  </v-card>-->
 </template>
 
 <style scoped>

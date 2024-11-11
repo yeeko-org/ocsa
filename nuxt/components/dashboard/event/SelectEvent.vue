@@ -24,7 +24,7 @@ const props = defineProps({
     default: "compact",
   },
 })
-const emit = defineEmits(['delete-record'])
+const emits = defineEmits(['delete-record'])
 
 const { impact_groups, cats, event_types, event_subtypes } = storeToRefs(mainStore)
 
@@ -72,7 +72,7 @@ const main_width = computed(() => 200)
       color="error"
       variant="outlined"
       class="mt-1"
-      @click="$emit('delete-record')"
+      @click="$emits('delete-record')"
     >
       Eliminar
     </v-btn>

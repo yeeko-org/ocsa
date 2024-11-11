@@ -145,12 +145,15 @@ const main_collections = computed(() => {
     </v-navigation-drawer>
     <v-main>
       <v-container
-        style="width: 100%;"
+        _style="width: 100%;"
         class="pt-0"
+        fluid
       >
-        <client-only>
-          <NuxtPage/>
-        </client-only>
+        <v-layout align-center justify-center >
+          <client-only>
+            <NuxtPage/>
+          </client-only>
+        </v-layout>
       </v-container>
     </v-main>
   </v-app>

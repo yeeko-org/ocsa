@@ -2,9 +2,10 @@
 
 import PanelList from "~/components/dashboard/common/PanelList.vue";
 import {ref, computed, shallowRef, nextTick} from 'vue'
-import {useMainStore} from "~/store/index.js";
-const mainStore = useMainStore()
-const { saveSimple } = mainStore
+import {saveElement} from "~/composables/save_elements.js";
+import SummaryList from "~/components/dashboard/common/SummaryList.vue";
+import EditCommon from "~/components/dashboard/common/EditCommon.vue";
+import {el} from "vuetify/locale";
 
 const props = defineProps({
   results: Array,
@@ -13,20 +14,26 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  name_field: {
+    type: String,
+    default: 'name',
+  },
   final_filters: Object,
   total_count: Number,
-  hide_pagination: Boolean,
+  is_mini: Boolean,
 })
 
 const group_actions_enabled = ref(true)
 const sel = ref({"selected_elems": []})
-const edit_type = ref({key: 'add', title: 'Agregar'})
+const edit_type = ref({key: 'add', title: 'Agregar registro'})
 
 const dialog_edit = ref(false)
 const element_to_edit = ref(null)
 const selected_results = ref([])
 
 const edit_component = shallowRef('')
+defineExpose({ addItem })
+const emits = defineEmits(['select-item'])
 
 const route_key = computed(() => props.collection_data.app_label)
 const snake_name = computed(() => props.collection_data.snake_name)
@@ -73,35 +80,23 @@ function wantMerge() {
 
 function addItem() {
   // console.log("addItem")
-  edit_type.value = {key: 'add', title: 'Agregar'}
+  edit_type.value = {key: 'add', title: 'Agregar Registro'}
   element_to_edit.value = {}
   dialog_edit.value = true
 }
 
 function closeDialog() {
   dialog_edit.value = false
-  // element_to_edit.value = null
+  element_to_edit.value = null
 }
 
-const final_snake_name = computed(() => {
-  let snake_name = props.collection_data.snake_name
-  const level = props.collection_data.level
-  if (level.includes('category'))
-    snake_name = `catalogs/${snake_name}`
-  return snake_name
-})
-
-
-function saveNewElement() {
-  console.log("saveNewElement", element_to_edit.value)
-  const snake_name = final_snake_name.value
-  console.log('snake_name', snake_name)
-  saveSimple([snake_name, element_to_edit.value]).then((res) => {
-    console.log('res', res)
-    // add res at the beginning of the list
-    props.results.unshift(res)
-  })
+function saveNewElement({res, is_new}) {
+  props.results.unshift(res)
   closeDialog()
+}
+
+function selectItem(item) {
+  emits('select-item', item)
 }
 
 const all_selected = computed(() => {
@@ -112,7 +107,7 @@ const all_selected = computed(() => {
 
 <template>
   <v-card
-    v-if="group_actions_enabled || true"
+    v-if="group_actions_enabled && !is_mini"
     class="px-2 py-1 d-flex align-center justify-space-between"
     variant="tonal"
     _color="blue lighten-4"
@@ -124,8 +119,9 @@ const all_selected = computed(() => {
       class="mr-3"
     >
       <v-icon>add</v-icon>
-      Agregar registro
-<!--      {{props.collection_data.name}}-->
+      Agregar
+      {{props.collection_data.name.length > 15
+        ? 'registro' : props.collection_data.name}}
     </v-btn>
     <v-spacer></v-spacer>
     <v-divider vertical class="mx-2" color="blue"></v-divider>
@@ -183,17 +179,25 @@ const all_selected = computed(() => {
     ></v-btn>
   </v-card>
   <v-card class="mt-2" v-if="results.length">
-    <span v-if="!hide_pagination" class="text-grey-darken-1 text-caption">
+    <span class="text-grey-darken-1 text-caption">
       {{total_count}} Resultados
       | {{Math.ceil(total_count / final_filters.page_size)}} páginas
     </span>
     <PanelList
+      v-if="!is_mini"
       :results="results"
       :collection_data="collection_data"
       :show_details="show_details"
       :sel="sel"
     />
-    <v-card-actions v-if="!hide_pagination">
+    <SummaryList
+      v-else
+      :results="results"
+      :collection_data="collection_data"
+      :show_details="show_details"
+      @select-item="selectItem"
+    />
+    <v-card-actions>
       <v-pagination
         v-model="final_filters.page"
         :length="Math.ceil(total_count / final_filters.page_size)"
@@ -206,42 +210,43 @@ const all_selected = computed(() => {
     v-model="dialog_edit"
     max-width="980"
   >
-    <v-card>
+    <v-card v-if="element_to_edit">
       <v-card-title>
         {{edit_type.title}}
       </v-card-title>
-      <v-card-text>
-        <component
-          :is="edit_component"
-          :full_main="element_to_edit"
-          :is_massive_edit="true"
-        ></component>
-        <v-divider></v-divider>
-        <PanelList
-          v-if="edit_type.key !== 'add'"
-          :results="selected_results"
-          :collection_data="collection_data"
-          :show_details="show_details"
-          :sel="sel"
-        />
-      </v-card-text>
-      <v-card-actions class="mx-3">
-        <v-btn
-          color="error"
-          @click="closeDialog"
-        >
-          Cancelar
-        </v-btn>
-        <v-spacer></v-spacer>
-        <v-btn
-          color="accent"
-          variant="elevated"
-          @click="saveNewElement"
-        >
-          Guardar
-        </v-btn>
-      </v-card-actions>
+      <EditCommon
+        :full_main="element_to_edit"
+        :collection_data="collection_data"
+        :name_field="name_field"
+        @item-saved="saveNewElement"
+      >
+        <template v-slot:edit="{ full_main }">
+          <component
+            :is="edit_component"
+            :full_main="element_to_edit"
+            :is_massive_edit="true"
+          ></component>
+        </template>
+      </EditCommon>
+
+<!--      <component-->
+<!--        :is="edit_component"-->
+<!--        :full_main="element_to_edit"-->
+<!--        :collection_data="collection_data"-->
+<!--        :is_massive_edit="true"-->
+<!--        _select-item="selectItem($event)"-->
+<!--        @item-saved="saveNewElement"-->
+<!--      ></component>-->
     </v-card>
+    <v-card-text v-if="edit_type.key !== 'add'">
+      <v-divider></v-divider>
+      <PanelList
+        :results="selected_results"
+        :collection_data="collection_data"
+        :show_details="show_details"
+        :sel="sel"
+      />
+    </v-card-text>
   </v-dialog>
 </template>
 

@@ -9,7 +9,7 @@ const props = defineProps({
   field: {
     type: String,
     required: false,
-    default: "actor",
+    default: "actor_full",
   },
   subfield: String,
 })

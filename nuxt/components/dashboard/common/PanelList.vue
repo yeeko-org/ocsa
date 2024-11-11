@@ -2,7 +2,7 @@
 
 import PanelCommon from "~/components/dashboard/common/PanelCommon.vue";
 
-import {ref, computed, shallowRef, nextTick} from 'vue'
+import {ref, computed, shallowRef, nextTick, defineEmits} from 'vue'
 
 const props = defineProps({
   results: Array,
@@ -19,13 +19,11 @@ const main_show_details = ref(false)
 
 const header_component = shallowRef('')
 const sheet_component = shallowRef('')
-const edit_component = shallowRef('')
 
 const route_key = computed(() => props.collection_data.app_label)
 const snake_name = computed(() => props.collection_data.snake_name)
 const header_name = computed(() => `${props.collection_data.model_name}Header`)
 const sheet_name = computed(() => `${props.collection_data.model_name}Sheet`)
-const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
 
 import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${header_name.value}.vue`)
   .then(module => {
@@ -47,15 +45,14 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${sheet_na
     })
   })
 
-import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
-  .then(module => {
-    edit_component.value = module.default
-  })
-  .catch(e => {
-    import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
-      edit_component.value = module.default
-    })
-  })
+function addItem({res, is_new}) {
+  if (is_new)
+    props.results.unshift(res)
+  else {
+    const index = props.results.findIndex(result => result.id === res.id)
+    props.results[index] = res
+  }
+}
 
 function changeShowDetails() {
   nextTick(() => {
@@ -64,6 +61,10 @@ function changeShowDetails() {
     }, 10)
   })
 }
+
+// function saveItem() {
+//   emits('save-item')
+// }
 
 </script>
 
@@ -79,6 +80,7 @@ function changeShowDetails() {
       :main="elem"
       :sel="sel"
       @finish-open="changeShowDetails"
+      @item-saved="addItem"
     >
       <template
         #header="{openMain}"
@@ -90,15 +92,6 @@ function changeShowDetails() {
           :collection_data="collection_data"
           :show_details="show_details"
           @open-panel="openMain"
-        />
-      </template>
-      <template
-        #edit="{full_main}"
-      >
-        <component
-          :is="edit_component"
-          :full_main="full_main"
-          is_edit
         />
       </template>
       <template

@@ -22,7 +22,7 @@ const props = defineProps({
   forced_level: String,
 })
 
-const emit = defineEmits(['delete-record'])
+const emits = defineEmits(['delete-record'])
 const levels = ['group', 'type', 'subtype']
 
 const filter_node = computed(() => all_nodes.value[props.filter_group_name])
@@ -195,7 +195,7 @@ nextTick(() => {
   <template v-if="is_toolbar">
     <v-col cols="12" class="d-flex px-0 pt-1">
       <v-btn
-        @click="emit('delete-record')"
+        @click="emits('delete-record')"
         icon="delete"
         color="error"
         variant="text"
@@ -220,7 +220,7 @@ nextTick(() => {
   <!--          color="error"-->
   <!--          variant="outlined"-->
   <!--          class="mt-1"-->
-  <!--          @click="emit('delete-record')"-->
+  <!--          @click="emits('delete-record')"-->
   <!--        >-->
   <!--          Eliminar-->
   <!--        </v-btn>-->
