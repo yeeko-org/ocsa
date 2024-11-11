@@ -19,4 +19,8 @@ python .\manage.py  migrate_classify
 python .\manage.py  migrate_events
 python .\manage.py  migrate_afectaciones
 python .\manage.py  migrate_proyectos_status
-python .\manage.py  migrate_legacy_notes
+python .\manage.py  migrate_legacy_users
+
+python .\manage.py  migrate_coordinates /path/
+python .\manage.py  migrate_project_files --source /path/ --output migrate_project_files_exit.json
+python .\manage.py  migrate_note_files --source /path/ --output migrate_note_files_exit.json

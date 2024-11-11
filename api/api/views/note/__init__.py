@@ -1,4 +1,4 @@
-from django_filters import FilterSet, DateFilter
+from django_filters import FilterSet, DateFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.viewsets import GenericViewSet
@@ -17,6 +17,7 @@ class NoteFilter(FilterSet):
 
     start_date = DateFilter(field_name='date', lookup_expr='gte')
     end_date = DateFilter(field_name='date', lookup_expr='lte')
+    status_register = CharFilter(field_name='status_register__name')
 
     class Meta:
         model = Note
