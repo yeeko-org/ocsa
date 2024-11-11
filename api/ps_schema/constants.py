@@ -76,6 +76,7 @@ all_collections = {
             "model_name": "MegaprojectType",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "conflict",
@@ -120,6 +121,7 @@ all_collections = {
             "level": "category_subtype",
             "optional_category": True,
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "impact",
@@ -182,6 +184,7 @@ all_collections = {
             "model_name": "ParticipantType",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "belong",
@@ -190,6 +193,7 @@ all_collections = {
             "model_name": "Belong",
             "level": "category_subtype",
             "cat_params": {"item_id": "key_name"},
+            "open_insertion": True,
         },
         {
             "snake_name": "indigenous_group",
@@ -198,6 +202,7 @@ all_collections = {
             "model_name": "IndigenousGroup",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "sector_group",
@@ -206,6 +211,7 @@ all_collections = {
             "model_name": "SectorGroup",
             "level": "category_type",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "sector",
@@ -214,6 +220,7 @@ all_collections = {
             "model_name": "Sector",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "interest_group",
@@ -229,6 +236,7 @@ all_collections = {
             "model_name": "InterestType",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "interest_subtype",
@@ -237,6 +245,7 @@ all_collections = {
             "model_name": "InterestSubtype",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
     ],
     "event": [
@@ -267,6 +276,7 @@ all_collections = {
             "model_name": "EventType",
             "level": "category_type",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "event_subtype",
@@ -275,6 +285,7 @@ all_collections = {
             "model_name": "EventSubtype",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "involved_role",
@@ -307,6 +318,7 @@ all_collections = {
             "model_name": "Country",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "status_project",
@@ -315,6 +327,7 @@ all_collections = {
             "model_name": "StatusProject",
             "level": "category_subtype",
             "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "state",

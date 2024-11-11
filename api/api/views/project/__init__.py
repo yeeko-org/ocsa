@@ -11,6 +11,7 @@ from api.views.action_file import ActionFileMixin
 from project.models import Project, ProjectFile, ProjectLocation
 from source.models import Mention
 from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
+from api.views.note.serializers import ProjectSemiFullSerializer
 from .list_serializers import ProjectBasicSerializer
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
@@ -74,7 +75,7 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': ProjectFullSerializer,
-            'create': ProjectCreateSerializer,
+            'create': ProjectSemiFullSerializer,
             'update': ProjectEditSerializer,
             'add_file': ProjectFileSerializer,
         }

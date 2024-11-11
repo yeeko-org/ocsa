@@ -30,6 +30,9 @@ class ActorFilter(FilterSet):
         lookup_expr='exact')
     participant_type = NumberFilter(
         field_name='participants__participant_types', lookup_expr='exact')
+    participant_group = NumberFilter(
+        field_name='participants__participant_types__participant_group',
+        lookup_expr='exact')
 
     class Meta:
         model = Actor
@@ -49,7 +52,7 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
         )\
         .select_related(
         "parent_actor", "parent_actor__sector", "status_validation")\
-        .prefetch_related("participants", "origin_references")\
+        .prefetch_related("participants", "origin_references")
 
     permission_classes = [permissions.AllowAny]
 

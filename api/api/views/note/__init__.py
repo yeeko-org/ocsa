@@ -10,7 +10,7 @@ from source.models import Note, NoteFile
 from api.pagination import CustomPagination
 from api.views.note.serializers import (
     NoteSerializer, NoteCreateSerializer, NoteFullSerializer,
-    NoteFileSerializer)
+    NoteFileSerializer, MentionSerializer)
 
 
 class NoteFilter(FilterSet):
@@ -58,7 +58,8 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
         action_serializer = {
             'retrieve': NoteFullSerializer,
             'create': NoteFullSerializer,
-            'update': NoteCreateSerializer,
+            # 'update': NoteCreateSerializer,
+            'update': NoteFullSerializer,
             'add_file': NoteFileSerializer
         }
         return action_serializer.get(self.action, self.serializer_class)
@@ -67,3 +68,5 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
 class NoteFileViewSet(mixins.DestroyModelMixin, GenericViewSet):
     queryset = NoteFile.objects.all()
     serializer_class = NoteFileSerializer
+
+

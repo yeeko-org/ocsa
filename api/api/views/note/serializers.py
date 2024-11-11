@@ -7,6 +7,8 @@ from api.views.project.retrieve_serializers import (
 from project.models import Project
 from source.models import Mention, Note, NoteFile, StatusHistory
 from event.models import Event, Involved
+from actor.models import Participant, Interest
+# from impact.models import Impact
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -16,12 +18,16 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class ProjectSemiFullSerializer(serializers.ModelSerializer):
-    parent_project = serializers.SerializerMethodField()
-    conflict = ConflictSerializer()
+    parent_project = serializers.SerializerMethodField(read_only=True)
+    conflict = ConflictSerializer(read_only=True)
+    extractivism_type = serializers.SerializerMethodField()
 
     def get_parent_project(self, obj):
         if obj.parent_project:
             return ProjectFullSerializer(obj.parent_project).data
+
+    def get_extractivism_type(self, obj):
+        return None
 
     class Meta:
         model = Project
@@ -45,11 +51,20 @@ class EventSerializer(EventSimpleSerializer):
     involvements = InvolvedSerializer(many=True)
 
 
+class MentionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Mention
+        fields = '__all__'
+
+
 class MentionFullSerializer(serializers.ModelSerializer):
-    project = ProjectSerializer()
+    project_full = ProjectSerializer(
+        source='project', read_only=True)
     impacts = ImpactSerializer(many=True)
     participants = ParticipantSerializer(many=True)
     events = EventSimpleSerializer(many=True)
+    id = serializers.ReadOnlyField()
 
     class Meta:
         model = Mention
@@ -63,7 +78,9 @@ class StatusHistorySerializer(serializers.ModelSerializer):
 
 
 class MentionMegaFullSerializer(MentionFullSerializer):
-    project = ProjectSemiFullSerializer()
+    project_full = ProjectSemiFullSerializer(
+        source='project', read_only=True)
+    # project = ProjectSemiFullSerializer()
     status_history = StatusHistorySerializer(many=True)
     events = EventSerializer(many=True)
 
@@ -95,3 +112,16 @@ class NoteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
         exclude = ['id', 'nota_id_ref', 'old_id']
+
+
+class ParticipantSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Participant
+        fields = '__all__'
+
+
+class InterestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Interest
+        fields = '__all__'
+

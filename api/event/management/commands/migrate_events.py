@@ -47,6 +47,7 @@ class Command(BaseCommand):
         self.migrate_violencia()
         self.migrate_accion_colectiva()
         self.clean_participant_types()
+        self.delete_wrong_event_subtype()
 
         EventType.objects.filter(status_validation__isnull=True)\
             .update(status_validation_id='original')
@@ -101,4 +102,10 @@ class Command(BaseCommand):
         for combination, count in combinations.items():
             print(combination, count)
 
-
+    def delete_wrong_event_subtype(self):
+        wrong_subtypes = EventSubtype.objects.filter(
+            event_types__isnull=True)
+        for subtype in wrong_subtypes:
+            print(subtype)
+            print(subtype.id)
+            subtype.delete()

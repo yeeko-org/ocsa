@@ -121,6 +121,8 @@ class InitCollections:
                     'optional_category', False)
                 new_collection.icon = collection.get('icon', None)
                 new_collection.color = collection.get('color', None)
+                new_collection.open_insertion = collection.get(
+                    'open_insertion', None)
                 new_collection.order = order_base + order
                 new_collection.all_filters = collection.get('all_filters', [])
                 new_collection.save()

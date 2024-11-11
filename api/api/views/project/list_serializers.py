@@ -17,23 +17,23 @@ class InterestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Interest
-        exclude = ['participant']
+        fields = '__all__'
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
-    actor = ActorBasicSerializer()
+    actor_full = ActorBasicSerializer(source='actor')
     interests = InterestSerializer(many=True)
 
     class Meta:
         model = Participant
-        exclude = ['mention']
+        fields = "__all__"
 
 
 class ImpactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Impact
-        exclude = ['mention']
+        fields = '__all__'
 
 
 class NoteBasicSerializer(serializers.ModelSerializer):

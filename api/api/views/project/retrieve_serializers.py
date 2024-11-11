@@ -62,7 +62,7 @@ class ProjectFileSerializer(serializers.ModelSerializer):
 
 
 class ProjectFullSerializer(serializers.ModelSerializer):
-    files = ProjectFileSerializer(many=True)
+    files = ProjectFileSerializer(many=True, read_only=True)
     parent_project = serializers.SerializerMethodField()
     conflict = ConflictSerializer()
     extractivism_type = serializers.SerializerMethodField()

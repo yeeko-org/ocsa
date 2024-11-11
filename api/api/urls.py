@@ -3,6 +3,9 @@ from django.urls import include, path
 from api.views.actor import ActorViewSet, ActorMiniListViewSet
 from api.views.project import ProjectViewSet, ProjectFileViewSet
 from api.views.note import NoteViewSet, NoteFileViewSet
+from api.views.note.mention_views import (
+    MentionViewSet, ParticipantViewSet, ImpactViewSet,
+    InvolvedViewSet, InterestViewSet, StatusHistoryViewSet)
 from api.views.event import EventViewSet
 
 from rest_framework.authtoken.views import obtain_auth_token
@@ -13,6 +16,12 @@ router = DefaultRouter()
 router.register(r'project', ProjectViewSet, basename='project')
 router.register(r'project_file', ProjectFileViewSet, basename='project file')
 router.register(r'note', NoteViewSet, basename='note')
+router.register(r'mention', MentionViewSet, basename='mention')
+router.register(r'participant', ParticipantViewSet, basename='participant')
+router.register(r'impact', ImpactViewSet, basename='impact')
+router.register(r'involved', InvolvedViewSet, basename='involved')
+router.register(r'interest', InterestViewSet, basename='interest')
+router.register(r'status_history', StatusHistoryViewSet, basename='status history')
 router.register(r'note_file', NoteFileViewSet, basename='note file')
 router.register(r'actor', ActorViewSet, basename='actor')
 router.register(r'actor_mini', ActorMiniListViewSet, basename='actor mini')
