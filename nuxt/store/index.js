@@ -4,6 +4,9 @@ import colorMixin from "~/mixins/colorMixin";
 // import { mande } from 'mande'
 import { menu_content } from "~/composables/menu.js";
 import * as d3 from 'd3';
+// import Cookie
+import Cookie from "js-cookie";
+
 
 const calculate_status = (status_control) => {
   return status_control.reduce((obj, st) => {
@@ -208,7 +211,11 @@ const calculateNewCats = (data, schemas) => {
 
 export const useMainStore = defineStore('main', {
   state: () => ({
-    counter: 0,
+    is_authenticated: false,
+    is_logged: false,
+    auth_ocsa: null,
+    user_details_ocsa: null,
+
     cats: null,
     all_nodes: {},
     schemas: {},
@@ -229,10 +236,96 @@ export const useMainStore = defineStore('main', {
     groups: menu_content,
   }),
   actions: {
-    increment() {
-      // `this` is the store instance
-      this.counter++
+    setToken(token) {
+      this.auth_ocsa = token
+      //ApiService.defaults.headers.common['Authorization'] = `Token ${token}`;
+      //ApiService.defaults.headers.common['Authorization
     },
+    setAuth(user) {
+      this.is_authenticated = true
+      this.user_details_ocsa = user
+      this.is_logged = Date.now()
+      Cookie.set('auth_ocsa', user.token)
+      this.auth_ocsa = user.token
+    },
+    setHeader() {
+      if (this.auth_ocsa) {
+        let token = this.auth_ocsa
+        ApiService.defaults.headers.common['Authorization'] = `Token ${token}`
+      }
+    },
+    checkAuthSimple() {
+      console.log("checkAuthSimple")
+      return new Promise((resolve) => {
+        if (this.auth_ocsa) {
+          let last_login = this.is_logged
+          if (!!last_login && last_login + (3600*24*1000) > Date.now()){
+            console.log("NO hay datos recientes")
+            return resolve()
+          }
+          else{
+            console.log("hay datos recientes")
+            this.getCurrentUser().then((dataUser) => {
+              resolve(dataUser)
+            })
+          }
+        }
+        else {
+          console.log("NO ESTÁ LOGUEADO")
+          return resolve()
+        }
+      })
+    },
+    getCurrentUser() {
+      if (this.user_details_ocsa){
+        return this.user_details_ocsa
+      }
+      else{
+        console.log("en el nuxt no hay datos del usuario")
+        console.log(this)
+      }
+    },
+    loginMail(params) {
+      return new Promise((resolve) => {
+        ApiService.post('/login/', params)
+          .then(({data}) => {
+            this.hasLogged(data)
+            return resolve(data)
+          })
+          .catch(err =>{
+            return resolve({error:err})
+          })
+      })
+    },
+    hasLogged(userData) {
+      this.purgeAuth()
+      this.setAuth(userData)
+      // if (userData.profile && userData.profile.organization){
+      //   console.log("seteamos la organización")
+      //   commit("arropa/SET_ORGANIZATION_ID", userData.profile.organization.id, {root: true})
+      // }
+      this.redirectLogin()
+
+    },
+    redirectLogin() {
+      const router = useRouter()
+      return router.push({ path: '/dashboard'})
+      // return $router.push({ path: '/dashboard'})
+    },
+    purgeAuth() {
+      this.is_authenticated = false
+      this.user_details_ocsa = null
+      this.auth_ocsa = null
+      Cookie.remove('auth_ocsa')
+    },
+    logout() {
+      const router = useRouter()
+      // const route = useRoute()
+      this.purgeAuth()
+      return router.push({ path: '/login' })
+    },
+
+
     setFilterGroup(group) {
       this.current_filter_group = group
       if (this.cats_ready)
@@ -274,6 +367,40 @@ export const useMainStore = defineStore('main', {
           })
       })
     },
+    async getSimple([group, id]) {
+      this.setHeader()
+      try {
+        let response = await ApiService.get(`/${group}/${id}/`);
+        return response.data
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    },
+    async saveSimple([collection, data]) {
+      // console.log("saveSimple", collection, data)
+      this.setHeader()
+      const id = data.id
+      const method = id ? 'put' : 'post'
+      const last_id = id ? `${id}/` : ''
+      try {
+        let response = await ApiService[method](`/${collection}/${last_id}`, data);
+        return response.data
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    },
+    async deleteSimple([group, id]) {
+      this.setHeader()
+      try {
+        await ApiService.delete(`/${group}/${id}/`);
+        return id
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    },
     async fetchElements([group, params]) {
       // console.log('fetchElements', group, params)
       try {
@@ -286,46 +413,6 @@ export const useMainStore = defineStore('main', {
         console.error(error)
       }
     },
-    getSimple([group, id]) {
-      return ApiService.get(`/${group}/${id}/`)
-        .then(response => {
-          return response.data
-        })
-        .catch(error => {
-          console.error(error)
-        })
-    },
-    // saveSimple([group, data]) {
-    //   return ApiService.post(`/${group}/`, data)
-    //     .then(response => {
-    //       return response.data
-    //     })
-    //     .catch(error => {
-    //       console.error(error)
-    //     })
-    // },
-    saveSimple([collection, data]) {
-      console.log("saveSimple", collection, data)
-      const id = data.id
-      const method = id ? 'put' : 'post'
-      const last_id = id ? `${id}/` : ''
-      return ApiService[method](`/${collection}/${last_id}`, data)
-        .then(response => {
-          return response.data
-        })
-        .catch(error => {
-          console.error(error)
-        })
-    },
-    deleteSimple([group, id]) {
-      return ApiService.delete(`/${group}/${id}/`)
-        .then(() => {
-          return id
-        })
-        .catch(error => {
-          console.error(error)
-        })
-    }
     // async registerUser(login, password) {
     //   const api = mande('/api/users')
     //   try {
@@ -339,21 +426,6 @@ export const useMainStore = defineStore('main', {
     // },
   },
   getters: {
-    double() {
-      return this.counter * 2
-    },
-    status_not() {
-      if (!this.cats || !this.cats.status_control)
-        return {}
-      return this.cats.status_control.reduce((obj, st) => {
-        st = colorMixin.methods.getComplementColor(st)
-        if (obj[st.group])
-          obj[st.group].push(st)
-        else
-          obj[st.group] = [st]
-        return obj
-      }, {})
-    },
     status_dict(state) {
       if (!state.cats.status_control)
         return {}

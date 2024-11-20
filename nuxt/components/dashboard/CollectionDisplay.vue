@@ -266,7 +266,10 @@ function selectItem(item) {
           outlined
           density="comfortable"
           clearable
-          variant="outlined"
+          base-color="blue"
+          color="indigo"
+          _bg-color="grey lighten-2"
+          variant="underlined"
           hide-details
           max-width="300"
         ></v-text-field>
@@ -278,7 +281,7 @@ function selectItem(item) {
           item-value="value"
           label="Ordenar por"
           density="comfortable"
-          variant="outlined"
+          variant="underlined"
           hide-details
           class="ml-3"
           style="max-width: 220px;"

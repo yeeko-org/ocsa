@@ -94,6 +94,16 @@ function closeDialog(event) {
         />
       </v-row>
     </v-card-text>
+    <v-card-actions v-if="full_note.mentions.length">
+      <v-spacer></v-spacer>
+      <v-btn
+        @click="addMention"
+        color="accent"
+        variant="outlined"
+        prepend-icon="add"
+        text="Agregar mención"
+      ></v-btn>
+    </v-card-actions>
     <v-dialog
       v-model="dialog_search"
       max-width="920"

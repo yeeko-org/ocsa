@@ -117,7 +117,6 @@ function saveDate() {
       cancel-text="Cancelar"
       ok-text="Guardar"
       title="Selecciona una fecha"
-      view-mode="months"
       @click:save="showMenuDate = false"
       @click:cancel="showMenuDate = false"
     >

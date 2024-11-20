@@ -20,6 +20,8 @@ const props = defineProps({
   main_collection: Object,
   category_group_value: Number,
   forced_level: String,
+  field: String,
+  width: Number,
 })
 
 const emits = defineEmits(['delete-record'])
@@ -30,6 +32,14 @@ const filter_group = computed(() => filter_node.value.data)
 
 const subcategory_is_multiple = computed(() => {
   if (props.main_collection){
+    if (props.field){
+      const field_obj = props.main_collection.fields.find(
+        field => field.name === props.field)
+      if (field_obj){
+        if (["many_to_many", "one_to_many"].includes(field_obj.relation_type))
+          return true
+      }
+    }
     const category = props.main_collection.categories.find(
       cat => cat.parent === filter_group.value.category_subtype) || {}
     return category.is_multiple || false
@@ -143,6 +153,8 @@ onMounted(() => {
 })
 
 const subtype_field = computed(() => {
+  if (props.field)
+    return props.field
   return subcategory_is_multiple.value
     ? `${level_names.value.subtype}s`
     : level_names.value.subtype
@@ -172,9 +184,6 @@ const display_indirect_type = computed(() => {
   return props.main_object[level_names.value.type] === undefined
 })
 
-const subtype_object = computed(() => {
-  return 2
-})
 
 nextTick(() => {
   setTimeout(() => {
@@ -187,6 +196,14 @@ nextTick(() => {
     }
   }, 10)
 })
+
+const subtype_key = computed(() => {
+  const fields = collections.value.subtype.fields
+  const available_ids = ['id', 'key_name', 'name']
+  return available_ids.find(id => fields.some(field => field.name === id))
+})
+
+const main_width = computed(() => props.width || 250)
 
 
 </script>
@@ -239,11 +256,10 @@ nextTick(() => {
       item-title="name"
       item-value="id"
       :label="collections.group.name"
-      variant="outlined"
+      :variant="is_filter ? 'underlined' : 'outlined'"
       :clearable="is_filter"
-      style="max-width: 250px; min-width: 250px;"
       class="ml-2"
-      _style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
+      :style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
     >
     </v-select>
   </div>
@@ -262,11 +278,10 @@ nextTick(() => {
       item-value="id"
       :label="type_label"
       _density="density"
-      variant="outlined"
+      :variant="is_filter ? 'underlined' : 'outlined'"
       :clearable="is_filter"
-      style="max-width: 250px; min-width: 250px;"
       class="ml-2"
-      _style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
+      :style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
     >
 <!--    <template #item="{ item, props: {onClick, title, value} }" v-if="true">-->
 <!--      <v-list-item-->
@@ -292,15 +307,14 @@ nextTick(() => {
     v-model="main_object[subtype_field]"
     :items="subtype_items"
     item-title="name"
-    item-value="id"
-    :label="collections.subtype.name"
+    :item-value="subtype_key"
+    :label="collections.subtype[subcategory_is_multiple ? 'plural_name' : 'name']"
     _density="density"
-    variant="outlined"
+    :variant="is_filter ? 'underlined' : 'outlined'"
     :clearable="is_filter"
     :multiple="subcategory_is_multiple"
-    style="max-width: 250px; min-width: 250px;"
     class="ml-2"
-    _style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
+    :style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
   >
 <!--    <template #item="{ item, props: {onClick, title, value} }">-->
 <!--      <v-list-item-->

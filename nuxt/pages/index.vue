@@ -2,6 +2,7 @@
 
 definePageMeta({
   middleware: 'dashboard',
+  layout: 'dashboard',
 })
 
 </script>

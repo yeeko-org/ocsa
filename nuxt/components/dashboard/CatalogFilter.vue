@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 import {ref} from "vue";

@@ -36,6 +36,7 @@ const applyFilters = () => {
       hide-details
       style="max-width: 300px; min-width: 200px;"
       @change-status="applyFilters"
+      is_filter
     />
 
     <SelectGroup

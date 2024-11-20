@@ -180,8 +180,8 @@ const all_selected = computed(() => {
   </v-card>
   <v-card class="mt-2" v-if="results.length">
     <span class="text-grey-darken-1 text-caption">
-      {{total_count}} Resultados
-      | {{Math.ceil(total_count / final_filters.page_size)}} páginas
+      Página {{final_filters.page}} de {{Math.ceil(total_count / final_filters.page_size)}}
+      | {{total_count}} Resultados
     </span>
     <PanelList
       v-if="!is_mini"
@@ -205,6 +205,14 @@ const all_selected = computed(() => {
         rounded="circle"
       ></v-pagination>
     </v-card-actions>
+  </v-card>
+  <v-card
+    v-else
+    class="mt-2"
+  >
+    <v-alert type="info" variant="outlined">
+      Sin resultados, cambia los filtros de búsqueda
+    </v-alert>
   </v-card>
   <v-dialog
     v-model="dialog_edit"

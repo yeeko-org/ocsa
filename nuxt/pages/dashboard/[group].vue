@@ -7,6 +7,7 @@ import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 
 definePageMeta({
   middleware: 'dashboard',
+  layout: 'dashboard',
 })
 
 const mainStore = useMainStore()

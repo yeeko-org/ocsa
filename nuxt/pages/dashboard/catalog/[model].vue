@@ -9,6 +9,7 @@ import PanelList from "~/components/dashboard/common/PanelList.vue";
 
 definePageMeta({
   middleware: 'dashboard',
+  layout: 'dashboard',
 })
 
 const mainStore = useMainStore()

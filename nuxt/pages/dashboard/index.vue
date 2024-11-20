@@ -3,6 +3,7 @@
 
 definePageMeta({
   middleware: 'dashboard',
+  layout: 'dashboard',
 })
 
 // rewrite the last line in typescript

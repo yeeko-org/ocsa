@@ -9,7 +9,12 @@ export default defineNuxtRouteMiddleware((to, from, next) => {
 
   const mainStore = useMainStore()
   // console.log('FROM', from)
-  const { fetchCatalogs, cats_ready, setCollection, setFilterGroup } = mainStore
+  const { fetchCatalogs, cats_ready, setCollection, setFilterGroup, is_logged } = mainStore
+  if (!is_logged) {
+    console.log('redirecting to login')
+    return navigateTo('/login')
+  }
+
   if (to.params.group)
     setCollection(to.params.group)
   else if (to.params.model)

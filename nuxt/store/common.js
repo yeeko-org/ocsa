@@ -5,7 +5,6 @@ export default axios.create({
   baseURL: process.env.NODE_ENV === 'development'
   	? 'http://localhost:8000/api'
   	//? 'https://ocamis.ngrok.io/api'
-    // ? 'https://arropa.yeeko.org/api'
     : 'https://apiocsa.yeeko.org/api',
   headers: {
     "Content-Type": "application/json"

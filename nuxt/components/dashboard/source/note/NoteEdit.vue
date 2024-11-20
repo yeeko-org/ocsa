@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 
 import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import SelectDate from "~/components/dashboard/common/SelectDate.vue";
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
@@ -47,11 +48,30 @@ function editDate(date) {
       style="width: 200px;"
     >
     </v-text-field>
-<!--    <SelectDate-->
-<!--      :init_date="full_main.date"-->
-<!--      @update:date="editDate($event)"-->
-<!--    />-->
+    <SelectDate
+      v-if="false"
+      :init_date="full_main.date"
+      @update:date="editDate($event)"
+    />
     <v-date-input
+      v-if="false"
+      v-model="full_main.date"
+      label="Select a date"
+      show-adjacent-months
+      max-width="368"
+    ></v-date-input>
+    <v-date-picker
+      v-if="false"
+      color="accent"
+      v-model="full_main.date_raw"
+      show-adjacent-months
+      cancel-text="Cancelar"
+      ok-text="Guardar"
+      title="Selecciona una fecha"
+    >
+    </v-date-picker>
+    <v-date-input
+      v-if="true"
       v-model="full_main.date_raw"
       @update:modelValue="editDate"
       label="Fecha de la nota"
