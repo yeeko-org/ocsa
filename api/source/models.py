@@ -48,7 +48,8 @@ class Note(CommentsMixin, models.Model):
     screenshot = models.ImageField(
         upload_to='screenshots/', blank=True, null=True)
     date = models.DateField()
-    capture_date = models.DateField(blank=True, null=True)
+    capture_date = models.DateField(
+        blank=True, null=True, auto_now=True)
     editor = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True,
         related_name='editors')

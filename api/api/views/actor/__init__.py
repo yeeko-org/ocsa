@@ -46,6 +46,7 @@ class ActorFilter(FilterSet):
 
 class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
     request: Request
+    massive_fields = ["sector_id", "status_validation", "parent_actor_id"]
     queryset = Actor.objects.all().distinct()\
         .annotate(
             sector_group=F('sector__sector_group')
@@ -90,6 +91,35 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
         actors.update(**update_data)
 
         return Response({'message': 'Actors updated successfully'})
+
+    @action(detail=False, methods=['post'])
+    def simple_massive_changes(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        actors_ids = data.pop('actors_ids')
+
+        actors = Actor.objects.filter(id__in=actors_ids)
+        actors.update(**request.data)
+
+        return Response({'message': 'Actors updated successfully'})
+
+    @action(detail=False, methods=['post'])
+    def medium_massive_changes(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        update_data = {}
+        for field in self.massive_fields:
+            if field in data:
+                update_data[field] = data[field]
+
+        queryset = self.get_queryset()
+        elements = queryset.filter(id__in=data['elems_ids'])
+        elements.update(**update_data)
+
+        return Response({'message': 'Elements updated successfully'})
 
     def get_from_obj(self, from_id):
         return Actor.objects.get(id=from_id)

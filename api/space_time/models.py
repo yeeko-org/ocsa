@@ -152,6 +152,8 @@ class Location(models.Model):
     # LUCIAN: Esto debe ser JSON, Point ¿o de qué tipo?, ¿cómo lo nombramos?
     geojson = models.JSONField(blank=True, null=True)
     ubicacion_id_ref = models.IntegerField(blank=True, null=True)
+    status_location = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         if self.latitude and self.longitude:

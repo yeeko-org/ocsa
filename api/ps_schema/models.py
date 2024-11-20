@@ -76,6 +76,9 @@ class Collection(models.Model):
         return ', '.join([f"{c.parent.app_label}-{c.parent.model_name}"
                           for c in self.parent_links.all()])
 
+    def get_massive_fields(self):
+        return [f for f in self.fields if f.get('is_massive', False)]
+
     # def save(self, *args, **kwargs):
     #     from utils.obj_str import camel_to_snake
     #     self.snake_name = camel_to_snake(self.model_name)

@@ -1,6 +1,5 @@
 from django.db import models
-from space_time.models import StatusProject
-from space_time.models import Location
+from space_time.models import StatusProject, Location
 from work_flux.models import StatusControl
 
 
@@ -138,6 +137,8 @@ class ProjectLocation(models.Model):
         Project, on_delete=models.CASCADE, related_name='locations')
     location = models.ForeignKey(
         Location, on_delete=models.CASCADE, related_name='projects')
+    # location = models.OneToOneField(
+    #     Location, on_delete=models.CASCADE, related_name='project_location')
     status_location = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
@@ -147,3 +148,14 @@ class ProjectLocation(models.Model):
     class Meta:
         verbose_name = 'Ubicación de proyecto'
         verbose_name_plural = 'Ubicaciones de proyectos'
+
+
+def identify_projects_with_many_project_locations():
+    from project.models import ProjectLocation
+    from django.db.models import Count
+
+    projects = ProjectLocation.objects.values('project').annotate(
+        count=Count('project')).filter(count__gt=1)
+    print(projects)
+
+
