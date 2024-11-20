@@ -61,7 +61,8 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     search_fields = [
         "name",
-        "common_name",
+        "official_name",
+        "alternative_name",
         # "description"
     ]
     ordering_fields = [

@@ -7,6 +7,7 @@ from api.views.note.mention_views import (
     MentionViewSet, ParticipantViewSet, ImpactViewSet,
     InvolvedViewSet, InterestViewSet, StatusHistoryViewSet)
 from api.views.event import EventViewSet
+from api.views.auth.login_views import UserLoginAPIView
 
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
@@ -29,7 +30,8 @@ router.register(r'event', EventViewSet, basename='event')
 
 
 urlpatterns = [
-    path('login/', obtain_auth_token, name='api-login'),
+    # path('login/', obtain_auth_token, name='api-login'),
+    path('login/', UserLoginAPIView.as_view(), name='login'),
     path('catalogs/', include('api.views.catalogs.urls')),
     path('space_time/', include('api.views.space_time.urls')),
     path('', include(router.urls)),

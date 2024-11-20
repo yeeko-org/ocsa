@@ -86,10 +86,11 @@ class ActorMiniSerializer(serializers.ModelSerializer):
 
 class ActorBaseSerializer(ActorMiniSerializer):
 
-    parent_actor = serializers.SerializerMethodField()
+    parent_actor_full = serializers.SerializerMethodField(
+        read_only=True)
     participants = ParticipantBaseSerializer(many=True)
 
-    def get_parent_actor(self, obj: Actor):
+    def get_parent_actor_full(self, obj: Actor):
         # ActorBaseSerializer produce error de recursividad. analizar
         return ActorMiniSerializer(obj.parent_actor).data
 

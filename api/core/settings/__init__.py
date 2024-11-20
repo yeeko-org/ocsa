@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'rest_framework',
     'corsheaders',
-    # 'rest_framework.authtoken',
+    'rest_framework.authtoken',
     'django_filters',
     'profile_auth',
     'ocsa_legacy',
