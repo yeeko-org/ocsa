@@ -13,7 +13,7 @@ class EventConfig(AppConfig):
             "Victimario",
             "Responsable",
             "Víctima",
-            "Accionante"]
+            "Opositor"]
 
         valid_commands = ["runserver", "migrate_eventos"]
         if any([command in sys.argv for command in valid_commands]):

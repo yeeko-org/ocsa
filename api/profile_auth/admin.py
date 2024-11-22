@@ -10,8 +10,20 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {'fields': ('phone', 'full_editor')}),
     )
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Información personal', {'fields': (
+            'first_name', 'last_name', 'email', 'phone')}),
+        ('Permissions', {
+            'fields': ('is_superuser', 'is_staff', 'full_editor', 'is_active'),
+        }),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    # ) + UserAdmin.fieldsets
+    print("UserAdmin.fieldsets", UserAdmin.fieldsets)
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')
     search_fields = ('username', 'email', 'first_name', 'last_name')
     ordering = ('username',)
     list_filter = (
         'is_staff', 'is_superuser', 'is_active', 'groups', 'full_editor')
+

@@ -197,8 +197,8 @@ all_collections = {
         },
         {
             "snake_name": "indigenous_group",
-            "name": "Grupo Indígena",
-            "plural_name": "Grupos Indígenas",
+            "name": "Pueblo Indígena",
+            "plural_name": "Pueblos Indígenas",
             "model_name": "IndigenousGroup",
             "level": "category_subtype",
             "status_groups": ["validation"],

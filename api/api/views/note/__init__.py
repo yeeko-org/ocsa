@@ -61,7 +61,9 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
             'create': NoteFullSerializer,
             # 'update': NoteCreateSerializer,
             'update': NoteFullSerializer,
-            'add_file': NoteFileSerializer
+            'add_file': NoteFileSerializer,
+            # 'patch': NoteCreateSerializer,
+
         }
         return action_serializer.get(self.action, self.serializer_class)
 

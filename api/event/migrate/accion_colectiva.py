@@ -53,7 +53,7 @@ class MigrateAccionToEvent(EventBase):
         participant = self.get_participant(
             opositor_actor, self.mention)
         # se requiere el tipo da participacion, para sustituir Accionante
-        self.set_involved(participant, "Accionante")
+        self.set_involved(participant, "Opositor")
 
     def migrate(self):
         opositor_to_ac_query = OpositoresToAC.objects.filter(
