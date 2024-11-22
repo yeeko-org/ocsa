@@ -7,12 +7,14 @@ from django.db.models import Count
 from actor.models import Actor, Participant
 from api.merge_mix import MergeSerializerMixin
 from classify.models import (
+    ParticipantGroup,
     ParticipantType,
     Belong,
     SectorGroup,
     Sector,
     InterestGroup,
-    InterestType
+    InterestType,
+    InterestSubtype,
 )
 from event.models import (
     EventGroup,
@@ -34,12 +36,14 @@ from api.views.catalogs.event_serializers import (
     InvolvedRoleSerializer)
 
 from api.views.catalogs.classify_serializers import (
+    ParticipantGroupSerializer,
     ParticipantTypeSerializer,
     BelongSerializer,
     SectorGroupSerializer,
     SectorSerializer,
     InterestGroupSerializer,
     InterestTypeSerializer,
+    InterestSubtypeSerializer,
 )
 from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer,
@@ -120,6 +124,13 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
             .update(sector=to_obj)
 
 
+class ParticipantGroupViewSet(viewsets.ModelViewSet):
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    queryset = ParticipantGroup.objects.all()
+    serializer_class = ParticipantGroupSerializer
+
+
 class InterestGroupViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
@@ -132,6 +143,13 @@ class InterestTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     queryset = InterestType.objects.all()
     serializer_class = InterestTypeSerializer
+
+
+class InterestSubtypeViewSet(viewsets.ModelViewSet):
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    queryset = InterestSubtype.objects.all()
+    serializer_class = InterestSubtypeSerializer
 
 
 class EventGroupViewSet(viewsets.ModelViewSet):

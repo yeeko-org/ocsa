@@ -137,14 +137,6 @@ class Sector(models.Model):
         verbose_name_plural = 'Sectores'
 
 
-INTEREST_CLUSTERS = [
-    ('denuncia', 'Denuncia'),
-    # ('reclamo', 'Reclamo'),
-    ('demanda', 'Demanda'),
-    ('otro', 'Otro'),
-]
-
-
 class InterestGroup(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
