@@ -3,12 +3,14 @@ import { computed, onMounted, ref } from 'vue'
 
 const menu_drawer = ref(false)
 import {useMainStore} from "~/store/index.js";
+import {useAuthStore} from "~/store/auth.js";
 import {storeToRefs} from "pinia";
 
 const mainStore = useMainStore()
+const authStore = useAuthStore()
 const { schemas, current_collection_data } = storeToRefs(mainStore)
 // const { fetchCatalogs } = mainStore
-const { logout } = mainStore
+const { logout } = authStore
 // const route = useRoute()
 
 onBeforeMount(() => {

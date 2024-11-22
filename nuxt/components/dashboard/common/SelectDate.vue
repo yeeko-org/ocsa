@@ -1,93 +1,40 @@
 <script setup>
-import { ref, computed, watch, defineProps, defineEmits } from 'vue'
-import dayjs from 'dayjs'
 
-// Props
+import dayjs from "dayjs";
+
 const props = defineProps({
   init_date: {
-    type: [String, Date, Object],
-    required: false,
-  },
-  is_req: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  label: {
     type: String,
     required: false,
-    default: 'Fecha',
-  },
-  hint: {
-    type: String,
-    required: false,
-    default: null,
-  },
-  persistent_hint: {
-    type: Boolean,
-    required: false,
-    default: false,
   },
 })
 
-// Emits
+const show_menu_date = ref(false)
 const emits = defineEmits(['update-date'])
 
-// Reactive data
-const showMenuDate = ref(false)
-const rules = {
-  required: (value) => !!value || 'Este campo no puede quedar vacío.',
-}
-
-// Reactive real_date to emit updated values
-const realDate = ref(props.init_date)
-
-// Computed property for formatted date
-const computedDateFormatted = computed({
-  get() {
-    console.log('computedDateFormatted')
-    return formatDate(props.init_date)
-    // const finalDate = realDate.value || props.init_date
-    // return dayjs(finalDate).format('DD/MM/YYYY')
-  },
-  set(newDate) {
-    // Convert to 'YYYY-MM-DD' format and emit
-    console.log('newDate', newDate)
-    realDate.value = dayjs(newDate).format('YYYY-MM-DD')
-    emits('update-date', realDate.value)
-  },
+const human_date = computed(() => {
+  if (!props.init_date) return ''
+  return dayjs(props.init_date).format('DD/MM/YYYY')
 })
 
-// Methods for formatting and parsing date
-const formatDate = (date) => {
-  if (!date) return null
-  const parsedDate = dayjs(date)
-  return parsedDate.isValid() ? parsedDate.format('DD/MM/YYYY') : null
-}
-
-const parseDate = (date) => {
-  if (!date) return null
-  const [day, month, year] = date.split('/')
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-}
-
-// Watcher to reactively update realDate based on init_date prop changes
-watch(() => props.init_date, (newVal) => {
-  realDate.value = newVal
+const getDate = computed(() => {
+  if (!props.init_date) return new Date()
+  return dayjs(props.init_date).toDate()
 })
 
-function saveDate() {
-  console.log('saveDate')
-  realDate.value = parseDate(computedDateFormatted.value)
-  emits('update-date', realDate.value)
-  showMenuDate.value = false
+function editDate(date) {
+  console.log("edit date", date)
+  // props.full_main.date = dayjs(date).format('YYYY-MM-DD')
+  const new_date = dayjs(date).format('YYYY-MM-DD')
+  emits('update-date', new_date)
+  show_menu_date.value = false
 }
 
 </script>
 
 <template>
   <v-menu
-    v-model="showMenuDate"
+    v-model="show_menu_date"
     :nudge-right="40"
     :close-on-content-click="false"
     transition="scale-transition"
@@ -96,47 +43,29 @@ function saveDate() {
   >
     <template v-slot:activator="{ props }">
       <v-text-field
-        v-model="computedDateFormatted"
-        :label="label"
-        variant="outlined"
-        :rules="[is_req ? rules.required : true]"
         v-bind="props"
-        class="px-3"
-        :hint="hint"
-        :persistent-hint="persistent_hint"
-        style="max-width: 400px"
-        @blur="realDate.value = parseDate(computedDateFormatted)"
-      ></v-text-field>
+        :model-value="human_date"
+        readonly
+        label="Fecha de la nota"
+        variant="outlined"
+        class="ml-2"
+        style="max-width: 180px;"
+      >
+      </v-text-field>
     </template>
-
     <v-date-picker
+      :modelValue="getDate"
+      @update:modelValue="editDate"
       color="accent"
-      v-model="realDate"
       show-adjacent-months
-      rounded="lg"
       cancel-text="Cancelar"
       ok-text="Guardar"
       title="Selecciona una fecha"
-      @click:save="showMenuDate = false"
-      @click:cancel="showMenuDate = false"
     >
-      <template v-slot:actions>
-        <v-spacer></v-spacer>
-        <v-btn
-          variant="text"
-          color="accent"
-          @click="showMenuDate = false"
-        >
-          Cancelar
-        </v-btn>
-        <v-btn
-          variant="outlined"
-          color="accent"
-          @click="saveDate"
-        >
-          Guardar
-        </v-btn>
-      </template>
     </v-date-picker>
   </v-menu>
 </template>
+
+<style scoped>
+
+</style>

@@ -10,6 +10,7 @@ const props = defineProps({
   filter_group_name: String,  // event_types
   child_relation_name: String,  // event
   additional_fields: Array,
+  required: Boolean,
   field: {
     type: String,
     required: true,
@@ -95,16 +96,16 @@ const addItem = (group=null) => {
 }
 
 const wantDeleteRecord = (item, index) => {
-  record_to_delete.value = { item, index }
+  const saved = item.id
+  record_to_delete.value = { item, index, saved }
   dialog_delete.value = true
   // props.main_object[field.value].splice(index, 1)
 }
 
 const deleteRecord = () => {
-  // console.log("record_to_delete", record_to_delete.value)
-  if (delete_text.value !== 'eliminar')
+  const {item, index, saved} = record_to_delete.value
+  if (saved && delete_text.value !== 'eliminar')
     return
-  const {item, index} = record_to_delete.value
   // console.log("item", item)
   // console.log("index", index)
   if (item.id){
@@ -245,24 +246,28 @@ const total_count = computed(() => {
       </v-card>
       <v-alert
         v-if="total_count === 0"
-        type="warning"
+        :type="required ? 'error' : 'warning'"
         variant="flat"
         border="start"
-        :text="`Debes agregar al menos un ${child_collection.name}`"
       >
+
+        {{ required ? 'Debes' : 'Intenta' }}
+        agregar al menos un {{child_collection.name}}
         <v-btn
+          v-if="!filter_group.category_groups && false"
           color="white"
-          class="ml-2"
+          class="ml-2 my-n1"
           variant="tonal"
           @click="addItem()"
+          icon="add"
+          size="small"
         >
-          Agregar
         </v-btn>
       </v-alert>
     </v-card>
     <v-dialog
       v-model="dialog_delete"
-      max-width="600"
+      max-width="500"
     >
       <v-card>
         <v-card-title>
@@ -273,7 +278,7 @@ const total_count = computed(() => {
         </v-card-subtitle>
         <v-card-text>
           <v-row>
-            <v-col cols="12">
+            <v-col cols="12" v-if="record_to_delete.saved">
               <v-text-field
                 v-model="delete_text"
                 label="Escribe 'eliminar' para confirmar"

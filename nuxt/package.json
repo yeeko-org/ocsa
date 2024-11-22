@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.0.0",
     "@mdi/font": "^7.4.47",
     "@pinia/nuxt": "^0.5.1",
     "axios": "^1.7.2",

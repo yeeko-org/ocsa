@@ -18,6 +18,9 @@ const props = defineProps({
     default: 'name',
   },
 })
+
+const saving = ref(false)
+const snackbar = ref(false)
 const emits = defineEmits(['new-item'])
 
 const final_collection_data = computed(() => {
@@ -28,10 +31,14 @@ const final_collection_data = computed(() => {
 
 function saveRecord() {
   // emits('save-item', props.full_main)
-  const is_new = Boolean(props.full_main.id)
+  saving.value = true
+  console.log('props.full_main', props.full_main)
+  const is_new = !Boolean(props.full_main.id)
   saveElement(props.collection_data, props.full_main).then((res) => {
     // props.results.unshift(res)
     emits('item-saved', {res, is_new})
+    snackbar.value = true
+    saving.value = false
   })
   // saveElement(final_collection_data.value, props.full_main).then((res) => {
   //   props.results.unshift(res)
@@ -71,6 +78,7 @@ function saveRecord() {
         <Comments
           v-if="final_collection_data.fields.some(f => f.name === 'comments')"
           :main="full_main"
+          :final_collection_data="final_collection_data"
         />
       </v-col>
 
@@ -83,11 +91,30 @@ function saveRecord() {
       <v-btn
         color="accent"
         variant="elevated"
+        :loading="saving"
         @click="saveRecord"
       >
         Guardar
       </v-btn>
     </v-card-actions>
+
+    <v-snackbar
+      v-model="snackbar"
+      color="success"
+      location="right top"
+      location-strategy="connected"
+    >
+      Se ha guardado el registro
+      <template v-slot:actions>
+        <v-btn
+          color="accent"
+          variant="text"
+          @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-card>
 </template>
 

@@ -91,7 +91,12 @@ function closeDialog() {
 }
 
 function saveNewElement({res, is_new}) {
-  props.results.unshift(res)
+  if (is_new)
+    props.results.unshift(res)
+  else{
+    const idx = props.results.findIndex(r => r.id === res.id)
+    props.results.splice(idx, 1, res)
+  }
   closeDialog()
 }
 
@@ -210,9 +215,11 @@ const all_selected = computed(() => {
     v-else
     class="mt-2"
   >
-    <v-alert type="info" variant="outlined">
-      Sin resultados, cambia los filtros de búsqueda
-    </v-alert>
+    <v-empty-state
+      icon="manage_search"
+      text="Intenta ajustar tus términos de búsqueda o filtros. A veces, términos menos específicos o consultas más amplias pueden ayudarte a encontrar lo que buscas."
+      title="No encontramos coincidencias."
+    ></v-empty-state>
   </v-card>
   <v-dialog
     v-model="dialog_edit"

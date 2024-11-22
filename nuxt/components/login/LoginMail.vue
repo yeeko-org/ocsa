@@ -5,9 +5,9 @@ import { ref } from 'vue'
 import authMix from "~/components/login/auth_mix.js";
 const { rules } = authMix;
 
-import {useMainStore} from '~/store/index.js'
-const mainStore = useMainStore()
-const { loginMail } = mainStore
+import {useAuthStore} from '~/store/auth.js'
+const authStore = useAuthStore()
+const { loginMail } = authStore
 
 const props = defineProps({
   setPassword: {

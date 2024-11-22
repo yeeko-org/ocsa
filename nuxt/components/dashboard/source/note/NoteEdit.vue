@@ -1,7 +1,6 @@
 <script setup>
-import dayjs from 'dayjs'
-
 import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import {computed} from "vue";
 import SelectDate from "~/components/dashboard/common/SelectDate.vue";
 const props = defineProps({
   is_massive_edit: Boolean,
@@ -20,64 +19,54 @@ const props = defineProps({
 //   props.full_main.mentions.push({})
 // }
 
-function editDate(date) {
-  console.log("edit date", date)
-  props.full_main.date = dayjs(date).format('YYYY-MM-DD')
-}
-
 </script>
 
 <template>
-  <v-text-field
-    v-model="full_main.title"
-    label="Título de la nota"
-    variant="outlined"
-    style="width: 100%;"
-  >
-  </v-text-field>
+  <div class="d-flex" style="width: 100%;">
+    <v-textarea
+      v-model="full_main.title"
+      label="Título de la nota"
+      variant="outlined"
+      rows="1"
+      auto-grow
+      _style="width: 100%;"
+    >
+    </v-textarea>
+    <SelectDate
+      :init_date="full_main.date"
+      @update-date="full_main.date = $event"
+    />
+  </div>
   <div class="d-flex" style="width: 100%;">
     <SelectGroup
       :main_object="full_main"
       filter_group_name="source_types"
+      :width="160"
     />
     <v-text-field
       v-model="full_main.section"
       label="Sección"
       variant="outlined"
       class="ml-2"
-      style="width: 200px;"
+      style="width: 140px;"
     >
     </v-text-field>
-    <SelectDate
-      v-if="false"
-      :init_date="full_main.date"
-      @update:date="editDate($event)"
-    />
-    <v-date-input
-      v-if="false"
-      v-model="full_main.date"
-      label="Select a date"
-      show-adjacent-months
-      max-width="368"
-    ></v-date-input>
-    <v-date-picker
-      v-if="false"
-      color="accent"
-      v-model="full_main.date_raw"
-      show-adjacent-months
-      cancel-text="Cancelar"
-      ok-text="Guardar"
-      title="Selecciona una fecha"
-    >
-    </v-date-picker>
-    <v-date-input
-      v-if="true"
-      v-model="full_main.date_raw"
-      @update:modelValue="editDate"
-      label="Fecha de la nota"
+    <v-text-field
+      v-model="full_main.author"
+      label="Autor"
+      variant="outlined"
       class="ml-2"
-      max-width="368"
-    ></v-date-input>
+      style="width: 240px;"
+    >
+    </v-text-field>
+    <v-text-field
+      v-model="full_main.pages"
+      label="Páginas"
+      variant="outlined"
+      class="ml-2"
+      style="width: 80px;"
+    >
+    </v-text-field>
   </div>
   <v-text-field
     v-model="full_main.link"
@@ -86,6 +75,16 @@ function editDate(date) {
     class="mr-2"
     style="width: 600px;"
   >
+    <template #append v-if="full_main.link">
+      <v-btn
+        color="accent"
+        variant="outlined"
+        icon="open_in_new"
+        :href="full_main.link"
+        target="_blank"
+        v-tooltip:bottom="'Abrir enlace'"
+      ></v-btn>
+    </template>
   </v-text-field>
 </template>
 

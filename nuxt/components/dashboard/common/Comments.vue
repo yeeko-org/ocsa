@@ -1,34 +1,41 @@
 <script setup>
 import dayjs from 'dayjs'
+
 const props = defineProps({
   main: Object,
+  final_collection_data: Object,
 })
+
 const want_edit_comment = ref(false)
+import {useMainStore} from '~/store/index'
+import {useAuthStore} from '~/store/auth'
+const mainStore = useMainStore()
+const authStore = useAuthStore()
+// const { saveSimple } = mainStore
+const { user_details_ocsa } = authStore
 
 function changeWantEdit(value) {
   want_edit_comment.value = value
 }
-// console.log('addComment')
-// this.model_obj[this.field] = this.model_obj[this.field]
-//   ? `${this.model_obj[this.field]}\n\n` : ''
-// const today = dayjs().format('DD/MM/YYYY')
-// console.log("today", today)
-// console.log("final", `${today} - ${this.user.first_name}: `)
-// this.model_obj[this.field] += `${today} - ${this.user.first_name}: `
 
 function addComment() {
   console.log("addComment")
   props.main.comments = props.main.comments
     ? `${props.main.comments}\n\n` : ''
   const today = dayjs().format('DD/MM/YYYY')
-  console.log("today", today)
-  const user = "USUARIO"
-  // console.log("final", `${today} - ${props.main.user.first_name}: `)
+  const user = user_details_ocsa.first_name
   props.main.comments += `${today} - ${user}: `
 
 }
-function saveNote() {
-  console.log("save note")
+function saveComment() {
+  if (props.main.id){
+    const params = {comments: props.main.comments}
+    mainStore.patchSimple(['note', props.main.id, params]).then(() => {
+      want_edit_comment.value = false
+    })
+  }
+  else
+    want_edit_comment.value = false
 }
 
 </script>
@@ -80,46 +87,49 @@ function saveNote() {
       </v-card>
     </v-tooltip>
   </v-card>
-    <v-btn
-      v-else
-      class="ml-3"
-      color="yellow-accent-4"
-      variant="elevated"
-      size="small"
-      @click="changeWantEdit(true)"
-      prepend-icon="sticky_note_2"
-    >
-      Comentar
-    </v-btn>
+  <v-btn
+    v-else
+    class="ml-3"
+    color="yellow-accent-4"
+    variant="elevated"
+    size="small"
+    @click="changeWantEdit(true)"
+    prepend-icon="sticky_note_2"
+  >
+    Comentar
+  </v-btn>
   <v-dialog
     v-model="want_edit_comment"
     max-width="600"
     scrollable
   >
     <v-card class="d-flex flex-column pa-3">
-      <v-textarea
-        v-model="main.comments"
-        variant="outlined"
-        style="min-width: 500px;"
-        label="Notas:"
-        rows="3"
-        auto-grow
-        append-outer-icon="close"
-        @click:append-outer="changeWantEdit(false)"
-      ></v-textarea>
+      <v-card-text>
+        <v-textarea
+          v-model="main.comments"
+          variant="outlined"
+          style="min-width: 500px;"
+          label="Notas:"
+          rows="3"
+          auto-grow
+          append-outer-icon="close"
+          hide-details
+          @click:append-outer="changeWantEdit(false)"
+        ></v-textarea>
+      </v-card-text>
       <slot name="action">
         <v-card-actions>
           <v-btn
             @click="addComment"
             color="accent"
-            class="ml-3"
+            _class="ml-3"
             variant="outlined"
           >Agregar comentario</v-btn>
           <v-spacer></v-spacer>
           <v-btn
-            @click="saveNote"
+            @click="saveComment"
             color="accent"
-            class="ml-3"
+            _class="ml-3"
             variant="elevated"
           >Guardar</v-btn>
         </v-card-actions>

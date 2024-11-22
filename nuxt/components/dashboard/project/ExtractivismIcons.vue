@@ -36,12 +36,20 @@ const original_types = computed(() => {
 <template>
   <div class="d-flex" v-if="true">
     <v-chip
-      v-if="show_name"
+      v-if="show_name && megaproject_type_node"
       class="mr-1"
       :color="megaproject_type_node.parent.data.color"
       size="small"
     >
       {{ megaproject_type_node.data.name }}
+    </v-chip>
+    <v-chip
+      v-else
+      class="mr-1"
+      color="grey"
+      size="small"
+    >
+      ???? {{show_name}}
     </v-chip>
     <div
       v-for="text_type in original_types"

@@ -8,6 +8,7 @@ import ActorSearch from "~/components/dashboard/actor/ActorSearch.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
+import SelectDate from "~/components/dashboard/common/SelectDate.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { saveSimple } = mainStore
@@ -24,6 +25,8 @@ const dialog_edit = ref(false)
 const actor_in_edition = ref(null)
 const total_requests = ref(0)
 const resolved_requests = ref(0)
+const saving = ref(false)
+const snackbar = ref(false)
 
 
 const actor_collection = computed(() => {
@@ -70,8 +73,9 @@ function saveOneToMany(snake_name, main_item) {
 }
 
 function saveMention() {
-  console.log("save mention", schemas.value)
+  // console.log("save mention", schemas.value)
   // const mention_schema = schemas.value.collections_dict['mention']
+  saving.value = true
   total_requests.value = 0
   saveOneToMany('mention', props.mention)
 }
@@ -81,6 +85,8 @@ watch(() => resolved_requests.value, (value) => {
     console.log("mention", props.mention)
     saveSimple(['mention', props.mention]).then(response => {
       console.log("response main", response)
+      snackbar.value = true
+      saving.value = false
     })
   }
 })
@@ -189,7 +195,12 @@ function closeDialog(event) {
           color="purple"
         >
           <template #rows="{ item }">
+            <SelectDate
+              :init_date="item.date"
+              @update-date="item.date = $event"
+            />
             <v-date-input
+              v-if="false"
               _v-model="new_date"
               label="Fecha del status"
               max-width="220"
@@ -205,6 +216,7 @@ function closeDialog(event) {
           filter_group_name="impact_types"
           child_relation_name="impact"
           field="impacts"
+          required
         >
           <template #rows="{ item }">
             <v-textarea
@@ -232,6 +244,7 @@ function closeDialog(event) {
           color="blue"
           emit_add
           @add-item="searchItem"
+          required
         >
           <template #rows_init="{ item }">
             <v-chip
@@ -289,6 +302,7 @@ function closeDialog(event) {
           two_columns
           color="lime"
           :additional_fields="['involvements']"
+          required
         >
           <template #rows="{ item }">
             <v-text-field
@@ -312,6 +326,7 @@ function closeDialog(event) {
               field="involvements"
               second_level
               color="blue"
+              required
             >
               <template #rows="{ item }">
                 <v-select
@@ -363,6 +378,7 @@ function closeDialog(event) {
           <v-btn
             color="accent"
             variant="elevated"
+            :loading="saving"
             @click="saveMention"
           >
             Guardar cambios
@@ -370,13 +386,29 @@ function closeDialog(event) {
         </v-col>
       </v-row>
     </v-card>
+    <v-snackbar
+      v-model="snackbar"
+      color="success"
+      location="right top"
+      location-strategy="connected"
+    >
+      Se ha guardado la mención
+      <template v-slot:actions>
+        <v-btn
+          color="accent"
+          variant="text"
+          @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
     <v-dialog
       v-model="dialog_search"
       max-width="920"
     >
       <v-card height="800">
         <v-card-text class="py-0">
-
           <CollectionDisplay
             :parent_collection="actor_collection"
             is_mini

@@ -212,7 +212,7 @@ function selectItem(item) {
   <v-card class="pt-3" flat style="width: 100%;">
     <template v-if="is_mini">
       <v-card-title class="text-h5 d-flex align-center">
-        Busca y elige un proyecto
+        Busca y elige un {{ collection_data.name }}
         <v-spacer></v-spacer>
         <v-btn
           icon="close"

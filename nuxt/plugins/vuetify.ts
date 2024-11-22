@@ -31,6 +31,19 @@ export default defineNuxtPlugin((app) => {
       sets: {
         md,
       }
+    },
+    date: {
+      locale: {
+        'es-MX': {
+          firstDayOfWeek: 0,
+          masks: {
+              input: 'DD/MM/YYYY',
+              date: 'DD/MM/YYYY',
+              time: 'HH:mm',
+              datetime: 'DD/MM/YYYY HH:mm',
+          },
+        },
+      },
     }
   })
   app.vueApp.use(vuetify)

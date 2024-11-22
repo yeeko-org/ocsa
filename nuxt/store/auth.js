@@ -1,210 +1,160 @@
-import ApiService from "./common";
-// const cookieparser = process.server ? require('cookieparser') : undefined
-// const Cookie = process.client ? require('js-cookie') : undefined
-// const Cookie = require('js-cookie')
-// import router from '@/router'
+import { defineStore } from "pinia";
 // import Cookie from "js-cookie";
+import ApiService from "~/store/common.js";
 
-const state = () => ({
-  counter: 1,
-  user_details_ocsa: undefined,
-  auth_arropa: null,
-  is_authenticated: false,
-  is_logged: false,
-})
+export const useAuthStore = defineStore("auth", {
+  state: () => ({
+    is_authenticated: false,
+    is_logged: false,
+    auth_ocsa: null,
+    user_details_ocsa: null,
+    is_logging_in: true,
+    dialog_login: false
+  }),
+  actions: {
+    setToken(token) {
+      this.auth_ocsa = token
+      //ApiService.defaults.headers.common['Authorization'] = `Token ${token}`;
+      //ApiService.defaults.headers.common['Authorization
+    },
+    setAuth(user, from_mid=true) {
+      console.log("setAuth")
+      this.is_authenticated = true
+      this.user_details_ocsa = user
+      this.is_logged = Date.now()
+      this.is_logging_in = false
+      // Cookie.set('auth_ocsa', user.token)
+      // console.log("Cookie", Cookie)
+      // console.log("auth_ocsa", Cookie.get('auth_ocsa'))
+      if (!from_mid){
+        const token = useCookie('auth_ocsa')
+        token.value = user.token
+      }
+      this.auth_ocsa = user.token
+    },
+    setHeader() {
+      if (this.auth_ocsa) {
+        let token = this.auth_ocsa
+        ApiService.defaults.headers.common['Authorization'] = `Token ${token}`
+      }
+    },
+    checkAuthSimple() {
+      // const cookie_auth = Cookie.get('auth_ocsa')
+      const cookie_auth = useCookie('auth_ocsa')
 
-const mutations = {
-  SET_TOKEN(state, token) {
-    state.auth_arropa = token;
-    //ApiService.defaults.headers.common['Authorization'] = `Token ${token}`;
-    //ApiService.defaults.headers.common['Authorization'] = "Token 1b38bcac3c4f57a1b57bf48a954111bd54a3f3cf";
-  },
-  SET_RESET_SUCCESSFUL(state) {
-    state.reset_successful = true
-  },
-  SET_AUTH(state, user) {
-    //console.log("SETEAMOS EL USER")
-    //console.log(user)
-    state.is_authenticated = true;
-    state.user_details_ocsa = user;
-    state.is_logged = Date.now();
-    // Cookie.set('auth_arropa', user.token)
-    //console.log(Cookie)
-    state.auth_arropa = user.token;
-    //console.log()
-    //ApiService.saveToken(state.user_details_ocsa.token);
-    // Setea los valores del userId de la cookie de Google Analytics
-    //setGAUserId(user['id'])
-  },
-  SET_ORGANIZATION(state, organization) {
-    state.user_details_ocsa.profile.organization = organization;
-  },
-  SET_RESET_HASH(state, hash) {
-    state.hash_password = hash
-  },
-  PURGE_AUTH(state) {
-    console.log("!!!SE EJECUTA PURGE_AUTH")
-    state.is_authenticated = false;
-    state.user_details_ocsa = undefined;
-    state.auth_arropa = null;
-    // Cookie.remove('auth_arropa')
-  },
-}
-
-const actions = {
-  FROM_SERVER_INIT({commit}, [auth_arropa, psid]){
-    //console.log("FROM_SERVER_INIT")
-    commit('SET_TOKEN', auth_arropa)
-    //commit('SET_PSID', psid)
-  },
-  SET_HEADER({state}){
-    //console.log(state.auth_arropa)
-    if (state.auth_arropa){
-      let token =  state.auth_arropa
-      ApiService.defaults.headers.common['Authorization'] = `Token ${token}`;
-    }
-    //this.$axios.setToken(token, 'Token')
-  },
-  CHECK_AUTH_SIMPLE(context){
-    console.log("CHECK_AUTH_SIMPLE")
-    //console.log("CHECK_AUTH_SIMPLE")
-    return new Promise (resolve => {
-      //primero comprobamos que exista token de usuario
-      if (context.state.auth_arropa) {
-        //console.log("hay token")
-        let last_login = context.state.is_logged
-        if (!!last_login && last_login + (3600*24*1000) > Date.now()){
-          console.log("NO hay datos recientes")
+      // console.log("checkAuthSimple")
+      return new Promise((resolve) => {
+        if (this.is_logged) {
+          // console.log("hay auth", this.auth_ocsa)
+          let last_login = this.is_logged
+          if (!!last_login && last_login + (3600*24*1000) > Date.now()){
+            // console.log("NO hay datos recientes")
+            this.purgeAuth()
+            return resolve()
+          }
+          else{
+            // console.log("hay datos recientes")
+          }
+        }
+        else if (cookie_auth.value) {
+          // console.log("hay cookie", this.auth_ocsa)
+          this.auth_ocsa = cookie_auth.value
+          this.setHeader()
+          this.getLogin()
+        }
+        else {
+          // console.log("NO ESTÁ LOGUEADO")
           return resolve()
         }
-        else{
-          console.log("hay datos recientes")
-          //Si hay token de usuario, obtiene su info
-          context.dispatch('GET_CURRENT_USER')
-            .then((dataUser) => {
-              resolve(dataUser)
-            })
-            //Si hay cualquier error se intenta loguear por facebook
-            .catch((err) => {
-              console.log(err)
-            })
-        }
-      }
-      else
-        //Si no hay token, directamente intenta generar un login con Facebook
-        console.log("NO ESTÁ LOGUEADO")
-    })
-  },
-  LOGIN_MAIL({dispatch}, params){
-    return new Promise((resolve) => {
-      ApiService.post('/auth/login/', params)
-        .then(({data}) => {
-          // console.log(data)
-          dispatch('HAS_LOGGED', data)
-          return resolve(data)
-        })
-        .catch(err =>{
-          // console.log(err)
-          return resolve({error:err})
-        })
-    })
-  },
-  REGISTER_MAIL({dispatch}, params){
-    return new Promise((resolve) => {
-      ApiService.post('/auth/register/', params)
-        .then(({data}) => {
-          dispatch('HAS_LOGGED', data)
-          return resolve(data)
-        })
-    })
-  },
-  GET_CURRENT_USER({dispatch, state}) {
-    let getLogin = () =>
-      new Promise(resolve => {
-        dispatch('SET_HEADER')
-        resolve(ApiService.get('/login/')
-          .then(({ data, status }) => {
-            if (status !== 204)
-              return dispatch('HAS_LOGGED', data)
-            else
-              return dispatch('HAS_NOT_LOGGED', 'Not Content(204)')
-          })
-          .catch(error => dispatch('HAS_NOT_LOGGED',
-            `ServerError: ${error}`))
-        )
+        return resolve(this.getCurrentUser())
       })
-    if (state.user_details_ocsa){
-      console.log("ya hay logueado, se hace asíncrono el tema")
-      //getLogin()
-      return state.user_details_ocsa
-    }
-    else{
-      console.log("en el nuxt no hay datos del usuario")
-      console.log(state)
-      //return getLogin()
-      //this.$router.replace({ name: 'Login' });
-    }
-
-  },
-  SEND_PASSWORD_RESET(context, params){
-    return new Promise((resolve) => {
-      ApiService.post('/auth/request_password_recovery/', params)
-        .then(({data}) => {
-          return resolve(data)
+    },
+    getCurrentUser() {
+      if (this.user_details_ocsa){
+        return this.user_details_ocsa
+      }
+      else{
+        // console.log("en el nuxt no hay datos del usuario")
+        return null
+      }
+    },
+    getLogin() {
+      // console.log("getLogin")
+      // return new Promise((resolve) => {
+      this.setHeader()
+      ApiService.get('/login/')
+        .then(({data, status}) => {
+          if (status !== 204)
+            return this.hasLogged(data)
+          else
+            return this.hasNotLogged('Not Content (204)')
         })
         .catch(err =>{
-          console.log(err)
-          return resolve({error:true})
+          console.log("LOGIN_ERROR", err)
+          return this.hasNotLogged(`Server error: ${err}`)
         })
-    })
-  },
-  CHANGE_PASSWORD({state, commit, dispatch}, params){
-    return new Promise((resolve) => {
-      ApiService.post('/auth/password_recovery/', params)
-        .then(({data}) => {
-          dispatch("HAS_LOGGED", data)
-          return resolve(data)
-        })
-        .catch(err =>{
-          console.log(err)
-          return resolve({error:true})
-        })
-
-    })
-  },
-  LOGOUT(context) {
-    context.commit('PURGE_AUTH') // Elimina todas las credenciales
-    // return router.push({ path: '/' })
-  },
-  HAS_NOT_LOGGED({commit}, error_message) {
-    console.log(error_message)
-    commit('PURGE_AUTH');
-    console.log({error:error_message})
-  },
-  HAS_LOGGED({commit, dispatch, state}, userData) {
-    commit('PURGE_AUTH');
-    commit('SET_AUTH', userData)
-    if (userData.profile && userData.profile.organization){
-      console.log("seteamos la organización")
-      commit("arropa/SET_ORGANIZATION_ID", userData.profile.organization.id, {root: true})
+      // })
+    },
+    loginMail(params) {
+      return new Promise((resolve) => {
+        ApiService.post('/login/', params)
+          .then(({data}) => {
+            this.hasLogged(data, false)
+            return resolve(data)
+          })
+          .catch(err =>{
+            return resolve({error:err})
+          })
+      })
+    },
+    hasLogged(userData, from_mid=true) {
+      this.purgeAuth(from_mid)
+      this.setAuth(userData, from_mid)
+      // if (userData.profile && userData.profile.organization){
+      //   console.log("seteamos la organización")
+      //   commit("arropa/SET_ORGANIZATION_ID", userData.profile.organization.id, {root: true})
+      // }
+      if (!from_mid){
+        this.redirectLogin()
+      }
+    },
+    hasNotLogged(error) {
+      this.is_logging_in = false
+      console.error(error)
+      this.purgeAuth()
+      return null
+    },
+    redirectLogin() {
+      const router = useRouter()
+      return router.push({ path: '/dashboard'})
+      // return $router.push({ path: '/dashboard'})
+    },
+    purgeAuth(from_mid=true) {
+      // console.log("purgeAuth")
+      this.is_authenticated = false
+      this.user_details_ocsa = null
+      this.auth_ocsa = null
+      // Cookie.remove('auth_ocsa')
+      if (!from_mid){
+        const token = useCookie('auth_ocsa')
+        token.value = null
+      }
+    },
+    logout() {
+      const router = useRouter()
+      // const route = useRoute()
+      this.purgeAuth(false)
+      return router.push({ path: '/login' })
     }
-    dispatch('REDIRECT_LOGIN');
   },
-  REDIRECT_LOGIN({state, commit}){
-    console.log("REDIRECT_LOGIN")
-    // console.log("router2", router)
-    // let route_name = router.currentRoute.value.name
-    // console.log("route_name", route_name)
-    // if (route_name === 'login' || route_name === 'first_init')
-    //   return router.push({ path: '/profile'})
-    // this.$router.push({ path: '/dashboard'})
+  getters: {
+    authCookie() {
+      // console.log("Cookie", Cookie)
+      // console.log("authCookie", Cookie.get('auth_ocsa'))
+      const token = useCookie('auth_ocsa')
+      return token.value
+      // return true
+    }
   }
-}
 
-
-export default {
-  namespaced: true,
-  state,
-  mutations,
-  actions,
-}
+});
