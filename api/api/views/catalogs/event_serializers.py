@@ -4,6 +4,7 @@ from event.models import (
     EventType,
     EventSubtype,
     InvolvedRole,)
+from api.views.event.serializers import EventSerializer
 
 
 class EventGroupSerializer(serializers.ModelSerializer):
@@ -22,12 +23,15 @@ class EventTypeSerializer(serializers.ModelSerializer):
 
 
 class EventSubtypeSerializer(serializers.ModelSerializer):
-    # event_types = EventTypeSerializer(many=True)
-    # status_validation = StatusControlSerializer()
+    count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = EventSubtype
         fields = "__all__"
+
+
+class EventSubtypeFullSerializer(EventSubtypeSerializer):
+    events = EventSerializer(many=True, read_only=True)
 
 
 class InvolvedRoleSerializer(serializers.ModelSerializer):

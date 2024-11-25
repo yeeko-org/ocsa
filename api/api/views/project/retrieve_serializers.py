@@ -3,7 +3,7 @@ from rest_framework import serializers
 from actor.models import Participant
 from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
-    ImpactSerializer, ActorBasicSerializer)
+    ImpactSerializer, ActorBasicSerializer, LocationSerializer)
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
@@ -38,7 +38,7 @@ class NoteFullSerializer(serializers.ModelSerializer):
 
 
 class ParticipantFullSerializer(serializers.ModelSerializer):
-    actor = ActorBasicSerializer()
+    actor_full = ActorBasicSerializer(source='actor', read_only=True)
 
     class Meta:
         model = Participant
@@ -63,12 +63,15 @@ class ProjectFileSerializer(serializers.ModelSerializer):
 
 class ProjectFullSerializer(serializers.ModelSerializer):
     files = ProjectFileSerializer(many=True, read_only=True)
-    parent_project = serializers.SerializerMethodField()
-    conflict = ConflictSerializer()
-    extractivism_type = serializers.SerializerMethodField()
-    mentions = MentionFullSerializer(many=True)
+    parent_project_full = serializers.SerializerMethodField(
+        read_only=True)
+    conflict_full = ConflictSerializer(read_only=True)
+    extractivism_type = serializers.SerializerMethodField(
+        read_only=True)
+    mentions = MentionFullSerializer(many=True, read_only=True)
+    locations = LocationSerializer(many=True, read_only=True)
 
-    def get_parent_project(self, obj):
+    def get_parent_project_full(self, obj):
         if obj.parent_project:
             return ProjectFullSerializer(obj.parent_project).data
 

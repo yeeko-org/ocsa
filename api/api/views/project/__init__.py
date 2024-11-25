@@ -77,7 +77,8 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
         action_serializer = {
             'retrieve': ProjectFullSerializer,
             'create': ProjectSemiFullSerializer,
-            'update': ProjectEditSerializer,
+            # 'update': ProjectEditSerializer,
+            'update': ProjectFullSerializer,
             'add_file': ProjectFileSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)

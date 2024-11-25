@@ -19,7 +19,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 class ProjectSemiFullSerializer(serializers.ModelSerializer):
     parent_project = serializers.SerializerMethodField(read_only=True)
-    conflict = ConflictSerializer(read_only=True)
+    conflict_full = ConflictSerializer(read_only=True)
     extractivism_type = serializers.SerializerMethodField()
 
     def get_parent_project(self, obj):

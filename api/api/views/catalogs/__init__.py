@@ -33,6 +33,7 @@ from api.views.catalogs.event_serializers import (
     EventGroupSerializer,
     EventTypeSerializer,
     EventSubtypeSerializer,
+    EventSubtypeFullSerializer,
     InvolvedRoleSerializer)
 
 from api.views.catalogs.classify_serializers import (
@@ -159,18 +160,23 @@ class EventGroupViewSet(viewsets.ModelViewSet):
     serializer_class = EventGroupSerializer
 
 
-class EventTypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+class EventTypeViewSet(BaseViewSet):
     queryset = EventType.objects.all()
     serializer_class = EventTypeSerializer
 
 
-class EventSubtypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    queryset = EventSubtype.objects.all()
-    serializer_class = EventSubtypeSerializer
+class EventSubtypeViewSet(BaseStatusViewSet):
+    queryset = EventSubtype.objects.all()\
+        .prefetch_related('events')\
+        .annotate(count=Count('events'))\
+        .distinct()
+    serializer_class = EventSubtypeFullSerializer
+
+    def get_serializer_class(self):
+        action_serializer = {
+            'list': EventSubtypeSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)
 
 
 class InvolvedRoleViewSet(viewsets.ModelViewSet):

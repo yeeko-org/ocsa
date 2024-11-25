@@ -5,7 +5,7 @@ from project.models import Project
 from source.models import Mention, Note
 from space_time.models import Location
 # from api.views.catalogs.serializers import ProjectBaseSerializer
-from api.views.project.list_serializers import NoteBasicSerializer
+# from api.views.project.list_serializers import NoteBasicSerializer
 
 
 class ProjectBaseSerializer(serializers.ModelSerializer):
@@ -14,13 +14,20 @@ class ProjectBaseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class NoteBasicSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Note
+        fields = ['id', 'title', 'source', 'date']
+
+
 class MentionBaseSerializer(serializers.ModelSerializer):
-    project = ProjectBaseSerializer()
-    note = NoteBasicSerializer()
+    project_full = ProjectBaseSerializer(source='project', read_only=True)
+    note_full = NoteBasicSerializer(source='note', read_only=True)
 
     class Meta:
         model = Mention
-        fields = ["project", "note"]
+        fields = ["project", "note", "project_full", "note_full"]
 
 
 class ParticipantBaseSerializer(serializers.ModelSerializer):

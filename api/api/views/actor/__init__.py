@@ -3,7 +3,7 @@ from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.request import Request
 
@@ -61,8 +61,10 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
 
     filterset_class = ActorFilter
 
-    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    # filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
 
+    search_fields = ['name', 'alternative_names']
     ordering_fields = ['id', 'name', 'mentions_count', 'status_validation__order']
     ordering = ['id']
 
@@ -139,8 +141,8 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
 
         search_query = self.request.query_params.get('q', '')
         if search_query:
-            # queryset = queryset.filter(name__unaccent__icontains=search_query)
-            queryset = queryset.filter(name__icontains=search_query)
+            queryset = queryset.filter(name__unaccent__icontains=search_query)
+            # queryset = queryset.filter(name__icontains=search_query)
 
         return queryset
 

@@ -6,6 +6,7 @@ from api.pagination import CustomPagination
 from impact.models import ImpactSubtype, ImpactType
 from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer, ImpactTypeSerializer)
+from ..common_views import BaseViewSet, BaseStatusViewSet
 
 
 class ImpactSubtypeFilter(FilterSet):
@@ -20,7 +21,7 @@ class ImpactSubtypeFilter(FilterSet):
 
 class ImpactSubtypeViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
-    from django.db.models import Count
+    # from django.db.models import Count
 
     permission_classes = [permissions.AllowAny]
     filterset_class = ImpactSubtypeFilter
