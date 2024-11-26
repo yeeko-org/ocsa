@@ -1,17 +1,10 @@
 from rest_framework import serializers
 
 from space_time.models import (
-    Country,
     State,
     Municipality,
     Locality,
     Location,)
-
-
-class CountrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Country
-        fields = '__all__'
 
 
 class LocalitySerializer(serializers.ModelSerializer):

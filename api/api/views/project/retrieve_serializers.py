@@ -3,7 +3,8 @@ from rest_framework import serializers
 from actor.models import Participant
 from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
-    ImpactSerializer, ActorBasicSerializer, LocationSerializer)
+    ImpactSerializer, ActorBasicSerializer, LocationSerializer,
+    LocationFullSerializer)
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
@@ -69,7 +70,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     extractivism_type = serializers.SerializerMethodField(
         read_only=True)
     mentions = MentionFullSerializer(many=True, read_only=True)
-    locations = LocationSerializer(many=True, read_only=True)
+    locations = LocationFullSerializer(many=True, read_only=True)
 
     def get_parent_project_full(self, obj):
         if obj.parent_project:

@@ -44,7 +44,8 @@ class ImpactType(models.Model):
 class ImpactSubtype(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    impact_type = models.ForeignKey(ImpactType, on_delete=models.CASCADE)
+    impact_type = models.ForeignKey(
+        ImpactType, on_delete=models.CASCADE, related_name='impact_subtypes')
     help_text = models.TextField(blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)

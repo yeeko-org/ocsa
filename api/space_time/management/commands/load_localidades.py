@@ -29,7 +29,10 @@ class LoadLocalidades:
         with open(file_path, newline='', encoding='latin1') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                municipality_inegi_code = row['CVE_MUN']
+                # municipality_inegi_code = row['CVE_MUN']
+                cve_ent = row['CVE_ENT']
+                cve_mun = row['CVE_MUN']
+                municipality_inegi_code = f"{cve_ent}-{cve_mun}"
                 municipality_id = self.municipalities_ids.get(
                     municipality_inegi_code)
                 inegi_code = row['CVE_LOC']
@@ -62,7 +65,7 @@ class LoadLocalidades:
         print("Loading municipalities")
 
         for municipality in Municipality.objects.all():
-            self.municipalities_ids[municipality.inegi_code] = municipality.pk
+            self.municipalities_ids[municipality.complete_code] = municipality.pk
 
     def bulk_create(self):
         print("Bulk creating localities")

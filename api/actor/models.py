@@ -1,11 +1,10 @@
 from django.db import models
 
 from source.models import Mention
-from space_time.models import Country
 from django.db.models import JSONField
 from work_flux.models import StatusControl, CommentsMixin
 from classify.models import (
-    InterestSubtype, ParticipantType, Belong, IndigenousGroup, Sector)
+    InterestSubtype, ParticipantType, Belong, IndigenousGroup, Sector, Country)
 # from work_flux.models import StatusRegister
 
 

@@ -67,42 +67,52 @@ class UbicacionesToLocations:
 
     def migrate_ubicacion(self, ubicacion: Ubicacion):
         details = ""
+        comments = []
 
         if ubicacion.tipo_ubicacion != "punto":
-            details += f"Tipo de ubicación: {ubicacion.tipo_ubicacion}.\n\r"
+            comments.append(f"Tipo de ubicación: {ubicacion.tipo_ubicacion}")
 
         state_id = self.get_state_id(ubicacion.estado)
         if not state_id:
-            details += f"Estado no encontrado: {ubicacion.estado}.\n\r"
+            comments.append(f"Estado no encontrado: {ubicacion.estado}")
 
         municipality, municipality_count = self.get_municipality(
             state_id, ubicacion.municipio)
         if not municipality:
-            details += f"Municipio no encontrado: {ubicacion.municipio}.\n\r"
+            comments.append(f"Municipio no encontrado: {ubicacion.municipio}")
         if municipality_count > 1:
-            details += (
+            comments.append(
                 f"Se encontraron {municipality_count} municipios con el mismo "
-                f"nombre{ubicacion.municipio}.\n\r")
+                f"nombre{ubicacion.municipio}")
 
         locality, locality_count = self.get_locality(
             municipality, ubicacion.localidad)
         if not locality and ubicacion.localidad:
-            details += f"Localidad no encontrada: {ubicacion.localidad}.\n\r"
+            comments.append(f"Localidad no encontrada: {ubicacion.localidad}")
         if locality_count > 1:
-            details += (
+            comments.append(
                 f"Se encontraron {locality_count} localidades con el mismo "
-                f"nombre{ubicacion.localidad}.\n\r")
+                f"nombre{ubicacion.localidad}")
 
-        details = (ubicacion.especificaciones or "") + "\n\r" + details
+        # details = (ubicacion.especificaciones or "") + "\n\r" + details
+        details = ubicacion.especificaciones or ""
+
         details = details.strip()
-
         geojson = None
         try:
             geojson = json.loads(ubicacion.geom) if ubicacion.geom else None
         except json.JSONDecodeError:
-            details += (
-                "Error al parsear el geojson. "
-                "El campo se guardará como nulo.\n\r")
+            comments.append(
+                "Error al parsear el geojson. El campo se guardará como nulo")
+            details += f"\n\rgeom: {ubicacion.geom}"
+        status_location = 'initial_v1'
+        final_comments = None
+        if comments:
+            final_comments = "; ".join(comments)
+            final_comments = f"YEEKO: {final_comments}"
+            status_location = 'need_fix'
+        elif geojson or ubicacion.latitud or ubicacion.longitud:
+            status_location = 'migrated_v1'
 
         Location.objects.create(
             state_id=state_id,
@@ -112,5 +122,7 @@ class UbicacionesToLocations:
             latitude=ubicacion.latitud,
             longitude=ubicacion.longitud,
             geojson=geojson,
-            ubicacion_id_ref=ubicacion.pk
+            ubicacion_id_ref=ubicacion.pk,
+            comments=final_comments,
+            status_location_id=status_location
         )

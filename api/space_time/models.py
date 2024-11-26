@@ -1,19 +1,5 @@
 from django.db import models
-from django.db.models import JSONField
 from work_flux.models import StatusControl
-
-
-class Country(models.Model):
-    name = models.CharField(max_length=100)
-    flag_emoji = models.CharField(max_length=20, blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ["name"]
-        verbose_name = 'Pais'
-        verbose_name_plural = 'Paises'
 
 
 class StatusProject(models.Model):
@@ -49,7 +35,7 @@ class State(models.Model):
     code_name = models.CharField(
         max_length=6, verbose_name="Nombre Clave",
         blank=True, null=True)
-    alternative_names = JSONField(
+    alternative_names = models.JSONField(
         default=default_alternative_names,
         verbose_name="Lista nombres alternativos",
         help_text="Ocupar para OCAMIS",

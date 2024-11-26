@@ -61,8 +61,8 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class ActorMiniSerializer(serializers.ModelSerializer):
-    mentions_count = serializers.SerializerMethodField()
-    sector_group = serializers.SerializerMethodField()
+    mentions_count = serializers.SerializerMethodField(read_only=True)
+    sector_group = serializers.SerializerMethodField(read_only=True)
 
     def get_mentions_count(self, obj: Actor):
         mentions_count = getattr(obj, 'mentions_count', None)
@@ -93,9 +93,8 @@ class ActorMiniSerializer(serializers.ModelSerializer):
 
 class ActorBaseSerializer(ActorMiniSerializer):
 
-    parent_actor_full = serializers.SerializerMethodField(
-        read_only=True)
-    participants = ParticipantBaseSerializer(many=True)
+    parent_actor_full = serializers.SerializerMethodField(read_only=True)
+    participants = ParticipantBaseSerializer(many=True, read_only=True)
 
     def get_parent_actor_full(self, obj: Actor):
         # ActorBaseSerializer produce error de recursividad. analizar
@@ -107,9 +106,9 @@ class ActorBaseSerializer(ActorMiniSerializer):
 
 
 class ActorFullSerializer(ActorBaseSerializer):
-    participants = ParticipantMiniSerializer(many=True)
-    notes = serializers.SerializerMethodField()
-    projects = serializers.SerializerMethodField()
+    participants = ParticipantMiniSerializer(many=True, read_only=True)
+    notes = serializers.SerializerMethodField(read_only=True)
+    projects = serializers.SerializerMethodField(read_only=True)
     # origin_references = OriginReferenceSerializer(many=True)
 
     def get_notes(self, obj: Actor):

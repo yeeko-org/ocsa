@@ -5,8 +5,9 @@ from django_filters import FilterSet, NumberFilter
 from api.pagination import CustomPagination
 from impact.models import ImpactSubtype, ImpactType
 from api.views.catalogs.serializers import (
-    ImpactSubtypeSerializer, ImpactTypeSerializer)
-from ..common_views import BaseViewSet, BaseStatusViewSet
+    ImpactSubtypeSerializer, ImpactSubtypeFullSerializer,
+    ImpactTypeSerializer, ImpactTypeFullSerializer)
+# from ..common_views import BaseViewSet, BaseStatusViewSet
 
 
 class ImpactSubtypeFilter(FilterSet):
@@ -30,13 +31,11 @@ class ImpactSubtypeViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name']
 
-    serializer_class = ImpactSubtypeSerializer
+    serializer_class = ImpactSubtypeFullSerializer
 
     def get_serializer_class(self):
         action_serializer = {
-            'retrieve': ImpactSubtypeSerializer,
-            'create': ImpactSubtypeSerializer,
-            'update': ImpactSubtypeSerializer
+            'list': ImpactSubtypeSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 
@@ -60,12 +59,10 @@ class ImpactTypeViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name']
 
-    serializer_class = ImpactTypeSerializer
+    serializer_class = ImpactTypeFullSerializer
 
     def get_serializer_class(self):
         action_serializer = {
-            'retrieve': ImpactTypeSerializer,
-            'create': ImpactTypeSerializer,
-            'update': ImpactTypeSerializer
+            'list': ImpactTypeSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)

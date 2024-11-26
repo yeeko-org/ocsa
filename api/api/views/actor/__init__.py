@@ -61,8 +61,8 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
 
     filterset_class = ActorFilter
 
-    # filter_backends = [OrderingFilter, DjangoFilterBackend]
-    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
 
     search_fields = ['name', 'alternative_names']
     ordering_fields = ['id', 'name', 'mentions_count', 'status_validation__order']
@@ -137,12 +137,14 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
             .update(actor=to_obj)
 
     def filter_queryset(self, queryset):
+        from django.db.models import Q
         queryset = super().filter_queryset(queryset)
-
         search_query = self.request.query_params.get('q', '')
         if search_query:
-            queryset = queryset.filter(name__unaccent__icontains=search_query)
-            # queryset = queryset.filter(name__icontains=search_query)
+            filter_query = Q()
+            for field in self.search_fields:
+                filter_query |= Q(**{f'{field}__unaccent__icontains': search_query})
+            queryset = queryset.filter(filter_query)
 
         return queryset
 
@@ -154,8 +156,8 @@ class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': ActorFullSerializer,
-            'create': ActorCreateSerializer,
-            'update': ActorEditeSerializer,
+            'create': ActorFullSerializer,
+            'update': ActorFullSerializer,
             'massive_changes': MassiveChangeSerializer,
             'merge': FromToModelSerializer
         }

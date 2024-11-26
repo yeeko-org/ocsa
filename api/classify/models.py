@@ -190,3 +190,16 @@ class InterestSubtype(models.Model):
         verbose_name = 'Subtipo de interés'
         verbose_name_plural = 'Subtipos de interés'
 
+
+class Country(models.Model):
+    name = models.CharField(max_length=100)
+    flag_emoji = models.CharField(max_length=20, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'space_time_country'
+        ordering = ["name"]
+        verbose_name = 'Pais'
+        verbose_name_plural = 'Paises'

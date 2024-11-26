@@ -2,14 +2,12 @@ from rest_framework import viewsets, permissions
 
 from api.pagination import CustomPagination
 from space_time.models import (
-    Country,
     State,
     Municipality,
     Locality,
     Location,)
 
 from api.views.space_time.serializers import (
-    CountrySerializer,
     MunicipalityRetrieveSerializer,
     StateListSerializer,
     MunicipalityListSerializer,
@@ -21,11 +19,6 @@ from api.views.space_time.serializers import (
 class ListSetMixin(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = CustomPagination
-
-
-class CountryListViewSet(ListSetMixin):
-    queryset = Country.objects.all()
-    serializer_class = CountrySerializer
 
 
 class StateListViewSet(ListSetMixin):

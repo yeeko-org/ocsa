@@ -14,7 +14,7 @@ from classify.models import (
     Sector,
     InterestGroup,
     InterestType,
-    InterestSubtype,
+    InterestSubtype, Country,
 )
 from event.models import (
     EventGroup,
@@ -45,6 +45,7 @@ from api.views.catalogs.classify_serializers import (
     InterestGroupSerializer,
     InterestTypeSerializer,
     InterestSubtypeSerializer,
+    CountrySerializer
 )
 from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer,
@@ -61,6 +62,7 @@ from api.views.catalogs.project_serializers import (
 )
 from .all import CatalogsView  # noqa
 from ..common_views import BaseViewSet, BaseStatusViewSet
+from ..space_time import ListSetMixin
 
 
 class ParticipantTypeViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
@@ -123,6 +125,11 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
     def update_relations_merge(self, from_obj, to_obj):
         Actor.objects.filter(sector=from_obj)\
             .update(sector=to_obj)
+
+
+class CountryListViewSet(ListSetMixin):
+    queryset = Country.objects.all()
+    serializer_class = CountrySerializer
 
 
 class ParticipantGroupViewSet(viewsets.ModelViewSet):
@@ -194,21 +201,6 @@ class ImpactSubtypeFilter(FilterSet):
     class Meta:
         model = ImpactSubtype
         fields = {'impact_type': ['exact']}
-
-
-class ImpactSubtypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-
-    permission_classes = [permissions.AllowAny]
-    queryset = ImpactSubtype.objects.all()
-    serializer_class = ImpactSubtypeSerializer
-
-
-class ImpactTypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    queryset = ImpactType.objects.all()
-    serializer_class = ImpactTypeSerializer
 
 
 class SourceViewSet(viewsets.ModelViewSet):

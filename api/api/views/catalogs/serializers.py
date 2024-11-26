@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from api.views.common_serializers import CommonCount
+from api.views.project.list_serializers import ImpactSerializer
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup
 from source.models import Source
 # from project.models import Project
@@ -30,17 +31,33 @@ class ImpactGroupSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ImpactSubtypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ImpactSubtype
+        fields = "__all__"
+
+
+class ImpactSubtypeFullSerializer(serializers.ModelSerializer):
+    impacts = ImpactSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ImpactSubtype
+        fields = "__all__"
+
+
 class ImpactTypeSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = ImpactType
         fields = "__all__"
 
 
-class ImpactSubtypeSerializer(serializers.ModelSerializer):
-    # impact_type = ImpactTypeSerializer()
+class ImpactTypeFullSerializer(serializers.ModelSerializer):
+    impact_subtypes = ImpactSubtypeSerializer(many=True, read_only=True)
 
     class Meta:
-        model = ImpactSubtype
+        model = ImpactType
         fields = "__all__"
 
 

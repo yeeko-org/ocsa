@@ -36,6 +36,7 @@ def field_of_models(collection: Collection):
     fields = []
     for field in all_fields:
         relation_type = "simple"
+        is_primary_key = False
         if field.one_to_many:
             relation_type = "one_to_many"
         elif field.is_relation:
@@ -45,6 +46,8 @@ def field_of_models(collection: Collection):
                 relation_type = "one_to_one"
             else:
                 relation_type = "relation"
+        else:
+            is_primary_key = field.primary_key
 
         complement = "_id" if field.is_relation else ""
         # field_name = f"{field.name}{complement}"
@@ -65,6 +68,7 @@ def field_of_models(collection: Collection):
         final_field = {
             "name": field.name,
             "real_name": f"{field.name}{complement}",
+            "primary_key": is_primary_key,
             "relation_type": relation_type,
             "field_type": field_type,
             "is_string": isinstance(field, TextField) or is_char,

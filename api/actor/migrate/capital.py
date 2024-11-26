@@ -1,9 +1,7 @@
 from typing import Optional
 from actor.models import Actor, Member
-from classify.models import SectorGroup, Sector
+from classify.models import Sector, Country
 from ocsa_legacy.models import Capital
-from work_flux.models import StatusControl
-from space_time.models import Country
 from actor.migrate.common import text_normalizer, ActorBase
 
 

@@ -9,7 +9,7 @@ from classify.models import (
     Sector,
     InterestGroup,
     InterestType,
-    InterestSubtype,
+    InterestSubtype, Country,
 )
 
 
@@ -79,3 +79,9 @@ class IndigenousGroupSerializer(CommonCount):
     class Meta:
         model = IndigenousGroup
         fields = "__all__"
+
+
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = '__all__'

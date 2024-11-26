@@ -247,6 +247,15 @@ all_collections = {
             "status_groups": ["validation"],
             "open_insertion": True,
         },
+        {
+            "snake_name": "country",
+            "name": "País",
+            "plural_name": "Paises",
+            "model_name": "Country",
+            "level": "category_subtype",
+            "status_groups": ["validation"],
+            "open_insertion": True,
+        },
     ],
     "event": [
         {
@@ -311,15 +320,6 @@ all_collections = {
         },
     ],
     "space_time": [
-        {
-            "snake_name": "country",
-            "name": "País",
-            "plural_name": "Paises",
-            "model_name": "Country",
-            "level": "category_subtype",
-            "status_groups": ["validation"],
-            "open_insertion": True,
-        },
         {
             "snake_name": "status_project",
             "name": "Status de Proyecto",

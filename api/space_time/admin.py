@@ -1,10 +1,5 @@
 from django.contrib import admin
-from space_time.models import Country, Locality, Municipality, State, Location
-
-
-@admin.register(Country)
-class CountryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'flag_emoji')
+from space_time.models import Locality, Municipality, State, Location
 
 
 @admin.register(Locality)

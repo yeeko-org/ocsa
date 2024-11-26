@@ -13,6 +13,7 @@ from classify.models import (
     InterestGroup,
     InterestType,
     InterestSubtype,
+    Country,
 )
 from event.models import (
     EventGroup,
@@ -22,7 +23,7 @@ from event.models import (
 
 from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
 
-from space_time.models import State, Country
+from space_time.models import State
 from project.models import MegaprojectType, ExtractivismType
 
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup
@@ -53,7 +54,7 @@ from api.views.catalogs.classify_serializers import (
     InterestGroupSerializer,
     InterestTypeSerializer,
     InterestSubtypeSerializer,
-    IndigenousGroupSerializer,
+    IndigenousGroupSerializer, CountrySerializer,
 )
 
 from api.views.catalogs.event_serializers import (
@@ -64,7 +65,6 @@ from api.views.catalogs.event_serializers import (
 )
 from api.views.space_time.serializers import (
     StateListSerializer,
-    CountrySerializer,
 )
 from actor.models import Actor
 
