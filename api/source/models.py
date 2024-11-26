@@ -2,8 +2,7 @@ import re
 from django.db import models
 from django.utils.text import slugify
 
-from project.models import Project
-from space_time.models import StatusProject
+from project.models import Project, StatusProject
 from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
 

@@ -1,5 +1,5 @@
 from ocsa_legacy.models import EstatusProyecto
-from space_time.models import StatusProject
+from project.models import StatusProject
 
 
 class EstatusProyectoToStatusProject:

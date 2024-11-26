@@ -1,5 +1,5 @@
 from django.db import models
-from space_time.models import StatusProject, Location
+from space_time.models import Location
 from work_flux.models import StatusControl
 
 
@@ -43,6 +43,24 @@ class MegaprojectType(models.Model):
         ordering = ['order']
         verbose_name = 'Tipo de Megaproyecto'
         verbose_name_plural = 'Tipos de Megaproyecto'
+
+
+class StatusProject(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
+    status_validation = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'space_time_statusproject'
+        ordering = ["order", "name"]
+        verbose_name = 'Status Project'
+        verbose_name_plural = 'Status Projects'
 
 
 class Conflict(models.Model):
@@ -157,5 +175,3 @@ def identify_projects_with_many_project_locations():
     projects = ProjectLocation.objects.values('project').annotate(
         count=Count('project')).filter(count__gt=1)
     print(projects)
-
-

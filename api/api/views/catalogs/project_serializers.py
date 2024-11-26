@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from project.models import MegaprojectType, ExtractivismType
+from project.models import MegaprojectType, ExtractivismType, StatusProject
 
 from api.views.project.list_serializers import ProjectBasicSerializer
 from api.views.common_serializers import CommonCount
@@ -43,3 +43,9 @@ class ExtractivismTypeFullSerializer(serializers.ModelSerializer):
         model = ExtractivismType
         fields = "__all__"
 
+
+class StatusProjectSerializer(CommonCount):
+
+    class Meta:
+        model = StatusProject
+        fields = "__all__"

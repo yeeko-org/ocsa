@@ -26,8 +26,7 @@ from impact.models import ImpactSubtype, ImpactType
 from source.models import Source
 from work_flux.models import StatusControl
 
-from space_time.models import StatusProject
-from project.models import MegaprojectType, ExtractivismType
+from project.models import MegaprojectType, ExtractivismType, StatusProject
 
 from api.views.catalogs.event_serializers import (
     EventGroupSerializer,
@@ -52,13 +51,12 @@ from api.views.catalogs.serializers import (
     ImpactTypeSerializer,
     SourceSerializer,
     StatusControlSerializer,
-    StatusProjectSerializer,
 )
 from api.views.catalogs.project_serializers import (
     ExtractivismTypeFullSerializer,
     ExtractivismTypeSerializer,
     MegaprojectTypeCountSerializer,
-    MegaprojectTypeFullSerializer,
+    MegaprojectTypeFullSerializer, StatusProjectSerializer,
 )
 from .all import CatalogsView  # noqa
 from ..common_views import BaseViewSet, BaseStatusViewSet

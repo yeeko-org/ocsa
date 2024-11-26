@@ -2,24 +2,6 @@ from django.db import models
 from work_flux.models import StatusControl
 
 
-class StatusProject(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    order = models.SmallIntegerField(default=5)
-    status_validation = models.ForeignKey(
-        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'space_time_statusproject'
-        ordering = ["order", "name"]
-        verbose_name = 'Status Project'
-        verbose_name_plural = 'Status Projects'
-
-
 def default_alternative_names():
     return []
 

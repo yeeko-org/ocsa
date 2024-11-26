@@ -24,10 +24,10 @@ from event.models import (
 from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
 
 from space_time.models import State
-from project.models import MegaprojectType, ExtractivismType
+from project.models import MegaprojectType, ExtractivismType, StatusProject
 
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup
-from source.models import Source, StatusProject
+from source.models import Source
 from work_flux.models import StatusControl
 
 from api.views.catalogs.serializers import (
@@ -35,13 +35,13 @@ from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer,
     ImpactTypeSerializer,
     SourceSerializer,
-    StatusProjectSerializer,
     StatusControlSerializer,
     LevelSerializer,
     CollectionSerializer,
     CollectionLinkSerializer,
     FilterGroupSerializer,
 )
+from api.views.catalogs import StatusProjectSerializer
 from api.views.catalogs.project_serializers import (
     MegaprojectTypeSerializer,
     ExtractivismTypeSerializer)
@@ -96,6 +96,8 @@ class CatalogsView(APIView):
             "sector_groups": SectorGroupSerializer(
                 SectorGroup.objects.all(), many=True).data,
             "sectors": SectorSerializer(sectors, many=True).data,
+            "countries": CountrySerializer(
+                Country.objects.all(), many=True).data,
             "networks": final_networks,
 
             "interest_groups": InterestGroupSerializer(
@@ -121,20 +123,19 @@ class CatalogsView(APIView):
             "impact_types": ImpactTypeSerializer(
                 ImpactType.objects.all(), many=True).data,
 
-            "sources": SourceSerializer(
-                Source.objects.all(), many=True).data,
-            "status_project": StatusProjectSerializer(
-                StatusProject.objects.all(), many=True).data,
-            "status_control": StatusControlSerializer(
-                StatusControl.objects.all(), many=True).data,
-            "states": StateListSerializer(
-                State.objects.all(), many=True).data,
-            "countries": CountrySerializer(
-                Country.objects.all(), many=True).data,
             "megaproject_types": MegaprojectTypeSerializer(
                 MegaprojectType.objects.all(), many=True).data,
             "extractivism_types": ExtractivismTypeSerializer(
                 ExtractivismType.objects.all(), many=True).data,
+            "status_project": StatusProjectSerializer(
+                StatusProject.objects.all(), many=True).data,
+
+            "sources": SourceSerializer(
+                Source.objects.all(), many=True).data,
+            "status_control": StatusControlSerializer(
+                StatusControl.objects.all(), many=True).data,
+            "states": StateListSerializer(
+                State.objects.all(), many=True).data,
 
             "levels": LevelSerializer(
                 Level.objects.all(), many=True).data,

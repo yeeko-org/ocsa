@@ -35,22 +35,27 @@ router.register(r'belong', BelongViewSet, basename='catalog_belong')
 router.register(r'sector_group', SectorGroupViewSet, basename='catalog_sector_group')
 router.register(r'sector', SectorViewSet, basename='catalog_sector')
 router.register(r'country', CountryViewSet, basename='catalog_country')
+
 router.register(r'interest_group', InterestGroupViewSet, basename='catalog_interest_group')
 router.register(r'interest_type', InterestTypeViewSet, basename='catalog_interest_type')
 router.register(r'interest_subtype', InterestSubtypeViewSet, basename='catalog_interest_subtype')
+
 router.register(r'event_group', EventGroupViewSet, basename='catalog_event_group')
 router.register(r'event_type', EventTypeViewSet, basename='catalog_event_type')
 router.register(r'event_subtype', EventSubtypeViewSet, basename='catalog_event_subtype')
 router.register(r'involved_role', InvolvedRoleViewSet, basename='catalog_involved_role')
-router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impact_subtype')
-router.register(r'impact_type', ImpactTypeViewSet, basename='catalog_impact_type')
-router.register(r'source', SourceViewSet, basename='catalog_source')
-router.register(r'status_control', StatusControlViewSet, basename='catalog_status_control')
-router.register(r'status_project', StatusProjectViewSet, basename='catalog_status_project')
 
 router.register(r'extractivism_type', ExtractivismTypeViewSet, basename='catalog_extractivism_type')
 router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')
+router.register(r'status_project', StatusProjectViewSet, basename='catalog_status_project')
 # router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')
+
+router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impact_subtype')
+router.register(r'impact_type', ImpactTypeViewSet, basename='catalog_impact_type')
+
+router.register(r'source', SourceViewSet, basename='catalog_source')
+router.register(r'status_control', StatusControlViewSet, basename='catalog_status_control')
+
 
 urlpatterns = [
     path("all/", CatalogsView.as_view(), name="catalogs_all"),
