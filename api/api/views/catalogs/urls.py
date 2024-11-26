@@ -5,6 +5,7 @@ from api.views.catalogs import (
     BelongViewSet,
     SectorGroupViewSet,
     SectorViewSet,
+    CountryViewSet,
     InterestGroupViewSet,
     InterestTypeViewSet,
     InterestSubtypeViewSet,
@@ -33,6 +34,7 @@ router.register(r'belong', BelongViewSet, basename='catalog_belong')
 # router.register(r'indigenous_group', IndigenousGroupViewSet, basename='catalog_indigenous_group')
 router.register(r'sector_group', SectorGroupViewSet, basename='catalog_sector_group')
 router.register(r'sector', SectorViewSet, basename='catalog_sector')
+router.register(r'country', CountryViewSet, basename='catalog_country')
 router.register(r'interest_group', InterestGroupViewSet, basename='catalog_interest_group')
 router.register(r'interest_type', InterestTypeViewSet, basename='catalog_interest_type')
 router.register(r'interest_subtype', InterestSubtypeViewSet, basename='catalog_interest_subtype')

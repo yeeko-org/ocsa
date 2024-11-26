@@ -14,6 +14,7 @@ class StatusProject(models.Model):
         return self.name
 
     class Meta:
+        db_table = 'space_time_statusproject'
         ordering = ["order", "name"]
         verbose_name = 'Status Project'
         verbose_name_plural = 'Status Projects'
@@ -135,7 +136,6 @@ class Location(models.Model):
     details = models.TextField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    # LUCIAN: Esto debe ser JSON, Point ¿o de qué tipo?, ¿cómo lo nombramos?
     geojson = models.JSONField(blank=True, null=True)
     ubicacion_id_ref = models.IntegerField(blank=True, null=True)
     status_location = models.ForeignKey(

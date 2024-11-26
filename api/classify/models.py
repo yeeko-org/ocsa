@@ -199,7 +199,7 @@ class Country(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'space_time_country'
+        db_table = 'classify_country'
         ordering = ["name"]
         verbose_name = 'Pais'
         verbose_name_plural = 'Paises'

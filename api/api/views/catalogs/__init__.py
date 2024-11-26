@@ -127,7 +127,7 @@ class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
             .update(sector=to_obj)
 
 
-class CountryListViewSet(ListSetMixin):
+class CountryViewSet(ListSetMixin):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
 

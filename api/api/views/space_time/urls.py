@@ -7,12 +7,9 @@ from api.views.space_time import (
     LocalityListViewSet,
     LocationListViewSet,
 )
-from api.views.catalogs import CountryListViewSet
 
 router = DefaultRouter()
 
-router.register(
-    r'countries', CountryListViewSet, basename='space_time_country')
 router.register(
     r'state', StateListViewSet, basename='space_time_state')
 router.register(
