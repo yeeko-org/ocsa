@@ -4,6 +4,11 @@ import dayjs from 'dayjs'
 const props = defineProps({
   main: Object,
   final_collection_data: Object,
+  collection_name: String,
+  width: {
+    type: Number,
+    default: 280,
+  },
 })
 
 const want_edit_comment = ref(false)
@@ -11,7 +16,6 @@ import {useMainStore} from '~/store/index'
 import {useAuthStore} from '~/store/auth'
 const mainStore = useMainStore()
 const authStore = useAuthStore()
-// const { saveSimple } = mainStore
 const { user_details_ocsa } = authStore
 
 function changeWantEdit(value) {
@@ -30,7 +34,11 @@ function addComment() {
 function saveComment() {
   if (props.main.id){
     const params = {comments: props.main.comments}
-    mainStore.patchSimple(['note', props.main.id, params]).then(() => {
+    const collection = props.final_collection_data
+      ? props.final_collection_data.snake_name
+      : props.collection_name
+    // const collection = props.final_collection_data.snake_name
+    mainStore.patchSimple([collection, props.main.id, params]).then(() => {
       want_edit_comment.value = false
     })
   }
@@ -46,7 +54,7 @@ function saveComment() {
     type="info"
     variant="flat"
     color="yellow-accent-4"
-    width="280"
+    :width="width"
     max-height="62"
     class="d-flex ml-3 border-lg"
   >

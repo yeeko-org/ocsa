@@ -21,6 +21,10 @@ const props = defineProps({
     type: String,
     default: "default",
   },
+  hide_details: {
+    type: Boolean,
+    default: false,
+  },
   // label: {
   //   type: String,
   //   default: "Status",
@@ -37,13 +41,18 @@ const props = defineProps({
 
 const { status, cats } = storeToRefs(mainStore)
 const items_built = computed(() => {
-  const status_collection = props.collection.split('_')[1]
+  // const status_collection = props.collection.split('_')[1]
   return props.collection_group === "status"
       ? status.value[props.collection]
       : cats.value[props.collection]
 })
 const label = computed(() => {
-  return "Status de " + (props.collection === 'register' ? 'registro:' : 'validación:')
+  const txt = props.collection === 'register'
+    ? "registro"
+    : props.collection === 'validation'
+      ? "validación"
+      : "ubicación"
+  return "Status de " + txt
 })
 const field = computed(() => `status_${props.collection}`);
 
@@ -59,11 +68,14 @@ const field = computed(() => `status_${props.collection}`);
     :clearable="is_filter"
     :label="label"
     width="320"
+    :hide-details="hide_details"
+    density="compact"
   >
-    <template #item="{ item, props: {onClick, title, value} }" v-if="true">
+    <template #item="{ item, props: {onClick, title, value} }">
       <v-list-item
         @click="onClick"
         :title="title"
+        :subtitle="item.raw.description"
         :value="value"
       >
         <template v-slot:prepend>

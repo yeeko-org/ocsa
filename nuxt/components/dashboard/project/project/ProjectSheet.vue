@@ -1,15 +1,14 @@
 <script setup>
 
-import NoteHeader from "~/components/dashboard/source/note/NoteHeader.vue";
-import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
-
-import { ref, computed } from 'vue'
-import ProjectEdit from "~/components/dashboard/project/project/ProjectEdit.vue";
 import {useMainStore} from "~/store/index";
 import {storeToRefs} from "pinia";
 import PanelList from "~/components/dashboard/common/PanelList.vue";
+import {nextTick} from "vue";
+import {show_details} from "~/composables/fetch.js";
+import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
+const { getGeo, saveSimple } = mainStore
 
 const props = defineProps({
   full_main: {
@@ -20,15 +19,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  collection_data: Object,
 })
+
+const total_requests = ref(0)
+const resolved_requests = ref(0)
+const saving_locations = ref(false)
+const snackbar = ref(false)
 
 const note_collection = computed(() => {
   return schemas.value.collections_dict['note']
 })
-
-const openNote = () => {
-  console.log("open note")
-}
 
 const full_project = computed(() => {
   return props.full_main
@@ -42,13 +43,56 @@ const related_notes = computed(() => {
       mentions: [full_mention]
     }
   })
+})
 
+function saveLocations() {
+  saving_locations.value = true
+  total_requests.value = full_project.value.locations.length
+  resolved_requests.value = 0
+  full_project.value.locations.forEach(location => {
+    // total_requests.value += 1
+    saveSimple(['location', location]).then((res) => {
+      resolved_requests.value += 1
+      const idx = full_project.value.locations.findIndex(
+        loc => loc.id === res.id)
+      full_project.value.locations.splice(idx, 1, res)
+      if (resolved_requests.value === total_requests.value){
+        saving_locations.value = false
+        snackbar.value = true
+      }
+    })
+  })
+}
+
+nextTick(() => {
+  setTimeout(() => {
+    console.log("full_main nextTick")
+    getGeoUnities()
+  }, 10)
 })
 
 </script>
 
 <template>
+
+  <v-card class="mb-4" elevation="4" variant="elevated" color="blue-grey-lighten-4">
+    <LocationsToolbar
+      :full_main="full_project"
+      main_collection_name="project"
+    />
+    <v-col cols="12" class="d-flex justify-end px-3 py-3">
+      <v-btn
+        color="accent"
+        variant="elevated"
+        :loading="saving_locations"
+        @click="saveLocations"
+      >
+        Guardar ubicaciones
+      </v-btn>
+    </v-col>
+  </v-card>
   <v-card v-if="full_project.mentions">
+
     <v-card-title class="text-deep-purple">
       {{ full_project.mentions.length }} Notas:
     </v-card-title>
@@ -58,6 +102,7 @@ const related_notes = computed(() => {
         :results="related_notes"
         :collection_data="note_collection"
         :show_details="show_details"
+        parent="project"
       />
     </v-card-text>
 
@@ -67,6 +112,23 @@ const related_notes = computed(() => {
       Todos los actores:
     </v-card-title>
   </v-card>
+  <v-snackbar
+    v-model="snackbar"
+    color="success"
+    location="right top"
+    location-strategy="connected"
+  >
+    Se guardaron las ubicaciones
+    <template v-slot:actions>
+      <v-btn
+        color="accent"
+        variant="text"
+        @click="snackbar = false"
+      >
+        Cerrar
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <style scoped>

@@ -1,11 +1,6 @@
 <script setup>
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
-import {computed} from "vue";
-import {useMainStore} from "~/store/index.js";
-import {storeToRefs} from "pinia";
 
-const mainStore = useMainStore()
-const { schemas } = storeToRefs(mainStore)
+import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 
 const props = defineProps({
   is_massive_edit: Boolean,
@@ -16,14 +11,18 @@ const props = defineProps({
   },
 })
 
-const main_collection = computed(() =>{
-  // console.log("actor", schemas.value.collections_dict["actor"])
-  return schemas.value.collections_dict["actor"]
-})
 
 </script>
 
 <template>
+  <v-col cols="12" class="d-flex pa-0">
+    <v-text-field
+      v-model="full_main.alternative_names"
+      label="Nombres alternativos"
+      variant="outlined"
+      class="mb-2"
+    />
+  </v-col>
   <v-col cols="12" class="d-flex pa-0">
     <v-text-field
       v-model="full_main.official_name"
@@ -34,27 +33,29 @@ const main_collection = computed(() =>{
     <SelectGroup
       :main_object="full_main"
       filter_group_name="sectors"
-      :main_collection="main_collection"
+      main_collection_name="actor"
     />
   </v-col>
   <v-col cols="12" class="d-flex pa-0">
     <SelectGroup
       :main_object="full_main"
       filter_group_name="belongs"
-      :main_collection="main_collection"
+      main_collection_name="actor"
       field="belongs"
-      width="400"
+      :width="400"
+      subtype_class="mr-2"
     />
     <SelectGroup
       :main_object="full_main"
       filter_group_name="indigenous_groups"
-      :main_collection="main_collection"
+      main_collection_name="actor"
       field="indigenous_group"
+      subtype_class="mr-2"
     />
     <SelectGroup
       :main_object="full_main"
       filter_group_name="countries"
-      :main_collection="main_collection"
+      main_collection_name="actor"
       field="countries"
     />
   </v-col>

@@ -4,7 +4,6 @@ import colorMixin from "~/mixins/colorMixin";
 // import { mande } from 'mande'
 import { menu_content } from "~/composables/menu.js";
 import * as d3 from 'd3';
-import Cookie from "js-cookie";
 
 const calculate_status = (status_control) => {
   return status_control.reduce((obj, st) => {
@@ -38,6 +37,7 @@ const calculateSchemas = (data) => {
       cl.filter_group === fg.key_name)
     return {...fg, ...fg.addl_config}
   })
+  const has_fields = ["comments", "description", "help_text", "order"]
   let collections = data.collections.map(coll => {
     coll.catalog_groups =  filter_groups.reduce((arr, new_fg) => {
       if (new_fg.main_collection !== coll.snake_name)
@@ -53,9 +53,20 @@ const calculateSchemas = (data) => {
     coll.parent_relations = data.collection_links.filter(cl =>
       cl.child === coll.snake_name && cl.link_type !== 'category'
     )
+    const primary_key = coll.fields.find(f => f.primary_key)
+    coll.pk = primary_key ? primary_key.name : 'id'
+    coll.name_field = coll.fields.some(f => f.name === 'name')
+      ? 'name'
+      : coll.fields.some(f => f.name === 'title')
+        ? 'title'
+        : null
+    coll.has = has_fields.reduce((obj, field) => {
+      obj[field] = coll.fields.some(f => f.name === field)
+      return obj
+    }, {})
     return coll
   })
-  // console.log("collections", collections)
+
   let collections_dict = collections.reduce((obj, coll) => {
     obj[coll.snake_name] = coll
     obj[coll.model_name] = coll
@@ -206,6 +217,12 @@ const calculateNewCats = (data, schemas) => {
   return all_nodes
 }
 
+function getLastId(data) {
+  const id = data.id || data.key_name
+  const method = id ? 'put' : 'post'
+  const last_id = id ? `${id}/` : ''
+  return { method, last_id }
+}
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -227,6 +244,7 @@ export const useMainStore = defineStore('main', {
     current_collection: null,
     current_collection_data: null,
     groups: menu_content,
+    full_geo: {"state": {}, "municipality": {}},
   }),
   actions: {
     setHeader() {
@@ -286,13 +304,51 @@ export const useMainStore = defineStore('main', {
         ;
       }
     },
+    async getGeo([group, id]) {
+      if (this.full_geo[group][id])
+        return
+      this.full_geo[group][id] = []
+      this.setHeader()
+      try {
+        let response = await ApiService.get(`space_time/${group}/${id}/`);
+        // console.log("getGeo", response.data)
+        // this.full_states[id] = response.data.municipalities
+        const child = group === 'state' ? 'municipalities' : 'localities'
+        this.full_geo[group][id] = response.data[child]
+        return response.data
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    },
     async saveSimple([collection, data]) {
       this.setHeader()
-      const id = data.id
-      const method = id ? 'put' : 'post'
-      const last_id = id ? `${id}/` : ''
+      const { method, last_id } = getLastId(data)
       try {
         let response = await ApiService[method](`/${collection}/${last_id}`, data);
+        return response.data
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async saveCatalog([collection_data, data]) {
+      this.setHeader()
+      const { method, last_id } = getLastId(data)
+      const collection = collection_data.snake_name
+      const full_url = `catalogs/${collection}/${last_id}`
+      try {
+        let response = await ApiService[method](full_url, data);
+        let real_group = `${collection}s`
+        if (collection === 'country')
+          real_group = 'countries'
+        if (method === 'post')
+          this.cats[real_group].unshift(response.data)
+        else {
+          const elem_id = response.data.id ? 'id' : 'key_name'
+          const index = this.cats[real_group].findIndex(
+            el => el[elem_id] === response.data[elem_id])
+          this.cats[real_group][index] = response.data
+        }
         return response.data
       } catch (error) {
         console.error(error);

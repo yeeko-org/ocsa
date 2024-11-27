@@ -1,6 +1,5 @@
 <script setup>
 import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
-import {computed} from "vue";
 import SelectDate from "~/components/dashboard/common/SelectDate.vue";
 const props = defineProps({
   is_massive_edit: Boolean,
@@ -22,8 +21,9 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="d-flex" style="width: 100%;">
+  <div v-if="false" class="d-flex" style="width: 100%;">
     <v-textarea
+
       v-model="full_main.title"
       label="Título de la nota"
       variant="outlined"
@@ -32,16 +32,16 @@ const props = defineProps({
       _style="width: 100%;"
     >
     </v-textarea>
-    <SelectDate
-      :init_date="full_main.date"
-      @update-date="full_main.date = $event"
-    />
   </div>
   <div class="d-flex" style="width: 100%;">
     <SelectGroup
       :main_object="full_main"
       filter_group_name="source_types"
       :width="160"
+    />
+    <SelectDate
+      :init_date="full_main.date"
+      @update-date="full_main.date = $event"
     />
     <v-text-field
       v-model="full_main.section"

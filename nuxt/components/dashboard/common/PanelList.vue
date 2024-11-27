@@ -12,6 +12,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  parent: String,
 })
 
 const open_panels = ref([])
@@ -47,10 +48,11 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${sheet_na
 
 function addItem({res, is_new}) {
   console.log("addItem", res, is_new)
+  const elem_id = res.id ? 'id' : 'key_name'
   if (is_new)
     props.results.unshift(res)
   else {
-    const index = props.results.findIndex(result => result.id === res.id)
+    const index = props.results.findIndex(result => result[elem_id] === res[elem_id])
     props.results[index] = res
   }
 }
@@ -93,6 +95,7 @@ function changeShowDetails() {
           :collection_data="collection_data"
           :show_details="show_details"
           @open-panel="openMain"
+          :parent="parent"
         />
       </template>
       <template

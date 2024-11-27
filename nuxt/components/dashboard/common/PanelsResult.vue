@@ -2,10 +2,8 @@
 
 import PanelList from "~/components/dashboard/common/PanelList.vue";
 import {ref, computed, shallowRef, nextTick} from 'vue'
-import {saveElement} from "~/composables/save_elements.js";
 import SummaryList from "~/components/dashboard/common/SummaryList.vue";
 import EditCommon from "~/components/dashboard/common/EditCommon.vue";
-import {el} from "vuetify/locale";
 
 const props = defineProps({
   results: Array,
@@ -13,10 +11,6 @@ const props = defineProps({
   show_details: {
     type: Boolean,
     default: false,
-  },
-  name_field: {
-    type: String,
-    default: 'name',
   },
   final_filters: Object,
   total_count: Number,
@@ -232,7 +226,6 @@ const all_selected = computed(() => {
       <EditCommon
         :full_main="element_to_edit"
         :collection_data="collection_data"
-        :name_field="name_field"
         @item-saved="saveNewElement"
       >
         <template v-slot:edit="{ full_main }">

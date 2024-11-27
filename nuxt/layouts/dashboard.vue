@@ -154,6 +154,15 @@ const main_collections = computed(() => {
           </template>
           Gestión de usuarios
         </v-list-item>
+        <v-list-item
+          href="https://apiocsa.yeeko.org/admin/work_flux/statuscontrol/"
+          target="_blank"
+        >
+          <template v-slot:prepend>
+            <v-icon color="accent">account_tree</v-icon>
+          </template>
+          Gestión de status
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-main>

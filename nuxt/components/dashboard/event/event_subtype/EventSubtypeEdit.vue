@@ -1,25 +1,26 @@
-<script setup >
+<script setup>
 
 import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 
 const props = defineProps({
-  is_edit: Boolean,
-  is_massive_edit: Boolean,
   full_main: {
     type: Object,
     required: true,
   },
+  is_massive_edit: Boolean,
+  is_edit: Boolean,
 })
 
 </script>
 
 <template>
   <SelectGroup
-    filter_group_name="impact_types"
     :main_object="full_main"
+    filter_group_name="event_types"
+    main_collection_name="event_subtype"
+    field="event_types"
     forced_level="subtype"
   />
-
 </template>
 
 <style scoped>

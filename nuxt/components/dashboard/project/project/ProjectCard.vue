@@ -11,8 +11,17 @@ const props = defineProps({
 
 <template>
   <div class="py-2">
-    <div class="text-h6">
-      {{ full_main.name }}
+    <div class="d-flex align-center">
+      <v-icon
+        v-if="full_main.is_grouper"
+        class="mr-2"
+        v-tooltip="'Es un agrupador de proyectos.'"
+      >
+        group_work
+      </v-icon>
+      <div class="text-h6">
+        {{ full_main.name }}
+      </div>
     </div>
     <div class="d-flex flex-wrap">
       <StatusChip

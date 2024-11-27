@@ -3,12 +3,9 @@
 import {computed} from "vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 
-import {useMainStore} from '~/store/index.js'
-import {storeToRefs} from 'pinia'
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
-const mainStore = useMainStore()
-const { event_subtypes } = storeToRefs(mainStore)
+import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 
 const props = defineProps({
   main: Object,
@@ -32,6 +29,10 @@ const event_subtype = computed(() => {
   //   subtype => props.main.event_subtype === subtype.id)
 })
 
+// const main_collection = computed(() => {
+//   return schemas.value.collections_dict['event']
+// })
+
 const final_event_types = computed(() => {
   if (!event_subtype.value)
     return []
@@ -49,7 +50,6 @@ const final_event_types = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
-    name_field="title"
   >
     <template #icon v-if="final_event_types.length">
       <v-icon
@@ -57,32 +57,21 @@ const final_event_types = computed(() => {
       ></v-icon>
     </template>
     <template #title>
-      <div class="pl-3">
+      <v-card
+        color="blue"
+        rounded="lg"
+        variant="outlined"
+        class="mx-2 d-flex flex-column"
+      >
 
-        <div class="d-flex">
-          <v-chip
-            v-for="event_type in final_event_types"
-            :key="event_type.id"
-            size="small"
-            :variant="main.event_type === event_type.id ? 'outlined' : 'tonal'"
-            class="mr-1"
-          >
-            {{ event_type.name }}
-            <v-tooltip
-              activator="parent"
-              location="bottom"
-            >
-              {{ event_type.name }}
-              <div v-if="main.event_type === event_type.id">
-                (Categoria principal)
-              </div>
-            </v-tooltip>
-          </v-chip>
-        </div>
-        <div>
-          {{event_subtype.name}}
-        </div>
-      </div>
+        <SelectGroup
+          :main_object="main"
+          filter_group_name="event_types"
+          main_collection_name="event"
+          :width="160"
+          is_display
+        />
+      </v-card>
     </template>
     <template #details>
       <ProjectMiniList

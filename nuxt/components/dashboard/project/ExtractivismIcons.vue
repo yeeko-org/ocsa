@@ -43,14 +43,14 @@ const original_types = computed(() => {
     >
       {{ megaproject_type_node.data.name }}
     </v-chip>
-    <v-chip
-      v-else
-      class="mr-1"
-      color="grey"
-      size="small"
-    >
-      ???? {{show_name}}
-    </v-chip>
+<!--    <v-chip-->
+<!--      v-else-->
+<!--      class="mr-1"-->
+<!--      color="grey"-->
+<!--      size="small"-->
+<!--    >-->
+<!--      ???? {{show_name}}-->
+<!--    </v-chip>-->
     <div
       v-for="text_type in original_types"
       :key="text_type.id"

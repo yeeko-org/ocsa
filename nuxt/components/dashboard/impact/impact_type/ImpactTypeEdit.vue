@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
+import GenericSelectOld from "~/components/dashboard/common/GenericSelectOld.vue";
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 
 const props = defineProps({
@@ -48,16 +48,6 @@ const merge_fields = ref([])
   <v-row>
     <v-col cols="12" class="d-flex">
       <v-text-field
-        v-if="!is_massive_edit || merge_fields.includes('order')"
-        v-model="full_main.order"
-        label="Orden"
-        type="number"
-        variant="outlined"
-        class="mr-2"
-        style="max-width: 80px;"
-      >
-      </v-text-field>
-      <v-text-field
         v-if="!is_massive_edit || merge_fields.includes('name')"
         v-model="full_main.name"
         label="Nombre del tipo de impacto"
@@ -74,7 +64,7 @@ const merge_fields = ref([])
         class="ml-2"
       >
       </v-text-field>
-      <GenericSelect
+      <GenericSelectOld
         v-if="!is_massive_edit || merge_fields.includes('impact_group')"
         :final_filters="full_main"
         collection="impact_group"
@@ -85,38 +75,14 @@ const merge_fields = ref([])
         class="ml-2"
         density="default"
       />
-      <v-checkbox
-        v-if="false"
+      <v-switch
+        v-if="!is_massive_edit"
         v-model="full_main.has_subtype"
-        label="¿Tiene subtipos?"
-        class="ml-2"
-      />
-    </v-col>
-    <v-col cols="12">
-      <v-textarea
-        v-if="!is_massive_edit || merge_fields.includes('description')"
-        v-model="full_main.description"
-        rows="2"
-        auto-grow
-        label="Descripción"
-        variant="outlined"
-        hide-details
-        class="mt-2"
+        label="Tiene subtipos"
+        color="primary"
+        class="ml-4"
       >
-      </v-textarea>
-    </v-col>
-    <v-col cols="12">
-      <v-textarea
-        v-if="!is_massive_edit || merge_fields.includes('help_text')"
-        v-model="full_main.help_text"
-        label="Texto de ayuda"
-        variant="outlined"
-        class="mt-2"
-        rows="2"
-        auto-grow
-        _hide-details
-      >
-      </v-textarea>
+      </v-switch>
     </v-col>
   </v-row>
 

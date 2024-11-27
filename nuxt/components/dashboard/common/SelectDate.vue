@@ -7,6 +7,11 @@ const props = defineProps({
     type: String,
     required: false,
   },
+  label: {
+    type: String,
+    required: false,
+    default: 'Fecha de la nota',
+  },
 })
 
 const show_menu_date = ref(false)
@@ -46,7 +51,7 @@ function editDate(date) {
         v-bind="props"
         :model-value="human_date"
         readonly
-        label="Fecha de la nota"
+        :label="label"
         variant="outlined"
         class="ml-2"
         style="max-width: 180px;"

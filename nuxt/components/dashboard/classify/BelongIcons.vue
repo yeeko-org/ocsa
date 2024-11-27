@@ -24,7 +24,8 @@ const all_belongs = computed(() => {
     :key="belong.key_name"
     icon
     size="small"
-    variant="outlined"
+    variant="tonal"
+    color="secondary"
     class="ml-2"
   >
     <v-icon

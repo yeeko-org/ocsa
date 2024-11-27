@@ -2,15 +2,13 @@
 import {ref, computed, nextTick, shallowRef} from 'vue'
 import { getElement } from "~/composables/save_elements.js";
 import EditCommon from "~/components/dashboard/common/EditCommon.vue";
-import {saveElement} from "~/composables/save_elements.js";
 
 
 const props = defineProps({
   main: Object,
-  collection_data: Object,
-  name_field: {
-    type: String,
-    default: 'name',
+  collection_data: {
+    type: Object,
+    required: true,
   },
   sel: Object,
 })
@@ -43,8 +41,8 @@ const openMain = () => {
     emits('finish-open')
     return
   }
-
-  getElement(props.collection_data, props.main.id).then((res) => {
+  const elem_id = props.main.id ? 'id' : 'key_name'
+  getElement(props.collection_data, props.main[elem_id]).then((res) => {
     full_main.value = res
     emits('finish-open')
   })
@@ -80,7 +78,7 @@ const background_color = computed(() => {
 
       </div>
     </v-sheet>
-    <div class="flex-grow-1">
+    <v-sheet class="flex-grow-1" :color="background_color">
       <slot name="header" :main="main" :openMain="openMain">
         <v-expansion-panel-title>
           Cargando detalles...
@@ -89,16 +87,15 @@ const background_color = computed(() => {
       <v-expansion-panel-text
         v-if="full_main"
         class="ml-n16 mr-n6"
-        :color="`${background_color}-lighten-5`"
+        :color="background_color"
       >
         <v-sheet
-          :color="`${background_color}-lighten-5`"
+          :color="background_color"
           class="mt-n2 mb-n4 pa-3"
         >
           <EditCommon
             :full_main="full_main"
             :collection_data="collection_data"
-            :name_field="name_field"
             @item-saved="emits('item-saved', $event)"
           >
             <template v-slot:edit="{ full_main }">
@@ -114,7 +111,7 @@ const background_color = computed(() => {
           </slot>
         </v-sheet>
       </v-expansion-panel-text>
-    </div>
+    </v-sheet>
   </v-expansion-panel>
 </template>
 

@@ -1,7 +1,13 @@
 <script setup>
 
 import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
-import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
+import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+
+import { useMainStore } from '~/store'
+import { storeToRefs } from 'pinia'
+
+const mainStore = useMainStore()
+const { all_nodes } = storeToRefs(mainStore)
 
 const props = defineProps({
   is_edit: Boolean,
@@ -11,30 +17,26 @@ const props = defineProps({
   },
 })
 
+const extractivism_types = computed(() => {
+    return all_nodes.value.project_types.children.reduce((acc, pt) => {
+      if (pt.data.is_mix)
+        return acc
+      return acc.concat(pt.data)
+    }, [])
+})
 
 </script>
 
 <template>
   <v-row>
-    <v-col>
-      <v-text-field
-        v-model="full_main.order"
-        label="Orden"
-        type="number"
-        width="100"
-        variant="outlined"
-      >
-      </v-text-field>
-    </v-col>
-    <v-col cols="12">
-      <v-textarea
-        v-model="full_main.description"
-        label="Descripción de la categoría"
-        variant="outlined"
-        rows="3"
-        max-rows="5"
-      >
-      </v-textarea>
+    <v-col cols="12" class="d-flex justify-end">
+      <GenericSelect
+        :main_object="full_main"
+        level_name="extractivism_types"
+        :items="extractivism_types"
+        label="Tipos de extrativismo"
+        is_multiple
+      />
     </v-col>
   </v-row>
 </template>

@@ -13,10 +13,6 @@ const props = defineProps({
   full_main: Object,
   collection_data: Object,
   collection_name: String,
-  name_field: {
-    type: String,
-    default: 'name',
-  },
 })
 
 const saving = ref(false)
@@ -32,21 +28,14 @@ const final_collection_data = computed(() => {
 function saveRecord() {
   // emits('save-item', props.full_main)
   saving.value = true
-  console.log('props.full_main', props.full_main)
-  const is_new = !Boolean(props.full_main.id)
-  saveElement(props.collection_data, props.full_main).then((res) => {
-    // props.results.unshift(res)
+  const elem_id = props.full_main.id ? 'id' : 'key_name'
+  // console.log('props.full_main', props.full_main)
+  const is_new = !Boolean(props.full_main[elem_id])
+  saveElement(final_collection_data.value, props.full_main).then((res) => {
     emits('item-saved', {res, is_new})
     snackbar.value = true
     saving.value = false
   })
-  // saveElement(final_collection_data.value, props.full_main).then((res) => {
-  //   props.results.unshift(res)
-  // })
-  // saveElement(props.collection_data, props.full_main).then((res) => {
-  //   console.log('res', res)
-  //   emits('item-saved', res)
-  // })
 }
 
 </script>
@@ -58,8 +47,18 @@ function saveRecord() {
     >
       <v-col cols="12" class="d-flex pa-0">
         <v-text-field
-          v-if="final_collection_data.fields.some(f => f.name === name_field)"
-          v-model="full_main.name"
+          v-if="final_collection_data.has.order"
+          v-model="full_main.order"
+          label="Orden"
+          type="number"
+          variant="outlined"
+          class="mr-2"
+          style="max-width: 70px;"
+        >
+        </v-text-field>
+        <v-text-field
+          v-if="final_collection_data.name_field"
+          v-model="full_main[final_collection_data.name_field]"
           label="Nombre"
           class="mr-2"
           variant="outlined"
@@ -73,18 +72,47 @@ function saveRecord() {
             :collection="status_group"
             style="max-width: 300px;"
             density="default"
+            class="mr-1"
           />
         </template>
         <Comments
-          v-if="final_collection_data.fields.some(f => f.name === 'comments')"
+          v-if="final_collection_data.has.comments"
           :main="full_main"
           :final_collection_data="final_collection_data"
         />
       </v-col>
-
       <slot name="edit" :full_main="full_main">
         EDICIÓN (REVISAR PORQUE NO ES NORMAL)
       </slot>
+      <v-col
+        v-if="final_collection_data.has.description"
+        cols="12"
+        class="d-flex pa-0"
+      >
+        <v-textarea
+          v-model="full_main.description"
+          label="Descripción"
+          rows="1"
+          auto-grow
+          class="mr-2"
+          variant="outlined"
+        ></v-textarea>
+      </v-col>
+      <v-col
+        cols="12"
+        class="d-flex pa-0"
+      >
+        <v-textarea
+          v-if="final_collection_data.has.help_text"
+          v-model="full_main.help_text"
+          label="Texto de ayuda"
+          variant="outlined"
+          rows="2"
+          auto-grow
+          _hide-details
+        >
+        </v-textarea>
+      </v-col>
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
@@ -111,7 +139,7 @@ function saveRecord() {
           variant="text"
           @click="snackbar = false"
         >
-          Close
+          Cerrar
         </v-btn>
       </template>
     </v-snackbar>

@@ -7,7 +7,7 @@ export const status_filters = {
     key_name: "register",
     collection: "status_register",
     collection_group: "status",
-    order: 6,
+    order: 4,
   },
   "validation": {
     name: "de Validación",
@@ -15,7 +15,7 @@ export const status_filters = {
     key_name: "validation",
     collection: "status_validation",
     collection_group: "status",
-    order: 6,
+    order: 5,
   },
   "location": {
     name: "de Ubicación",

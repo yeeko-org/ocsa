@@ -28,7 +28,7 @@ const note = computed(() => props.main)
 // const emits = defineEmits(['open-panel'])
 
 const final_mentions = computed(() => {
-  return props.mentions || note.value.mentions
+  return props.mentions || props.main.mentions
 })
 
 </script>
@@ -38,7 +38,6 @@ const final_mentions = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
-    name_field="title"
   >
     <template #details>
       <ProjectMiniList

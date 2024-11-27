@@ -11,10 +11,6 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  name_field: {
-    type: String,
-    default: 'name',
-  },
 })
 const expansionHeader = ref(null);
 const is_active = ref(false)
@@ -25,9 +21,8 @@ const title_width = computed(() => {
   return ['project', 'note'].includes(props.collection_data.name) ? 300 : 350
 })
 const title_text = computed(() => {
-  // console.log('props.main', props.main)
-  // console.log('props.name_field', props.name_field)
-  return props.main[props.name_field] || 'Título genérico'
+  const name_field = props.collection_data.name_field
+  return props.main[name_field] || 'Título genérico'
 })
 
 const background_color = computed(() => {
@@ -79,6 +74,7 @@ const emits = defineEmits(['open-panel'])
 <!--    v-slot="{ expanded }"-->
     <slot name="icon">
       <v-icon
+        v-if="main.icon || props.collection_data.icon"
         :color="main.color || props.collection_data.color || 'black'"
       >
         {{ main.icon || props.collection_data.icon }}
@@ -88,29 +84,29 @@ const emits = defineEmits(['open-panel'])
       class="text-subtitle-1 mr-4"
       :style="`max-width: ${title_width + 10}px;`"
     >
-      <slot name="title" class="d-flex">
-        <div class="d-flex align-center">
+
+      <div class="d-flex align-center">
+        <slot name="title" class="d-flex">
           <div
             class="ml-2"
             style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
             :style="`width: ${title_width}px;`"
             v-tooltip:bottom="title_text"
           >{{ title_text }}</div>
-          <v-icon
-            v-if="main.description"
-            color="grey-darken-1"
-          >
-            subject
-          </v-icon>
-          <v-tooltip
-            activator="parent"
-            location="end"
-          >
-            {{ main.description }}
-          </v-tooltip>
-
-        </div>
-      </slot>
+        </slot>
+        <v-icon
+          v-if="main.description"
+          color="grey-darken-1"
+        >
+          subject
+        </v-icon>
+        <v-tooltip
+          activator="parent"
+          location="end"
+        >
+          {{ main.description }}
+        </v-tooltip>
+      </div>
     </v-toolbar-title>
     <template v-if="real_show_details">
       <template v-if="collection_data.status_groups">
@@ -120,6 +116,7 @@ const emits = defineEmits(['open-panel'])
           :collection="status_group"
           small
           class="ml-1"
+          :bold_text="false"
         />
       </template>
       <CommentIcon
@@ -128,7 +125,7 @@ const emits = defineEmits(['open-panel'])
         class="ml-1"
       />
       <slot  name="details">
-        ---
+        ----
       </slot>
     </template>
     <v-btn

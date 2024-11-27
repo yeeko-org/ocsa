@@ -23,7 +23,6 @@ const megaproject_types_count = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
-    name_field="name"
   >
     <template #details>
       <HeaderChip

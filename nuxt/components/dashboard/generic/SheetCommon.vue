@@ -25,20 +25,25 @@ const child_collections = computed(() => {
   console.log("collection_data", props.collection_data)
   let result = []
   props.collection_data.child_relations.forEach(child => {
+    let is_category = false
     if (!child.is_multiple && child.link_type !== "category") {
       console.log("child", child)
-      return
+      is_category = true
+      // return
     }
     const child_collection = schemas.value.collections_dict[child.child]
-    console.log("child_collection", child_collection)
-    result.push({
-      collection_data: child_collection,
-      relation: child,
-      results: props.full_main[`${child.child}s`]
-    })
+    // console.log("child_collection", child_collection)
+    const results = props.full_main[`${child.child}s`]
+    if (results || !is_category){
+      result.push({
+        collection_data: child_collection,
+        relation: child,
+        results: results,
+      })
+    }
 
   })
-  console.log("result", result)
+  // console.log("result", result)
   return result
 })
 

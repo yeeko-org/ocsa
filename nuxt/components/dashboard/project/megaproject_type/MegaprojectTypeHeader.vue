@@ -26,7 +26,6 @@ const megaproject_type = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
-    name_field="name"
   >
     <template #icon>
       <ExtractivismIcons

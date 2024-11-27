@@ -67,6 +67,13 @@ function closeDialog(event) {
   }
 }
 
+function saveMention(mention) {
+  console.log("save mention", mention)
+  const index = full_note.value.mentions.findIndex(
+    item => item.id === mention.id)
+  full_note.value.mentions.splice(index, 1, mention)
+}
+
 </script>
 
 <template>
@@ -91,6 +98,7 @@ function closeDialog(event) {
           :key="mention.id"
           :mention="mention"
           is_full
+          @mention-saved="saveMention"
         />
       </v-row>
     </v-card-text>

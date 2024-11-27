@@ -74,7 +74,18 @@ const item_built = computed(() => {
 });
 
 const label = computed(() => {
-  return props.collection === 'register' ? 'Registro:' : 'Validación:';
+  switch (props.collection) {
+    case 'register':
+      return 'Registro:';
+    case 'validation':
+      return 'Validación:';
+    case 'location':
+      return 'Ubicación:';
+    default:
+      return 'Status:';
+  }
+  // return props.collection === 'register'
+  //   ? 'Registro:' : 'Validación:';
 })
 
 </script>

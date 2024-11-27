@@ -31,6 +31,7 @@ const locations_count = computed(() => {
   return project.value.locations.length
 })
 const mention_counts = computed(() => {
+  // console.log('project', project.value)
   return project.value.mentions.length
 })
 const states_tooltip = computed(() => {
@@ -54,22 +55,29 @@ const states_tooltip = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
-    name_field="name"
   >
     <template #icon>
       <ExtractivismIcons
         :project="main"
       />
+      <v-icon
+        v-if="main.is_grouper"
+        class="ml-3"
+        color="deep-purple"
+        v-tooltip="'Es un agrupador de proyectos.'"
+      >
+        group_work
+      </v-icon>
     </template>
     <template #details>
-      <StatusChip
-        v-if="project.status_register"
-        :main="project"
-        collection="register"
-        left_label
-        class="mb-1"
-        bold_text
-      />
+<!--      <StatusChip-->
+<!--        v-if="project.status_register"-->
+<!--        :main="project"-->
+<!--        collection="register"-->
+<!--        left_label-->
+<!--        class="mb-1"-->
+<!--        bold_text-->
+<!--      />-->
       <HeaderChip
         :count="mention_counts"
         icon="newspaper"

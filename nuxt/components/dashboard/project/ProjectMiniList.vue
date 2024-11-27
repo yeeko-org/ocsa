@@ -2,8 +2,6 @@
 
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 
-import { computed } from 'vue'
-
 const props = defineProps({
   mentions: Array,
 })

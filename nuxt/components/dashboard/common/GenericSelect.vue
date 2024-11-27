@@ -1,84 +1,145 @@
 <script setup>
-import {defineComponent, ref, computed} from 'vue'
-import { useMainStore } from '~/store/index.js'
-import { storeToRefs } from 'pinia'
-const mainStore = useMainStore()
 
 const props = defineProps({
-  final_filters: Object,
-  collection: String,
-  filter_group_name: String,
-  collection_group: String,
-  field: String,
-  item_id: String,
-  clearable: {
-    type: Boolean,
-    default: true,
+  main_object: {
+    type: Object,
+    required: true,
   },
-  density: {
+  level: String,
+  level_name: String,
+  is_filter: Boolean,
+  main_width: Number,
+  item_value: {
     type: String,
-    default: "compact",
+    default: 'id',
   },
-  is_autocomplete: {
-    type: Boolean,
-    default: false,
+  item_title: {
+    type: String,
+    default: 'name',
   },
-  // hide_details: {
-  //   type: Boolean,
-  //   default: false,
-  // },
+  items: {
+    type: Array,
+    required: true,
+  },
+  is_display: Boolean,
+  is_multiple: Boolean,
 })
 
-const { status, cats, all_nodes } = storeToRefs(mainStore)
-
-// const is_status = computed(() => props.collection_group === "status")
-
-const root_node = computed(() => {
-  return all_nodes.value[props.filter_group_name]
-})
-
-const item_value = computed(() => {
-  return props.item_id || 'id'
-})
-
-const items_built = computed(() => {
-  return cats.value[`${props.collection}s`]
-  // if (props.collection_group === "impact")
-  //   return cats.value["impact_types"].filter(
-  //     impact_type => impact_type.impact_group === props.collection)
-  //   // return impact_groups.value[props.collection]
-  // else{
-  //   // console.log("cats", cats.value)
-  //   return cats.value[`${props.collection}s`]
-  // }
+const text_value = computed(() => {
+  if (props.is_multiple){
+    // console.log("is_multiple", props.main_object[props.level_name])
+    return props.main_object[props.level_name].map(
+        item1 => props.items.find(
+            item2 => item2[props.item_value] === item1))
+  }
+  return props.items.find(
+      item => item[props.item_value] === props.main_object[props.level_name])
 })
 
 </script>
 
 <template>
-  <v-autocomplete
-    v-if="is_autocomplete"
-    v-model="final_filters[field]"
-    :items="items_built"
-    item-title="name"
-    :item-value="item_value"
-    :density="density"
-    variant="outlined"
-    :clearable="clearable"
-    _change="changeStatus"
-  ></v-autocomplete>
+  <div
+    v-if="is_display"
+    class="mr-0 px-2"
+    style="border-right: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0;"
+  >
+    <template v-if="text_value && is_multiple">
+      <template v-if="level === 'group'">
+        <v-icon
+          v-for="item in text_value"
+          class="mr-1"
+          :color="item.color || 'primary'"
+          v-tooltip="item[item_title]"
+        >
+          {{ item.icon }}
+        </v-icon>
+      </template>
+      <div v-else>
+        <div
+          v-for="item in text_value"
+          class="mr-1"
+        >
+          {{ item[item_title] }}
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="text_value">
+      <v-icon
+        v-if="level === 'group' && text_value.icon"
+        class="mr-1"
+        :color="text_value.color || 'primary'"
+        v-tooltip="text_value[item_title]"
+      >
+        {{ text_value.icon }}
+      </v-icon>
+      <span v-else>
+        {{text_value[item_title]}}
+      </span>
+    </template>
+    <span v-else>
+      ?
+    </span>
+  </div>
   <v-select
     v-else
-    v-model="final_filters[field]"
-    :items="items_built"
-    item-title="name"
+    v-model="main_object[level_name]"
+    :items="items"
+    :item-title="item_title"
     :item-value="item_value"
-    :density="density"
-    variant="outlined"
-    :clearable="clearable"
-    _change="changeStatus"
-  ></v-select>
-
+    :variant="is_filter ? 'underlined' : 'outlined'"
+    :clearable="is_filter"
+    :style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
+    :multiple="is_multiple"
+  >
+    <template #append-item>
+      <v-icon
+        color="primary"
+        icon="trip_origin"
+      ></v-icon>
+    </template>
+    <template #item="{ item, props: {onClick, title, value} }">
+      <v-list-item
+        @click="onClick"
+        :title="title"
+        :subtitle="item.raw.description"
+        :value="value"
+      >
+        <template v-slot:prepend v-if="false">
+          <v-icon
+            :color="item.raw.color || 'grey'"
+            :icon="item.raw.icon || 'trip_origin'"
+          ></v-icon>
+        </template>
+      </v-list-item>
+    </template>
+<!--    <template #item="{ item, props: {onClick, title, value} }">-->
+<!--      <v-list-item-->
+<!--        @click="onClick"-->
+<!--        :title="title"-->
+<!--        :subtitle="item.raw.description"-->
+<!--      >-->
+<!--      </v-list-item>-->
+<!--    </template>-->
+<!--    <template #item="{ item, props: {onClick, title, value} }" v-if="true">-->
+<!--      <v-list-item-->
+<!--        @click="onClick"-->
+<!--      >-->
+<!--        <v-list-item-title>-->
+<!--          <b class="mr-1"> {{ item.title }} </b>-->
+<!--          <span v-if="item.raw.has_subtype">-->
+<!--            (tiene subtipos)-->
+<!--          </span>-->
+<!--        </v-list-item-title>-->
+<!--        <v-list-item-subtitle>-->
+<!--          {{ item.raw.description }}-->
+<!--        </v-list-item-subtitle>-->
+<!--      </v-list-item>-->
+<!--    </template>-->
+<!--    </v-select>-->
+<!--  </template>-->
+  </v-select>
 </template>
 
 <style scoped>

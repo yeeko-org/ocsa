@@ -9,15 +9,14 @@ const props = defineProps({
   main_collection_name: String,  // Mention
   filter_group_name: String,  // event_types
   child_relation_name: String,  // event
-  additional_fields: Array,
+  additional_fields: Object,
   required: Boolean,
   field: {
     type: String,
     required: true,
   }, // events
-  hide_select: Boolean,
+  forced_level: String,
   second_level: Boolean,
-  slot_before: Boolean,
   two_columns: Boolean,
   emit_add: Boolean,
   cols: {
@@ -85,12 +84,14 @@ const addItem = (group=null) => {
     else
       new_child[field.name] = null
   })
+  // console.log("additional_fields", props.additional_fields)
   if (props.additional_fields){
-    props.additional_fields.forEach((field, idx) => {
-      new_child[field] = []
-    })
+    new_child = {...new_child, ...props.additional_fields}
+    // props.additional_fields.forEach((field, idx) => {
+    //   new_child[field] = []
+    // })
   }
-  console.log("new_child", new_child)
+  // console.log("new_child", new_child)
   // props.collection[props.field].push(new_child)
   props.main_object[props.field].push(new_child)
 }
@@ -146,8 +147,6 @@ const total_count = computed(() => {
     >
       <v-toolbar
         :color="`${color}-lighten-${second_level ? 2 : 1}`"
-        _clipped-left="second_level"
-        _class="second_level ? 'ml-6 pr-8' : ''"
         :height="second_level ? 32 : 46"
       >
         <v-toolbar-title
@@ -216,19 +215,19 @@ const total_count = computed(() => {
             :cols="two_columns ? 6 : 12"
             class="pa-2"
           >
-            <div v-if="!hide_select" class="d-flex flex-wrap">
+            <div class="d-flex flex-wrap">
               <SelectGroup
                 :filter_group_name="filter_group_name"
                 :main_collection="child_collection"
                 :main_object="item"
                 is_toolbar
+                :forced_level="forced_level"
                 @delete-record="wantDeleteRecord(item, index)"
               >
                 <template #chip>
                   <slot name="rows_init" :item="item">
                   </slot>
                 </template>
-
               </SelectGroup>
             </div>
             <slot name="rows" :item="item">

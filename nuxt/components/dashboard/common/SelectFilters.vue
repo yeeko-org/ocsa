@@ -1,8 +1,6 @@
 <script setup>
 import StatusDetail from "@/components/dashboard/status/StatusDetail";
 
-import { ref, watch } from 'vue'
-import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
 import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
 
 const props = defineProps({
