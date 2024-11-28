@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import ApiService from "./common";
 import colorMixin from "~/mixins/colorMixin";
 // import { mande } from 'mande'
-import { menu_content } from "~/composables/menu.js";
+// import { menu_content } from "~/composables/menu.js";
 import * as d3 from 'd3';
 
 const calculate_status = (status_control) => {
@@ -230,20 +230,14 @@ export const useMainStore = defineStore('main', {
     all_nodes: {},
     schemas: {},
     cats_ready: false,
-    userData: {},
-    projects: [],
     positions: build_positions(),
     status: {},
-    status_project: {},
     impact_groups: {social: [], environmental: []},
-    extractivism_types: {},
-    megaproject_types: [],
-    event_types: {},
     current_filter_group: null,
     current_filter_group_data: null,
     current_collection: null,
     current_collection_data: null,
-    groups: menu_content,
+    // groups: menu_content,
     full_geo: {"state": {}, "municipality": {}},
   }),
   actions: {
@@ -282,7 +276,6 @@ export const useMainStore = defineStore('main', {
             // console.log("schemas", this.schemas)
             this.all_nodes = calculateNewCats(data, this.schemas)
             this.status = calculate_status(data.status_control)
-            this.status_project = calculate_status(data.status_project)
             this.setCollectionData()
             this.setFilterGroupData()
             this.cats_ready = true
@@ -385,17 +378,6 @@ export const useMainStore = defineStore('main', {
         console.error(error)
       }
     },
-    // async registerUser(login, password) {
-    //   const api = mande('/api/users')
-    //   try {
-    //     this.userData = await api.post({ login, password })
-    //     // showTooltip(`Welcome back ${this.userData.name}!`)
-    //   } catch (error) {
-    //     // showTooltip(error)
-    //     // let the form component display the error
-    //     return error
-    //   }
-    // },
   },
   getters: {
     status_dict(state) {

@@ -1,7 +1,6 @@
 <script setup>
 import {computed, nextTick, watch} from "vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
-import {show_details} from "~/composables/fetch.js";
 import CommentIcon from "~/components/dashboard/common/CommentIcon.vue";
 
 const props = defineProps({

@@ -47,12 +47,12 @@ function changeShowDetails() {
 export function applyFilters() {
   const mainStore = useMainStore()
   const { fetchElements, current_collection_data } = mainStore
-  console.log("parent_collectionRef", parent_collectionRef)
+  // console.log("parent_collectionRef", parent_collectionRef)
   loading_fetch.value = true
   show_details.value = false
   // const function_name = group === 'project' ? fetchProjects : fetchNotes
   // const real_group = group.value.parent ? `catalogs/${current_collection}` : group_name
-  console.log('level', current_collection_data.level)
+  // console.log('level', current_collection_data.level)
   const level = current_collection_data.level
   let collection_name = current_collection_data.snake_name
   if (level.includes('category'))
