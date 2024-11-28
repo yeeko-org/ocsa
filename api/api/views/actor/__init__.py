@@ -143,7 +143,8 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
         if search_query:
             filter_query = Q()
             for field in self.search_fields:
-                filter_query |= Q(**{f'{field}__unaccent__icontains': search_query})
+                # filter_query |= Q(**{f'{field}__unaccent__icontains': search_query})
+                filter_query |= Q(**{f'{field}__icontains': search_query})
             queryset = queryset.filter(filter_query)
 
         return queryset
