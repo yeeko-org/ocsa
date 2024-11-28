@@ -14,6 +14,7 @@ from api.views.space_time.serializers import (
     LocalitySerializer,
     LocationSerializer,
     StateRetrieveSerializer,)
+from ..common_views import BaseViewSet, BaseStatusViewSet
 
 
 class ListSetMixin(viewsets.ReadOnlyModelViewSet):
@@ -46,6 +47,10 @@ class LocalityListViewSet(ListSetMixin):
     serializer_class = LocalitySerializer
 
 
-class LocationListViewSet(ListSetMixin):
-    queryset = Location.objects.all()
+class LocationViewSet(BaseViewSet):
+    queryset = Location.objects.all().exclude(
+        project__isnull=True, event__isnull=True)
     serializer_class = LocationSerializer
+
+    filterset_fields = ['status_location']
+

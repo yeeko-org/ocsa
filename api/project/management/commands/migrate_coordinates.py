@@ -1,7 +1,7 @@
 import pandas as pd
 from django.core.management.base import BaseCommand
 
-from project.models import Project, ProjectLocation
+from project.models import Project
 from space_time.models import Location
 
 
@@ -73,7 +73,7 @@ class Command(BaseCommand):
         except Project.DoesNotExist:
             return
 
-        locations = Location.objects.filter(projects__project=project)
+        locations = Location.objects.filter(project=project)
         exist_location = False
         for location in locations:
             # latitude y longitude redondeadas comparadas con
@@ -90,16 +90,12 @@ class Command(BaseCommand):
             return
 
         location = Location.objects.create(
-            latitude=lat_dd,
-            longitude=lon_dd
-        )
-
-        _ = ProjectLocation.objects.create(
             project=project,
-            location=location,
-            status_location_id="approved_v1"
+            latitude=lat_dd,
+            longitude=lon_dd,
+            status_location_id="migrated_v1"
         )
-        project.status_location_id = "approved_v1"
+        project.status_location_id = "migrated_v1"
         project.save()
         self.stdout.write(self.style.SUCCESS(
             f"Coordenadas registradas para el proyecto {project} en {location}"))

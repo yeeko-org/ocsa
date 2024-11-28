@@ -2,11 +2,10 @@ from rest_framework import serializers
 
 from actor.models import Actor, Participant, Interest
 from impact.models import Impact
-from project.models import Project, ProjectLocation
+from project.models import Project
+from space_time.models import Location
 from source.models import Mention, Note
 from event.models import Event
-from api.views.space_time.serializers import (
-    LocationSerializer as LocationSerializerBase)
 
 
 class ActorBasicSerializer(serializers.ModelSerializer):
@@ -64,39 +63,35 @@ class MentionSerializer(serializers.ModelSerializer):
         exclude = ['project']
 
 
-class LocationSerializer(serializers.ModelSerializer):
-    project_location_id = serializers.IntegerField(source='id')
-    state = serializers.IntegerField(source='location.state_id')
+class LocationFullSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ProjectLocation
-        fields = ['state', 'location_id', 'project_location_id']
-
-
-class LocationFullSerializer(LocationSerializer):
-    location_full = LocationSerializerBase(
-        source='location', read_only=True)
-
-    class Meta:
-        model = ProjectLocation
+        model = Location
         fields = '__all__'
 
 
 class ProjectBasicSerializer(serializers.ModelSerializer):
-    mentions = MentionSerializer(many=True)
-    locations = LocationSerializer(many=True)
+    mentions = MentionSerializer(many=True, read_only=True)
+    locations = LocationFullSerializer(many=True, read_only=True)
 
     class Meta:
         model = Project
+        # fields = "__all__"
         fields = [
             "id",
             "name",
             "official_name",
+            "alternative_name",
             "description",
             "comments",
-            "mentions",
+            "parent_project",
+            # "other_parents",
+            "conflict",
             "megaproject_type",
-            "locations",
+            "is_grouper",
             "status_validation",
             "status_project",
+            "status_location",
+            "mentions",
+            "locations",
         ]

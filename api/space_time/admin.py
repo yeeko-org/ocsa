@@ -24,4 +24,4 @@ class StateAdmin(admin.ModelAdmin):
 class LocationAdmin(admin.ModelAdmin):
     list_display = ('state', 'municipality', 'locality', 'details',
                     'latitude', 'longitude')
-    raw_id_fields = ('state', 'municipality', 'locality')
+    raw_id_fields = ('state', 'municipality', 'locality', 'project', 'event')

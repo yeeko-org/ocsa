@@ -1,5 +1,5 @@
 from django.db import models
-from space_time.models import Location
+# from space_time.models import Location
 from work_flux.models import StatusControl
 
 
@@ -57,7 +57,6 @@ class StatusProject(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'space_time_statusproject'
         ordering = ["order", "name"]
         verbose_name = 'Status Project'
         verbose_name_plural = 'Status Projects'
@@ -150,28 +149,28 @@ class ProjectFile(models.Model):
         verbose_name_plural = 'Archivos de proyecto'
 
 
-class ProjectLocation(models.Model):
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name='locations')
-    location = models.ForeignKey(
-        Location, on_delete=models.CASCADE, related_name='projects')
-    # location = models.OneToOneField(
-    #     Location, on_delete=models.CASCADE, related_name='project_location')
-    status_location = models.ForeignKey(
-        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+# class ProjectLocation(models.Model):
+#     project = models.ForeignKey(
+#         Project, on_delete=models.CASCADE, related_name='locations')
+#     location = models.ForeignKey(
+#         Location, on_delete=models.CASCADE, related_name='projects')
+#     # location = models.OneToOneField(
+#     #     Location, on_delete=models.CASCADE, related_name='project_location')
+#     status_location = models.ForeignKey(
+#         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+#
+#     def __str__(self):
+#         return f"{self.project} - {self.location}"
+#
+#     class Meta:
+#         verbose_name = 'Ubicación de proyecto'
+#         verbose_name_plural = 'Ubicaciones de proyectos'
 
-    def __str__(self):
-        return f"{self.project} - {self.location}"
 
-    class Meta:
-        verbose_name = 'Ubicación de proyecto'
-        verbose_name_plural = 'Ubicaciones de proyectos'
-
-
-def identify_projects_with_many_project_locations():
-    from project.models import ProjectLocation
-    from django.db.models import Count
-
-    projects = ProjectLocation.objects.values('project').annotate(
-        count=Count('project')).filter(count__gt=1)
-    print(projects)
+# def identify_projects_with_many_project_locations():
+#     from project.models import ProjectLocation
+#     from django.db.models import Count
+#
+#     projects = ProjectLocation.objects.values('project').annotate(
+#         count=Count('project')).filter(count__gt=1)
+#     print(projects)

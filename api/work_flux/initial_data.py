@@ -36,6 +36,8 @@ class InitStatus:
             ("approved_v1", "register", "Aprobado v.1",
                 "light-green", "done", True, True, False),
 
+            ("empty", "location", "Vacío",
+                "red", "location_off", False, True, False),
             ("initial", "location", "Datos iniciales",
                 "blue", "edit_note", False, True, False),
             ("filled", "location", "Datos completos",
@@ -65,5 +67,9 @@ class InitStatus:
             order += 2
             if group == "register" and order < 20:
                 order = 20
+            if group == "location" and order < 40:
+                order = 40
             status.order = order
+            status.open_editor = open_editor
+            status.is_deleted = is_deleted
             status.save()

@@ -4,6 +4,7 @@ from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantSerializer)
 from api.views.project.retrieve_serializers import (
     ConflictSerializer, ProjectFullSerializer)
+from api.views.space_time.serializers import LocationSerializer
 from project.models import Project
 from source.models import Mention, Note, NoteFile, StatusHistory
 from event.models import Event, Involved
@@ -48,7 +49,8 @@ class EventSimpleSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(EventSimpleSerializer):
-    involvements = InvolvedSerializer(many=True)
+    involvements = InvolvedSerializer(many=True, read_only=True)
+    locations = LocationSerializer(many=True, read_only=True)
 
 
 class MentionSerializer(serializers.ModelSerializer):

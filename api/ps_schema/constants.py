@@ -42,7 +42,7 @@ all_collections = {
             "plural_name": "Proyectos",
             "model_name": "Project",
             "level": "primary",
-            "status_groups": ["validation"],
+            "status_groups": ["validation", "location"],
             "icon": 'factory',
             "color": 'purple',
             "sort_fields": [
@@ -56,6 +56,15 @@ all_collections = {
                 {"filter_name": "impact_types", "hidden": True},
                 {"filter_name": "event_types", "hidden": True},
             ],
+        },
+        {
+            "snake_name": "status_project",
+            "name": "Status de Proyecto",
+            "plural_name": "Status de Proyectos",
+            "model_name": "StatusProject",
+            "level": "category_subtype",
+            "status_groups": ["validation"],
+            "open_insertion": True,
         },
         {
             "snake_name": "extractivism_type",
@@ -88,14 +97,14 @@ all_collections = {
             "color": 'lime',
             "status_groups": ["validation"],
         },
-        {
-            "snake_name": "project_location",
-            "name": "Ubicación de Proyecto",
-            "plural_name": "Ubicaciones de Proyecto",
-            "model_name": "ProjectLocation",
-            "level": "relational",
-            "status_groups": ["location"],
-        },
+        # {
+        #     "snake_name": "project_location",
+        #     "name": "Ubicación de Proyecto",
+        #     "plural_name": "Ubicaciones de Proyecto",
+        #     "model_name": "ProjectLocation",
+        #     "level": "relational",
+        #     "status_groups": ["location"],
+        # },
     ],
     "impact": [
         {
@@ -310,25 +319,16 @@ all_collections = {
             "model_name": "Involved",
             "level": "relational",
         },
-        {
-            "snake_name": "event_location",
-            "name": "Ubicación de Evento",
-            "plural_name": "Ubicaciones de Eventos",
-            "model_name": "EventLocation",
-            "level": "relational",
-            "status_groups": ["location"],
-        },
+        # {
+        #     "snake_name": "event_location",
+        #     "name": "Ubicación de Evento",
+        #     "plural_name": "Ubicaciones de Eventos",
+        #     "model_name": "EventLocation",
+        #     "level": "relational",
+        #     "status_groups": ["location"],
+        # },
     ],
     "space_time": [
-        {
-            "snake_name": "status_project",
-            "name": "Status de Proyecto",
-            "plural_name": "Status de Proyectos",
-            "model_name": "StatusProject",
-            "level": "category_subtype",
-            "status_groups": ["validation"],
-            "open_insertion": True,
-        },
         {
             "snake_name": "state",
             "name": "Estado",
@@ -356,6 +356,7 @@ all_collections = {
             "plural_name": "Ubicaciones",
             "model_name": "Location",
             "level": "primary",
+            "status_groups": ["location"],
         },
     ]
 }
@@ -489,7 +490,7 @@ filter_groups = [
         "key_name": "states",
         "name": "Estado",
         "plural_name": "Estados",
-        "main_collection": "project-project",
+        "main_collection": "space_time-location",
         "category_subtype": "space_time-state",
     },
     {
@@ -512,7 +513,7 @@ filter_groups = [
         "filter_collections": [
             "project-project",
         ],
-        "category_subtype": "space_time-status_project",
+        "category_subtype": "project-status_project",
     },
     {
         "key_name": "countries",
@@ -522,7 +523,7 @@ filter_groups = [
         "filter_collections": [
             "actor-actor",
         ],
-        "category_subtype": "space_time-country",
+        "category_subtype": "classify-country",
     }
 ]
 
@@ -555,7 +556,7 @@ collection_links = [
         "is_mandatory": True,
     },
     {
-        "parent": "space_time-status_project",
+        "parent": "project-status_project",
         "child": "source-status_history",
         "link_type": "category",
         "is_mandatory": True,
@@ -582,7 +583,7 @@ collection_links = [
         "is_mandatory": False,
     },
     {
-        "parent": "space_time-status_project",
+        "parent": "project-status_project",
         "child": "project-project",
         "link_type": "category",
         "is_mandatory": False,
@@ -640,7 +641,7 @@ collection_links = [
         "is_mandatory": False,
     },
     {
-        "parent": "space_time-country",
+        "parent": "classify-country",
         "child": "actor-actor",
         "link_type": "relational",
         "is_multiple": True,
@@ -771,7 +772,7 @@ collection_links = [
         "parent": "space_time-state",
         "child": "space_time-municipality",
         "link_type": "grouper",
-        "filter_group": "states",
+        "filter_group": "geographicals",
         "is_mandatory": True,
     },
     {

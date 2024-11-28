@@ -61,6 +61,13 @@ class LoadLocalidades:
                     self.errors.append(
                         f"Error creating locality {inegi_code}: {e}")
 
+                if inegi_code == '0001':
+                    municipality = Municipality.objects.get(pk=municipality_id)
+                    municipality.latitude = latitude
+                    municipality.longitude = longitude
+                    municipality.altitude = altitude
+                    municipality.save()
+
     def load_municipalities(self):
         print("Loading municipalities")
 

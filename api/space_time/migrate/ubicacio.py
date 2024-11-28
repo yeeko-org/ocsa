@@ -12,6 +12,16 @@ class UbicacionesToLocations:
     def __init__(self):
         self.load_states()
         for ubicacion in Ubicacion.objects.all():
+            fields = [
+                "estado", "municipio", "localidad", "latitud", "longitud",
+                "geom", "especificaciones"]
+            if ubicacion.tipo_ubicacion == "punto":
+                for field in fields:
+                    if value := getattr(ubicacion, field):
+                        if value != "SD":
+                            break
+                else:
+                    continue
             try:
                 self.migrate_ubicacion(ubicacion)
             except Exception as e:
@@ -66,19 +76,21 @@ class UbicacionesToLocations:
         return locality_query.first(), locality_count
 
     def migrate_ubicacion(self, ubicacion: Ubicacion):
-        details = ""
+        details = f"{ubicacion.especificaciones}\n\r" \
+            if ubicacion.especificaciones else ""
         comments = []
 
         if ubicacion.tipo_ubicacion != "punto":
-            comments.append(f"Tipo de ubicación: {ubicacion.tipo_ubicacion}")
+            # comments.append(f"Tipo de ubicación: {ubicacion.tipo_ubicacion}")
+            details += f"Tipo de ubicación: {ubicacion.tipo_ubicacion}\n\r"
 
         state_id = self.get_state_id(ubicacion.estado)
-        if not state_id:
+        if not state_id and ubicacion.estado:
             comments.append(f"Estado no encontrado: {ubicacion.estado}")
 
         municipality, municipality_count = self.get_municipality(
             state_id, ubicacion.municipio)
-        if not municipality:
+        if not municipality and ubicacion.municipio:
             comments.append(f"Municipio no encontrado: {ubicacion.municipio}")
         if municipality_count > 1:
             comments.append(
@@ -95,16 +107,15 @@ class UbicacionesToLocations:
                 f"nombre{ubicacion.localidad}")
 
         # details = (ubicacion.especificaciones or "") + "\n\r" + details
-        details = ubicacion.especificaciones or ""
 
-        details = details.strip()
         geojson = None
         try:
             geojson = json.loads(ubicacion.geom) if ubicacion.geom else None
         except json.JSONDecodeError:
             comments.append(
                 "Error al parsear el geojson. El campo se guardará como nulo")
-            details += f"\n\rgeom: {ubicacion.geom}"
+            details += f"geom: {ubicacion.geom}\n\r"
+        details = details.strip()
         status_location = 'initial_v1'
         final_comments = None
         if comments:

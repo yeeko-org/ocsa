@@ -8,7 +8,8 @@ from rest_framework.viewsets import GenericViewSet
 from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
 from api.views.action_file import ActionFileMixin
-from project.models import Project, ProjectFile, ProjectLocation
+from project.models import Project, ProjectFile
+from space_time.models import Location
 from source.models import Mention
 from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
 from api.views.note.serializers import ProjectSemiFullSerializer
@@ -18,7 +19,7 @@ from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
 class ProjectFilter(FilterSet):
     state = NumberFilter(
-        field_name='locations__location__state', lookup_expr='exact')
+        field_name='locations__state', lookup_expr='exact')
     impact_type = NumberFilter(
         field_name='mentions__impacts__impact_type', lookup_expr='exact')
     impact_subtype = NumberFilter(
@@ -45,6 +46,7 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
         "parent_project",
         "conflict",
     ).prefetch_related(
+        "locations",
         "mentions",
         "mentions__note",
         "mentions__impacts",
@@ -87,7 +89,7 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
         return Project.objects.get(id=from_id)
 
     def update_relations_merge(self, from_obj, to_obj):
-        ProjectLocation.objects.filter(project=from_obj)\
+        Location.objects.filter(project=from_obj)\
             .update(project=to_obj)
         Mention.objects.filter(project=from_obj)\
             .update(project=to_obj)

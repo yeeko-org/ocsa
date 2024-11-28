@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 from event.migrate.event_base import EventBase
 from actor.models import Participant
 from classify.models import SectorGroup, Sector
-from event.models import (Event, EventGroup, EventLocation, InvolvedRole,
+from event.models import (Event, EventGroup, InvolvedRole,
                           EventSubtype, EventType, Involved)
 from ocsa_legacy.models import (
     AccionColectivaToUbicacion, FormaAC, Opositores, OpositoresToAC,
@@ -43,10 +43,8 @@ class MigrateAccionToEvent(EventBase):
                 ubicacion_id_ref=ac_to_ubic.ubicacion_id).first()  # type: ignore
             if not location:
                 continue
-
-            EventLocation.objects.get_or_create(
-                event=self.event, location=location
-            )
+            location.event = self.event
+            location.save()
 
     def migrate_opositor(self, opositor: Opositores):
         opositor_actor, _ = self.get_actor(opositor.nombre)

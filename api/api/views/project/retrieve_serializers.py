@@ -3,7 +3,7 @@ from rest_framework import serializers
 from actor.models import Participant
 from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
-    ImpactSerializer, ActorBasicSerializer, LocationSerializer,
+    ImpactSerializer, ActorBasicSerializer,
     LocationFullSerializer)
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)

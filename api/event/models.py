@@ -2,7 +2,7 @@ from django.db import models
 from source.models import Mention
 from actor.models import Participant
 from work_flux.models import StatusControl
-from space_time.models import Location
+# from space_time.models import Location
 
 
 class EventGroup(models.Model):
@@ -113,16 +113,16 @@ class Involved(models.Model):
         verbose_name_plural = 'Involucrados en Eventos'
 
 
-class EventLocation(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    location = models.ForeignKey(
-        Location, on_delete=models.CASCADE)
-    status_location = models.ForeignKey(
-        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-
-    def __str__(self):
-        return self.location
-
-    class Meta:
-        verbose_name = 'Ubicación de Evento'
-        verbose_name_plural = 'Ubicaciones de Eventos'
+# class EventLocation(models.Model):
+#     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+#     location = models.ForeignKey(
+#         Location, on_delete=models.CASCADE)
+#     status_location = models.ForeignKey(
+#         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+#
+#     def __str__(self):
+#         return self.location
+#
+#     class Meta:
+#         verbose_name = 'Ubicación de Evento'
+#         verbose_name_plural = 'Ubicaciones de Eventos'

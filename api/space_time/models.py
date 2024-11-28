@@ -1,5 +1,7 @@
 from django.db import models
 from work_flux.models import StatusControl
+from project.models import Project
+from event.models import Event
 
 
 def default_alternative_names():
@@ -57,6 +59,12 @@ class Municipality(models.Model):
         related_name="municipalities")
     population = models.IntegerField(
         blank=True, null=True, verbose_name="Población")
+    latitude = models.FloatField(
+        blank=True, null=True, verbose_name="Latitud de cabecera")
+    longitude = models.FloatField(
+        blank=True, null=True, verbose_name="Longitud de cabecera")
+    altitude = models.IntegerField(
+        blank=True, null=True, verbose_name="Altitud de cabecera")
 
     def __str__(self):
         return "%s - %s" % (self.name, self.state)
@@ -84,7 +92,7 @@ class Municipality(models.Model):
 class Locality(models.Model):
     inegi_code = models.CharField(max_length=6, verbose_name="Clave INEGI")
     complete_code = models.CharField(
-        max_length=10, verbose_name="Clave INEGI Completa")
+        max_length=12, verbose_name="Clave INEGI Completa")
     name = models.CharField(max_length=120, verbose_name="Nombre")
     municipality = models.ForeignKey(
         Municipality, verbose_name="Municipality",
@@ -106,6 +114,12 @@ class Locality(models.Model):
 
 
 class Location(models.Model):
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, blank=True, null=True,
+        related_name="locations")
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, blank=True, null=True,
+        related_name="locations")
     state = models.ForeignKey(
         State, on_delete=models.CASCADE,
         related_name="locations", blank=True, null=True)
@@ -122,6 +136,7 @@ class Location(models.Model):
     ubicacion_id_ref = models.IntegerField(blank=True, null=True)
     status_location = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
         if self.latitude and self.longitude:

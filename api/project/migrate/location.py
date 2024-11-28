@@ -1,7 +1,7 @@
 
 
-from ocsa_legacy.models import Proyecto, ProyectoToUbicacion
-from project.models import Project, ProjectLocation
+from ocsa_legacy.models import  ProyectoToUbicacion
+from project.models import Project
 from space_time.models import Location
 
 
@@ -20,8 +20,11 @@ class ProyectoToUbicacionMigrate:
                 ubicacion_id_ref=ubicacion_id).first()
 
             if not (project and location):
+                # print(f"Project or Location not found: {proyecto_id}, {ubicacion_id}")
                 continue
+            location.project = project
+            location.save()
 
-            ProjectLocation.objects.get_or_create(
-                project=project, location=location
-            )
+            # ProjectLocation.objects.get_or_create(
+            #     project=project, location=location
+            # )

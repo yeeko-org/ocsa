@@ -22,8 +22,8 @@ class StatusControl(models.Model):
     icon = models.CharField(max_length=40, blank=True, null=True)
     order = models.IntegerField(default=4)
     is_public = models.BooleanField(default=True)
-    # open_editor = models.BooleanField(default=True)
-    # is_deleted = models.BooleanField(default=False)
+    open_editor = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.group} - {self.public_name}"
