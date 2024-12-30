@@ -4,6 +4,7 @@ import PanelList from "~/components/dashboard/common/PanelList.vue";
 import {ref, computed, shallowRef, nextTick} from 'vue'
 import SummaryList from "~/components/dashboard/common/SummaryList.vue";
 import EditCommon from "~/components/dashboard/common/EditCommon.vue";
+import EditGeneric from "~/components/dashboard/generic/EditGeneric.vue";
 
 const props = defineProps({
   results: Array,
@@ -37,9 +38,10 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_nam
     edit_component.value = module.default
   })
   .catch(e => {
-    import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
-      edit_component.value = module.default
-    })
+    // import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
+    //   edit_component.value = module.default
+    // })
+    edit_component.value = null
   })
 
 
@@ -149,16 +151,16 @@ const all_selected = computed(() => {
       <v-icon class="mr-2">merge</v-icon>
       Fusionar
     </v-btn>
-    <v-btn
-      outlined
-      color="accent"
-      class="ml-3"
-      @click="wantMassiveEdit"
-      :disabled="!sel.selected_elems.length"
-    >
-      <v-icon class="mr-2">app_registration</v-icon>
-      Edición masiva
-    </v-btn>
+<!--    <v-btn-->
+<!--      outlined-->
+<!--      color="accent"-->
+<!--      class="ml-3"-->
+<!--      @click="wantMassiveEdit"-->
+<!--      :disabled="!sel.selected_elems.length"-->
+<!--    >-->
+<!--      <v-icon class="mr-2">app_registration</v-icon>-->
+<!--      Edición masiva-->
+<!--    </v-btn>-->
     <v-btn
       :disabled="!sel.selected_elems.length"
       outlined
@@ -217,7 +219,8 @@ const all_selected = computed(() => {
   </v-card>
   <v-dialog
     v-model="dialog_edit"
-    max-width="980"
+    max-width="1100"
+
   >
     <v-card v-if="element_to_edit">
       <v-card-title>
@@ -245,16 +248,16 @@ const all_selected = computed(() => {
 <!--        _select-item="selectItem($event)"-->
 <!--        @item-saved="saveNewElement"-->
 <!--      ></component>-->
+      <v-card-text v-if="edit_type.key !== 'add'">
+        <v-divider></v-divider>
+        <PanelList
+          :results="selected_results"
+          :collection_data="collection_data"
+          :show_details="show_details"
+          :sel="sel"
+        />
+      </v-card-text>
     </v-card>
-    <v-card-text v-if="edit_type.key !== 'add'">
-      <v-divider></v-divider>
-      <PanelList
-        :results="selected_results"
-        :collection_data="collection_data"
-        :show_details="show_details"
-        :sel="sel"
-      />
-    </v-card-text>
   </v-dialog>
 </template>
 

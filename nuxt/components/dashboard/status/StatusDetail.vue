@@ -67,7 +67,8 @@ const field = computed(() => `status_${props.collection}`);
     :variant="is_filter ? 'underlined' : 'outlined'"
     :clearable="is_filter"
     :label="label"
-    width="320"
+    max-width="320"
+    min-width="260"
     :hide-details="hide_details"
     density="compact"
   >

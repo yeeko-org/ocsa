@@ -19,7 +19,7 @@ const route_key = computed(() => props.collection_data.app_label)
 const snake_name = computed(() => props.collection_data.snake_name)
 const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
 
-const emits = defineEmits(['finish-open', 'item-saved'])
+const emits = defineEmits(['finish-open', 'item-saved', 'item-deleted'])
 
 import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
   .then(module => {
@@ -97,6 +97,8 @@ const background_color = computed(() => {
             :full_main="full_main"
             :collection_data="collection_data"
             @item-saved="emits('item-saved', $event)"
+            @item-deleted="emits('item-deleted', $event)"
+            can_delete
           >
             <template v-slot:edit="{ full_main }">
               <component

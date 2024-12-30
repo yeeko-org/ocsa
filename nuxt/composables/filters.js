@@ -105,18 +105,21 @@ const common_sorts = {
 
 export const final_sorts = computed(() => {
   return []
-  // if (!group.value.sorts && !group.value.same_sorts)
-  //   return []
-  // let same_sorts = {}
-  // if (group.value.same_sorts)
-  //   same_sorts = group.value.same_sorts.reduce((coll, sort) =>(
-  //     {...coll, [sort]: common_sorts[sort]}
-  //   ), {})
-  // console.log("same_sorts", same_sorts)
-  // let joined_sorts = {...same_sorts, ...(group.value.sorts || {})}
-  // return Object.entries(joined_sorts).map(([key, value]) => {
-  //   console.log("key", key, "value", value)
-  //   return {value: key, title: value}
-  // })
+})
+
+const final_sorts_old = computed(() => {
+  if (!group.value.sorts && !group.value.same_sorts)
+    return []
+  let same_sorts = {}
+  if (group.value.same_sorts)
+    same_sorts = group.value.same_sorts.reduce((coll, sort) =>(
+      {...coll, [sort]: common_sorts[sort]}
+    ), {})
+  console.log("same_sorts", same_sorts)
+  let joined_sorts = {...same_sorts, ...(group.value.sorts || {})}
+  return Object.entries(joined_sorts).map(([key, value]) => {
+    console.log("key", key, "value", value)
+    return {value: key, title: value}
+  })
 })
 

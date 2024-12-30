@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
 
 const props = defineProps({
   main_object: Object,  // Mention
@@ -65,7 +66,7 @@ const child_collection = computed(() =>
 // const field = computed(() => `${props.child_relation_name}s`)
 
 const addItem = (group=null) => {
-  console.log("child_collection", child_collection.value)
+  // console.log("child_collection", child_collection.value)
   if (props.emit_add){
     emits('add-item')
     return
@@ -74,7 +75,8 @@ const addItem = (group=null) => {
   if (group)
     new_child[filter_group.value.category_group] = group.id
   new_child[props.main_collection_name] = props.main_object.id
-  child_collection.value.fields.forEach(field => {
+  const fields = child_collection.value?.fields || []
+  fields.forEach(field => {
     if (field.relation_type === 'one_to_many')
       return
     if (['id', props.main_collection_name].includes(field.name))
@@ -155,48 +157,47 @@ const total_count = computed(() => {
         >
           {{child_collection.plural_name}} ({{total_count}})
         </v-toolbar-title>
-        <v-btn
-          class="hidden-xs-only px-0"
-          icon
+        <QuestionMark
           :size="second_level ? 'small' : 'default'"
-        >
-          <v-icon>question_mark</v-icon>
-        </v-btn>
-        <template v-if="filter_group.category_groups">
+          :collection_data="child_collection"
+        />
+        <slot name="main_buttons">
+          <template v-if="filter_group.category_groups">
+            <v-btn
+              v-for="cat_group in filter_group.category_groups"
+              :key="cat_group.name"
+              class="ml-1 text-none"
+              :color="cat_group.color"
+              variant="flat"
+              icon
+              @click="addItem(cat_group)"
+              :size="second_level ? 'small' : 'default'"
+            >
+              <v-badge color="transparent" icon="add">
+                <v-icon
+                  color="white"
+                  :icon="cat_group.icon"
+                ></v-icon>
+              </v-badge>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
+                Agregar {{cat_group.name}}
+              </v-tooltip>
+            </v-btn>
+          </template>
           <v-btn
-            v-for="cat_group in filter_group.category_groups"
-            :key="cat_group.name"
-            class="ml-1 text-none"
-            :color="cat_group.color"
+            v-else
+            class="mr-2 text-none"
+            color="success"
             variant="flat"
-            icon
-            @click="addItem(cat_group)"
+            @click="addItem()"
             :size="second_level ? 'small' : 'default'"
           >
-            <v-badge color="transparent" icon="add">
-              <v-icon
-                color="white"
-                :icon="cat_group.icon"
-              ></v-icon>
-            </v-badge>
-            <v-tooltip
-              activator="parent"
-              location="top"
-            >
-              Agregar {{cat_group.name}}
-            </v-tooltip>
+            <v-icon>add</v-icon>
           </v-btn>
-        </template>
-        <v-btn
-          v-else
-          class="mr-2 text-none"
-          color="success"
-          variant="flat"
-          @click="addItem()"
-          :size="second_level ? 'small' : 'default'"
-        >
-          <v-icon>add</v-icon>
-        </v-btn>
+        </slot>
       </v-toolbar>
       <v-card
         v-for="(item, index) in main_object[field]"
@@ -249,7 +250,6 @@ const total_count = computed(() => {
         variant="flat"
         border="start"
       >
-
         {{ required ? 'Debes' : 'Intenta' }}
         agregar al menos un {{child_collection.name}}
         <v-btn
@@ -277,7 +277,10 @@ const total_count = computed(() => {
         </v-card-subtitle>
         <v-card-text>
           <v-row>
-            <v-col cols="12" v-if="record_to_delete.saved">
+            <v-col
+              v-if="record_to_delete.saved"
+              cols="12"
+            >
               <v-text-field
                 v-model="delete_text"
                 label="Escribe 'eliminar' para confirmar"

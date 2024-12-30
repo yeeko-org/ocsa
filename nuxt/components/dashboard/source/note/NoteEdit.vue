@@ -41,7 +41,7 @@ const props = defineProps({
     />
     <SelectDate
       :init_date="full_main.date"
-      @update-date="full_main.date = $event"
+      @update-date="Ed = $event"
     />
     <v-text-field
       v-model="full_main.section"

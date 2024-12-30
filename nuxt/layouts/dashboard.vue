@@ -5,6 +5,7 @@ const menu_drawer = ref(false)
 import {useMainStore} from "~/store/index.js";
 import {useAuthStore} from "~/store/auth.js";
 import {storeToRefs} from "pinia";
+const router = useRouter()
 
 const mainStore = useMainStore()
 const authStore = useAuthStore()
@@ -19,6 +20,8 @@ onBeforeMount(() => {
 //     console.log("cats_ready")
 //   })
 })
+
+const disable_open = ref(false)
 
 
 const collection_data = computed(() => {
@@ -43,6 +46,22 @@ const main_collections = computed(() => {
 })
 // const icon = computed(() => group.value.icon || group.parent ?
 
+function openIcon(val){
+  console.log('openIcon', val)
+  disable_open.value = true
+}
+
+function openItem(ev, val){
+  // console.log('openItem', val)
+  // console.log('ev', ev)
+  // console.log('disable_open', disable_open.value)
+  if (!disable_open.value)
+    router.push(`/dashboard/${val}`)
+  disable_open.value = false
+  // :to="`/dashboard/${collection.snake_name}`"
+  // router.push(val)
+}
+
 </script>
 
 <template>
@@ -59,20 +78,23 @@ const main_collections = computed(() => {
       <v-app-bar-nav-icon
         @click.stop="menu_drawer = !menu_drawer"
         color="white"
+        class="mt-1"
       ></v-app-bar-nav-icon>
-      <v-toolbar-title class="d-flex align-center">
-        <v-icon class="mr-3" color="white">
-          {{ collection_data.icon || (collection_data.parent ? collection_data.parent.icon : 'dashboard') }}
-        </v-icon>
-        <span class="text-white">
-          {{ collection_data.plural_name }}
-        </span>
-        <v-btn
-          v-if="false"
-          icon="category"
-          _v-tooltip:bottom="'Categorías de ___'"
-        ></v-btn>
-      </v-toolbar-title>
+      <client-only>
+        <v-toolbar-title class="d-flex align-center mt-1">
+          <v-icon class="mr-3" color="white">
+            {{ collection_data.icon || (collection_data.parent ? collection_data.parent.icon : 'dashboard') }}
+          </v-icon>
+          <span class="text-white">
+            {{ collection_data.plural_name }}
+          </span>
+          <v-btn
+            v-if="false"
+            icon="category"
+            _v-tooltip:bottom="'Categorías de ___'"
+          ></v-btn>
+        </v-toolbar-title>
+      </client-only>
       <v-spacer></v-spacer>
       <v-btn
         @click="logout"
@@ -92,7 +114,7 @@ const main_collections = computed(() => {
       width="280"
       mini-variant
     >
-      <v-list nav open-strategy="multiple">
+      <v-list nav open-strategy="multiple" _active-class="text-primary">
         <v-list-item>
           <template v-slot:prepend v-if="false">
             <v-icon>dashboard</v-icon>
@@ -105,45 +127,57 @@ const main_collections = computed(() => {
           </v-list-item-subtitle>
         </v-list-item>
         <v-divider></v-divider>
-        <template
-          v-for="collection in main_collections"
-        >
-          <v-list-group
-            v-if="collection.catalog_groups.length"
-            :key="collection.snake_name"
-            :value="collection.name"
+        <client-only>
+          <template
+            v-for="collection in main_collections"
           >
-            <template v-slot:activator="{ props }">
+            <v-list-group
+              v-if="collection.catalog_groups.length"
+              :key="collection.snake_name"
+              :value="collection.snake_name"
+              soubgroup
+            >
+              <template v-slot:activator="{ props, isOpen }">
+                <v-list-item
+                  v-bind="props"
+                  exact
+                  :title="collection.plural_name"
+                  :prepend-icon="collection.icon || 'category'"
+                  :base-color="collection.color ? `${collection.color}` : 'grey-darken-1'"
+                  @click="openItem($event, collection.snake_name)"
+                  :class="collection.level === 'primary' ? '' : 'ml-3'"
+                >
+                  <template v-slot:append="{ isActive, select }">
+                    <v-icon
+                      @click="openIcon"
+                    >
+                      {{ isActive ? 'expand_less' : 'expand_more' }}
+                    </v-icon>
+                  </template>
+                </v-list-item>
+              </template>
               <v-list-item
-                v-bind="props"
-                :title="collection.plural_name"
-                :value="collection.snake_name"
-                :prepend-icon="collection.icon || 'category'"
-                :base-color="collection.color ? `${collection.color}` : 'grey-darken-1'"
-                :to="`/dashboard/${collection.snake_name}`"
+                v-for="(sub_coll, i) in collection.catalog_groups"
+                :key="i"
+                exact
+                :title="sub_coll.name"
+                :value="sub_coll.snake_name"
                 _to="`/dashboard/catalog/${sub_item.key}`"
-                :class="collection.level === 'primary' ? '' : 'ml-2'"
+                :to="`/dashboard/catalog/${sub_coll.key_name}`"
               ></v-list-item>
-            </template>
+            </v-list-group>
             <v-list-item
-              v-for="(sub_coll, i) in collection.catalog_groups"
-              :key="i"
-              _prepend-icon="category"
-              :title="sub_coll.name"
-              :value="sub_coll.key_name"
-              _to="`/dashboard/catalog/${sub_item.key}`"
-              :to="`/dashboard/catalog/${sub_coll.key_name}`"
+              v-else
+              exact
+              :key="collection.snake_name"
+              :value="collection.snake_name"
+              _active-class="text-accent"
+              :to="`/dashboard/${collection.snake_name}`"
+              :prepend-icon="collection.icon"
+              :title="collection.name"
             ></v-list-item>
-          </v-list-group>
-          <v-list-item
-            v-else
-            :key="collection.snake_name"
-            active-class="accent--text"
-            :to="`/dashboard/${collection.snake_name}`"
-            :prepend-icon="collection.icon"
-            :title="collection.name"
-          ></v-list-item>
-        </template>
+          </template>
+        </client-only>
         <v-divider></v-divider>
         <v-list-item
           href="https://apiocsa.yeeko.org/admin/profile_auth/user/"

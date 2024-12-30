@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "ocsa-nuxt",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +13,7 @@
     "@date-io/date-fns": "^3.0.0",
     "@mdi/font": "^7.4.47",
     "@pinia/nuxt": "^0.5.1",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
     "d3": "^7.9.0",
     "dayjs": "^1.11.13",
     "js-cookie": "^3.0.5",

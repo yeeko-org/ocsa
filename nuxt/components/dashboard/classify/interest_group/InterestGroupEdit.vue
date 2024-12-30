@@ -10,7 +10,6 @@ const props = defineProps({
 </script>
 
 <template>
-  <CommonGroupEdit :full_main="full_main" />
 </template>
 
 <style scoped>

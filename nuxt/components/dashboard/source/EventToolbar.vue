@@ -29,16 +29,17 @@ const all_actors = computed(() => {
     required
   >
     <template #rows="{ item }">
-      <v-text-field
+      <v-textarea
         v-model="item.description"
         label="Descripción del evento (opcional)"
         variant="outlined"
         density="compact"
+        rows="1"
         hide-details
         auto-grow
         style="width: 100%; max-width: 600px;"
       >
-      </v-text-field>
+      </v-textarea>
     </template>
     <template #second-column="{ item }">
       <ToolbarCommon
@@ -101,22 +102,6 @@ const all_actors = computed(() => {
         main_collection_name="event"
         second_level
       />
-
-      <ToolbarCommon
-        v-if="false"
-        :main_object="item"
-        filter_group_name="states"
-        main_collection_name="event"
-        child_relation_name="location"
-        field="locations"
-        second_level
-        class="mt-n3"
-        color="blue-grey"
-      >
-        <template #rows="{ item }">
-          HOLA UBICACIÓN {{ item }}
-        </template>
-      </ToolbarCommon>
     </template>
   </ToolbarCommon>
 

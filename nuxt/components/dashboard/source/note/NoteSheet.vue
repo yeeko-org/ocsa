@@ -6,6 +6,7 @@ import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
+import FilesToolbar from "~/components/dashboard/utils/FilesToolbar.vue";
 const mainStore = useMainStore()
 const { saveSimple } = mainStore
 const { schemas } = storeToRefs(mainStore)
@@ -22,13 +23,7 @@ const props = defineProps({
   },
   collection_data: Object,
 })
-const new_mention = ref({})
-const dialog_mention = ref(false)
 const dialog_search = ref(false)
-
-const openNote = () => {
-  console.log("open note")
-}
 
 const full_note = computed(() => {
   return props.full_main
@@ -77,6 +72,19 @@ function saveMention(mention) {
 </script>
 
 <template>
+  <v-card
+    v-if="full_note"
+    class="mb-4"
+    elevation="4"
+    variant="elevated"
+    color="brown-lighten-4"
+  >
+    <FilesToolbar
+      :full_main="full_main"
+      child_relation_name="note_file"
+      main_collection_name="note"
+    />
+  </v-card>
   <v-card v-if="full_note.mentions" elevation="5">
     <v-card-title>
       <div class="d-flex">

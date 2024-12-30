@@ -220,7 +220,6 @@ function closeChangeDialog(event) {
       <v-row class="py-3 mx-0" v-if="mention.id">
         <ToolbarCommon
           :cols="5"
-          v-if="true"
           :main_object="mention"
           main_collection_name="mention"
           filter_group_name="status_projects"
@@ -237,7 +236,6 @@ function closeChangeDialog(event) {
           </template>
         </ToolbarCommon>
         <ToolbarCommon
-          v-if="true"
           :cols="7"
           :main_object="mention"
           main_collection_name="mention"

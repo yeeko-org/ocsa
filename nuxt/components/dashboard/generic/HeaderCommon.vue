@@ -10,6 +10,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  height: {
+    type: Number,
+    default: 60,
+  },
 })
 const expansionHeader = ref(null);
 const is_active = ref(false)
@@ -66,8 +70,8 @@ const emits = defineEmits(['open-panel'])
     ref="expansionHeader"
     :color="background_color"
     class="pl-0 py-0"
-    height="60"
-    style="min-height: 60px;"
+    :height="height"
+
     @click="wantOpenPanel"
   >
 <!--    v-slot="{ expanded }"-->

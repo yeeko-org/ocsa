@@ -70,14 +70,9 @@ const states_tooltip = computed(() => {
       </v-icon>
     </template>
     <template #details>
-<!--      <StatusChip-->
-<!--        v-if="project.status_register"-->
-<!--        :main="project"-->
-<!--        collection="register"-->
-<!--        left_label-->
-<!--        class="mb-1"-->
-<!--        bold_text-->
-<!--      />-->
+      <span class="ml-2 mr-2 text-grey">
+        {{main.proyecto_id_ref}}
+      </span>
       <HeaderChip
         :count="mention_counts"
         icon="newspaper"

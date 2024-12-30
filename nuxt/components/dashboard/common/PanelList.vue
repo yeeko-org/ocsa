@@ -57,6 +57,13 @@ function addItem({res, is_new}) {
   }
 }
 
+function deleteItem(elem_id) {
+  // console.log("deleteItem", res)
+  open_panels.value = []
+  const index = props.results.findIndex(result => result.id === elem_id)
+  props.results.splice(index, 1)
+}
+
 function changeShowDetails() {
   nextTick(() => {
     setTimeout(() => {
@@ -84,6 +91,7 @@ function changeShowDetails() {
       :sel="sel"
       @finish-open="changeShowDetails"
       @item-saved="addItem"
+      @item-deleted="deleteItem"
     >
       <template
         #header="{openMain}"

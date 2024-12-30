@@ -65,11 +65,6 @@ function saveItem({res, is_new}) {
         />
       </template>
     </EditCommon>
-<!--    <v-card-actions>-->
-<!--      <v-spacer></v-spacer>-->
-<!--      <v-btn color="blue darken-1" variant="text" @click="dialog = false">Cancelar</v-btn>-->
-<!--      <v-btn color="blue darken-1" variant="text" @click="saveActor">Guardar</v-btn>-->
-<!--    </v-card-actions>-->
   </v-card>
 </template>
 

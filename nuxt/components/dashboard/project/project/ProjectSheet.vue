@@ -6,6 +6,7 @@ import PanelList from "~/components/dashboard/common/PanelList.vue";
 import {nextTick} from "vue";
 import {show_details} from "~/composables/fetch.js";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
+import FilesToolbar from "~/components/dashboard/utils/FilesToolbar.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { getGeo, saveSimple } = mainStore
@@ -64,13 +65,6 @@ function saveLocations() {
   })
 }
 
-nextTick(() => {
-  setTimeout(() => {
-    console.log("full_main nextTick")
-    getGeoUnities()
-  }, 10)
-})
-
 </script>
 
 <template>
@@ -90,6 +84,18 @@ nextTick(() => {
         Guardar ubicaciones
       </v-btn>
     </v-col>
+  </v-card>
+  <v-card
+    class="mb-4"
+    elevation="4"
+    variant="elevated"
+    color="brown-lighten-4"
+  >
+    <FilesToolbar
+      :full_main="full_main"
+      child_relation_name="note_file"
+      main_collection_name="project"
+    />
   </v-card>
   <v-card v-if="full_project.mentions">
 

@@ -16,6 +16,7 @@ import {final_sorts, status_filters} from "~/composables/filters.js";
 import {storeToRefs} from "pinia";
 import ExportButton from "~/components/dashboard/generic/ExportButton.vue";
 import _debounce from "lodash/debounce.js";
+import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
 
 const mainStore = useMainStore()
 
@@ -40,9 +41,19 @@ const results = ref([])
 const loading_fetch = ref(false)
 const show_details = ref(false)
 const total_count = ref(0)
+const available_sorts = ref([
+  {
+    title: "Más recientes",
+    value: "-id"
+  },
+  {
+    title: "Más antiguos",
+    value: "id"
+  },
+])
 const final_filters = ref({
   page: 1,
-  ordering: null,
+  ordering: '-id',
   q: "",
   page_size: 40,
   ...init_filters,
@@ -61,7 +72,7 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-  changeFilters()
+  initFilters()
 })
 
 const collection_data = computed(() => {
@@ -124,7 +135,7 @@ function resetFilters() {
     temp_reset.value = true
   final_filters.value = {
     page: 1,
-    ordering: null,
+    ordering: '-id',
     q: "",
     page_size: 40,
   }
@@ -135,7 +146,7 @@ function resetFilters() {
   visible_filters.value = []
 }
 
-function changeFilters() {
+function initFilters() {
   if (!collection_data.value)
     return
   const all_filters = collection_data.value.all_filters
@@ -143,6 +154,15 @@ function changeFilters() {
   // console.log("level_name", props.level_name)
   // console.log("filter_group", props.filter_group)
   let collection_filters = all_filters.reduce((arr, f) => {
+    if (!f.filter_name){
+      console.log("custom_filter", f)
+      let custom_filter = {
+        is_custom: true,
+        order: 12,
+      }
+      arr.push({...f, ...custom_filter})
+      return arr
+    }
     const filter_data = schemas.value.filters_dict[f.filter_name]
     const new_filter = {...filter_data, ...f}
     if (filter_data.category_group){
@@ -163,7 +183,7 @@ function changeFilters() {
   }, [])
   // console.log("collection_filters", collection_filters)
   if (props.filter_group){
-    console.log("filter_group", props.filter_group)
+    // console.log("filter_group", props.filter_group)
     const fg = props.filter_group
     const new_filter_group = {
       ...props.filter_group,
@@ -177,20 +197,30 @@ function changeFilters() {
   // if (status_group)
   //   collection_filters.push(status_filters[status_group])
   status_groups.forEach(sg => {
-    collection_filters.push(status_filters[sg])
+    const status = status_filters[sg]
+    collection_filters.push(status)
+    available_sorts.value.push({
+      value: `${status.collection}__order`,
+      title: `Status ${status.name}`
+    })
   })
+  if (collection_data.value.name_field)
+    available_sorts.value.push({
+      title: "Nombre / Título",
+      value: collection_data.value.name_field
+    })
 
   // f => f.collection === current_collection.value)
   // current_filters.value = group_filters.value.sort((a, b) => a.order - b.order)
   current_filters.value = collection_filters
 
-  // console.log("group in changeFilters", group)
+  // console.log("group in initFilters", group)
   if (collection_filters.length <= 3)
     visible_filters.value = current_filters.value
   else
     visible_filters.value = current_filters.value.filter(f => !f.hidden)
-  console.log("visible_filters", visible_filters.value)
-  console.log("collection_data", collection_data.value)
+  // console.log("visible_filters", visible_filters.value)
+  // console.log("collection_data", collection_data.value)
 }
 
 function addItem() {
@@ -222,7 +252,7 @@ function selectItem(item) {
         </v-btn>
       </v-card-title>
       <v-card-subtitle class="d-flex align-center">
-        Si no encuentras el proyecto, puedes crear uno nuevo.
+        Si no encuentras el {{ collection_data.name }}, puedes crear uno nuevo.
         <v-spacer></v-spacer>
       </v-card-subtitle>
     </template>
@@ -262,9 +292,9 @@ function selectItem(item) {
       >
         <v-text-field
           v-model="final_filters.q"
-          :label="`Buscar ${collection_data.name || 'elementos'}`"
+          :label="`Buscar ${collection_data.plural_name || 'elementos'}`"
           outlined
-          density="comfortable"
+          density="compact"
           clearable
           base-color="blue"
           color="indigo"
@@ -272,19 +302,20 @@ function selectItem(item) {
           variant="underlined"
           hide-details
           max-width="300"
+          min-width="200"
         ></v-text-field>
         <v-select
-          v-if="final_sorts.length"
+          v-if="available_sorts.length"
           v-model="final_filters.ordering"
-          :items="final_sorts"
+          :items="available_sorts"
           item-title="title"
           item-value="value"
           label="Ordenar por"
-          density="comfortable"
+          density="compact"
           variant="underlined"
           hide-details
-          class="ml-3"
-          style="max-width: 220px;"
+          class="mx-3"
+          style="max-width: 220px; min-width: 130px;"
         ></v-select>
         <SelectFilters
           v-if="simplified_filters"
@@ -299,7 +330,7 @@ function selectItem(item) {
 <!--          class="mr-3"-->
 <!--          @click="changeGroupActions"-->
 <!--        ></v-btn>-->
-        <v-col cols="auto" order="12">
+        <v-col cols="auto" order="11" class="py-1">
           <ExportButton
             v-if="collection_data.level === 'primary' && !is_mini"
           />
@@ -312,6 +343,12 @@ function selectItem(item) {
             <v-icon>add</v-icon>
             Agregar {{ collection_data.name }}
           </v-btn>
+        </v-col>
+        <v-col cols="auto" order="12" class="pl-0 py-0 pr-1">
+          <QuestionMark
+            size="small"
+            :collection_data="collection_data"
+          />
         </v-col>
       </v-col>
     </v-row>

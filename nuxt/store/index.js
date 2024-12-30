@@ -37,7 +37,8 @@ const calculateSchemas = (data) => {
       cl.filter_group === fg.key_name)
     return {...fg, ...fg.addl_config}
   })
-  const has_fields = ["comments", "description", "help_text", "order"]
+  const has_fields = [
+    "comments", "description", "help_text", "order", "color", "icon"]
   let collections = data.collections.map(coll => {
     coll.catalog_groups =  filter_groups.reduce((arr, new_fg) => {
       if (new_fg.main_collection !== coll.snake_name)
@@ -64,6 +65,9 @@ const calculateSchemas = (data) => {
       obj[field] = coll.fields.some(f => f.name === field)
       return obj
     }, {})
+    const other_fields = has_fields.concat([coll.pk, coll.name_field])
+    coll.other_fields = coll.fields.filter(f =>
+      !other_fields.includes(f.name) && f.relation_type === 'simple')
     return coll
   })
 
@@ -366,6 +370,24 @@ export const useMainStore = defineStore('main', {
         ;
       }
     },
+    async deleteCatalog([collection_data, id]) {
+      this.setHeader()
+      const collection = collection_data.snake_name
+      const full_url = `catalogs/${collection}/${id}`
+      try {
+        await ApiService.delete(full_url);
+        let real_group = `${collection}s`
+        if (collection === 'country')
+          real_group = 'countries'
+        const index = this.cats[real_group].findIndex(
+          el => el.id === id)
+        this.cats[real_group].splice(index, 1)
+        return id
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    },
     async fetchElements([group, params]) {
       // console.log('fetchElements', group, params)
       try {
@@ -376,6 +398,19 @@ export const useMainStore = defineStore('main', {
         return result.data
       } catch (error) {
         console.error(error)
+      }
+    },
+    async saveFile([elem_id, file_data, coll_name]) {
+      try {
+        console.log('elem_id', elem_id)
+        let response = await ApiService.post(
+          `/${coll_name}/${elem_id}/add_file/`, file_data,
+          {headers: {
+            'Content-Type': 'multipart/form-data'
+          }});
+        return response.data
+      } catch (error) {
+        console.error(error);
       }
     },
   },
