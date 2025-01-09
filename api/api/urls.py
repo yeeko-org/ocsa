@@ -5,8 +5,7 @@ from api.views.project import ProjectViewSet, ProjectFileViewSet
 from api.views.note import NoteViewSet, NoteFileViewSet
 from api.views.note.mention_views import (
     MentionViewSet, ParticipantViewSet, ImpactViewSet,
-    InvolvedViewSet, InterestViewSet, StatusHistoryViewSet)
-from api.views.event import EventViewSet
+    InvolvedViewSet, InterestViewSet, StatusHistoryViewSet, EventViewSet)
 from api.views.auth.login_views import UserLoginAPIView
 from api.views.space_time import LocationViewSet
 # from rest_framework.authtoken.views import obtain_auth_token

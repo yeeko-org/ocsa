@@ -17,12 +17,9 @@ from classify.models import (
     InterestSubtype, Country,
 )
 from event.models import (
-    EventGroup,
-    EventType,
-    EventSubtype,
     InvolvedRole,)
 
-from impact.models import ImpactSubtype, ImpactType
+from impact.models import ImpactSubtype
 from source.models import Source
 from work_flux.models import StatusControl
 
@@ -31,6 +28,7 @@ from project.models import MegaprojectType, ExtractivismType, StatusProject
 from api.views.catalogs.event_serializers import (
     EventGroupSerializer,
     EventTypeSerializer,
+    EventTypeFullSerializer,
     EventSubtypeSerializer,
     EventSubtypeFullSerializer,
     InvolvedRoleSerializer)
@@ -156,32 +154,6 @@ class InterestSubtypeViewSet(viewsets.ModelViewSet):
     serializer_class = InterestSubtypeSerializer
 
 
-class EventGroupViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    queryset = EventGroup.objects.all()
-    serializer_class = EventGroupSerializer
-
-
-class EventTypeViewSet(BaseViewSet):
-    queryset = EventType.objects.all()
-    serializer_class = EventTypeSerializer
-
-
-class EventSubtypeViewSet(BaseStatusViewSet):
-    queryset = EventSubtype.objects.all()\
-        .prefetch_related('events')\
-        .annotate(count=Count('events'))\
-        .distinct()
-    serializer_class = EventSubtypeFullSerializer
-
-    def get_serializer_class(self):
-        action_serializer = {
-            'list': EventSubtypeSerializer,
-        }
-        return action_serializer.get(self.action, self.serializer_class)
-
-
 class InvolvedRoleViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
@@ -190,13 +162,6 @@ class InvolvedRoleViewSet(viewsets.ModelViewSet):
     #     event_group=F('event_type__event_group')
     # )
     serializer_class = InvolvedRoleSerializer
-
-
-class ImpactSubtypeFilter(FilterSet):
-
-    class Meta:
-        model = ImpactSubtype
-        fields = {'impact_type': ['exact']}
 
 
 class SourceViewSet(viewsets.ModelViewSet):

@@ -113,6 +113,13 @@ class ImpactFullSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class EventFullNoteSerializer(serializers.ModelSerializer):
+    note = NoteSerializer(source='mention.note', read_only=True)
+
+    class Meta:
+        model = Event
+        fields = '__all__'
+
 
 class NoteFullSerializer(serializers.ModelSerializer):
     files = NoteFileSerializer(many=True, read_only=True)

@@ -5,6 +5,7 @@ from event.models import (
     EventSubtype,
     InvolvedRole,)
 from api.views.event.serializers import EventSerializer
+from api.views.common_serializers import CommonCount
 
 
 class EventGroupSerializer(serializers.ModelSerializer):
@@ -13,17 +14,7 @@ class EventGroupSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EventTypeSerializer(serializers.ModelSerializer):
-    # group = EventGroupSerializer()
-    # status_validation = StatusControlSerializer()
-
-    class Meta:
-        model = EventType
-        fields = "__all__"
-
-
-class EventSubtypeSerializer(serializers.ModelSerializer):
-    count = serializers.IntegerField(read_only=True)
+class EventSubtypeSerializer(CommonCount):
 
     class Meta:
         model = EventSubtype
@@ -31,7 +22,35 @@ class EventSubtypeSerializer(serializers.ModelSerializer):
 
 
 class EventSubtypeFullSerializer(EventSubtypeSerializer):
-    events = EventSerializer(many=True, read_only=True)
+    events_count = serializers.SerializerMethodField()
+
+    def get_events_count(self, obj: EventType):
+        return obj.events.count()
+
+
+class EventTypeFullSerializer(serializers.ModelSerializer):
+    events_count = serializers.SerializerMethodField()
+    event_subtypes = EventSubtypeSerializer(many=True, read_only=True)
+
+    def get_events_count(self, obj: EventType):
+        return obj.events.count()
+
+    class Meta:
+        model = EventType
+        fields = "__all__"
+
+
+class EventTypeSerializer(CommonCount):
+    # impact_subtype_count = serializers.IntegerField(read_only=True)
+    # event_subtype_count = serializers.IntegerField(read_only=True)
+    event_subtype_count = serializers.SerializerMethodField()
+
+    def get_event_subtype_count(self, obj):
+        return obj.event_subtypes.count()
+
+    class Meta:
+        model = EventType
+        fields = "__all__"
 
 
 class InvolvedRoleSerializer(serializers.ModelSerializer):

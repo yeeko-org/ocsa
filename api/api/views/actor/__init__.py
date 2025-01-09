@@ -61,7 +61,6 @@ class ActorViewMixin(
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
-
     filterset_class = ActorFilter
 
     filter_backends = [OrderingFilter, DjangoFilterBackend, UnaccentSearchFilter]

@@ -1,10 +1,10 @@
 from actor.models import Actor
 from api.views.actor.classify_serializers import IndigenousGroupSerializer, IndigenousGroupFullSerializer
-from api.views.common_views import BaseViewSet
+from api.views.common_views import BaseViewSet, BaseStatusViewSet
 from classify.models import IndigenousGroup
 
 
-class IndigenousGroupViewSet(BaseViewSet):
+class IndigenousGroupViewSet(BaseStatusViewSet):
     from django.db.models import Count
     queryset = IndigenousGroup.objects.all()\
         .annotate(count=Count('actors'))\

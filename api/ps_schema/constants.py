@@ -294,6 +294,10 @@ all_collections = {
             "level": "secondary",
             "icon": 'notifications_active',
             "color": 'lime',
+            "all_filters": [
+                {"filter_name": "event_types", "hidden": False},
+                # {"name": "involved_roles", "hidden": False},
+            ],
         },
         {
             "snake_name": "event_group",
@@ -301,10 +305,6 @@ all_collections = {
             "plural_name": "Grupos de Eventos",
             "model_name": "EventGroup",
             "level": "category_group",
-            "all_filters": [
-                {"filter_name": "event_types", "hidden": False},
-                # {"name": "involved_roles", "hidden": False},
-            ],
         },
         {
             "snake_name": "event_type",

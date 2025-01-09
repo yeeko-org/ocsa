@@ -9,9 +9,6 @@ from api.views.catalogs import (
     InterestGroupViewSet,
     InterestTypeViewSet,
     InterestSubtypeViewSet,
-    EventGroupViewSet,
-    EventTypeViewSet,
-    EventSubtypeViewSet,
     InvolvedRoleViewSet,
     SourceViewSet,
     StatusControlViewSet,
@@ -19,7 +16,8 @@ from api.views.catalogs import (
     ExtractivismTypeViewSet,
     MegaprojectTypeViewSet
 )
-# from api.views.actor.classify_views import IndigenousGroupViewSet
+from api.views.catalogs.event_views import EventGroupViewSet, EventTypeViewSet, EventSubtypeViewSet
+from api.views.actor.classify_views import IndigenousGroupViewSet
 from api.views.catalogs.impact_views import (
     ImpactSubtypeViewSet, ImpactTypeViewSet, ImpactGroupViewSet)
 
@@ -31,7 +29,7 @@ router = routers.DefaultRouter()
 router.register(r'participant_group', ParticipantGroupViewSet, basename='catalog_participant_group')
 router.register(r'participant_type', ParticipantTypeViewSet, basename='catalog_participant_type')
 router.register(r'belong', BelongViewSet, basename='catalog_belong')
-# router.register(r'indigenous_group', IndigenousGroupViewSet, basename='catalog_indigenous_group')
+router.register(r'indigenous_group', IndigenousGroupViewSet, basename='catalog_indigenous_group')
 router.register(r'sector_group', SectorGroupViewSet, basename='catalog_sector_group')
 router.register(r'sector', SectorViewSet, basename='catalog_sector')
 router.register(r'country', CountryViewSet, basename='catalog_country')

@@ -5,21 +5,6 @@ from api.pagination import CustomPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 
-class BaseViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    # filterset_class = FilterSet
-    pagination_class = CustomPagination
-    filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name']
-    ordering_fields = ['name']
-
-
-class BaseStatusViewSet(BaseViewSet):
-    filterset_fields = ['status_validation']
-    ordering_fields = ['name', 'count', 'status_validation__order']
-
-
 class UnaccentSearchFilter(SearchFilter):
 
     def construct_search(self, field_name, queryset):
@@ -30,6 +15,16 @@ class UnaccentSearchFilter(SearchFilter):
             return LOOKUP_SEP.join([field_name, lookup])
         else:
             return LOOKUP_SEP.join([field_name, 'unaccent', 'icontains'])
+
+
+class BaseViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
+    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    # filterset_class = FilterSet
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name']
+    ordering_fields = ['name']
 
 
 class OrderingAutoFilter(OrderingFilter):
@@ -55,6 +50,13 @@ class OrderingAutoFilter(OrderingFilter):
                 elif field.name in ['name', 'title', 'order']:
                     final_valid_fields.append((field.name, field.name))
         return final_valid_fields
+
+
+class BaseStatusViewSet(BaseViewSet):
+    filterset_fields = ['status_validation']
+    ordering_fields = ['__auto__']
+    filter_backends = [
+        UnaccentSearchFilter, DjangoFilterBackend, OrderingAutoFilter]
 
 
 # class UnaccentMixin(viewsets.GenericViewSet):

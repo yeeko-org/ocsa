@@ -64,14 +64,15 @@ class OpositorToActorMigration(ActorBase):
                 continue
 
             indigenous_group, _ = IndigenousGroup.objects.get_or_create(
-                name=nombre, description=subpoblacion_afectada.descripcion)
+                name=nombre, status_validation_id='original',
+                description=subpoblacion_afectada.descripcion)
             self.indigenous_groups[nombre] = indigenous_group
 
     def get_indigenous_group(self, name: str) -> IndigenousGroup:
         indigenous_group = self.indigenous_groups.get(name)
         if not indigenous_group:
             indigenous_group, _ = IndigenousGroup.objects.get_or_create(
-                name=name)
+                name=name, status_validation_id='original')
             self.indigenous_groups[name] = indigenous_group
         return indigenous_group
 

@@ -3,12 +3,13 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import FilterSet, NumberFilter
 from api.pagination import CustomPagination
-from impact.models import ImpactSubtype, ImpactType, ImpactGroup
+from api.views.common_views import UnaccentSearchFilter, OrderingAutoFilter
+
 from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer, ImpactSubtypeFullSerializer,
     ImpactTypeSerializer, ImpactTypeFullSerializer,
     ImpactGroupSerializer)
-from api.views.common_views import UnaccentSearchFilter
+from impact.models import ImpactSubtype, ImpactType, ImpactGroup
 
 
 class ImpactGroupViewSet(viewsets.ModelViewSet):
@@ -38,8 +39,10 @@ class ImpactTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     filterset_class = ImpactTypeFilter
     pagination_class = CustomPagination
-    filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
+    filter_backends = [
+        UnaccentSearchFilter, DjangoFilterBackend, OrderingAutoFilter]
     search_fields = ['name']
+    ordering_fields = ['__auto__']
 
     serializer_class = ImpactTypeFullSerializer
 
@@ -71,8 +74,10 @@ class ImpactSubtypeViewSet(viewsets.ModelViewSet):
     # filterset_class = ImpactSubtypeFilter
     filterset_fields = ['impact_type', 'status_validation']
     pagination_class = CustomPagination
-    filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
+    filter_backends = [
+        UnaccentSearchFilter, DjangoFilterBackend, OrderingAutoFilter]
     search_fields = ['name']
+    ordering_fields = ['__auto__']
 
     serializer_class = ImpactSubtypeFullSerializer
 

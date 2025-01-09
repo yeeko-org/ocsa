@@ -10,6 +10,7 @@ class EventGroup(models.Model):
     model_origin = models.CharField(
         max_length=80, blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=2)
     color = models.CharField(max_length=255, blank=True, null=True)
 
@@ -23,8 +24,7 @@ class EventType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
-    event_group = models.ForeignKey(
-        EventGroup, on_delete=models.CASCADE, blank=True, null=True)
+    event_group = models.ForeignKey(EventGroup, on_delete=models.CASCADE)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
@@ -42,7 +42,8 @@ class EventSubtype(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
-    event_types = models.ManyToManyField(EventType, blank=True)
+    event_types = models.ManyToManyField(
+        EventType, blank=True, related_name='event_subtypes')
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
@@ -66,7 +67,8 @@ class Event(models.Model):
         related_name='events')
     # RICK: Temporal, hasta que no existan ya conflictos
     event_type = models.ForeignKey(
-        EventType, on_delete=models.CASCADE, blank=True, null=True)
+        EventType, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='events')
     date = models.DateField(blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
 
