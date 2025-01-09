@@ -3,21 +3,24 @@
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const props = defineProps({
-  is_edit: Boolean,
-  is_massive_edit: Boolean,
   full_main: {
     type: Object,
     required: true,
   },
+  is_massive_edit: Boolean,
+  is_edit: Boolean,
 })
-
 </script>
 
 <template>
   <SelectGroup
-    filter_group_name="impact_types"
     :main_object="full_main"
-    main_collection_name="impact"
+    filter_group_name="event_types"
+    main_collection_name="event_type"
+    field="event_group"
+    forced_level="type"
+    :width="320"
+    required
   />
 </template>
 

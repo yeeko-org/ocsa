@@ -27,6 +27,7 @@ const props = defineProps({
   width: Number,
   subtype_class: String,
   is_display: Boolean,
+  required: Boolean,
 })
 
 const emits = defineEmits(['delete-record'])
@@ -305,11 +306,12 @@ const main_width = computed(() => props.width || 250)
     level="group"
     :level_name="level_names.group"
     :is_filter="is_filter"
-    :main_width="200"
+    :main_width="width || 200"
     :items="filter_group.category_groups"
     :label="collections.group.name"
     :class="{'mr-2': !is_display}"
     :is_display="is_display"
+    :required="required"
   />
   <GenericSelect
     v-if="display_type"
@@ -323,6 +325,7 @@ const main_width = computed(() => props.width || 250)
     :is_display="is_display"
     :is_multiple="category_is_multiple"
     :class="{'mr-2': !is_display}"
+    :required="required"
   />
   <GenericSelect
     v-if="subtype_items && level_names.subtype"
@@ -337,6 +340,7 @@ const main_width = computed(() => props.width || 250)
     :class="subtype_class"
     :is_multiple="subcategory_is_multiple"
     :label="collections.subtype[subcategory_is_multiple ? 'plural_name' : 'name']"
+    :required="required"
   />
 </template>
 

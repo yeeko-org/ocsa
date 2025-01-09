@@ -39,7 +39,6 @@ const event_group = computed(() => {
 })
 
 
-
 </script>
 
 <template>

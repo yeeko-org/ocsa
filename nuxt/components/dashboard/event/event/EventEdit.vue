@@ -15,9 +15,10 @@ const props = defineProps({
 
 <template>
   <SelectGroup
-    filter_group_name="impact_types"
+    filter_group_name="event_types"
     :main_object="full_main"
-    main_collection_name="impact"
+    main_collection_name="event"
+    :width="360"
   />
 </template>
 

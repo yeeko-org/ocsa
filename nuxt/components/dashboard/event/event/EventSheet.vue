@@ -1,5 +1,7 @@
 <script setup>
 
+import ImpactSheet from "~/components/dashboard/impact/impact/ImpactSheet.vue";
+
 const props = defineProps({
   full_main: {
     type: Object,
@@ -11,12 +13,12 @@ const props = defineProps({
   },
 })
 
-const full_event = ref(props.full_main)
-
 </script>
 
 <template>
-  {{ full_event }}
+  <ImpactSheet
+    :full_main="full_main"
+  />
 </template>
 
 <style scoped>

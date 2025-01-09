@@ -33,7 +33,6 @@ const note_collection = computed(() => {
       :collection_data="note_collection"
       :show_details="true"
     />
-
   </v-card>
 </template>
 

@@ -20,6 +20,7 @@ const props = defineProps({
     main_collection_name="event_subtype"
     field="event_types"
     forced_level="subtype"
+    required
   />
 </template>
 

@@ -156,13 +156,22 @@ function sendNull(){
         :subtitle="item.raw.description"
         :value="value"
       >
-        <template v-slot:prepend v-if="false">
+        <template v-slot:prepend v-if="item.raw.icon">
           <v-icon
             :color="item.raw.color || 'grey'"
             :icon="item.raw.icon || 'trip_origin'"
           ></v-icon>
         </template>
       </v-list-item>
+    </template>
+    <template #selection="{ item }" v-if="!is_multiple">
+      <v-icon
+        v-if="item.raw.icon"
+        :color="item.raw.color || 'grey'"
+        :icon="item.raw.icon || 'trip_origin'"
+        class="mr-2"
+      ></v-icon>
+      {{ item.title }}
     </template>
 <!--    <template #item="{ item, props: {onClick, title, value} }">-->
 <!--      <v-list-item-->
