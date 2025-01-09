@@ -60,17 +60,32 @@ const want_edit_note = ref(false);
 const { status_dict } = storeToRefs(mainStore);
 
 // Compute item_built using the status_dict and props
-const field = computed(() => `status_${props.collection}`);
+const field = computed(() => {
+  if (props.collection.includes('status_'))
+    return props.collection
+  return `status_${props.collection}`
+})
+
 const item_built = computed(() => {
   const status_field = props.main[field.value];
-  return status_dict.value[props.collection][status_field] ||
-    {
-      public_name: "Sin definir",
-      color: "grey",
-      color_text: "white",
-      icon: "help",
-      back_text: "grey--text text--darken-1",
-    };
+  try{
+    return status_dict.value[props.collection][status_field] ||
+      {
+        public_name: "Sin definir",
+        color: "grey",
+        color_text: "white",
+        icon: "help",
+        back_text: "grey--text text--darken-1",
+      };
+  }
+  catch (e){
+    console.log("error", e)
+    console.log("field", field.value)
+    console.log("status_dict", status_dict.value)
+    console.log("props.collection", props.collection)
+    console.log("status_field", status_field)
+    return null
+  }
 });
 
 const label = computed(() => {
@@ -92,6 +107,7 @@ const label = computed(() => {
 
 <template>
   <div
+    v-if="item_built"
     class="d-flex text-body-3 align-center"
     :class="props.left_label ? 'flex-row mb-1' : 'flex-column'"
   >

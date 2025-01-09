@@ -117,11 +117,12 @@ const calculateSchemas = (data) => {
       const fg = filter_groups.find(fg => fg[coll.level] === coll.snake_name)
       if (fg){
         coll.filter_group = fg
+        const short_level = coll.level.replace('category_', '')
         const new_filter_group = {
           ...fg,
           short_name: `${fg.short_prev} ${fg.name}`,
           name: `${fg.prev} ${fg.name}`,
-          forced_level: coll.level,
+          forced_level: short_level,
         }
         collection_filters.push(new_filter_group)
       }
@@ -478,10 +479,14 @@ export const useMainStore = defineStore('main', {
       if (!state.cats.status_control)
         return {}
       let status_dict = {}
+      // console.log("state.status", state.status)
       Object.keys(state.status).forEach(group_key=>{
+        const full_key = `status_${group_key}`
         status_dict[group_key] = {}
+        status_dict[full_key] = {}
         state.status[group_key].forEach(st=>{
           status_dict[group_key][st.name] = st
+          status_dict[full_key][st.name] = st
         })
       })
       // console.log("status_dict", status_dict)

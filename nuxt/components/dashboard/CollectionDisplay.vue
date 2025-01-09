@@ -215,7 +215,7 @@ function initFilters() {
       value: collection_data.value.name_field
     })
 
-  // collection_filters = collection_data.value.collection_filters
+  // let collection_filters = collection_data.value.collection_filters
   current_filters.value = collection_filters
 
   // console.log("group in changeFilters", group)
