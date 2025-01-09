@@ -160,62 +160,62 @@ function initFilters() {
   // console.log("changeFilters", collection_data.value)
   if (!collection_data.value)
     return
-  const all_filters = collection_data.value.all_filters || []
-  // console.log("all_filters", all_filters)
-  // console.log("collection_data", collection_data.value)
-  // console.log("level_name", props.level_name)
-  // console.log("filter_group", props.filter_group)
-  let collection_filters = all_filters.reduce((arr, f) => {
-    if (!f.filter_name){
-      // console.log("custom_filter", f)
-      arr.push({...f, order: 12, is_custom: true})
-      return arr
-    }
-    const filter_data = schemas.value.filters_dict[f.filter_name]
+  // const all_filters = collection_data.value.all_filters || []
+  // // console.log("all_filters", all_filters)
+  // // console.log("collection_data", collection_data.value)
+  // // console.log("level_name", props.level_name)
+  // // console.log("filter_group", props.filter_group)
+  // let collection_filters = all_filters.reduce((arr, f) => {
+  //   if (!f.filter_name){
+  //     // console.log("custom_filter", f)
+  //     arr.push({...f, order: 12, is_custom: true})
+  //     return arr
+  //   }
+  //   const filter_data = schemas.value.filters_dict[f.filter_name]
+  //
+  //   const new_filter = {...filter_data, ...f}
+  //   if (filter_data.category_group){
+  //     filter_data.category_groups.forEach(cg => {
+  //       const short_name = `${new_filter.short_prev} ${cg.name}`
+  //       const name = `${new_filter.prev} ${cg.name}`
+  //       let current_filter = {
+  //         name, short_name, category_group_value: cg.id}
+  //       arr.push({...new_filter, ...cg, ...current_filter})
+  //     })
+  //     return arr
+  //   }
+  //   arr.push(new_filter)
+  //   return arr
+  // }, [])
+  // // console.log("collection_filters", collection_filters)
+  // if (props.filter_group){
+  //   // console.log("filter_group", props.filter_group)
+  //   const fg = props.filter_group
+  //   const new_filter_group = {
+  //     ...fg,
+  //     short_name: `${fg.short_prev} ${fg.name}`,
+  //     name: `${fg.prev} ${fg.name}`,
+  //     forced_level: props.level_name,
+  //   }
+  //   collection_filters.push(new_filter_group)
+  // }
+  //
+  // const status_groups = collection_data.value.status_groups || []
+  // status_groups.forEach(sg => {
+  //   const status = status_filters[sg]
+  //   collection_filters.push(status)
+  //   available_sorts.value.push({
+  //     value: `${status.collection}__order`,
+  //     title: `Status ${status.name}`
+  //   })
+  // })
+  // if (collection_data.value.name_field)
+  //   available_sorts.value.push({
+  //     title: "Nombre / Título",
+  //     value: collection_data.value.name_field
+  //   })
 
-    const new_filter = {...filter_data, ...f}
-    if (filter_data.category_group){
-      filter_data.category_groups.forEach(cg => {
-        const short_name = `${new_filter.short_prev} ${cg.name}`
-        const name = `${new_filter.prev} ${cg.name}`
-        let current_filter = {
-          name, short_name, category_group_value: cg.id}
-        arr.push({...new_filter, ...cg, ...current_filter})
-      })
-      return arr
-    }
-    arr.push(new_filter)
-    return arr
-  }, [])
-  // console.log("collection_filters", collection_filters)
-  if (props.filter_group){
-    // console.log("filter_group", props.filter_group)
-    const fg = props.filter_group
-    const new_filter_group = {
-      ...fg,
-      short_name: `${fg.short_prev} ${fg.name}`,
-      name: `${fg.prev} ${fg.name}`,
-      forced_level: props.level_name,
-    }
-    collection_filters.push(new_filter_group)
-  }
-
-  const status_groups = collection_data.value.status_groups || []
-  status_groups.forEach(sg => {
-    const status = status_filters[sg]
-    collection_filters.push(status)
-    available_sorts.value.push({
-      value: `${status.collection}__order`,
-      title: `Status ${status.name}`
-    })
-  })
-  if (collection_data.value.name_field)
-    available_sorts.value.push({
-      title: "Nombre / Título",
-      value: collection_data.value.name_field
-    })
-
-  // let collection_filters = collection_data.value.collection_filters
+  let collection_filters = collection_data.value.collection_filters
   current_filters.value = collection_filters
 
   // console.log("group in changeFilters", group)

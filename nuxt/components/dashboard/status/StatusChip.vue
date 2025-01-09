@@ -66,10 +66,14 @@ const field = computed(() => {
   return `status_${props.collection}`
 })
 
+const simple_name = computed(() => {
+  return props.collection.replace('status_', '');
+})
+
 const item_built = computed(() => {
   const status_field = props.main[field.value];
   try{
-    return status_dict.value[props.collection][status_field] ||
+    return status_dict.value[simple_name.value][status_field] ||
       {
         public_name: "Sin definir",
         color: "grey",
@@ -89,7 +93,7 @@ const item_built = computed(() => {
 });
 
 const label = computed(() => {
-  switch (props.collection) {
+  switch (simple_name.value) {
     case 'register':
       return 'Registro:';
     case 'validation':

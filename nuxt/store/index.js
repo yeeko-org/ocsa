@@ -479,17 +479,12 @@ export const useMainStore = defineStore('main', {
       if (!state.cats.status_control)
         return {}
       let status_dict = {}
-      // console.log("state.status", state.status)
       Object.keys(state.status).forEach(group_key=>{
-        const full_key = `status_${group_key}`
         status_dict[group_key] = {}
-        status_dict[full_key] = {}
         state.status[group_key].forEach(st=>{
           status_dict[group_key][st.name] = st
-          status_dict[full_key][st.name] = st
         })
       })
-      // console.log("status_dict", status_dict)
       return status_dict
     },
   },
