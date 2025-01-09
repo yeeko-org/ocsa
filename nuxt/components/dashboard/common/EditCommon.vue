@@ -1,7 +1,7 @@
 <script setup>
 
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
-import Comments from "~/components/dashboard/common/Comments.vue";
+import Comments from "~/components/dashboard/utils/Comments.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import { saveElement, deleteElement } from "~/composables/save_elements.js";
@@ -21,6 +21,11 @@ const deleting = ref(false)
 const snackbar = ref(false)
 const editForm = ref(null)
 const dialog_delete = ref(false)
+const rules = ref({
+  required: value => !!value || "Campo requerido",
+  defined: value => value !== undefined || "Debes seleccionar una opción",
+})
+
 const emits = defineEmits(['new-item', 'item-deleted'])
 
 const final_collection_data = computed(() => {
@@ -55,7 +60,15 @@ function deleteRecord() {
       dialog_delete.value = false
       emits('item-deleted', id_to_delete)
     })
+}
 
+function openLink(type) {
+  console.log("type", type)
+  if (type === 'icon')
+    window.open('https://fonts.google.com/icons', '_blank')
+    // window.open('https://material.io/resources/icons/?style=baseline', '_blank')
+  else if (type === 'color')
+    window.open('https://vuetifyjs.com/en/styles/colors/#material-colors', '_blank')
 }
 
 </script>
@@ -86,6 +99,7 @@ function deleteRecord() {
             class="mr-2"
             variant="outlined"
             style="width: 300px;"
+            :rules="[rules.required]"
           />
           <v-spacer></v-spacer>
           <template v-if="final_collection_data.status_groups">
@@ -114,12 +128,12 @@ function deleteRecord() {
             v-model="full_main.icon"
             label="Ícono (material icons)"
             variant="outlined"
-            class="ml-2"
-            style="max-width: 200px;"
+            style="max-width: 260px;"
+            :rules="[rules.required]"
           >
             <template v-slot:append>
               <v-icon
-                @click="window.open('https://fonts.google.com/icons', '_blank')"
+                @click="openLink('icon')"
               >open_in_new</v-icon>
             </template>
           </v-text-field>
@@ -128,12 +142,13 @@ function deleteRecord() {
             v-model="full_main.color"
             label="Color"
             variant="outlined"
-            class="ml-2"
-            style="max-width: 200px;"
+            class="ml-6"
+            style="max-width: 220px;"
+            :rules="[rules.required]"
           >
             <template v-slot:append>
               <v-icon
-                @click="window.open('https://vuetifyjs.com/en/styles/colors/#material-colors', '_blank')"
+                @click="openLink('color')"
               >open_in_new</v-icon>
             </template>
           </v-text-field>
@@ -142,7 +157,8 @@ function deleteRecord() {
           EDICIÓN (REVISAR PORQUE NO ES NORMAL)
         </slot>
         <v-col
-          v-if="final_collection_data.has.description"
+          v-if="final_collection_data.has.description
+            && final_collection_data.name_field !== 'description'"
           cols="12"
           class="d-flex pa-0"
         >
@@ -173,6 +189,7 @@ function deleteRecord() {
       </v-card-text>
       <v-card-actions>
         <v-btn
+          v-if="final_collection_data.level !== 'secondary'"
           color="error"
           variant="outlined"
           @click="dialog_delete = true"
@@ -180,6 +197,8 @@ function deleteRecord() {
           Eliminar
         </v-btn>
         <v-btn
+          v-if="final_collection_data.other_fields
+            && final_collection_data.other_fields.length"
           icon
           size="small"
         >

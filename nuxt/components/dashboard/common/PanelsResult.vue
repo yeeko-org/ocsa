@@ -4,7 +4,7 @@ import PanelList from "~/components/dashboard/common/PanelList.vue";
 import {ref, computed, shallowRef, nextTick} from 'vue'
 import SummaryList from "~/components/dashboard/common/SummaryList.vue";
 import EditCommon from "~/components/dashboard/common/EditCommon.vue";
-import EditGeneric from "~/components/dashboard/generic/EditGeneric.vue";
+import MassiveActions from "~/components/dashboard/utils/MassiveActions.vue";
 
 const props = defineProps({
   results: Array,
@@ -16,6 +16,7 @@ const props = defineProps({
   final_filters: Object,
   total_count: Number,
   is_mini: Boolean,
+  in_sheet: Boolean,
 })
 
 const group_actions_enabled = ref(true)
@@ -25,29 +26,31 @@ const edit_type = ref({key: 'add', title: 'Agregar registro'})
 const dialog_edit = ref(false)
 const element_to_edit = ref(null)
 const selected_results = ref([])
+const page_number = ref(1)
 
 const edit_component = shallowRef('')
-defineExpose({ addItem })
-const emits = defineEmits(['select-item'])
+defineExpose({ addItem, resetPage })
+const emits = defineEmits(['select-item', 'update-page-number'])
 
 const route_key = computed(() => props.collection_data.app_label)
 const snake_name = computed(() => props.collection_data.snake_name)
 const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
+
+const init_indirect = computed(() => {
+  return !props.results.length && props.total_count
+})
+
 import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
   .then(module => {
     edit_component.value = module.default
   })
   .catch(e => {
-    // import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
-    //   edit_component.value = module.default
-    // })
-    edit_component.value = null
+    import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
+      edit_component.value = module.default
+    })
+    // edit_component.value = null
   })
 
-
-function changeGroupActions(){
-  group_actions_enabled.value = !group_actions_enabled.value
-}
 function selectAll() {
   if (sel.value.selected_elems.length === props.results.length)
     sel.value.selected_elems = []
@@ -66,10 +69,10 @@ function wantMassiveEdit() {
 }
 
 function wantMerge() {
-  console.log("wantMerge", sel.value.selected_elems)
+  // console.log("wantMerge", sel.value.selected_elems)
   edit_type.value = {key: 'merge', title: 'Fusión de elementos'}
   selected_results.value = sel.value.selected_elems.map(
-      id => props.results.find(res => res.id === id))
+    id => props.results.find(res => res.id === id))
   element_to_edit.value = {...{}, ...selected_results.value[0]}
   dialog_edit.value = true
 }
@@ -78,7 +81,21 @@ function addItem() {
   // console.log("addItem")
   edit_type.value = {key: 'add', title: 'Agregar Registro'}
   element_to_edit.value = {}
+  props.collection_data.fields.forEach(field => {
+    if (field.default !== undefined && field.default !== null)
+      element_to_edit.value[field.name] = field.default
+    else if (field.related_model === 'StatusControl'){
+      if (field.name === 'status_validation')
+        element_to_edit.value[field.name] = 'proposed'
+      else if (field.name === 'status_register')
+        element_to_edit.value[field.name] = 'draft'
+    }
+  })
   dialog_edit.value = true
+}
+
+function resetPage() {
+  page_number.value = 1
 }
 
 function closeDialog() {
@@ -100,10 +117,6 @@ function selectItem(item) {
   emits('select-item', item)
 }
 
-const all_selected = computed(() => {
-  return props.results.length === sel.value.selected_elems.length
-})
-
 </script>
 
 <template>
@@ -111,76 +124,49 @@ const all_selected = computed(() => {
     v-if="group_actions_enabled && !is_mini"
     class="px-2 py-1 d-flex align-center justify-space-between"
     variant="tonal"
-    _color="blue lighten-4"
     color="secondary"
   >
     <v-btn
+      v-if="collection_data.level !== 'secondary'"
       color="accent"
       @click="addItem"
       class="mr-3"
+      prepend-icon="add"
     >
-      <v-icon>add</v-icon>
       Agregar
-      {{props.collection_data.name.length > 15
-        ? 'registro' : props.collection_data.name}}
+      {{collection_data.name.length > 15
+        ? 'registro' : collection_data.name}}
     </v-btn>
     <v-spacer></v-spacer>
     <v-divider vertical class="mx-2" color="blue"></v-divider>
-    Acciones grupales:
-    <span
-      v-if="sel.selected_elems.length"
-      class=""
-    >({{sel.selected_elems.length}}):</span>
-    <v-btn
-      :variant="all_selected ? 'elevated' : 'outlined'"
-      color="accent"
-      class="ml-3"
-      :disabled="props.results.length < 2"
-      @click="selectAll"
-      size="small"
-      :icon="all_selected ? 'check_box' : 'check_box_outline_blank'"
-    ></v-btn>
-    <v-btn
-      outlined
-      color="accent"
-      class="ml-3"
-      variant="elevated"
-      @click="wantMerge"
-      :disabled="!sel.selected_elems.length"
+    <MassiveActions
+      v-if="results.length && collection_data.available_actions.length"
+      :sel="sel"
+      :results="results"
+      :collection_data="collection_data"
+      @select-all="selectAll"
+      @want-massive-edit="wantMassiveEdit()"
+      @want-merge="wantMerge()"
+    />
+    <v-alert
+      v-else-if="init_indirect"
+      type="info"
+      variant="outlined"
+      density="compact"
     >
-      <v-icon class="mr-2">merge</v-icon>
-      Fusionar
-    </v-btn>
-<!--    <v-btn-->
-<!--      outlined-->
-<!--      color="accent"-->
-<!--      class="ml-3"-->
-<!--      @click="wantMassiveEdit"-->
-<!--      :disabled="!sel.selected_elems.length"-->
-<!--    >-->
-<!--      <v-icon class="mr-2">app_registration</v-icon>-->
-<!--      Edición masiva-->
-<!--    </v-btn>-->
-    <v-btn
-      :disabled="!sel.selected_elems.length"
-      outlined
-      color="error"
-      class="ml-3"
+      Busca manualmente | Utiliza el ícono <v-icon>search</v-icon>
+    </v-alert>
+    <v-alert
+      v-else-if="!results.length && in_sheet"
+      type="warning"
+      variant="outlined"
+      density="compact"
     >
-      <v-icon class="mr-2">delete</v-icon>
-      Eliminar
-    </v-btn>
-    <v-btn
-      v-if="false"
-      icon="close"
-      class="float-right"
-      size="small"
-      variant="text"
-      @click="changeGroupActions"
-    ></v-btn>
+      No existen {{ props.collection_data.plural_name }}
+    </v-alert>
   </v-card>
   <v-card class="mt-2" v-if="results.length">
-    <span class="text-grey-darken-1 text-caption">
+    <span v-if="!in_sheet" class="text-grey-darken-1 text-caption">
       Página {{final_filters.page}} de {{Math.ceil(total_count / final_filters.page_size)}}
       | {{total_count}} Resultados
     </span>
@@ -198,17 +184,18 @@ const all_selected = computed(() => {
       :show_details="show_details"
       @select-item="selectItem"
     />
-    <v-card-actions>
+    <v-card-actions v-if="!in_sheet">
       <v-pagination
-        v-model="final_filters.page"
+        v-model="page_number"
         :length="Math.ceil(total_count / final_filters.page_size)"
         :total-visible="11"
         rounded="circle"
+        @update:model-value="emits('update-page-number', $event)"
       ></v-pagination>
     </v-card-actions>
   </v-card>
   <v-card
-    v-else
+    v-else-if="!in_sheet && !init_indirect"
     class="mt-2"
   >
     <v-empty-state
@@ -220,7 +207,6 @@ const all_selected = computed(() => {
   <v-dialog
     v-model="dialog_edit"
     max-width="1100"
-
   >
     <v-card v-if="element_to_edit">
       <v-card-title>
@@ -235,7 +221,7 @@ const all_selected = computed(() => {
           <component
             :is="edit_component"
             :full_main="element_to_edit"
-            :is_massive_edit="true"
+            :is_massive_edit="false"
           ></component>
         </template>
       </EditCommon>

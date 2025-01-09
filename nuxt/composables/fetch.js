@@ -53,9 +53,8 @@ export function applyFilters() {
   // const function_name = group === 'project' ? fetchProjects : fetchNotes
   // const real_group = group.value.parent ? `catalogs/${current_collection}` : group_name
   // console.log('level', current_collection_data.level)
-  const level = current_collection_data.level
   let collection_name = current_collection_data.snake_name
-  if (level.includes('category'))
+  if (current_collection_data.is_category)
     collection_name = `catalogs/${collection_name}`
 
   fetchElements([collection_name, final_filters.value]).then(res => {

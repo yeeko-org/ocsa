@@ -5,7 +5,7 @@ import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const props = defineProps({
   main: Object,

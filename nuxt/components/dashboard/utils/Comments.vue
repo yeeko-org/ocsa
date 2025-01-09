@@ -12,8 +12,8 @@ const props = defineProps({
 })
 
 const want_edit_comment = ref(false)
-import {useMainStore} from '~/store/index'
-import {useAuthStore} from '~/store/auth'
+import {useMainStore} from '~/store/index.js'
+import {useAuthStore} from '~/store/auth.js'
 const mainStore = useMainStore()
 const authStore = useAuthStore()
 const { user_details_ocsa } = authStore

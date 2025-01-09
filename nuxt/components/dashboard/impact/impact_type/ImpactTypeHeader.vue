@@ -9,8 +9,9 @@ const props = defineProps({
   collection_data: Object,
   show_details: {
     type: Boolean,
-    default: false,
-  },
+    required: false,
+    default: true,
+  }
 })
 </script>
 
@@ -21,22 +22,14 @@ const props = defineProps({
     :collection_data="collection_data"
   >
     <template #icon>
-      <v-card
-        color="grey"
-        rounded="lg"
-        variant="outlined"
-        class="mx-2 d-flex _flex-column align-center"
-      >
-        <SelectGroup
-          v-if="true"
-          :main_object="main"
-          filter_group_name="impact_types"
-          main_collection_name="impact_subtype"
-          field="impact_type"
-          forced_level="subtype"
-          is_display
-        />
-      </v-card>
+      <SelectGroup
+        :main_object="main"
+        filter_group_name="impact_types"
+        main_collection_name="impact_type"
+        field="impact_group"
+        forced_level="type"
+        is_display
+      />
     </template>
     <template #details>
       <HeaderChip
@@ -44,8 +37,15 @@ const props = defineProps({
         :count="main.mentions_count"
         collection_name="note"
       />
+      <HeaderChip
+        class="ml-3"
+        color="indigo"
+        :count="main.impact_subtype_count ? 1 : 0"
+        collection_name="impact_subtype"
+      />
     </template>
   </HeaderCommon>
+
 </template>
 
 <style scoped>

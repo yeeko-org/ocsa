@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import GenericSelectOld from "~/components/dashboard/common/GenericSelectOld.vue";
-import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const props = defineProps({
   is_edit: Boolean,
@@ -48,35 +47,23 @@ const merge_fields = ref([])
   <v-row>
     <v-col cols="12" class="d-flex">
       <v-text-field
-        v-if="!is_massive_edit || merge_fields.includes('name')"
-        v-model="full_main.name"
-        label="Nombre del tipo de impacto"
-        variant="outlined"
-        style="max-width: 320px;"
-      >
-      </v-text-field>
-      <v-text-field
         v-if="!is_massive_edit || merge_fields.includes('short_name')"
         v-model="full_main.short_name"
         label="Nombre corto"
         variant="outlined"
         style="max-width: 260px;"
-        class="ml-2"
+        class="mx-2"
       >
       </v-text-field>
-      <GenericSelectOld
-        v-if="!is_massive_edit || merge_fields.includes('impact_group')"
-        :final_filters="full_main"
-        collection="impact_group"
-        field="impact_group"
-        label="Grupo de impacto"
-        :clearable="false"
-        style="max-width: 150px;"
-        class="ml-2"
-        density="default"
+      <SelectGroup
+        filter_group_name="impact_types"
+        :main_object="full_main"
+        forced_level="type"
+        main_collection_name="impact_type"
+        subtype_class="ml-6"
       />
       <v-switch
-        v-if="!is_massive_edit"
+        v-if="!is_massive_edit && false"
         v-model="full_main.has_subtype"
         label="Tiene subtipos"
         color="primary"

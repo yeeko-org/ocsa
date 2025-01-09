@@ -6,6 +6,7 @@ import {useMainStore} from '~/store/index'
 import {storeToRefs} from "pinia";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import PanelList from "~/components/dashboard/common/PanelList.vue";
+import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
 
 definePageMeta({
   middleware: 'dashboard',
@@ -25,7 +26,7 @@ const levels = ['group', 'type', 'subtype']
 const options_tab = ref('group')
 
 const need_tabs = computed(() => {
-  // console.log('current_filter_group_data', current_filter_group_data.value)
+  console.log('current_filter_group_data', current_filter_group_data.value)
   let filter_data = current_filter_group_data.value
   if (!filter_data)
     return false
@@ -55,13 +56,14 @@ const collections = computed(() => {
 const group_results = computed(() => {
   if (!level_names.value.group)
     return []
+  console.log("group_results", filter_node.value.children.map(child => child.data))
   return filter_node.value.children.map(child => child.data)
 })
 
 </script>
 
 <template>
-  <div v-if="current_filter_group_data && cats_ready">
+  <div v-if="current_filter_group_data && cats_ready" style="width: 100%">
     <CollectionDisplay
       v-if="!need_tabs"
       :parent_collection="collections.subtype"
@@ -87,12 +89,23 @@ const group_results = computed(() => {
           :key="key"
           :value="key"
         >
-          <PanelList
+<!--          <PanelList-->
+<!--            v-if="key === 'group'"-->
+<!--            :results="group_results"-->
+<!--            :collection_data="collection"-->
+<!--            show_details-->
+<!--          />-->
+          <div
             v-if="key === 'group'"
-            :results="group_results"
-            :collection_data="collection"
-            show_details
-          />
+            class="mt-2"
+          >
+            <PanelsResult
+              :results="group_results"
+              :collection_data="collection"
+              show_details
+              in_sheet
+            />
+          </div>
           <CollectionDisplay
             v-else
             :parent_collection="collection"
@@ -109,6 +122,4 @@ const group_results = computed(() => {
     color="yellow-darken-2"
     indeterminate
   ></v-progress-linear>
-
-
 </template>

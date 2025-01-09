@@ -4,6 +4,7 @@ import colorMixin from "~/mixins/colorMixin";
 // import { mande } from 'mande'
 // import { menu_content } from "~/composables/menu.js";
 import * as d3 from 'd3';
+import {status_filters} from "~/composables/filters.js";
 
 const calculate_status = (status_control) => {
   return status_control.reduce((obj, st) => {
@@ -37,10 +38,17 @@ const calculateSchemas = (data) => {
       cl.filter_group === fg.key_name)
     return {...fg, ...fg.addl_config}
   })
+  const filters_dict = filter_groups.reduce((obj, fg) => {
+    obj[fg.key_name] = fg
+    return obj
+  }, {})
+
   const has_fields = [
     "comments", "description", "help_text", "order", "color", "icon"]
+  // const name_fields = ["name", "title", "description"]
+  const name_fields = ["name", "title"]
   let collections = data.collections.map(coll => {
-    coll.catalog_groups =  filter_groups.reduce((arr, new_fg) => {
+    coll.catalog_groups = filter_groups.reduce((arr, new_fg) => {
       if (new_fg.main_collection !== coll.snake_name)
         return arr
       if (new_fg.category_group)
@@ -56,11 +64,12 @@ const calculateSchemas = (data) => {
     )
     const primary_key = coll.fields.find(f => f.primary_key)
     coll.pk = primary_key ? primary_key.name : 'id'
-    coll.name_field = coll.fields.some(f => f.name === 'name')
-      ? 'name'
-      : coll.fields.some(f => f.name === 'title')
-        ? 'title'
-        : null
+    name_fields.forEach(field => {
+      if (coll.name_field)
+        return
+      if (coll.fields.some(f => f.name === field))
+        coll.name_field = field
+    })
     coll.has = has_fields.reduce((obj, field) => {
       obj[field] = coll.fields.some(f => f.name === field)
       return obj
@@ -68,6 +77,78 @@ const calculateSchemas = (data) => {
     const other_fields = has_fields.concat([coll.pk, coll.name_field])
     coll.other_fields = coll.fields.filter(f =>
       !other_fields.includes(f.name) && f.relation_type === 'simple')
+
+    const all_filters = coll.all_filters || []
+
+    let available_sorts = [
+      {
+        title: "Más recientes",
+        value: "-id"
+      },
+      {
+        title: "Más antiguos",
+        value: "id"
+      },
+    ]
+
+    let collection_filters = all_filters.reduce((arr, f) => {
+      if (!f.filter_name){
+        arr.push({...f, order: 12, is_custom: true})
+        return arr
+      }
+      const filter_data = filters_dict[f.filter_name]
+      const new_filter = {...filter_data, ...f}
+      if (filter_data.category_group){
+        const category_groups = data[`${filter_data.category_group}s`] || []
+        category_groups.forEach(cg => {
+          const short_name = `${new_filter.short_prev} ${cg.name}`
+          const name = `${new_filter.prev} ${cg.name}`
+          let current_filter = {
+            name, short_name, category_group_value: cg.id}
+          arr.push({...new_filter, ...cg, ...current_filter})
+        })
+        return arr
+      }
+      arr.push(new_filter)
+      return arr
+    }, [])
+    coll.is_category = coll.level.includes('category_')
+    if (coll.is_category){
+      const fg = filter_groups.find(fg => fg[coll.level] === coll.snake_name)
+      if (fg){
+        coll.filter_group = fg
+        const new_filter_group = {
+          ...fg,
+          short_name: `${fg.short_prev} ${fg.name}`,
+          name: `${fg.prev} ${fg.name}`,
+          forced_level: coll.level,
+        }
+        collection_filters.push(new_filter_group)
+      }
+    }
+
+    const status_groups = coll.fields.reduce((arr, field)=>{
+      if (field.related_model === 'StatusControl')
+        arr.push(field.name)
+      return arr
+    }, [])
+    coll.status_groups = status_groups
+    status_groups.forEach(sg => {
+      const status = status_filters[sg]
+      collection_filters.push(status)
+      available_sorts.push({
+        value: `${status.collection}__order`,
+        title: `Status ${status.name}`
+      })
+    })
+    if (coll.name_field)
+      available_sorts.push({
+        title: "Nombre / Título",
+        value: coll.name_field
+      })
+
+    coll.collection_filters = collection_filters
+    coll.available_sorts = available_sorts
     return coll
   })
 
@@ -76,28 +157,6 @@ const calculateSchemas = (data) => {
     obj[coll.model_name] = coll
     return obj
   }, {})
-  const filters_dict = filter_groups.reduce((obj, fg) => {
-    obj[fg.key_name] = fg
-    return obj
-  }, {})
-  // console.log("filters_dict", filters_dict)
-  // LINK TYPES
-  // category
-  // grouper
-  // relational
-
-  // FILTER FIELDS
-  // category_group
-  // category_type
-  // category_subtype
-
-  // COLLECTION LEVELS
-  // primary
-  // secondary
-  // relational
-  // category_group
-  // category_type
-  // category_subtype
   return {
     "collections": collections,
     "collections_dict": collections_dict,

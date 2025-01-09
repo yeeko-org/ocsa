@@ -14,7 +14,6 @@ const props = defineProps({
 <template>
   <span>
     Acá estarán los campos de edición
-
   </span>
 </template>
 

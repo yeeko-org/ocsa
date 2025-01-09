@@ -2,7 +2,7 @@
 
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import BelongIcons from "~/components/dashboard/classify/BelongIcons.vue";
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const props = defineProps({
   full_main: Object,

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
 
 const props = defineProps({

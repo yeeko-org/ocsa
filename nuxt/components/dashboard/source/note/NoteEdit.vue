@@ -1,6 +1,6 @@
 <script setup>
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
-import SelectDate from "~/components/dashboard/common/SelectDate.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,

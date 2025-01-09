@@ -39,6 +39,7 @@ const openMain = () => {
   console.log('level', level)
   if (level === 'category_group'){
     emits('finish-open')
+    full_main.value = props.main
     return
   }
   const elem_id = props.main.id ? 'id' : 'key_name'

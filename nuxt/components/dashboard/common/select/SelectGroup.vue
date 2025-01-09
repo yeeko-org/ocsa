@@ -3,7 +3,7 @@
 import {computed, nextTick} from "vue";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
+import GenericSelect from "~/components/dashboard/common/select/GenericSelect.vue";
 const mainStore = useMainStore()
 const { schemas, all_nodes } = storeToRefs(mainStore)
 

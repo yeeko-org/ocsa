@@ -1,7 +1,7 @@
 <script setup>
-import StatusDetail from "@/components/dashboard/status/StatusDetail";
+import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const props = defineProps({
   final_filters: Object,

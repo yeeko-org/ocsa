@@ -1,6 +1,6 @@
 <script setup>
 
-import Comments from "~/components/dashboard/common/Comments.vue";
+import Comments from "~/components/dashboard/utils/Comments.vue";
 import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 

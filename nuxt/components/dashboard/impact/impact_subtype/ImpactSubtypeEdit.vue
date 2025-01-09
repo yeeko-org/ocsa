@@ -1,6 +1,6 @@
 <script setup >
 
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const props = defineProps({
   is_edit: Boolean,

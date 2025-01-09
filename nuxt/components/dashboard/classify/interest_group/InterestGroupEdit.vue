@@ -1,5 +1,4 @@
 <script setup>
-import CommonGroupEdit from "~/components/dashboard/generic/CommonGroupEdit.vue";
 
 const props = defineProps({
   full_main: {

@@ -7,7 +7,11 @@ const props = defineProps({
   },
   level: String,
   level_name: String,
+
   is_filter: Boolean,
+  filter_null: Boolean,
+  filter_multiple: Boolean,
+
   main_width: Number,
   item_value: {
     type: String,
@@ -23,9 +27,10 @@ const props = defineProps({
   },
   is_display: Boolean,
   is_multiple: Boolean,
+  required: Boolean,
 })
 
-const text_value = computed(() => {
+const final_value = computed(() => {
   if (props.is_multiple){
     // console.log("is_multiple", props.main_object[props.level_name])
     return props.main_object[props.level_name].map(
@@ -33,8 +38,24 @@ const text_value = computed(() => {
             item2 => item2[props.item_value] === item1))
   }
   return props.items.find(
-      item => item[props.item_value] === props.main_object[props.level_name])
+    item => item[props.item_value] === props.main_object[props.level_name])
 })
+
+const rules = computed(() => {
+  const rules = []
+  if (props.required)
+    rules.push(value => !!value || 'Campo requerido')
+  return rules
+})
+
+function disabledNull(){
+  props.main_object[`${props.level_name}_null`] = null
+}
+
+function sendNull(){
+  props.main_object[props.level_name] = null
+  props.main_object[`${props.level_name}_null`] = true
+}
 
 </script>
 
@@ -44,10 +65,10 @@ const text_value = computed(() => {
     class="mr-0 px-2"
     style="border-right: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0;"
   >
-    <template v-if="text_value && is_multiple">
+    <template v-if="final_value && is_multiple">
       <template v-if="level === 'group'">
         <v-icon
-          v-for="item in text_value"
+          v-for="item in final_value"
           class="mr-1"
           :color="item.color || 'primary'"
           v-tooltip="item[item_title]"
@@ -57,7 +78,7 @@ const text_value = computed(() => {
       </template>
       <div v-else>
         <div
-          v-for="item in text_value"
+          v-for="item in final_value"
           class="mr-1"
         >
           {{ item[item_title] }}
@@ -65,21 +86,31 @@ const text_value = computed(() => {
       </div>
     </template>
 
-    <template v-else-if="text_value">
+    <template v-else-if="final_value">
       <v-icon
-        v-if="level === 'group' && text_value.icon"
+        v-if="level === 'group' && final_value.icon"
         class="mr-1"
-        :color="text_value.color || 'primary'"
-        v-tooltip="text_value[item_title]"
+        :color="final_value.color || 'primary'"
+        v-tooltip="final_value[item_title]"
       >
-        {{ text_value.icon }}
+        {{ final_value.icon }}
       </v-icon>
-      <span v-else>
-        {{text_value[item_title]}}
+      <v-chip
+        v-else-if="final_value.color"
+        :color="final_value.color"
+        :prepend-icon="final_value.icon"
+        size="small"
+      >
+        {{final_value[item_title]}}
+      </v-chip>
+      <span
+        v-else
+      >
+        {{final_value[item_title]}}
       </span>
     </template>
     <span v-else>
-      ?
+      !?
     </span>
   </div>
   <v-select
@@ -91,15 +122,32 @@ const text_value = computed(() => {
     :variant="is_filter ? 'underlined' : 'outlined'"
     :clearable="is_filter"
     :hide-details="is_filter"
-    density="compact"
+    :density="is_filter ? 'compact' : 'default'"
     :style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
-    :multiple="is_multiple"
+    :multiple="is_multiple || filter_multiple"
+    :rules="rules"
+    @update:model-value="disabledNull"
   >
-    <template #append-item>
+    <template #append-item v-if="!is_filter">
       <v-icon
         color="primary"
         icon="trip_origin"
       ></v-icon>
+    </template>
+    <template #append-item v-else-if="filter_null">
+      <v-list-item
+        title="Filtrar vacíos"
+        @click="sendNull"
+      >
+        <template v-slot:prepend v-if="true">
+          <v-icon
+            class="mr-n3"
+            :color="'grey'"
+            :icon="'circle'"
+          ></v-icon>
+        </template>
+      </v-list-item>
+
     </template>
     <template #item="{ item, props: {onClick, title, value} }">
       <v-list-item

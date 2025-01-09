@@ -1,28 +1,39 @@
 <script setup>
 
 import { computed } from 'vue'
+import {storeToRefs} from "pinia";
+import {useMainStore} from "~/store/index.js";
+const mainStore = useMainStore()
+const { schemas } = storeToRefs(mainStore)
 
 const props = defineProps({
   count: Number,
+  collection_name: String,
   icon: String,
-  label: {
-    type: String,
-    default: 'elemento'
-  },
-  // label_plural: {
-  //   type: String,
-  //   default: 'elementos'
-  // },
-  label_plural: {
-    type: String,
-    default: 'elementos'
-  },
+  label: String,
+  label_plural: String,
   color: String,
   tooltip_complement: String,
 })
 
+const collection_data = computed(() => {
+  if (!props.collection_name)
+    return {}
+  return schemas.value.collections_dict[props.collection_name]
+})
+
 const final_label = computed(() => {
-  return props.count === 1 ? props.label : props.label_plural
+  return props.count === 1
+    ? (props.label || collection_data.value.name || 'elemento')
+    : (props.label_plural || collection_data.value.plural_name || 'elementos')
+})
+
+const final_color = computed(() => {
+  return props.color || collection_data.value.color
+})
+
+const final_icon = computed(() => {
+  return props.icon || collection_data.value.icon || 'dashboard'
 })
 
 </script>
@@ -32,7 +43,7 @@ const final_label = computed(() => {
     small
     label
     variant="tonal"
-    :color="color"
+    :color="final_color"
   >
     <v-icon
       v-if="!count"
@@ -47,15 +58,15 @@ const final_label = computed(() => {
     <v-icon
       small
       end
-      :color="color"
+      :color="final_color"
     >
-      {{ icon }}
+      {{ final_icon }}
     </v-icon>
     <v-tooltip
       activator="parent"
       location="top"
-      :bg-color="color"
-      :color="color"
+      :bg-color="final_color"
+      :color="final_color"
       _style="`background-color: ${color};`"
     >
       <div class="font-weight-bold">

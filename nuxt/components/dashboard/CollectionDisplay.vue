@@ -1,18 +1,10 @@
 <script setup>
 import {computed, onMounted, ref, onBeforeMount, watch, nextTick } from "vue";
 import {useMainStore} from '~/store/index'
-import SelectFilters from "~/components/dashboard/common/SelectFilters.vue";
-import PanelResult from "~/components/dashboard/common/PanelsResult.vue";
-import {final_sorts, status_filters} from "~/composables/filters.js";
-// import {
-//   final_filters,
-//   loading_fetch,
-//   results,
-//   show_details,
-//   total_count,
-//   temp_reset,
-//   // collection_data,
-// } from "~/composables/fetch.js";
+import SelectFilters from "~/components/dashboard/common/select/SelectFilters.vue";
+import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
+// import { status_filters } from "~/composables/filters.js";
+
 import {storeToRefs} from "pinia";
 import ExportButton from "~/components/dashboard/generic/ExportButton.vue";
 import _debounce from "lodash/debounce.js";
@@ -31,13 +23,20 @@ const props = defineProps({
   level_name: String,
   filter_group: Object,
   is_mini: Boolean,
+  in_sheet: Boolean,
+  init_total_count: Number,
+  init_filters: {
+    type: Object,
+    default: () => ({}),
+  },
 })
 
-const init_filters = {
-  status_register: null,
-}
+// const init_filters = {
+//   status_register: null,
+// }
 
 const results = ref([])
+const q_value = ref("")
 const loading_fetch = ref(false)
 const show_details = ref(false)
 const total_count = ref(0)
@@ -52,14 +51,11 @@ const available_sorts = ref([
   },
 ])
 const final_filters = ref({
-  page: 1,
-  ordering: '-id',
-  q: "",
+  ordering: null,  // '-id',
   page_size: 40,
-  ...init_filters,
 })
-const temp_reset = ref(false)
 
+const temp_reset = ref(false)
 const visible_filters = ref([])
 const current_filters = ref([])
 // const panel_result = useTemplateRef('panel-result')
@@ -67,7 +63,6 @@ const childRef = ref(null)
 const emits = defineEmits(['select-item'])
 
 onBeforeMount(() => {
-  // console.log("beforeMount")
   resetFilters()
 })
 
@@ -83,31 +78,48 @@ const simplified_filters = computed(() =>{
 })
 
 watch(
-  final_filters, (val) => {
+  final_filters, () => {
     // console.log("final_filters", val)
     if (!temp_reset.value)
-      debounceApplyFilters()
+      applyFilters()
     else
       temp_reset.value = false
   },
-  {deep: true}
+  {deep: true},
 )
 
-const is_category = computed(() =>
-  collection_data.value.level.includes('category'))
+watch(
+  q_value, (val) => {
+    debounceApplyFilters()
+  }
+)
+
+// const is_category = computed(() =>
+//   collection_data.value.level.includes('category'))
 
 const debounceApplyFilters = _debounce(() => {
   applyFilters()
-}, 600)
+}, 800)
 
-function applyFilters() {
+function applyFilters(page=null) {
+  if (page === null){
+    page = 1
+    if (childRef.value)
+      childRef.value.resetPage()
+  }
   loading_fetch.value = true
   show_details.value = false
   let collection_name = collection_data.value.snake_name
-  if (is_category.value)
+  if (collection_data.value.is_category)
     collection_name = `catalogs/${collection_name}`
   results.value = []
-  fetchElements([collection_name, final_filters.value]).then(res => {
+  const params = {
+    ...final_filters.value,
+    q: q_value.value,
+    page: page,
+    ...props.init_filters
+  }
+  fetchElements([collection_name, params]).then(res => {
     loading_fetch.value = false
     if (!res.results){
       total_count.value = res.length
@@ -121,7 +133,6 @@ function applyFilters() {
   })
 }
 
-
 function changeShowDetails() {
   nextTick(() => {
     setTimeout(() => {
@@ -131,12 +142,11 @@ function changeShowDetails() {
 }
 
 function resetFilters() {
-  if (!is_category.value)
+  if (!collection_data.value.is_category
+      && !collection_data.value.cat_params?.init_display)
     temp_reset.value = true
   final_filters.value = {
-    page: 1,
-    ordering: '-id',
-    q: "",
+    ordering: null,  // '-id',
     page_size: 40,
   }
   results.value = []
@@ -147,33 +157,29 @@ function resetFilters() {
 }
 
 function initFilters() {
+  // console.log("changeFilters", collection_data.value)
   if (!collection_data.value)
     return
-  const all_filters = collection_data.value.all_filters
+  const all_filters = collection_data.value.all_filters || []
+  // console.log("all_filters", all_filters)
   // console.log("collection_data", collection_data.value)
   // console.log("level_name", props.level_name)
   // console.log("filter_group", props.filter_group)
   let collection_filters = all_filters.reduce((arr, f) => {
     if (!f.filter_name){
-      console.log("custom_filter", f)
-      let custom_filter = {
-        is_custom: true,
-        order: 12,
-      }
-      arr.push({...f, ...custom_filter})
+      // console.log("custom_filter", f)
+      arr.push({...f, order: 12, is_custom: true})
       return arr
     }
     const filter_data = schemas.value.filters_dict[f.filter_name]
+
     const new_filter = {...filter_data, ...f}
     if (filter_data.category_group){
-      // console.log("filter_data", filter_data)
-      // console.log("new_filter", new_filter)
       filter_data.category_groups.forEach(cg => {
         const short_name = `${new_filter.short_prev} ${cg.name}`
         const name = `${new_filter.prev} ${cg.name}`
         let current_filter = {
           name, short_name, category_group_value: cg.id}
-        // console.log("result", {...new_filter, ...cg, ...current_filter})
         arr.push({...new_filter, ...cg, ...current_filter})
       })
       return arr
@@ -186,16 +192,15 @@ function initFilters() {
     // console.log("filter_group", props.filter_group)
     const fg = props.filter_group
     const new_filter_group = {
-      ...props.filter_group,
+      ...fg,
       short_name: `${fg.short_prev} ${fg.name}`,
       name: `${fg.prev} ${fg.name}`,
       forced_level: props.level_name,
     }
     collection_filters.push(new_filter_group)
   }
+
   const status_groups = collection_data.value.status_groups || []
-  // if (status_group)
-  //   collection_filters.push(status_filters[status_group])
   status_groups.forEach(sg => {
     const status = status_filters[sg]
     collection_filters.push(status)
@@ -210,11 +215,10 @@ function initFilters() {
       value: collection_data.value.name_field
     })
 
-  // f => f.collection === current_collection.value)
-  // current_filters.value = group_filters.value.sort((a, b) => a.order - b.order)
+  // collection_filters = collection_data.value.collection_filters
   current_filters.value = collection_filters
 
-  // console.log("group in initFilters", group)
+  // console.log("group in changeFilters", group)
   if (collection_filters.length <= 3)
     visible_filters.value = current_filters.value
   else
@@ -291,7 +295,7 @@ function selectItem(item) {
         :order="simplified_filters ? 1 : 'last'"
       >
         <v-text-field
-          v-model="final_filters.q"
+          v-model="q_value"
           :label="`Buscar ${collection_data.plural_name || 'elementos'}`"
           outlined
           density="compact"
@@ -303,11 +307,13 @@ function selectItem(item) {
           hide-details
           max-width="300"
           min-width="200"
+          append-inner-icon="search"
+          @click:append-inner="applyFilters()"
         ></v-text-field>
         <v-select
-          v-if="available_sorts.length"
+          v-if="collection_data.available_sorts.length"
           v-model="final_filters.ordering"
-          :items="available_sorts"
+          :items="collection_data.available_sorts"
           item-title="title"
           item-value="value"
           label="Ordenar por"
@@ -340,7 +346,7 @@ function selectItem(item) {
             @click="addItem"
             class="mr-3"
           >
-            <v-icon>add</v-icon>
+            <v-icon left>add</v-icon>
             Agregar {{ collection_data.name }}
           </v-btn>
         </v-col>
@@ -358,13 +364,15 @@ function selectItem(item) {
       height="10"
       color="accent"
     ></v-progress-linear>
-    <PanelResult
+    <PanelsResult
       :results="results"
       :collection_data="collection_data"
       :show_details="show_details"
       :final_filters="final_filters"
-      :total_count="total_count"
+      :total_count="total_count || init_total_count"
       :is_mini="is_mini"
+      :in_sheet="in_sheet"
+      @update-page-number="applyFilters($event)"
       ref="childRef"
       @select-item="selectItem"
     />

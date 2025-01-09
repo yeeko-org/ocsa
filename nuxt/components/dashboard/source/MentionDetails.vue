@@ -4,7 +4,7 @@ import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
 import {computed, watch} from "vue";
 import DialogEdit from "~/components/dashboard/common/DialogEdit.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
-import SelectDate from "~/components/dashboard/common/SelectDate.vue";
+import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
 import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
 
 import {storeToRefs} from "pinia";

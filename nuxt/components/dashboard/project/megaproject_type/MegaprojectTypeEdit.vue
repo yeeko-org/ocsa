@@ -1,7 +1,7 @@
 <script setup>
 
-import GenericSelect from "~/components/dashboard/common/GenericSelect.vue";
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import GenericSelect from "~/components/dashboard/common/select/GenericSelect.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'

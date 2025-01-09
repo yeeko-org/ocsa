@@ -1,7 +1,7 @@
 <script setup >
 
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import {nextTick} from "vue";
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'

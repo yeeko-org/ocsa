@@ -1,5 +1,5 @@
 <script setup>
-import SelectGroup from "~/components/dashboard/common/SelectGroup.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";

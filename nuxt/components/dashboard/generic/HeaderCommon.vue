@@ -1,7 +1,7 @@
 <script setup>
 import {computed, nextTick, watch} from "vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
-import CommentIcon from "~/components/dashboard/common/CommentIcon.vue";
+import CommentIcon from "~/components/dashboard/utils/CommentIcon.vue";
 
 const props = defineProps({
   main: Object,
@@ -14,18 +14,21 @@ const props = defineProps({
     type: Number,
     default: 60,
   },
+  width: Number,
 })
 const expansionHeader = ref(null);
 const is_active = ref(false)
 const real_show_details = ref(false)
 
 const title_width = computed(() => {
+  if (props.width)
+    return props.width
   // return props.group.key === 'project' ? 300 : 350
   return ['project', 'note'].includes(props.collection_data.name) ? 300 : 350
 })
 const title_text = computed(() => {
   const name_field = props.collection_data.name_field
-  return props.main[name_field] || 'Título genérico'
+  return props.main[name_field] || 'SIN NOMBRE/TÍTULO'
 })
 
 const background_color = computed(() => {
@@ -71,7 +74,6 @@ const emits = defineEmits(['open-panel'])
     :color="background_color"
     class="pl-0 py-0"
     :height="height"
-
     @click="wantOpenPanel"
   >
 <!--    v-slot="{ expanded }"-->
@@ -91,7 +93,7 @@ const emits = defineEmits(['open-panel'])
       <div class="d-flex align-center">
         <slot name="title" class="d-flex">
           <div
-            class="ml-2"
+            class="ml-2 font-weight-bold"
             style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
             :style="`width: ${title_width}px;`"
             v-tooltip:bottom="title_text"
