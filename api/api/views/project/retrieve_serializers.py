@@ -57,9 +57,12 @@ class MentionFullSerializer(serializers.ModelSerializer):
 
 
 class ProjectFileSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(source="file.name")
+    url = serializers.ReadOnlyField(source="file.url")
+
     class Meta:
         model = ProjectFile
-        fields = ['id', 'file', 'uploaded_at']
+        fields = ['id', 'file', 'uploaded_at', 'name', 'url']
 
 
 class ProjectFullSerializer(serializers.ModelSerializer):

@@ -15,6 +15,7 @@ from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
 from api.views.note.serializers import ProjectSemiFullSerializer
 from .list_serializers import ProjectBasicSerializer
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
+from api.views.common_views import UnaccentSearchFilter, OrderingAutoFilter
 
 
 class ProjectFilter(FilterSet):
@@ -60,11 +61,13 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
 
     filterset_class = ProjectFilter
 
-    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+    # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+    filter_backends = [UnaccentSearchFilter, OrderingFilter, DjangoFilterBackend]
     search_fields = [
         "name",
         "official_name",
         "alternative_name",
+        "=proyecto_id_ref",
         # "description"
     ]
     ordering_fields = [

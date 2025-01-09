@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from impact.migrate import AfectacionesToImpactMigrate
-from impact.models import ImpactSubtype
+from impact.models import ImpactSubtype, ImpactType
 
 
 class Command(BaseCommand):
@@ -17,5 +17,7 @@ class Command(BaseCommand):
             print(error)
             print()
 
+        ImpactType.objects.filter(status_validation__isnull=True)\
+            .update(status_validation_id='original')
         ImpactSubtype.objects.filter(status_validation__isnull=True)\
             .update(status_validation_id='original')

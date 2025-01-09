@@ -32,8 +32,8 @@ from work_flux.models import StatusControl
 
 from api.views.catalogs.serializers import (
     ImpactGroupSerializer,
-    ImpactSubtypeSerializer,
-    ImpactTypeSerializer,
+    ImpactSubtypeSimpleSerializer,
+    ImpactTypeSimpleSerializer,
     SourceSerializer,
     StatusControlSerializer,
     LevelSerializer,
@@ -118,9 +118,9 @@ class CatalogsView(APIView):
 
             "impact_groups": ImpactGroupSerializer(
                 ImpactGroup.objects.all(), many=True).data,
-            "impact_subtypes": ImpactSubtypeSerializer(
+            "impact_subtypes": ImpactSubtypeSimpleSerializer(
                 ImpactSubtype.objects.all(), many=True).data,
-            "impact_types": ImpactTypeSerializer(
+            "impact_types": ImpactTypeSimpleSerializer(
                 ImpactType.objects.all(), many=True).data,
 
             "megaproject_types": MegaprojectTypeSerializer(

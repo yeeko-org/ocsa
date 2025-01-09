@@ -1,8 +1,8 @@
 from django_filters import FilterSet, DateFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.filters import SearchFilter, OrderingFilter
 
 from api.views.action_file import ActionFileMixin
 from source.models import Note, NoteFile
@@ -11,6 +11,7 @@ from api.pagination import CustomPagination
 from api.views.note.serializers import (
     NoteSerializer, NoteCreateSerializer, NoteFullSerializer,
     NoteFileSerializer, MentionSerializer)
+from api.views.common_views import UnaccentSearchFilter, OrderingAutoFilter
 
 
 class NoteFilter(FilterSet):
@@ -44,15 +45,16 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
 
     filterset_class = NoteFilter
 
-    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
-    search_fields = [
-        "title",
-    ]
-    ordering_fields = ['id', 'date']
+    # filter_backends = [
+    #     OrderingFilter, DjangoFilterBackend, UnaccentSearchFilter]
+    filter_backends = [
+        OrderingAutoFilter, DjangoFilterBackend, UnaccentSearchFilter]
+    # SearchFilter
+    search_fields = ["title", "=nota_id_ref"]
+    # ordering_fields = ['id', 'date', 'status_register__order']
+    ordering_fields = ['__auto__']
     ordering = ['id']
-
     serializer_class = NoteSerializer
-
     action_add_file_param = 'note'
 
     def get_serializer_class(self):

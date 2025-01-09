@@ -33,7 +33,6 @@ class CustomModel(models.Model):
 #     geom text
 # );
 
-
 # INTRODUCCIÓN: Esto se va a ir a la tabla Location
 # Buena parte del contenido se va a ir al campo "details", incluyendo
 # por supuesto "especificaciones"
@@ -77,12 +76,12 @@ class Ubicacion(CustomModel):
         verbose_name_plural = 'Ubicaciones'
         db_table = 'ubicaciones'
 
+
 # CREATE TABLE ocs.cat_temporalidad (
 #     id integer NOT NULL,
 #     nombre text,
 #     descripcion text
 # );
-
 
 class CatTemporalidad(CustomModel):
     nombre = models.TextField(blank=True, null=True)
@@ -125,6 +124,7 @@ class Temporalidad(CustomModel):
         verbose_name = 'Temporalidad'
         verbose_name_plural = 'Temporalidades'
         db_table = 'temporalidad'
+
 
 # ======================== project: ========================================
 # --------------------- Conflictos SocioAmbientales ---------------------------
@@ -217,6 +217,7 @@ class TipoMegaproyecto(CustomModel):
 #     nombre text,
 #     descripcion text
 # );
+
 
 # El primer lugar de donde viene este registro es de EstatusProyectos,
 # Antes de comenzar, deberás migrar todos los registros de EstatusProyecto que

@@ -47,8 +47,6 @@ from api.views.catalogs.classify_serializers import (
     CountrySerializer
 )
 from api.views.catalogs.serializers import (
-    ImpactSubtypeSerializer,
-    ImpactTypeSerializer,
     SourceSerializer,
     StatusControlSerializer,
 )

@@ -171,9 +171,9 @@ class ProyectoToProject:
 
         add_megaproject_type(tipo_despliegue_capital, megaproject_type)
 
-        if megaproject_type.extractivism_types.count() > 1:
-            megaproject_type.has_many_dct = True
-            megaproject_type.save()
+        # if megaproject_type.extractivism_types.count() > 1:
+        #     megaproject_type.has_many_dct = True
+        #     megaproject_type.save()
 
         return megaproject_type
 

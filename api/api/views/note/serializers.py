@@ -9,6 +9,7 @@ from project.models import Project
 from source.models import Mention, Note, NoteFile, StatusHistory
 from event.models import Event, Involved
 from actor.models import Participant, Interest
+from impact.models import Impact
 # from impact.models import Impact
 
 
@@ -88,9 +89,12 @@ class MentionMegaFullSerializer(MentionFullSerializer):
 
 
 class NoteFileSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(source="file.name")
+    url = serializers.ReadOnlyField(source="file.url")
+
     class Meta:
         model = NoteFile
-        fields = ['id', 'file', 'uploaded_at']
+        fields = ['id', 'file', 'uploaded_at', 'name', 'url']
 
 
 class NoteSerializer(serializers.ModelSerializer):
@@ -99,6 +103,15 @@ class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
         fields = '__all__'
+
+
+class ImpactFullSerializer(serializers.ModelSerializer):
+    note = NoteSerializer(source='mention.note', read_only=True)
+
+    class Meta:
+        model = Impact
+        fields = '__all__'
+
 
 
 class NoteFullSerializer(serializers.ModelSerializer):

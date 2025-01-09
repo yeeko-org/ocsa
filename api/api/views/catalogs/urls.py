@@ -21,7 +21,7 @@ from api.views.catalogs import (
 )
 # from api.views.actor.classify_views import IndigenousGroupViewSet
 from api.views.catalogs.impact_views import (
-    ImpactSubtypeViewSet, ImpactTypeViewSet)
+    ImpactSubtypeViewSet, ImpactTypeViewSet, ImpactGroupViewSet)
 
 from rest_framework import routers
 
@@ -50,8 +50,9 @@ router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_m
 router.register(r'status_project', StatusProjectViewSet, basename='catalog_status_project')
 # router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')
 
-router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impact_subtype')
+router.register(r'impact_group', ImpactGroupViewSet, basename='catalog_impact_group')
 router.register(r'impact_type', ImpactTypeViewSet, basename='catalog_impact_type')
+router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impact_subtype')
 
 router.register(r'source', SourceViewSet, basename='catalog_source')
 router.register(r'status_control', StatusControlViewSet, basename='catalog_status_control')

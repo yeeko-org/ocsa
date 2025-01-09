@@ -33,7 +33,7 @@ def field_of_models(collection: Collection):
     my_model = apps.get_model(app_name, model_name)
     all_fields = my_model._meta.get_fields(
         include_parents=False, include_hidden=False)
-    fields = []
+    new_fields = []
     for field in all_fields:
         relation_type = "simple"
         is_primary_key = False
@@ -54,32 +54,42 @@ def field_of_models(collection: Collection):
         # is_string = isinstance(field, TextField) or is_char
         field_type = "unknown"
         width = 100
+        is_string, is_char = False, False
         if isinstance(field, TextField):
             field_type = "text"
             width = 200
+            is_string = True
         if isinstance(field, CharField):
             field_type = "char"
             width = 150
+            is_string = True
+            is_char = True
         if isinstance(field, IntegerField):
             field_type = "integer"
             width = 80
 
-        is_char = isinstance(field, CharField)
         final_field = {
             "name": field.name,
             "real_name": f"{field.name}{complement}",
             "primary_key": is_primary_key,
             "relation_type": relation_type,
             "field_type": field_type,
-            "is_string": isinstance(field, TextField) or is_char,
+            "is_string": is_string,
             "is_massive": False,
             "is_editable": True,
             "width": width,
+            "null": field.null,
         }
         try:
             final_field["verbose_name"] = field.verbose_name
         except AttributeError:
             pass
+        try:
+            if type(field.default) in [str, int, bool]:
+                final_field["default"] = field.default
+        except AttributeError:
+            pass
+
         if is_char:
             final_field["max_length"] = field.max_length
         # set related_name if exists
@@ -95,10 +105,10 @@ def field_of_models(collection: Collection):
                 final_field["related_app_label"] = meta.app_label
             except AttributeError:
                 pass
-        fields.append(final_field)
+        new_fields.append(final_field)
     # sort_by_relation_type = sorted(
     #     fields, key=lambda x: x['relation_type'])
-    return fields
+    return new_fields
 
 
 class InitCollections:
@@ -127,6 +137,8 @@ class InitCollections:
                 new_collection.color = collection.get('color', None)
                 new_collection.open_insertion = collection.get(
                     'open_insertion', None)
+                new_collection.available_actions = collection.get(
+                    'available_actions', [])
                 new_collection.order = order_base + order
                 new_collection.all_filters = collection.get('all_filters', [])
                 new_collection.save()

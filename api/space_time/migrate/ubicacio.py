@@ -80,9 +80,16 @@ class UbicacionesToLocations:
             if ubicacion.especificaciones else ""
         comments = []
 
+        type_location = "point"
+        status_location = 'initial_v1'
         if ubicacion.tipo_ubicacion != "punto":
             # comments.append(f"Tipo de ubicación: {ubicacion.tipo_ubicacion}")
-            details += f"Tipo de ubicación: {ubicacion.tipo_ubicacion}\n\r"
+            # details += f"Tipo de ubicación: {ubicacion.tipo_ubicacion}\n\r"
+            if type_location == 'linea':
+                type_location = 'line'
+            elif type_location == 'poligono':
+                type_location = 'polygon'
+            status_location = 'could_enhance'
 
         state_id = self.get_state_id(ubicacion.estado)
         if not state_id and ubicacion.estado:
@@ -116,7 +123,6 @@ class UbicacionesToLocations:
                 "Error al parsear el geojson. El campo se guardará como nulo")
             details += f"geom: {ubicacion.geom}\n\r"
         details = details.strip()
-        status_location = 'initial_v1'
         final_comments = None
         if comments:
             final_comments = "; ".join(comments)
@@ -135,5 +141,6 @@ class UbicacionesToLocations:
             geojson=geojson,
             ubicacion_id_ref=ubicacion.pk,
             comments=final_comments,
-            status_location_id=status_location
+            status_location_id=status_location,
+            type_location=type_location
         )

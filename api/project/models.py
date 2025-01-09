@@ -28,7 +28,7 @@ class MegaprojectType(models.Model):
     extractivism_types = models.ManyToManyField(
         ExtractivismType, blank=True, related_name='megaproject_types')
     has_many_dct = models.BooleanField(
-        default=False, verbose_name='Difiere en Tipo de Despliegue Capital')
+        default=False, verbose_name='Difiere en Tipo de Extractivismo')
     # common_affection_types = models.ManyToManyField(
     #     'impact.AffectionType', blank=True)
     status_validation = models.ForeignKey(

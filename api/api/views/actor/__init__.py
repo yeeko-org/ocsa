@@ -3,7 +3,7 @@ from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.request import Request
 
@@ -16,6 +16,7 @@ from api.views.actor.serializers import (
     ActorBaseSerializer, ActorMiniSerializer, ActorCreateSerializer,
     ActorEditeSerializer, ActorFullSerializer
 )
+from api.views.common_views import UnaccentSearchFilter
 
 
 class ActorFilter(FilterSet):
@@ -44,7 +45,9 @@ class ActorFilter(FilterSet):
         }
 
 
-class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
+class ActorViewMixin(
+    MergeSerializerMixin, viewsets.GenericViewSet
+):
     request: Request
     massive_fields = ["sector_id", "status_validation", "parent_actor_id"]
     queryset = Actor.objects.all().distinct()\
@@ -61,7 +64,7 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
 
     filterset_class = ActorFilter
 
-    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filter_backends = [OrderingFilter, DjangoFilterBackend, UnaccentSearchFilter]
     # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
 
     search_fields = ['name', 'alternative_names']
@@ -136,7 +139,7 @@ class ActorViewMixin(MergeSerializerMixin, viewsets.GenericViewSet):
         OriginReference.objects.filter(actor=from_obj)\
             .update(actor=to_obj)
 
-    def filter_queryset(self, queryset):
+    def filter_queryset_not(self, queryset):
         from django.db.models import Q
         queryset = super().filter_queryset(queryset)
         search_query = self.request.query_params.get('q', '')

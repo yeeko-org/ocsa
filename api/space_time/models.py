@@ -113,6 +113,13 @@ class Locality(models.Model):
         verbose_name_plural = "Localidades"
 
 
+TYPE_LOCATIONS = (
+    ("point", "Punto"),
+    ("polygon", "Polígono"),
+    ("line", "Línea"),
+)
+
+
 class Location(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, blank=True, null=True,
@@ -133,6 +140,8 @@ class Location(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     geojson = models.JSONField(blank=True, null=True)
+    type_location = models.CharField(
+        max_length=10, choices=TYPE_LOCATIONS, default="point")
     ubicacion_id_ref = models.IntegerField(blank=True, null=True)
     status_location = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)

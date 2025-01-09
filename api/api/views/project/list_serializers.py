@@ -37,6 +37,7 @@ class ImpactSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
 class NoteBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -79,6 +80,7 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
         # fields = "__all__"
         fields = [
             "id",
+            "proyecto_id_ref",
             "name",
             "official_name",
             "alternative_name",

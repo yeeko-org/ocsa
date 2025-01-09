@@ -1,5 +1,9 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from api.views.common_views import BaseViewSet, UnaccentSearchFilter
+from api.pagination import CustomPagination
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from api.views.note.serializers import (
     MentionSerializer, MentionMegaFullSerializer,
@@ -7,6 +11,7 @@ from api.views.note.serializers import (
     InvolvedSerializer, StatusHistorySerializer)
 from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantSerializer)
+from api.views.note.serializers import ImpactFullSerializer
 
 from source.models import Mention, StatusHistory
 from actor.models import Participant, Interest
@@ -66,9 +71,19 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
 class ImpactViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
+    pagination_class = CustomPagination
     queryset = Impact.objects.all()
 
     serializer_class = ImpactSerializer
+    filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
+    search_fields = ['description']
+    filterset_fields = ['impact_type', 'impact_subtype']
+
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': ImpactFullSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)
 
 
 class InterestViewSet(viewsets.ModelViewSet):

@@ -14,4 +14,4 @@ class ExtractivismTypeInline(admin.TabularInline):
 
 @admin.register(MegaprojectType)
 class MegaprojectTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'has_many_dct')
+    list_display = ('name',)

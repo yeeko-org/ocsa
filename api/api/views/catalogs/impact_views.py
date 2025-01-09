@@ -3,41 +3,18 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import FilterSet, NumberFilter
 from api.pagination import CustomPagination
-from impact.models import ImpactSubtype, ImpactType
+from impact.models import ImpactSubtype, ImpactType, ImpactGroup
 from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer, ImpactSubtypeFullSerializer,
-    ImpactTypeSerializer, ImpactTypeFullSerializer)
-# from ..common_views import BaseViewSet, BaseStatusViewSet
+    ImpactTypeSerializer, ImpactTypeFullSerializer,
+    ImpactGroupSerializer)
+from api.views.common_views import UnaccentSearchFilter
 
 
-class ImpactSubtypeFilter(FilterSet):
+class ImpactGroupViewSet(viewsets.ModelViewSet):
+    queryset = ImpactGroup.objects.all()
 
-    class Meta:
-        model = ImpactSubtype
-        fields = {
-            'impact_type': ['exact'],
-            'status_validation': ['exact']
-        }
-
-
-class ImpactSubtypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    # from django.db.models import Count
-
-    permission_classes = [permissions.AllowAny]
-    filterset_class = ImpactSubtypeFilter
-    queryset = ImpactSubtype.objects.all()
-    pagination_class = CustomPagination
-    filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name']
-
-    serializer_class = ImpactSubtypeFullSerializer
-
-    def get_serializer_class(self):
-        action_serializer = {
-            'list': ImpactSubtypeSerializer,
-        }
-        return action_serializer.get(self.action, self.serializer_class)
+    serializer_class = ImpactGroupSerializer
 
 
 class ImpactTypeFilter(FilterSet):
@@ -52,11 +29,16 @@ class ImpactTypeFilter(FilterSet):
 
 class ImpactTypeViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
-    queryset = ImpactType.objects.all()
+    from django.db.models import Count
+
+    queryset = ImpactType.objects.all()\
+        .annotate(impact_subtype_count=Count('impact_subtypes'),
+                  mentions_count=Count('impact'))\
+        .distinct()
     permission_classes = [permissions.AllowAny]
     filterset_class = ImpactTypeFilter
     pagination_class = CustomPagination
-    filter_backends = [SearchFilter, DjangoFilterBackend]
+    filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
     search_fields = ['name']
 
     serializer_class = ImpactTypeFullSerializer
@@ -64,5 +46,39 @@ class ImpactTypeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         action_serializer = {
             'list': ImpactTypeSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)
+
+
+class ImpactSubtypeFilter(FilterSet):
+
+    class Meta:
+        model = ImpactSubtype
+        fields = {
+            'impact_type': ['exact'],
+            'status_validation': ['exact']
+        }
+
+
+class ImpactSubtypeViewSet(viewsets.ModelViewSet):
+    # permission_classes = [permissions.IsAuthenticated]
+    from django.db.models import Count
+    queryset = ImpactSubtype.objects.all()\
+        .annotate(mentions_count=Count('impact'))\
+        .distinct()
+
+    permission_classes = [permissions.AllowAny]
+    # filterset_class = ImpactSubtypeFilter
+    filterset_fields = ['impact_type', 'status_validation']
+    pagination_class = CustomPagination
+    filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
+    search_fields = ['name']
+
+    serializer_class = ImpactSubtypeFullSerializer
+
+    def get_serializer_class(self):
+        # print("action", self.action)
+        action_serializer = {
+            'list': ImpactSubtypeSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)

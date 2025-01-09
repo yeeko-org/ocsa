@@ -72,16 +72,6 @@ class Actor(CommentsMixin, models.Model):
 
     capital_id_ref = models.IntegerField(blank=True, null=True)
 
-    # def add_comment(self, comment: str):
-    #     if not comment:
-    #         return
-    #     if self.comments:
-    #         if comment not in self.comments:
-    #             self.comments += f"\n\n{comment}"
-    #     else:
-    #         self.comments = comment
-    #     self.save()
-
     status_validation_id: str | None
 
     def append_alternative_name(self, name, save=True):

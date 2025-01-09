@@ -72,13 +72,13 @@ class AfectacionesToImpactMigrate:
 
     def save_impact_type(self, is_social: bool, name: str) -> None:
         impact_group = ImpactGroup.objects.get(is_social=is_social)
-        subtype = [
-            "Afectaciones a la salud",
-            "Otros medios de vida afectados"]
+        # subtype = [
+        #     "Afectaciones a la salud",
+        #     "Otros medios de vida afectados"]
 
         ImpactType.objects.get_or_create(
             name=name,
             # is_social=is_social,
             impact_group=impact_group,
-            has_subtype=name in subtype
+            # has_subtype=name in subtype
         )

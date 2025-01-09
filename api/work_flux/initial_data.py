@@ -44,14 +44,16 @@ class InitStatus:
                 "indigo", "edit_location", False, True, False),
             ("need_consensus", "location", "Requiere consenso",
                 "pink", "report_gmailerrorred", False, True, False),
-            ("finished", "location", "Finalizado",
-                "green", "done_all", True, True, False),
             ("initial_v1", "location", "v1. Datos iniciales",
                 "blue", "edit_note", False, True, False),
             ("need_fix", "location", "v1. Requiere corrección",
                 "orange", "not_listed_location", True, True, False),
+            ("could_enhance", "location", "v1. Podría mejorar",
+                "orange", "auto_fix_high", True, True, False),
             ("migrated_v1", "location", "v1. Migrado",
                 "light-green", "done", True, True, False),
+            ("finished", "location", "Finalizado",
+                "green", "done_all", True, True, False),
         ]
         order = -1
         for data in init_status:

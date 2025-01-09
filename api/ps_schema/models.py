@@ -69,6 +69,8 @@ class Collection(models.Model):
         blank=True, null=True)
     cat_params = models.JSONField(
         default=dict, verbose_name="Parámetros para el catálogo")
+    available_actions = models.JSONField(
+        default=list, verbose_name="Acciones disponibles")
 
     @property
     def parent_list(self):

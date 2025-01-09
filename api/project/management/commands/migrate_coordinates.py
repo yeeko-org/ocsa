@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 
 from project.models import Project
 from space_time.models import Location
+from work_flux.models import StatusControl
 
 
 class Command(BaseCommand):
@@ -41,6 +42,19 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(
                 f"Error leyendo el archivo: {e}"))
 
+        self.set_min_status()
+
+    def set_min_status(self):
+        from django.db.models import Min
+        st_dict = {st.order: st for st in StatusControl.objects.all()}
+        projects = Project.objects.all()\
+            .annotate(min_location=Min('locations__status_location__order'))
+        for project in projects:
+            status_location = st_dict.get(project.min_location)
+            if status_location:
+                project.status_location = status_location
+                project.save()
+
     def dms_to_dd(self, dms: str) -> float:
 
         dms = dms.replace("°", "° ").replace("'", "' ")\
@@ -69,33 +83,61 @@ class Command(BaseCommand):
         if not mp_id.isdigit():
             return
         try:
-            project = Project.objects.get(legacy_id_mp=int(mp_id))
+            project = Project.objects.get(proyecto_id_ref=int(mp_id))
         except Project.DoesNotExist:
             return
 
-        locations = Location.objects.filter(project=project)
-        exist_location = False
-        for location in locations:
-            # latitude y longitude redondeadas comparadas con
-            # lat_dd y lon_dd redondeadas
-            if not location.latitude or not location.longitude:
-                continue
-            if (
-                round(location.latitude, 3) == round(lat_dd, 3) and
-                round(location.longitude, 3) == round(lon_dd, 3)
-            ):
-                exist_location = True
-                break
-        if exist_location:
-            return
+        # locations = Location.objects.filter(project=project)
+        Location.objects\
+            .filter(project=project, geojson__isnull=True)\
+            .delete()
+
+        # exist_location = False
+        # for location in locations:
+        #     # latitude y longitude redondeadas comparadas con
+        #     # lat_dd y lon_dd redondeadas
+        #     if not location.latitude or not location.longitude:
+        #         continue
+        #     if (
+        #         round(location.latitude, 3) == round(lat_dd, 3) and
+        #         round(location.longitude, 3) == round(lon_dd, 3)
+        #     ):
+        #         exist_location = True
+        #         break
+        # if exist_location:
+        #     return
 
         location = Location.objects.create(
             project=project,
             latitude=lat_dd,
             longitude=lon_dd,
-            status_location_id="migrated_v1"
+            status_location_id="finished"
         )
         project.status_location_id = "migrated_v1"
         project.save()
         self.stdout.write(self.style.SUCCESS(
             f"Coordenadas registradas para el proyecto {project} en {location}"))
+
+
+def dms_to_dd(dms: str) -> float:
+
+    dms = dms.replace("°", "° ").replace("'", "' ")\
+        .replace('"', '" ')
+
+    try:
+        parts = dms.split(" ")
+        parts = [part for part in parts if part]
+        degrees = float(parts[0][:-1])
+        minutes = float(parts[1][:-1])
+        seconds = float(parts[2][:-1])
+        direction = parts[3]
+
+        dd = degrees + (minutes / 60) + (seconds / 3600)
+
+        if direction in ['S', 'W']:
+            dd *= -1
+
+        return dd
+    except Exception as e:
+        raise ValueError(
+            f"Formato de coordenadas DMS no válido: {dms}. Error: {e}")

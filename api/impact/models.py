@@ -19,9 +19,7 @@ class ImpactGroup(models.Model):
 
 class ImpactType(models.Model):
     name = models.CharField(max_length=255)
-    impact_group = models.ForeignKey(
-        ImpactGroup, on_delete=models.CASCADE, blank=True, null=True)
-    has_subtype = models.BooleanField(default=False)
+    impact_group = models.ForeignKey(ImpactGroup, on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
     short_name = models.CharField(
