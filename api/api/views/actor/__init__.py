@@ -54,9 +54,9 @@ class ActorViewMixin(
         .annotate(
             sector_group=F('sector__sector_group')
         )\
-        .select_related(
-        "parent_actor", "parent_actor__sector", "status_validation")\
-        .prefetch_related("participants", "origin_references")
+        .select_related("parent_actor", "status_validation")\
+        .prefetch_related(
+        "participants", "origin_references", "children_actors")
 
     permission_classes = [permissions.AllowAny]
 

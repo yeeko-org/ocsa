@@ -94,7 +94,6 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "id",
             "proyecto_id_ref",
             "name",
-            "official_name",
             "alternative_name",
             "description",
             "comments",

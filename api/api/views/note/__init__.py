@@ -59,12 +59,13 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         is_retrieve = self.action == 'retrieve'
-        self.queryset = self.queryset.prefetch_related(
+        queryset = super().get_queryset()
+        queryset = self.queryset.prefetch_related(
             'files',
             'mentions__project__locations',
             'mentions__project__conflict',
-        ) if is_retrieve else self.queryset
-        return super().get_queryset()
+        ) if is_retrieve else queryset
+        return queryset
 
     def get_serializer_class(self):
         action_serializer = {

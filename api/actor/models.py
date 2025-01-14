@@ -30,12 +30,10 @@ class Actor(CommentsMixin, models.Model):
     # El nombre viene del campo "nombre", excepto:
     # Estado, que tiene 3 campos y su comportamiento se explica arrriba
     name = models.CharField(max_length=255)
-    official_name = models.CharField(
-        max_length=255, blank=True, null=True)
     std_name = models.CharField(
         max_length=255, blank=True, null=True)
-    alternative_names = models.JSONField(
-        default=default_list, blank=True, null=True)
+    alternative_names = models.TextField(
+        blank=True, null=True, verbose_name='Nombres alternativos')
     is_incomplete = models.BooleanField(default=False)
     is_name_created = models.BooleanField(default=False)
 
@@ -75,14 +73,15 @@ class Actor(CommentsMixin, models.Model):
     status_validation_id: str | None
 
     def append_alternative_name(self, name, save=True):
+        name = name.strip()
         if not name or self.name == name:
             return
 
-        if not isinstance(self.alternative_names, list):
-            self.alternative_names = []
+        alternative_names = self.alternative_names.split(',')
+        alternative_names = [n.strip() for n in alternative_names]
 
-        if name not in self.alternative_names:
-            self.alternative_names.append(name)
+        if name not in alternative_names:
+            self.alternative_names += f", {name}"
             if save:
                 self.save()
 

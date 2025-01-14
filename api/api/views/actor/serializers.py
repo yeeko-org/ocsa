@@ -16,7 +16,7 @@ class NoteBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Note
-        fields = ['id', 'title', 'source', 'date']
+        fields = ['id', 'title', 'source', 'date', 'status_register']
 
 
 class MentionBaseSerializer(serializers.ModelSerializer):
@@ -25,7 +25,7 @@ class MentionBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mention
-        fields = ["project", "note", "project_full", "note_full"]
+        fields = ["id", "project", "note", "project_full", "note_full"]
 
 
 class ParticipantBaseSerializer(serializers.ModelSerializer):
@@ -33,13 +33,13 @@ class ParticipantBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Participant
-        fields = ["mention", "participant_types"]
+        fields = ["id", "mention", "participant_types"]
 
 
 class MentionMiniSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mention
-        fields = ["project", "note"]
+        fields = ["id", "project", "note"]
 
 
 class ParticipantMiniSerializer(ParticipantBaseSerializer):
@@ -86,17 +86,24 @@ class ActorMiniSerializer(serializers.ModelSerializer):
             "geo_reach",
             "belongs",
             "status_validation",
+            "network_seq",
+
+            "children_actors",
         ]
 
 
 class ActorBaseSerializer(ActorMiniSerializer):
-
-    parent_actor_full = serializers.SerializerMethodField(read_only=True)
     participants = ParticipantBaseSerializer(many=True, read_only=True)
+    children_actors = serializers.PrimaryKeyRelatedField(
+        many=True, read_only=True
+    )
+    parent_actor_full = serializers.SerializerMethodField(read_only=True)
 
     def get_parent_actor_full(self, obj: Actor):
         # ActorBaseSerializer produce error de recursividad. analizar
-        return ActorMiniSerializer(obj.parent_actor).data
+        if obj.parent_actor:
+            return ActorMiniSerializer(obj.parent_actor).data
+        return None
 
     class Meta:
         model = Actor
@@ -107,7 +114,10 @@ class ActorFullSerializer(ActorBaseSerializer):
     participants = ParticipantMiniSerializer(many=True, read_only=True)
     notes = serializers.SerializerMethodField(read_only=True)
     projects = serializers.SerializerMethodField(read_only=True)
+    other_parents_full = serializers.SerializerMethodField(read_only=True)
     # origin_references = OriginReferenceSerializer(many=True)
+    children_actors_full = ActorMiniSerializer(
+        many=True, read_only=True, source='children_actors')
 
     def get_notes(self, obj: Actor):
         return NoteBasicSerializer(
@@ -122,6 +132,9 @@ class ActorFullSerializer(ActorBaseSerializer):
                 mentions__participants__actor=obj
             ).distinct(), many=True
         ).data
+
+    def get_other_parents_full(self, obj: Actor):
+        return ActorMiniSerializer(obj.others_parents.all(), many=True).data
 
 
 class ActorCreateSerializer(serializers.ModelSerializer):
