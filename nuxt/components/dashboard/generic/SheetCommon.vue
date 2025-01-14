@@ -87,6 +87,7 @@ const child_collections = computed(() => {
         :parent_collection="child_collection.collection_data"
         :init_filters="{[collection_data.snake_name]: props.full_main.id}"
         :init_total_count="child_collection.count"
+        direct_sheet
       />
     </v-card-text>
   </v-card>

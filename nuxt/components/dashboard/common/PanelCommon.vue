@@ -101,7 +101,7 @@ const background_color = computed(() => {
             @item-deleted="emits('item-deleted', $event)"
             can_delete
           >
-            <template v-slot:edit="{ full_main }">
+            <template #edit="{ full_main }">
               <component
                 :is="edit_component"
                 :full_main="full_main"

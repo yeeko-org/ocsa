@@ -66,7 +66,7 @@ function trashFile(file){
     :cols="12"
     filter_group_name="states"
     :main_collection_name="main_collection_name"
-    child_relation_name="note_file"
+    :child_relation_name="child_relation_name"
     field="files"
     color="brown"
     forced_level="group"

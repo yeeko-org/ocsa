@@ -12,6 +12,7 @@ const props = defineProps({
     required: false,
     default: 'Fecha de la nota',
   },
+  disabled: Boolean,
 })
 
 const show_menu_date = ref(false)
@@ -66,6 +67,7 @@ function editDate(date) {
       cancel-text="Cancelar"
       ok-text="Guardar"
       title="Selecciona una fecha"
+      :disabled="disabled"
     >
     </v-date-picker>
   </v-menu>

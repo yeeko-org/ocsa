@@ -67,6 +67,15 @@ const props = defineProps({
       style="width: 80px;"
     >
     </v-text-field>
+    <v-text-field
+      v-model="full_main.capture_date"
+      label="Fecha de captura"
+      variant="plain"
+      readonly
+      class="ml-3"
+      style="width: 10px;"
+    >
+    </v-text-field>
   </div>
   <v-text-field
     v-model="full_main.link"

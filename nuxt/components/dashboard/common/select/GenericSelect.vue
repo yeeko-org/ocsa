@@ -88,7 +88,7 @@ function sendNull(){
 
     <template v-else-if="final_value">
       <v-icon
-        v-if="level === 'group' && final_value.icon"
+        v-if="['group', 'type'].includes(level) && final_value.icon"
         class="mr-1"
         :color="final_value.color || 'primary'"
         v-tooltip="final_value[item_title]"

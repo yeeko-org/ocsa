@@ -436,16 +436,31 @@ export const useMainStore = defineStore('main', {
       const full_url = `catalogs/${collection}/${id}`
       try {
         await ApiService.delete(full_url);
-        let real_group = `${collection}s`
-        if (collection === 'country')
-          real_group = 'countries'
-        const index = this.cats[real_group].findIndex(
-          el => el.id === id)
-        this.cats[real_group].splice(index, 1)
+        this.cleanDelete(collection, id)
         return id
       } catch (error) {
         console.error(error)
         ;
+      }
+    },
+    cleanDelete(collection, id) {
+      let real_group = `${collection}s`
+      if (collection === 'country')
+        real_group = 'countries'
+      const index = this.cats[real_group].findIndex(
+        el => el.id === id)
+      this.cats[real_group].splice(index, 1)
+    },
+    async mergeSimple([params, category_name]) {
+      this.setHeader()
+      try {
+        let response = await ApiService.post(`generic_merge/`, params);
+        if (category_name)
+          this.cleanDelete(category_name, params.merge_id)
+        console.log("mergeSimple", response)
+        return response.data
+      } catch (error) {
+        console.error(error);
       }
     },
     async fetchElements([group, params]) {

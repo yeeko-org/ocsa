@@ -12,10 +12,6 @@ const props = defineProps({
   },
 })
 
-const megaproject_types_count = computed(() => {
-  return props.main.megaproject_types?.length
-})
-
 </script>
 
 <template>
@@ -26,7 +22,7 @@ const megaproject_types_count = computed(() => {
   >
     <template #details>
       <HeaderChip
-        :count="megaproject_types_count"
+        :count="main.megaproject_types_count"
         icon="category"
         label="proyecto"
         label_plural="tipos de megaproyecto"

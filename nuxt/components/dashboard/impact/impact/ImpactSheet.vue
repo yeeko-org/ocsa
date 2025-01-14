@@ -16,7 +16,6 @@ const props = defineProps({
   },
 })
 
-
 const note_collection = computed(() => {
   return schemas.value.collections_dict['note']
 })

@@ -8,7 +8,7 @@ import { storeToRefs } from 'pinia'
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 
 const mainStore = useMainStore()
-const { all_nodes, schemas, cats } = storeToRefs(mainStore)
+const { all_nodes, cats } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,

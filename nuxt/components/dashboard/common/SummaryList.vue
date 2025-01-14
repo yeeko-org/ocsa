@@ -2,6 +2,7 @@
 
 import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
 import ActorCard from "~/components/dashboard/actor/actor/ActorCard.vue";
+import ConflictCard from "~/components/dashboard/project/conflict/ConflictCard.vue";
 
 const props = defineProps({
   results: Array,
@@ -34,6 +35,10 @@ function selectItem(result) {
     />
     <ActorCard
       v-else-if="collection_data.snake_name === 'actor'"
+      :full_main="result"
+    />
+    <ConflictCard
+      v-else-if="collection_data.snake_name === 'conflict'"
       :full_main="result"
     />
     <v-spacer></v-spacer>

@@ -246,7 +246,7 @@ nextTick(() => {
       if (nodes.value.type)
         props.main_object[level_names.value.group] = nodes.value.type.parent.data.id
     }
-  }, 10)
+  }, 100)
 })
 
 const subtype_key = computed(() => {

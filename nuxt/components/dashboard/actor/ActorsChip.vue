@@ -12,6 +12,7 @@ const props = defineProps({
     default: "actor_full",
   },
   subfield: String,
+  is_simple: Boolean,
 })
 
 const actor_by_position = computed(() => {
@@ -41,7 +42,11 @@ const actor_by_position = computed(() => {
       v-for="position in actor_by_position"
       class="d-flex flex-column align-center px-1"
     >
-      <span class="text-caption" :class="`text-${position.color}`">
+      <span
+        v-if="!is_simple"
+        class="text-caption"
+        :class="`text-${position.color}`"
+      >
         {{ position.count }}
       </span>
       <v-icon
@@ -56,6 +61,7 @@ const actor_by_position = computed(() => {
       >
         <v-card
           :color="position.color"
+          class="mx-n4 my-n2"
         >
           <v-card-title
             class="text-subtitle-1"

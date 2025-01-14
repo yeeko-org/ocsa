@@ -2,18 +2,27 @@
 
 import ActorCard from "~/components/dashboard/actor/actor/ActorCard.vue";
 import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
+import CardCommon from "~/components/dashboard/common/CardCommon.vue";
+import {storeToRefs} from "pinia";
+import {useMainStore} from "~/store/index.js";
+
+const mainStore = useMainStore()
+const { schemas } = storeToRefs(mainStore)
 
 const props = defineProps({
   mention: Object,
 })
 
-const emits = defineEmits(['search-item', 'edit-item'])
+const emits = defineEmits(['selected-item', 'search-item', 'edited-item'])
+
+const actor_collection_data = computed(() => {
+  return schemas.value.collections_dict['actor']
+})
 
 </script>
 
 <template>
   <ToolbarCommon
-    v-if="true"
     :main_object="mention"
     main_collection_name="mention"
     filter_group_name="participant_types"
@@ -27,46 +36,25 @@ const emits = defineEmits(['search-item', 'edit-item'])
     required
   >
     <template #rows_init="{ item }">
-      <v-card
-        v-if="item.actor_full"
-        class="d-flex align-center px-3"
-        color="blue"
-        variant="tonal"
-        style="width: 100%;"
-      >
-        <ActorCard
-          :full_main="item.actor_full"
-        />
-        <v-spacer></v-spacer>
-        <div class="d-flex flex-column">
-          <v-btn
-            icon="edit"
-            @click="emits('edit-item', item)"
-            size="small"
-            color="accent"
-            variant="outlined"
-          ></v-btn>
-          <v-btn
-            icon="cached"
-            @click="emits('search-item', item)"
-            size="small"
-            color="accent"
-            variant="outlined"
-          ></v-btn>
-        </div>
-      </v-card>
-      <v-btn
-        v-else
-        color="accent"
-        variant="elevated"
-        @click="emits('search-item', item)"
-      >
-        Agregar participante
-      </v-btn>
+      <CardCommon
+        v-if="item.actor_full || true"
+        :full_main="item.actor_full"
+        @edited-item="emits('edited-item', item)"
+        _search-item="emits('search-item', item)"
+        @selected-item="emits('selected-item', [item, $event])"
+        :collection_data="actor_collection_data"
+      />
+<!--      <v-btn-->
+<!--        v-else-->
+<!--        color="accent"-->
+<!--        variant="elevated"-->
+<!--        @click="emits('search-item', item)"-->
+<!--      >-->
+<!--        Agregar participante-->
+<!--      </v-btn>-->
     </template>
     <template #second-column="{ item }">
       <ToolbarCommon
-        v-if="true"
         :main_object="item"
         main_collection_name="participant"
         filter_group_name="interest_types"
@@ -87,7 +75,6 @@ const emits = defineEmits(['search-item', 'edit-item'])
           ></v-textarea>
         </template>
       </ToolbarCommon>
-      <v-divider class="mt-8" v-if="false"></v-divider>
     </template>
   </ToolbarCommon>
 </template>

@@ -63,7 +63,6 @@ const final_event_types = computed(() => {
         variant="outlined"
         class="mx-2 d-flex flex-column"
       >
-
         <SelectGroup
           :main_object="main"
           filter_group_name="event_types"

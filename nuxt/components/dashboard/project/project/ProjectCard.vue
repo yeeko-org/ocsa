@@ -2,6 +2,7 @@
 
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
+import LocationsChip from "~/components/dashboard/project/LocationsChip.vue";
 
 const props = defineProps({
   full_main: Object,
@@ -22,8 +23,12 @@ const props = defineProps({
       <div class="text-h6">
         {{ full_main.name }}
       </div>
+      <LocationsChip
+        :project="full_main"
+        class="ml-3"
+      />
     </div>
-    <div class="d-flex flex-wrap">
+    <div class="d-flex flex-wrap align-center">
       <StatusChip
         v-if="full_main.status_validation"
         :main="full_main"
@@ -31,12 +36,22 @@ const props = defineProps({
         class="mb-1"
         bold_text
         x_small
+        left_label
       />
+      <v-divider
+        v-if="full_main.status_validation"
+        vertical
+        class="mx-3"
+      ></v-divider>
       <ExtractivismIcons
         :project="full_main"
         show_name
-        class="ml-2"
       />
+      <v-divider
+        v-if="full_main.status_validation"
+        vertical
+        class="mx-3"
+      ></v-divider>
     </div>
   </div>
 </template>

@@ -43,25 +43,7 @@ const props = defineProps({
         :count="main.event_subtype_count"
         collection_name="event_subtype"
       />
-      <v-card
-        v-if="false"
-        variant="tonal"
-        color="accent"
-        class="d-flex justify-center align-center ml-3 py-1"
-      >
-        <SelectGroup
-          :main_object="main"
-          filter_group_name="event_types"
-          :main_collection="collection_data"
-          field="event_types"
-          forced_level="subtype"
-          :width="160"
-          is_display
-        />
-      </v-card>
-
     </template>
-
   </HeaderCommon>
 </template>
 

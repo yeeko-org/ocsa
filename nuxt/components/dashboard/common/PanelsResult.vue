@@ -5,6 +5,10 @@ import {ref, computed, shallowRef, nextTick} from 'vue'
 import SummaryList from "~/components/dashboard/common/SummaryList.vue";
 import EditCommon from "~/components/dashboard/common/EditCommon.vue";
 import MassiveActions from "~/components/dashboard/utils/MassiveActions.vue";
+import {useMainStore} from "~/store/index.js";
+
+const mainStore = useMainStore()
+const { mergeSimple } = mainStore
 
 const props = defineProps({
   results: Array,
@@ -16,13 +20,16 @@ const props = defineProps({
   final_filters: Object,
   total_count: Number,
   is_mini: Boolean,
+  is_simple: Boolean,
   in_sheet: Boolean,
 })
 
 const group_actions_enabled = ref(true)
 const sel = ref({"selected_elems": []})
-const edit_type = ref({key: 'add', title: 'Agregar registro'})
+const edit_type = ref({
+  key: 'edit', title: 'Agregar registro', btn: 'Guardar'})
 
+const editRef = ref(null)
 const dialog_edit = ref(false)
 const element_to_edit = ref(null)
 const selected_results = ref([])
@@ -61,7 +68,8 @@ function selectAll() {
 
 function wantMassiveEdit() {
   console.log("wantMassiveEdit", sel.value.selected_elems)
-  edit_type.value = {key: 'massive_edit', title: 'Edición masiva'}
+  edit_type.value = {
+    key: 'massive_edit', title: 'Edición masiva', btn: 'Guardar cambios'}
   selected_results.value = props.results.filter(
       res => sel.value.selected_elems.includes(res.id))
   element_to_edit.value = {...{}, ...selected_results.value[0]}
@@ -70,7 +78,7 @@ function wantMassiveEdit() {
 
 function wantMerge() {
   // console.log("wantMerge", sel.value.selected_elems)
-  edit_type.value = {key: 'merge', title: 'Fusión de elementos'}
+  edit_type.value = {key: 'merge', title: 'Fusión de elementos', btn: 'Fusionar'}
   selected_results.value = sel.value.selected_elems.map(
     id => props.results.find(res => res.id === id))
   element_to_edit.value = {...{}, ...selected_results.value[0]}
@@ -79,7 +87,7 @@ function wantMerge() {
 
 function addItem() {
   // console.log("addItem")
-  edit_type.value = {key: 'add', title: 'Agregar Registro'}
+  edit_type.value = {key: 'edit', title: 'Agregar Registro', btn: 'Guardar'}
   element_to_edit.value = {}
   props.collection_data.fields.forEach(field => {
     if (field.default !== undefined && field.default !== null)
@@ -111,6 +119,33 @@ function saveNewElement({res, is_new}) {
     props.results.splice(idx, 1, res)
   }
   closeDialog()
+}
+
+function mergeItems(res_main) {
+  saveNewElement({res: res_main, is_new: false})
+  const model_name = `${props.collection_data.app_label}.${
+                        props.collection_data.model_name}`
+  const main_id = selected_results.value[0].id
+  const merge_ids = selected_results.value.slice(1).map(res => res.id)
+  merge_ids.forEach(merge_id => {
+    let params = {
+      model_name,
+      main_id,
+      merge_id,
+      delete_merge: true,
+      // just_report: true,
+    }
+    const is_category = props.collection_data.is_category
+    const snake_name = is_category ? props.collection_data.snake_name : null
+    mergeSimple([params, snake_name]).then(res => {
+      const idx = props.results.findIndex(result => result.id === merge_id)
+      props.results.splice(idx, 1)
+    })
+  })
+  if (editRef.value)
+    editRef.value.finishSave()
+  closeDialog()
+  sel.value.selected_elems = []
 }
 
 function selectItem(item) {
@@ -167,7 +202,7 @@ function selectItem(item) {
   </v-card>
   <v-card class="mt-2" v-if="results.length">
     <span v-if="!in_sheet" class="text-grey-darken-1 text-caption">
-      Página {{final_filters.page}} de {{Math.ceil(total_count / final_filters.page_size)}}
+      Página {{page_number}} de {{Math.ceil(total_count / final_filters.page_size)}}
       | {{total_count}} Resultados
     </span>
     <PanelList
@@ -176,6 +211,7 @@ function selectItem(item) {
       :collection_data="collection_data"
       :show_details="show_details"
       :sel="sel"
+      :is_simple="is_simple"
     />
     <SummaryList
       v-else
@@ -206,25 +242,29 @@ function selectItem(item) {
   </v-card>
   <v-dialog
     v-model="dialog_edit"
-    max-width="1100"
+    max-width="1200"
   >
     <v-card v-if="element_to_edit">
       <v-card-title>
         {{edit_type.title}}
       </v-card-title>
-      <EditCommon
-        :full_main="element_to_edit"
-        :collection_data="collection_data"
-        @item-saved="saveNewElement"
-      >
-        <template v-slot:edit="{ full_main }">
-          <component
-            :is="edit_component"
-            :full_main="element_to_edit"
-            :is_massive_edit="false"
-          ></component>
-        </template>
-      </EditCommon>
+      <v-card-text>
+        <EditCommon
+          :full_main="element_to_edit"
+          :collection_data="collection_data"
+          @item-saved="saveNewElement"
+          :edit_type="edit_type"
+          @merge-items="mergeItems"
+          ref="editRef"
+        >
+          <template #edit="{ full_main }">
+            <component
+              :is="edit_component"
+              :full_main="element_to_edit"
+              :is_massive_edit="false"
+            ></component>
+          </template>
+        </EditCommon>
 
 <!--      <component-->
 <!--        :is="edit_component"-->
@@ -234,14 +274,15 @@ function selectItem(item) {
 <!--        _select-item="selectItem($event)"-->
 <!--        @item-saved="saveNewElement"-->
 <!--      ></component>-->
-      <v-card-text v-if="edit_type.key !== 'add'">
-        <v-divider></v-divider>
-        <PanelList
-          :results="selected_results"
-          :collection_data="collection_data"
-          :show_details="show_details"
-          :sel="sel"
-        />
+        <template v-if="edit_type.key !== 'edit'">
+          <v-divider></v-divider>
+          <PanelList
+            :results="selected_results"
+            :collection_data="collection_data"
+            :show_details="show_details"
+            :sel="sel"
+          />
+        </template>
       </v-card-text>
     </v-card>
   </v-dialog>

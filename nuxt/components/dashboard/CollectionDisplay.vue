@@ -25,6 +25,7 @@ const props = defineProps({
   is_mini: Boolean,
   in_sheet: Boolean,
   init_total_count: Number,
+  direct_sheet: Boolean,
   init_filters: {
     type: Object,
     default: () => ({}),
@@ -74,12 +75,13 @@ const collection_data = computed(() => {
   return props.parent_collection || current_collection_data.value
 })
 const simplified_filters = computed(() =>{
+  if (props.is_mini)
+    return false
   return current_filters.value.length <= 3
 })
 
 watch(
-  final_filters, () => {
-    // console.log("final_filters", val)
+  final_filters, (val) => {
     if (!temp_reset.value)
       applyFilters()
     else
@@ -142,8 +144,10 @@ function changeShowDetails() {
 }
 
 function resetFilters() {
-  if (!collection_data.value.is_category
-      && !collection_data.value.cat_params?.init_display)
+  const coll_data = collection_data.value
+  if (!coll_data.is_category && !coll_data.cat_params?.init_display)
+    temp_reset.value = true
+  if (props.direct_sheet)
     temp_reset.value = true
   final_filters.value = {
     ordering: null,  // '-id',
@@ -160,71 +164,16 @@ function initFilters() {
   // console.log("changeFilters", collection_data.value)
   if (!collection_data.value)
     return
-  // const all_filters = collection_data.value.all_filters || []
-  // // console.log("all_filters", all_filters)
-  // // console.log("collection_data", collection_data.value)
-  // // console.log("level_name", props.level_name)
-  // // console.log("filter_group", props.filter_group)
-  // let collection_filters = all_filters.reduce((arr, f) => {
-  //   if (!f.filter_name){
-  //     // console.log("custom_filter", f)
-  //     arr.push({...f, order: 12, is_custom: true})
-  //     return arr
-  //   }
-  //   const filter_data = schemas.value.filters_dict[f.filter_name]
-  //
-  //   const new_filter = {...filter_data, ...f}
-  //   if (filter_data.category_group){
-  //     filter_data.category_groups.forEach(cg => {
-  //       const short_name = `${new_filter.short_prev} ${cg.name}`
-  //       const name = `${new_filter.prev} ${cg.name}`
-  //       let current_filter = {
-  //         name, short_name, category_group_value: cg.id}
-  //       arr.push({...new_filter, ...cg, ...current_filter})
-  //     })
-  //     return arr
-  //   }
-  //   arr.push(new_filter)
-  //   return arr
-  // }, [])
-  // // console.log("collection_filters", collection_filters)
-  // if (props.filter_group){
-  //   // console.log("filter_group", props.filter_group)
-  //   const fg = props.filter_group
-  //   const new_filter_group = {
-  //     ...fg,
-  //     short_name: `${fg.short_prev} ${fg.name}`,
-  //     name: `${fg.prev} ${fg.name}`,
-  //     forced_level: props.level_name,
-  //   }
-  //   collection_filters.push(new_filter_group)
-  // }
-  //
-  // const status_groups = collection_data.value.status_groups || []
-  // status_groups.forEach(sg => {
-  //   const status = status_filters[sg]
-  //   collection_filters.push(status)
-  //   available_sorts.value.push({
-  //     value: `${status.collection}__order`,
-  //     title: `Status ${status.name}`
-  //   })
-  // })
-  // if (collection_data.value.name_field)
-  //   available_sorts.value.push({
-  //     title: "Nombre / Título",
-  //     value: collection_data.value.name_field
-  //   })
 
   let collection_filters = collection_data.value.collection_filters
   current_filters.value = collection_filters
 
-  // console.log("group in changeFilters", group)
-  if (collection_filters.length <= 3)
+  if (props.is_mini)
+    visible_filters.value = []
+  else if (collection_filters.length <= 3)
     visible_filters.value = current_filters.value
   else
     visible_filters.value = current_filters.value.filter(f => !f.hidden)
-  // console.log("visible_filters", visible_filters.value)
-  // console.log("collection_data", collection_data.value)
 }
 
 function addItem() {

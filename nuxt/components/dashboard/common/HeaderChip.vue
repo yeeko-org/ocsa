@@ -14,6 +14,7 @@ const props = defineProps({
   label_plural: String,
   color: String,
   tooltip_complement: String,
+  is_simple: Boolean,
 })
 
 const collection_data = computed(() => {
@@ -54,6 +55,9 @@ const final_icon = computed(() => {
     </v-icon>
     <span v-else>
       {{count}}
+      <span v-if="is_simple">
+        /&nbsp;∞
+      </span>
     </span>
     <v-icon
       small
@@ -71,12 +75,18 @@ const final_icon = computed(() => {
     >
       <div class="font-weight-bold">
         {{count}} {{ final_label }}
+        <span v-if="is_simple">
+          con relación <br>
+        </span>
+        <span v-if="is_simple" class="text-caption text-warning">
+          (El total real puede ser mayor)
+        </span>
       </div>
       <!--style with break-word-->
       <div
         v-if="tooltip_complement"
         v-html="tooltip_complement"
-        style="max-width: 400px; word-wrap: break-word;"
+        style="max-width: 500px; word-wrap: break-word;"
       ></div>
 
     </v-tooltip>

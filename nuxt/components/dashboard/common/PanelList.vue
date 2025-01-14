@@ -13,6 +13,7 @@ const props = defineProps({
     default: false,
   },
   parent: String,
+  is_simple: Boolean,
 })
 
 const open_panels = ref([])
@@ -104,6 +105,7 @@ function changeShowDetails() {
           :show_details="show_details"
           @open-panel="openMain"
           :parent="parent"
+          :is_simple="is_simple"
         />
       </template>
       <template

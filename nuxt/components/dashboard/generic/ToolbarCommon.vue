@@ -129,8 +129,8 @@ const total_count = computed(() => {
     return props.main_object[props.field].length
   } catch (e) {
     console.log("error", e)
-    console.log("main_object", props.main_object)
-    console.log("field", props.field)
+    console.log("main_object:", props.main_object)
+    console.log("field:", props.field)
     return 0
   }
 

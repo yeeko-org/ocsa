@@ -27,8 +27,8 @@ const props = defineProps({
     default: false,
   },
   parent: String,
+  is_simple: Boolean,
 })
-
 
 const note = computed(() => props.main)
 // const emits = defineEmits(['open-panel'])
@@ -42,6 +42,20 @@ const pretty_date = computed(() => {
 })
 const source = computed(() => {
   return cats.value.sources.find(src => src.id === note.value.source)
+})
+
+const events_count = computed(() => {
+  let hide_events = false
+  const final_count = final_mentions.value.reduce((acc, mention) => {
+    if (!mention.events || hide_events) {
+      hide_events = true
+      return acc
+    }
+    return acc + mention.events.length
+  }, 0)
+  if (hide_events)
+    return null
+  return final_count
 })
 
 </script>
@@ -73,27 +87,22 @@ const source = computed(() => {
       </div>
     </template>
     <template #details>
-      <span class="ml-2 mr-2 text-grey">
+      <span class="ml-2 mr-2 text-grey" v-if="!is_simple">
         {{main.nota_id_ref}}
       </span>
       <ProjectMiniList
         v-if="!parent || parent !== 'project'"
         :mentions="final_mentions"
       />
-      <StatusChip
-        v-if="note.status_register && false"
-        :main="note"
-        collection="register"
-        small
-        class="mb-1"
-      />
       <ImpactChip
+        v-if="!is_simple"
         :main_array="final_mentions"
         filter_group_name="impact_types"
         child_field="impacts"
       />
       <HeaderChip
-        :count="2"
+        v-if="!is_simple && events_count !== null"
+        :count="events_count"
         icon="notifications_active"
         label="evento"
         label_plural="eventos"
@@ -103,6 +112,7 @@ const source = computed(() => {
       <ActorsChip
         :main="note"
         :mentions="final_mentions"
+        :is_simple="is_simple"
       />
     </template>
   </HeaderCommon>

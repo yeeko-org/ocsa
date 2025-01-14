@@ -68,7 +68,6 @@ function saveLocations() {
 </script>
 
 <template>
-
   <v-card class="mb-4" elevation="4" variant="elevated" color="blue-grey-lighten-4">
     <LocationsToolbar
       :full_main="full_project"
@@ -93,7 +92,7 @@ function saveLocations() {
   >
     <FilesToolbar
       :full_main="full_main"
-      child_relation_name="note_file"
+      child_relation_name="project_file"
       main_collection_name="project"
     />
   </v-card>

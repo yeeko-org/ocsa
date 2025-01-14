@@ -14,6 +14,10 @@ const props = defineProps({
   collection_data: Object,
   collection_name: String,
   can_delete: Boolean,
+  edit_type: {
+    type: Object,
+    default: () => ({key: 'edit', title: 'Agregar Registro', btn: 'Guardar'})
+  },
 })
 
 const saving = ref(false)
@@ -26,7 +30,9 @@ const rules = ref({
   defined: value => value !== undefined || "Debes seleccionar una opción",
 })
 
-const emits = defineEmits(['new-item', 'item-deleted'])
+const emits = defineEmits([
+    'new-item', 'item-deleted', 'item-saved', 'merge-items'])
+defineExpose({ finishSave })
 
 const final_collection_data = computed(() => {
   if (props.collection_data)
@@ -36,22 +42,28 @@ const final_collection_data = computed(() => {
 
 async function saveRecord() {
   const { valid } = await editForm.value.validate()
-  // emits('save-item', props.full_main)
   if (!valid) return
   saving.value = true
   const elem_id = props.full_main.id ? 'id' : 'key_name'
-  // console.log('props.full_main', props.full_main)
   const is_new = !Boolean(props.full_main[elem_id])
   saveElement(final_collection_data.value, props.full_main).then((res) => {
-    emits('item-saved', {res, is_new})
-    snackbar.value = true
-    saving.value = false
+    if (props.edit_type.key === 'merge')
+      emits('merge-items', res)
+    else{
+      emits('item-saved', {res, is_new})
+      finishSave()
+    }
   })
+}
+
+function finishSave(){
+  saving.value = false
+  snackbar.value = true
 }
 
 function deleteRecord() {
   deleting.value = true
-  console.log('final_collection_data', final_collection_data.value)
+  // console.log('final_collection_data', final_collection_data.value)
   const elem_id = props.full_main.id ? 'id' : 'key_name'
   const id_to_delete = props.full_main[elem_id]
   deleteElement(final_collection_data.value, id_to_delete)
@@ -196,6 +208,7 @@ function openLink(type) {
         >
           Eliminar
         </v-btn>
+
         <v-btn
           v-if="final_collection_data.other_fields
             && final_collection_data.other_fields.length"
@@ -208,7 +221,7 @@ function openLink(type) {
             activator="parent"
           >
             <span class="font-weight-bold">Todos los campos:</span>
-            <div v-for="field in collection_data.other_fields">
+            <div v-for="field in final_collection_data.other_fields">
               {{field.name}} -- {{field.field_type}}
             </div>
           </v-tooltip>
@@ -224,7 +237,7 @@ function openLink(type) {
           :loading="saving"
           @click="saveRecord"
         >
-          Guardar
+          {{ edit_type.btn || 'Guardar' }}
         </v-btn>
       </v-card-actions>
     </v-form>
