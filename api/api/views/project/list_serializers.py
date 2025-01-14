@@ -8,6 +8,13 @@ from source.models import Mention, Note
 from event.models import Event
 
 
+class ConflictSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Conflict
+        fields = '__all__'
+
+
 class ActorBasicSerializer(serializers.ModelSerializer):
     participants_count = serializers.SerializerMethodField()
 
@@ -78,6 +85,7 @@ class LocationFullSerializer(serializers.ModelSerializer):
 class ProjectBasicSerializer(serializers.ModelSerializer):
     mentions = MentionSerializer(many=True, read_only=True)
     locations = LocationFullSerializer(many=True, read_only=True)
+    conflict_full = ConflictSerializer(read_only=True, source='conflict')
 
     class Meta:
         model = Project
@@ -93,6 +101,7 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "parent_project",
             # "other_parents",
             "conflict",
+            "conflict_full",
             "megaproject_type",
             "is_grouper",
             "status_validation",
@@ -101,10 +110,3 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "mentions",
             "locations",
         ]
-
-
-class ConflictSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Conflict
-        fields = '__all__'

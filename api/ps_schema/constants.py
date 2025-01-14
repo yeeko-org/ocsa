@@ -70,6 +70,7 @@ all_collections = {
                 {"filter_name": "impact_types", "hidden": True},
                 {"filter_name": "event_types", "hidden": True},
             ],
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "status_project",
@@ -79,6 +80,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "extractivism_type",
@@ -100,7 +102,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
-            "available_actions": ["merge", "massive_edit"],
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "conflict",
@@ -111,6 +113,7 @@ all_collections = {
             "icon": 'local_fire_department',
             "color": 'pink',
             "status_groups": ["validation"],
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "project_file",
@@ -139,6 +142,7 @@ all_collections = {
             "all_filters": [
                 {"filter_name": "impact_types", "hidden": False},
             ],
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "impact_group",
@@ -154,7 +158,7 @@ all_collections = {
             "model_name": "ImpactType",
             "level": "category_type",
             "status_groups": ["validation"],
-            "available_actions": ["merge", "massive_edit"],
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "impact_subtype",
@@ -165,6 +169,7 @@ all_collections = {
             "optional_category": True,
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
     ],
     "actor": [
@@ -188,6 +193,7 @@ all_collections = {
                 {"filter_name": "sectors", "hidden": False},
                 {"filter_name": "countries", "hidden": True},
             ],
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "participant",
@@ -221,6 +227,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "belong",
@@ -230,6 +237,7 @@ all_collections = {
             "level": "category_subtype",
             "cat_params": {"item_id": "key_name"},
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "indigenous_group",
@@ -239,6 +247,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "sector_group",
@@ -248,6 +257,7 @@ all_collections = {
             "level": "category_type",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "sector",
@@ -257,6 +267,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "interest_group",
@@ -273,6 +284,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "interest_subtype",
@@ -282,6 +294,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "country",
@@ -291,6 +304,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
     ],
     "event": [
@@ -322,6 +336,7 @@ all_collections = {
             "level": "category_type",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "event_subtype",
@@ -331,6 +346,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge"],
         },
         {
             "snake_name": "involved_role",

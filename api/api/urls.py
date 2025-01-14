@@ -3,6 +3,8 @@ from django.urls import include, path
 from api.views.actor import ActorViewSet, ActorMiniListViewSet
 from api.views.project import (
     ProjectViewSet, ProjectFileViewSet, ConflictViewSet)
+from api.views.generic_merge.views import MergeRecordsView
+
 from api.views.note import NoteViewSet, NoteFileViewSet
 from api.views.note.mention_views import (
     MentionViewSet, ParticipantViewSet, ImpactViewSet,
@@ -40,5 +42,6 @@ urlpatterns = [
     path('login/', UserLoginAPIView.as_view(), name='login'),
     path('catalogs/', include('api.views.catalogs.urls')),
     path('space_time/', include('api.views.space_time.urls')),
+    path('generic_merge/', MergeRecordsView.as_view(), name='generic-merge'),
     path('', include(router.urls)),
 ]
