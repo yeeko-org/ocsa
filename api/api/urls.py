@@ -1,7 +1,8 @@
 from django.urls import include, path
 
 from api.views.actor import ActorViewSet, ActorMiniListViewSet
-from api.views.project import ProjectViewSet, ProjectFileViewSet
+from api.views.project import (
+    ProjectViewSet, ProjectFileViewSet, ConflictViewSet)
 from api.views.note import NoteViewSet, NoteFileViewSet
 from api.views.note.mention_views import (
     MentionViewSet, ParticipantViewSet, ImpactViewSet,
@@ -20,6 +21,7 @@ router.register(r'note', NoteViewSet, basename='note')
 router.register(r'note_file', NoteFileViewSet, basename='note file')
 
 router.register(r'project', ProjectViewSet, basename='project')
+router.register(r'conflict', ConflictViewSet, basename='conflict')
 router.register(r'project_file', ProjectFileViewSet, basename='project file')
 
 router.register(r'mention', MentionViewSet, basename='mention')

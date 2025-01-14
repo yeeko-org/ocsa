@@ -8,12 +8,12 @@ from rest_framework.viewsets import GenericViewSet
 from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
 from api.views.action_file import ActionFileMixin
-from project.models import Project, ProjectFile
+from project.models import Project, ProjectFile, Conflict
 from space_time.models import Location
 from source.models import Mention
 from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
 from api.views.note.serializers import ProjectSemiFullSerializer
-from .list_serializers import ProjectBasicSerializer
+from .list_serializers import ProjectBasicSerializer, ConflictSerializer
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 from api.views.common_views import UnaccentSearchFilter, OrderingAutoFilter
 
@@ -103,3 +103,14 @@ class ProjectFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, Ge
     serializer_class = ProjectFileSerializer
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, OrderingFilter]
+
+
+class ConflictViewSet(viewsets.ModelViewSet):
+    queryset = Conflict.objects.all()
+    permission_classes = [permissions.AllowAny]
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['name']
+    ordering_fields = ['id', 'name']
+    ordering = ['id']
+    serializer_class = ConflictSerializer

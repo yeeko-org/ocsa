@@ -54,7 +54,9 @@ class ProyectoToProject:
         for csa in csa_query:
             if not csa.nombre:
                 continue
-            conflict, _ = Conflict.objects.get_or_create(name=csa.nombre)
+            clean_name = csa.nombre.replace("Conflicto ", "")
+            clean_name = clean_name.strip()
+            conflict, _ = Conflict.objects.get_or_create(name=clean_name)
             self.conflicts[csa.nombre] = conflict
 
     def get_conflict(self, csa_name: str):

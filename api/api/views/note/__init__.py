@@ -57,6 +57,15 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
     serializer_class = NoteSerializer
     action_add_file_param = 'note'
 
+    def get_queryset(self):
+        is_retrieve = self.action == 'retrieve'
+        self.queryset = self.queryset.prefetch_related(
+            'files',
+            'mentions__project__locations',
+            'mentions__project__conflict',
+        ) if is_retrieve else self.queryset
+        return super().get_queryset()
+
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': NoteFullSerializer,

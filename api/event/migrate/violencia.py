@@ -191,8 +191,8 @@ class ViolenciaToEventMigrate:
         default_group, created = EventGroup.objects.get_or_create(
             name="Violencia", model_origin="HechosViolencia")
         if created:
-            default_group.icon = 'local_fire_department'
-            default_group.color = 'red'
+            default_group.icon = 'voice_over_off'
+            default_group.color = 'deep-orange'
             default_group.save()
 
         for h_violencia in HechosViolencia.objects.all():

@@ -5,12 +5,20 @@ from api.views.project.list_serializers import (
 from api.views.project.retrieve_serializers import (
     ConflictSerializer, ProjectFullSerializer)
 from api.views.space_time.serializers import LocationSerializer
-from project.models import Project
+from project.models import Project, ProjectFile
 from source.models import Mention, Note, NoteFile, StatusHistory
 from event.models import Event, Involved
 from actor.models import Participant, Interest
 from impact.models import Impact
 # from impact.models import Impact
+from space_time.models import Location
+
+
+class LocationSmallSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Location
+        exclude = ['geojson', 'ubicacion_id_ref']
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -19,10 +27,21 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProjectFileSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(source="file.name")
+    url = serializers.ReadOnlyField(source="file.url")
+
+    class Meta:
+        model = ProjectFile
+        fields = ['id', 'file', 'uploaded_at', 'name', 'url']
+
+
 class ProjectSemiFullSerializer(serializers.ModelSerializer):
+    files = ProjectFileSerializer(many=True, read_only=True)
     parent_project = serializers.SerializerMethodField(read_only=True)
-    conflict_full = ConflictSerializer(read_only=True)
+    conflict_full = ConflictSerializer(read_only=True, source='conflict')
     extractivism_type = serializers.SerializerMethodField()
+    locations = LocationSmallSerializer(many=True, read_only=True)
 
     def get_parent_project(self, obj):
         if obj.parent_project:

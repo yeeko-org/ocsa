@@ -100,6 +100,7 @@ all_collections = {
             "level": "category_subtype",
             "status_groups": ["validation"],
             "open_insertion": True,
+            "available_actions": ["merge", "massive_edit"],
         },
         {
             "snake_name": "conflict",
@@ -108,8 +109,15 @@ all_collections = {
             "model_name": "Conflict",
             "level": "primary",
             "icon": 'local_fire_department',
-            "color": 'lime',
+            "color": 'pink',
             "status_groups": ["validation"],
+        },
+        {
+            "snake_name": "project_file",
+            "name": "Archivo de proyecto",
+            "plural_name": "Archivos de proyecto",
+            "model_name": "ProjectFile",
+            "level": "relational",
         },
         # {
         #     "snake_name": "project_location",

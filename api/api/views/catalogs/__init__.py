@@ -191,7 +191,7 @@ class ExtractivismTypeViewSet(BaseViewSet):
 
     def get_serializer_class(self):
         action_serializer = {
-            'retrieve': ExtractivismTypeFullSerializer,
+            'retrieve': ExtractivismTypeSerializer,
             'create': ExtractivismTypeSerializer,
             'update': ExtractivismTypeSerializer
         }
@@ -207,7 +207,7 @@ class MegaprojectTypeFilter(FilterSet):
         fields = {'status_validation': ['exact']}
 
 
-class MegaprojectTypeViewSet(BaseViewSet):
+class MegaprojectTypeViewSet(BaseStatusViewSet):
 
     queryset = MegaprojectType.objects.all()\
         .annotate(count=Count('projects'))\

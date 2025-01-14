@@ -2,13 +2,18 @@ from rest_framework import serializers
 
 from actor.models import Actor, Participant, Interest
 from impact.models import Impact
-from project.models import Project
+from project.models import Project, Conflict
 from space_time.models import Location
 from source.models import Mention, Note
 from event.models import Event
 
 
 class ActorBasicSerializer(serializers.ModelSerializer):
+    participants_count = serializers.SerializerMethodField()
+
+    def get_participants_count(self, obj):
+        return 9999
+
     class Meta:
         model = Actor
         exclude = ['std_name', 'capital_id_ref']
@@ -35,7 +40,6 @@ class ImpactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Impact
         fields = '__all__'
-
 
 
 class NoteBasicSerializer(serializers.ModelSerializer):
@@ -97,3 +101,10 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "mentions",
             "locations",
         ]
+
+
+class ConflictSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Conflict
+        fields = '__all__'

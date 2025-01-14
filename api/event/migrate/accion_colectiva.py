@@ -82,7 +82,7 @@ class AccionesColectivasToEventMigrate:
         ac_group, created = EventGroup.objects.get_or_create(
             name="Acciones Colectivas", model_origin="FormaAC")
         if created:
-            ac_group.icon = 'draw'
+            ac_group.icon = 'campaign'
             ac_group.color = 'blue'
             ac_group.save()
 

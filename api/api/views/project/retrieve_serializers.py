@@ -69,7 +69,7 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     files = ProjectFileSerializer(many=True, read_only=True)
     parent_project_full = serializers.SerializerMethodField(
         read_only=True)
-    conflict_full = ConflictSerializer(read_only=True)
+    conflict_full = ConflictSerializer(read_only=True, source='conflict')
     extractivism_type = serializers.SerializerMethodField(
         read_only=True)
     mentions = MentionFullSerializer(many=True, read_only=True)

@@ -28,8 +28,12 @@ class MegaprojectTypeFullSerializer(MegaprojectTypeSerializer):
 
 
 class ExtractivismTypeSerializer(serializers.ModelSerializer):
-    megaproject_types = MegaprojectTypeCountSerializer(
-        many=True, read_only=True)
+    # megaproject_types = MegaprojectTypeCountSerializer(
+    #     many=True, read_only=True)
+    megaproject_types_count = serializers.SerializerMethodField()
+
+    def get_megaproject_types_count(self, obj):
+        return obj.megaproject_types.count()
 
     class Meta:
         model = ExtractivismType
