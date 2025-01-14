@@ -1,5 +1,6 @@
 import re
 from django.db import models
+from django.utils import timezone
 from django.utils.text import slugify
 
 from project.models import Project, StatusProject
@@ -47,8 +48,7 @@ class Note(CommentsMixin, models.Model):
     screenshot = models.ImageField(
         upload_to='screenshots/', blank=True, null=True)
     date = models.DateField()
-    capture_date = models.DateField(
-        blank=True, null=True, auto_now=True)
+    capture_date = models.DateField(blank=True, null=True)
     editor = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True,
         related_name='editors')
@@ -66,6 +66,11 @@ class Note(CommentsMixin, models.Model):
         self.slug_title = clean_text(self.title)
         if save:
             self.save()
+
+    def save(self, *args, **kwargs):
+        if self.capture_date:
+            self.capture_date = timezone.now().date()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -126,7 +131,7 @@ class StatusHistory(models.Model):
         max_length=20, blank=True, null=True)
 
     def __str__(self):
-        return self.status_project
+        return str(self.status_project)
 
     class Meta:
         verbose_name = 'Historial de estatus de proyecto'
