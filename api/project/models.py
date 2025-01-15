@@ -82,8 +82,6 @@ class Project(models.Model):
     legacy_id_mp = models.IntegerField(blank=True, null=True)
     name = models.CharField(
         max_length=255, verbose_name='Nombre común', blank=True, null=True)
-    official_name = models.CharField(
-        max_length=255, verbose_name='Nombre oficial', blank=True, null=True)
     alternative_name = models.TextField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     parent_project = models.ForeignKey(
@@ -112,7 +110,7 @@ class Project(models.Model):
     files: models.QuerySet["ProjectFile"]
 
     def __str__(self):
-        return self.name or self.official_name or "Proyecto sin nombre"
+        return self.name or "Proyecto sin nombre"
 
     def get_last_status_project(self, save=False):
         from source.models import StatusHistory

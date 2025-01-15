@@ -25,8 +25,8 @@ class Source(models.Model):
 
 
 def clean_text(text):
-    slugified_text = slugify(text)
-    cleaned_text = slugified_text.replace('-', ' ').replace('_', ' ')
+    slugify_text = slugify(text)
+    cleaned_text = slugify_text.replace('-', ' ').replace('_', ' ')
     cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip()
     return cleaned_text
 
@@ -68,7 +68,7 @@ class Note(CommentsMixin, models.Model):
             self.save()
 
     def save(self, *args, **kwargs):
-        if self.capture_date:
+        if not self.capture_date:
             self.capture_date = timezone.now().date()
         super().save(*args, **kwargs)
 
