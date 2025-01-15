@@ -4,6 +4,47 @@ from django.db.models.deletion import Collector
 from django.db import router
 
 
+def related_objects_report(
+    instance, related_objects, report: list, errors: list
+):
+    for related in related_objects:
+        try:
+            related_name = related.get_accessor_name()
+            if related.field.many_to_one or related.field.one_to_one:
+                related_manager = getattr(
+                    instance, related_name)
+                related_items = list(related_manager.all()) if not related.one_to_one else [
+                    related_manager]
+                related_ids = [item.id for item in related_items if item]
+                related_count = len(related_items)
+                report.append({
+                    "relation_type": "ForeignKey" if not related.one_to_one else "OneToOne",
+                    "related_model": related.related_model.__name__,
+                    "related_model_app": related.related_model._meta.app_label,
+                    "affected_records": related_count,
+                    "affected_ids": related_ids,
+                    "field": related.field.name,
+                })
+            elif related.field.many_to_many:
+                related_manager = getattr(
+                    instance, related.field.name)
+                related_items = related_manager.all()
+                related_ids = [item.id for item in related_items]
+                related_count = related_items.count()
+                report.append({
+                    "relation_type": "ManyToMany",
+                    "related_model": related.related_model.__name__,
+                    "related_model_app": related.related_model._meta.app_label,
+                    "affected_records": related_count,
+                    "affected_ids": related_ids,
+                    "field": related.field.name,
+                })
+        except Exception as e:
+            errors.append(
+                f"Error al generar informe para la relación "
+                f"'{related.field.name}' {related.__dict__}: {e}")
+
+
 class RecordMerger:
     def __init__(self, model_name: str):
         self.model_class = None
@@ -127,42 +168,9 @@ class RecordMerger:
 
     def _generate_report(self, related_objects):
 
-        for related in related_objects:
-            try:
-                related_name = related.get_accessor_name()
-                if related.field.many_to_one or related.field.one_to_one:
-                    related_manager = getattr(
-                        self.merge_instance, related_name)
-                    related_items = list(related_manager.all()) if not related.one_to_one else [
-                        related_manager]
-                    related_ids = [item.id for item in related_items if item]
-                    related_count = len(related_items)
-                    self.report.append({
-                        "relation_type": "ForeignKey" if not related.one_to_one else "OneToOne",
-                        "related_model": related.related_model.__name__,
-                        "related_model_app": related.related_model._meta.app_label,
-                        "affected_records": related_count,
-                        "affected_ids": related_ids,
-                        "field": related.field.name,
-                    })
-                elif related.field.many_to_many:
-                    related_manager = getattr(
-                        self.merge_instance, related.field.name)
-                    related_items = related_manager.all()
-                    related_ids = [item.id for item in related_items]
-                    related_count = related_items.count()
-                    self.report.append({
-                        "relation_type": "ManyToMany",
-                        "related_model": related.related_model.__name__,
-                        "related_model_app": related.related_model._meta.app_label,
-                        "affected_records": related_count,
-                        "affected_ids": related_ids,
-                        "field": related.field.name,
-                    })
-            except Exception as e:
-                self.errors.append(
-                    f"Error al generar informe para la relación "
-                    f"'{related.field.name}' {related.__dict__}: {e}")
+        related_objects_report(
+            self.merge_instance, related_objects, self.report, self.errors
+        )
 
     def delete_instance(self):
         using = router.db_for_write(self.merge_instance.__class__)
