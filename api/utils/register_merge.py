@@ -20,6 +20,7 @@ def related_objects_report(
                 report.append({
                     "relation_type": "ForeignKey" if not related.one_to_one else "OneToOne",
                     "related_model": related.related_model.__name__,
+                    "related_name": related_name,
                     "related_model_app": related.related_model._meta.app_label,
                     "affected_records": related_count,
                     "affected_ids": related_ids,
@@ -27,13 +28,14 @@ def related_objects_report(
                 })
             elif related.field.many_to_many:
                 related_manager = getattr(
-                    instance, related.field.name)
+                    instance, related.name)
                 related_items = related_manager.all()
                 related_ids = [item.id for item in related_items]
                 related_count = related_items.count()
                 report.append({
                     "relation_type": "ManyToMany",
                     "related_model": related.related_model.__name__,
+                    "related_name": related.name,
                     "related_model_app": related.related_model._meta.app_label,
                     "affected_records": related_count,
                     "affected_ids": related_ids,
@@ -158,13 +160,13 @@ class RecordMerger:
 
     def _merge_many_to_many(self, related):
 
-        related_manager = getattr(self.merge_instance, related.field.name)
+        related_manager = getattr(self.merge_instance, related.name)
         field_name = related.field.name
 
-        for obj in related_manager.all():
-            getattr(self.main_instance, field_name).add(obj)
-
-        related_manager.clear()
+        for obj_whit_m2m in related_manager.all():
+            obj_whit_m2m_manager = getattr(obj_whit_m2m, field_name)
+            obj_whit_m2m_manager.add(self.main_instance)
+            obj_whit_m2m_manager.remove(self.merge_instance)
 
     def _generate_report(self, related_objects):
 
@@ -173,6 +175,8 @@ class RecordMerger:
         )
 
     def delete_instance(self):
+        if not self.merge_instance:
+            return
         using = router.db_for_write(self.merge_instance.__class__)
         collector = Collector(using=using)
         collector.collect([self.merge_instance])

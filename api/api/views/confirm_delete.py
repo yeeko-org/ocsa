@@ -18,7 +18,9 @@ class CustomDeleteMixin:
 
         for report in report_data:
             if report["affected_records"]:
-                return Response(report_data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"report_data": report_data, "errors": errors},
+                    status=status.HTTP_400_BAD_REQUEST)
 
         return super().destroy(request, *args, **kwargs)  # type: ignore
 
