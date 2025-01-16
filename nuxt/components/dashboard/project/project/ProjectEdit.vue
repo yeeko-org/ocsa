@@ -17,17 +17,18 @@ const props = defineProps({
   is_edit: Boolean,
 })
 
-const dialog_search = ref(false)
-
-function closeDialog(item) {
-  dialog_search.value = false
-  // props.full_main.project = item.id
-  console.log("item", item)
-}
-
 const conflict_collection = computed(() => {
   return schemas.value.collections_dict['conflict']
 })
+
+const project_collection = computed(() => {
+  return schemas.value.collections_dict['project']
+})
+
+const changeParentProject = (parent_project) => {
+  props.full_main.parent_project = parent_project.id
+  props.full_main.parent_project_full = parent_project
+}
 
 </script>
 
@@ -41,15 +42,6 @@ const conflict_collection = computed(() => {
       class="mr-2"
       style="max-width: 460px;"
     />
-    <v-card variant="outlined" class="mr-2 px-2 mb-5">
-      <v-switch
-        v-model="full_main.is_grouper"
-        label="Es agrupador"
-        append-icon="group_work"
-        hide-details
-        color="primary"
-      />
-    </v-card>
   </v-col>
   <v-col cols="12" md="6" class="pa-0 d-flex">
     <CardCommon
@@ -58,6 +50,7 @@ const conflict_collection = computed(() => {
       is_simple
       class="mb-4"
       null_available
+      title="Conflicto"
       @delete-item="full_main.conflict = null"
     />
   </v-col>
@@ -68,20 +61,32 @@ const conflict_collection = computed(() => {
       :width="360"
     />
   </v-col>
-  <v-dialog
-    v-model="dialog_search"
-    max-width="920"
-  >
-    <v-card height="800">
-      <v-card-text class="py-0">
-        <CollectionDisplay
-          :parent_collection="conflict_collection"
-          is_mini
-          @select-item="closeDialog($event)"
-        />
-      </v-card-text>
+  <v-col cols="12" md="4" class="pa-0 d-flex">
+    <v-card
+      variant="outlined" class="mr-2 px-2 mb-5"
+      min-width="220"
+    >
+      <v-switch
+        v-model="full_main.is_grouper"
+        label="Es agrupador"
+        append-icon="account_tree"
+        hide-details
+        color="primary"
+      />
     </v-card>
-  </v-dialog>
+  </v-col>
+  <v-col cols="12" md="8" class="pa-0 d-flex mb-2">
+    <CardCommon
+      :full_main="full_main.parent_project && full_main.parent_project_full"
+      :collection_data="project_collection"
+      is_simple
+      title="Proyecto agrupador"
+      indirect_get
+      null_available
+      @selected-item="changeParentProject"
+      @delete-item="full_main.parent_project = null"
+    />
+  </v-col>
 </template>
 
 <style scoped>

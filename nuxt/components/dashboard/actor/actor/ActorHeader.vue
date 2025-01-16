@@ -123,20 +123,17 @@ const participants = computed(() => {
           collection_name="note"
           :tooltip_complement="unique_notes.join('<br>')"
         />
+        <HeaderChip
+          :count="unique_projects.length"
+          :tooltip_complement="unique_projects.join('<br>')"
+          collection_name="project"
+          class="ml-2"
+        />
         <ActorsChip
           :main="actor"
           :participants="participants"
           field="project_full"
           subfield="name"
-          class="ml-2"
-        />
-        <HeaderChip
-          :count="unique_projects.length"
-          :tooltip_complement="unique_projects.join('<br>')"
-          icon="factory"
-          label="proyecto"
-          label_plural="proyectos"
-          color="purple"
           class="ml-2"
         />
       </template>

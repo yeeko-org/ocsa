@@ -39,6 +39,7 @@ const mention_counts = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
+    :height="70"
   >
     <template #icon>
       <div
@@ -56,31 +57,59 @@ const mention_counts = computed(() => {
       <ExtractivismIcons
         :project="main"
       />
-      <v-icon
-        v-if="main.is_grouper"
-        class="ml-3"
-        color="deep-purple"
-        v-tooltip="'Es un agrupador de proyectos.'"
-      >
-        group_work
-      </v-icon>
+<!--      <v-icon-->
+<!--        v-if="main.is_grouper"-->
+<!--        class="ml-3"-->
+<!--        color="deep-purple"-->
+<!--        v-tooltip="'Es un agrupador de proyectos.'"-->
+<!--      >-->
+<!--        group_work-->
+<!--      </v-icon>-->
     </template>
+    <template #title>
+      <div class="d-flex flex-column align-start justify-start">
+        <div class="ml-2 text-caption" v-if="main.parent_project_full">
+          <span class="text-grey-darken-1">
+            Grouper:
+          </span>
+          <span class="text-blue-darken-1 ml-1">
+            {{main.parent_project_full.name}}
+          </span>
+        </div>
+        <div
+          class="ml-2 text-body-1"
+          style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
+          v-tooltip:bottom="main.name"
+        >
+          {{ main.name }}
+        </div>
+      </div>
+    </template>
+
     <template #details>
-      <span class="ml-2 mr-2 text-grey">
-        {{main.proyecto_id_ref}}
-      </span>
+      <HeaderChip
+        v-if="main.is_grouper"
+        :count="main.children_projects.length"
+        icon="account_tree"
+        label="proyecto hijo"
+        label_plural="proyectos hijos"
+        collection_name="actor"
+        class="ml-2"
+        :horizontal="false"
+      />
       <HeaderChip
         :count="mention_counts"
         icon="newspaper"
         label="nota"
         label_plural="notas"
         color="deep-purple"
-        class="mx-1"
+        class="mr-1 ml-2"
         :is_simple="is_simple"
       />
       <template v-if="!is_simple">
         <LocationsChip
           :project="main"
+          class="mr-2"
         />
         <ImpactChip
           :main_array="main.mentions"
@@ -91,7 +120,25 @@ const mention_counts = computed(() => {
       <ActorsChip
         :main="main"
         :is_simple="is_simple"
+        class="mx-1"
       />
+      <HeaderChip
+        v-if="main.others_parents && main.others_parents.length"
+        :count="main.others_parents.length"
+        icon="account_tree"
+        label="otros proyectos agrupadores"
+        color="warning"
+        label_plural="otros actores padres"
+        class="ml-2"
+      />
+      <div class="ml-1 d-flex flex-column align-center">
+        <div class="text-grey text-caption">
+          {{main.proyecto_id_ref}}
+        </div>
+        <div class="text-grey-lighten-1 text-caption">
+          {{main.id}}
+        </div>
+      </div>
     </template>
   </HeaderCommon>
 

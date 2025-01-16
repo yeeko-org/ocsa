@@ -3,6 +3,7 @@
 import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
 import ActorCard from "~/components/dashboard/actor/actor/ActorCard.vue";
 import ConflictCard from "~/components/dashboard/project/conflict/ConflictCard.vue";
+import CardCommon from "~/components/dashboard/common/CardCommon.vue";
 
 const props = defineProps({
   results: Array,
@@ -29,26 +30,40 @@ function selectItem(result) {
     :color="collection_data.color"
     variant="tonal"
   >
-    <ProjectCard
-      v-if="collection_data.snake_name === 'project'"
+    <CardCommon
+      :collection_data="collection_data"
       :full_main="result"
+      is_select
+      @selected-item="selectItem"
     />
-    <ActorCard
-      v-else-if="collection_data.snake_name === 'actor'"
-      :full_main="result"
-    />
-    <ConflictCard
-      v-else-if="collection_data.snake_name === 'conflict'"
-      :full_main="result"
-    />
-    <v-spacer></v-spacer>
-    <v-btn
-      @click="selectItem(result)"
-      color="accent"
-      variant="outlined"
-    >
-      Seleccionar
-    </v-btn>
+<!--    <ProjectCard-->
+<!--      v-if="collection_data.snake_name === 'project'"-->
+<!--      :full_main="result"-->
+<!--    />-->
+<!--    <ActorCard-->
+<!--      v-else-if="collection_data.snake_name === 'actor'"-->
+<!--      :full_main="result"-->
+<!--    />-->
+<!--    <ConflictCard-->
+<!--      v-else-if="collection_data.snake_name === 'conflict'"-->
+<!--      :full_main="result"-->
+<!--    />-->
+<!--    <v-spacer></v-spacer>-->
+<!--    <v-btn-->
+<!--      color="accent"-->
+<!--      variant="text"-->
+<!--      icon-->
+<!--      class="mr-2"-->
+<!--    >-->
+<!--      <v-icon>visibility</v-icon>-->
+<!--    </v-btn>-->
+<!--    <v-btn-->
+<!--      @click="selectItem(result)"-->
+<!--      color="accent"-->
+<!--      variant="outlined"-->
+<!--    >-->
+<!--      Seleccionar-->
+<!--    </v-btn>-->
   </v-card>
 </template>
 

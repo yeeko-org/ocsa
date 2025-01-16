@@ -15,6 +15,7 @@ const props = defineProps({
   color: String,
   tooltip_complement: String,
   is_simple: Boolean,
+  horizontal: Boolean,
 })
 
 const collection_data = computed(() => {
@@ -40,32 +41,41 @@ const final_icon = computed(() => {
 </script>
 
 <template>
-  <v-chip
-    small
-    label
+  <v-card
     variant="tonal"
     :color="final_color"
+    class="text-body-2 px-2"
+    :class="horizontal ? 'py-2' : 'py-1'"
   >
-    <v-icon
-      v-if="!count"
-      small
-      color="warning"
+    <div
+      class="d-flex align-center justify-center"
+      :class="horizontal ? 'flex-row' : 'flex-column'"
     >
-      warning_amber
-    </v-icon>
-    <span v-else>
-      {{count}}
-      <span v-if="is_simple">
-        /&nbsp;∞
-      </span>
-    </span>
-    <v-icon
-      small
-      end
-      :color="final_color"
-    >
-      {{ final_icon }}
-    </v-icon>
+      <div class="px-1">
+        <v-icon
+          v-if="!count"
+          size="18"
+          color="warning"
+        >
+          warning_amber
+        </v-icon>
+        <div
+          v-else
+        >
+          {{count}}
+          <span v-if="is_simple">
+            /&nbsp;∞
+          </span>
+        </div>
+      </div>
+      <v-icon
+        :size="horizontal ? 18 : 20"
+        :color="final_color"
+        :class="{ 'mt-1': !horizontal }"
+      >
+        {{ final_icon }}
+      </v-icon>
+    </div>
     <v-tooltip
       activator="parent"
       location="top"
@@ -90,7 +100,7 @@ const final_icon = computed(() => {
       ></div>
 
     </v-tooltip>
-  </v-chip>
+  </v-card>
 
 </template>
 

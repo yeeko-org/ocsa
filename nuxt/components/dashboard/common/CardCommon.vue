@@ -7,11 +7,15 @@ import { getElement } from "~/composables/save_elements.js";
 
 const props = defineProps({
   full_main: Object,
-  collection_data: Object,
+  collection_data: {
+    type: Object,
+    required: true,
+  },
   is_simple: Boolean,
   title: String,
   indirect_get: Boolean,
-  null_available: Boolean
+  null_available: Boolean,
+  is_select: Boolean,
 })
 
 const card_component = shallowRef('')
@@ -37,7 +41,7 @@ const elem_in_edition = ref(null)
 
 function editItem(item) {
   // console.log("editItem", item)
-  if (props.indirect_get) {
+  if (props.indirect_get || props.is_select){
     getElement(props.collection_data, item.id).then(response => {
       elem_in_edition.value = response
       dialog_edit.value = true
@@ -59,7 +63,8 @@ function closeDialog(event) {
 }
 
 function closeChangeDialog(new_item) {
-  emits('selected-item', new_item)
+  if (new_item)
+    emits('selected-item', new_item)
   dialog_search.value = false
 }
 
@@ -82,13 +87,36 @@ function closeChangeDialog(new_item) {
       Sin {{title || collection_data.name}}
     </span>
     <v-spacer></v-spacer>
-    <div class="d-flex" :class="{'flex-column': !is_simple}">
+    <div
+      class="d-flex align-center"
+      v-if="false"
+    >
+      <v-btn
+        color="accent"
+        variant="text"
+        icon
+        class="mr-2"
+      >
+        <v-icon>visibility</v-icon>
+      </v-btn>
+      <v-btn
+        @click="emits('selected-item', full_main)"
+        color="accent"
+        variant="outlined"
+      >
+        Seleccionar
+      </v-btn>
+    </div>
+    <div
+      class="d-flex align-center"
+      :class="{'flex-column': !is_simple && !is_select}"
+    >
       <template v-if="full_main">
         <v-btn
           icon="edit"
           size="small"
           color="accent"
-          variant="outlined"
+          :variant="is_select ? 'text' : 'outlined'"
           @click="editItem(full_main)"
           class="mr-1"
         ></v-btn>
@@ -102,9 +130,16 @@ function closeChangeDialog(new_item) {
           class="mr-1"
         ></v-btn>
       </template>
-<!--        @click="emits('edit-item', full_main)"-->
-<!--        @click="emits('search-item', full_main)"-->
       <v-btn
+        v-if="is_select"
+        @click="emits('selected-item', full_main)"
+        color="accent"
+        variant="outlined"
+      >
+        Seleccionar
+      </v-btn>
+      <v-btn
+        v-else
         icon="cached"
         size="small"
         color="accent"

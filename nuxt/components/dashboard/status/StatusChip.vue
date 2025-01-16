@@ -12,45 +12,21 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  hide_details: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  left_label: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  bold_text: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
+  hide_details: Boolean,
+  left_label: Boolean,
+  bold_text: Boolean,
   small: {
     type: Boolean,
     required: false,
     default: true,
   },
-  x_small: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  disabled: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
+  x_small: Boolean,
+  disabled: Boolean,
+  only_icon: Boolean,
   show_icon: {
     type: Boolean,
     required: false,
     default: true,
-  },
-  only_icon: {
-    type: Boolean,
-    required: false,
-    default: false,
   },
 });
 const mainStore = useMainStore();
@@ -157,11 +133,11 @@ const label = computed(() => {
       location="end"
     >
       <div
-        style="max-width: 400px;"
+        style="max-width: 300px;"
         :class="item_built.back_text"
       >
         <b>{{item_built.public_name}}</b> <br>
-        {{item_built.description || 'Sin descripción'}}
+        {{item_built.description || '--'}}
       </div>
     </v-tooltip>
   </div>

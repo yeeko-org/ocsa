@@ -227,7 +227,7 @@ function selectItem(item) {
             filter
             variant="tonal"
           >
-            {{filter.short_name || filter.name}}
+            {{filter.short_name || filter.name || filter.title}}
           </v-chip>
         </v-chip-group>
       </v-col>

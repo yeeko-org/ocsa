@@ -87,9 +87,6 @@ const events_count = computed(() => {
       </div>
     </template>
     <template #details>
-      <span class="ml-2 mr-2 text-grey" v-if="!is_simple">
-        {{main.nota_id_ref}}
-      </span>
       <ProjectMiniList
         v-if="!parent || parent !== 'project'"
         :mentions="final_mentions"
@@ -107,13 +104,21 @@ const events_count = computed(() => {
         label="evento"
         label_plural="eventos"
         color="blue"
-        class="mr-2"
+        class="mr-2 ml-1"
       />
       <ActorsChip
         :main="note"
         :mentions="final_mentions"
         :is_simple="is_simple"
       />
+      <div class="ml-1 d-flex flex-column align-center">
+        <div class="text-grey text-caption">
+          {{main.nota_id_ref}}
+        </div>
+        <div class="text-grey-lighten-1 text-caption">
+          {{main.id}}
+        </div>
+      </div>
     </template>
   </HeaderCommon>
 </template>

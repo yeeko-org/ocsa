@@ -7,6 +7,7 @@ import {nextTick} from "vue";
 import {show_details} from "~/composables/fetch.js";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 import FilesToolbar from "~/components/dashboard/utils/FilesToolbar.vue";
+import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { getGeo, saveSimple } = mainStore
@@ -65,6 +66,22 @@ function saveLocations() {
   })
 }
 
+function buildRelatedProjects(projects) {
+  if (!projects)
+    return []
+  return projects.map(project => {
+    return {
+      ...project,
+      parent_project_full: props.full_main,
+      parent_project: props.full_main.id,
+    }
+  })
+}
+
+const children_projects = computed(() => {
+  return buildRelatedProjects(props.full_main.children_projects_full)
+})
+
 </script>
 
 <template>
@@ -96,21 +113,36 @@ function saveLocations() {
       main_collection_name="project"
     />
   </v-card>
-  <v-card v-if="full_project.mentions">
+  <v-card class="mb-4" v-if="full_main.is_grouper">
+    <v-card-title>
+      Proyectos agrupados
+      <span v-if="children_projects">
+        ({{ children_projects.length }})
+      </span>
+    </v-card-title>
+    <v-card-text v-if="children_projects && children_projects.length">
+      <PanelsResult
+        :results="children_projects"
+        :collection_data="schemas.collections_dict['project']"
+        :show_details="show_details"
+        :total_count="children_projects.length"
+        in_sheet
+      />
+    </v-card-text>
+  </v-card>
 
+  <v-card v-if="full_project.mentions">
     <v-card-title class="text-deep-purple">
       {{ full_project.mentions.length }} Notas:
     </v-card-title>
     <v-card-text>
       <PanelList
-        v-if="true"
         :results="related_notes"
         :collection_data="note_collection"
         :show_details="show_details"
         parent="project"
       />
     </v-card-text>
-
   </v-card>
   <v-card class="my-3">
     <v-card-title>

@@ -12,7 +12,7 @@ const props = defineProps({
   },
   height: {
     type: Number,
-    default: 60,
+    default: 64,
   },
   width: Number,
 })
@@ -24,7 +24,8 @@ const title_width = computed(() => {
   if (props.width)
     return props.width
   // return props.group.key === 'project' ? 300 : 350
-  return ['project', 'note'].includes(props.collection_data.name) ? 300 : 350
+  // return ['project', 'note'].includes(props.collection_data.name) ? 300 : 350
+  return 300
 })
 const title_text = computed(() => {
   const name_field = props.collection_data.name_field
@@ -89,7 +90,6 @@ const emits = defineEmits(['open-panel'])
       class="text-subtitle-1 mr-4"
       :style="`max-width: ${title_width + 10}px;`"
     >
-
       <div class="d-flex align-center">
         <slot name="title" class="d-flex">
           <div
@@ -115,20 +115,30 @@ const emits = defineEmits(['open-panel'])
     </v-toolbar-title>
     <template v-if="real_show_details">
       <template v-if="collection_data.status_groups">
-        <StatusChip
+        <div
           v-for="status_group in collection_data.status_groups"
-          :main="main"
-          :collection="status_group"
-          small
-          class="ml-1"
-          :bold_text="false"
-        />
+          :key="status_group"
+          _style="width: 158px;"
+        >
+          <StatusChip
+            :main="main"
+            :collection="status_group"
+            small
+            class="ml-1"
+            :bold_text="false"
+          />
+        </div>
       </template>
-      <CommentIcon
-        v-if="main.comments"
-        :main="main"
-        class="ml-1"
-      />
+      <div
+        v-if="collection_data.has.comments"
+        style="width: 35px;"
+      >
+        <CommentIcon
+          v-if="main.comments"
+          :main="main"
+          class="ml-1"
+        />
+      </div>
       <slot  name="details">
         ----
       </slot>

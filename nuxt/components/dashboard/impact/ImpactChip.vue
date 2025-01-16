@@ -61,7 +61,7 @@ const all_counts = computed(() => {
     :label_plural="`Afectaciones ${group.name}es`"
     :color="group.color"
     :tooltip_complement="group.complement.join('<br>')"
-    class="mr-2"
+    class="mr-1"
   />
 </template>
 

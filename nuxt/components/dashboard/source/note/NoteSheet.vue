@@ -33,18 +33,18 @@ const project_collection = computed(() => {
   return schemas.value.collections_dict['project']
 })
 const addMention = () => {
-  console.log("add mention 2")
+  // console.log("add mention 2")
   dialog_search.value = true
 }
 
 const SaveMention = (project) => {
-  console.log("save mention", project)
+  // console.log("save mention", project)
   const params = {
     project: project.id,
     note: props.full_main.id,
   }
   saveSimple(['mention', params]).then(response => {
-    console.log("response", response)
+    // console.log("response", response)
     full_note.value.mentions.unshift(response)
     dialog_search.value = false
   })
@@ -52,7 +52,7 @@ const SaveMention = (project) => {
 
 function closeDialog(event) {
   // dialog_search.value = false
-  console.log("close dialog", event)
+  // console.log("close dialog", event)
   if (event) {
     // project_in_edition.value = event
     SaveMention(event)
@@ -63,7 +63,6 @@ function closeDialog(event) {
 }
 
 function saveMention(mention) {
-  console.log("save mention", mention)
   const index = full_note.value.mentions.findIndex(
     item => item.id === mention.id)
   full_note.value.mentions.splice(index, 1, mention)

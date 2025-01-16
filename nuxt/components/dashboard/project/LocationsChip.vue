@@ -12,7 +12,8 @@ const props = defineProps({
   project: {
     type: Object,
     required: true,
-  }
+  },
+  horizontal: Boolean,
 })
 
 const states_tooltip = computed(() => {
@@ -43,6 +44,7 @@ const locations_count = computed(() => {
     color="indigo"
     :tooltip_complement="states_tooltip"
     class="mx-1"
+    :horizontal="horizontal"
   />
 </template>
 

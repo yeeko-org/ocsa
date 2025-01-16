@@ -32,8 +32,7 @@ const actor_by_position = computed(() => {
 
 <template>
   <v-card
-    v-if="actor_by_position.length"
-    color="blue"
+    :color="actor_by_position.length ? 'blue' : 'warning'"
     class="d-flex pa-1"
     rounded
     variant="outlined"
@@ -78,6 +77,33 @@ const actor_by_position = computed(() => {
               {{ element }}
             </div>
           </v-card-text>
+        </v-card>
+      </v-tooltip>
+    </div>
+    <div
+      v-if="!actor_by_position.length"
+      class="d-flex flex-column align-center"
+    >
+      <div class="text-warning text-body-2">
+        0
+      </div>
+      <v-icon color="warning">
+        warning
+      </v-icon>
+      <v-tooltip
+        activator="parent"
+        location="bottom"
+      >
+        <v-card
+          color="warning"
+          class="mx-n4 my-n2"
+        >
+          <v-card-title
+            class="text-subtitle-1"
+            _class="`text-${position.color}`"
+          >
+            No hay ningún actor participante
+          </v-card-title>
         </v-card>
       </v-tooltip>
     </div>

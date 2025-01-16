@@ -18,17 +18,22 @@ const props = defineProps({
         class="mr-2"
         v-tooltip="'Es un agrupador de proyectos.'"
       >
-        group_work
+        account_tree
       </v-icon>
       <div class="text-h6">
         {{ full_main.name }}
       </div>
-      <LocationsChip
-        :project="full_main"
-        class="ml-3"
-      />
     </div>
     <div class="d-flex flex-wrap align-center">
+      <ExtractivismIcons
+        :project="full_main"
+        show_name
+      />
+      <v-divider
+        v-if="full_main.status_validation"
+        vertical
+        class="mx-3"
+      ></v-divider>
       <StatusChip
         v-if="full_main.status_validation"
         :main="full_main"
@@ -43,15 +48,12 @@ const props = defineProps({
         vertical
         class="mx-3"
       ></v-divider>
-      <ExtractivismIcons
+      <LocationsChip
+        v-if="full_main.locations"
         :project="full_main"
-        show_name
+        class="ml-3 mb-n1"
+        horizontal
       />
-      <v-divider
-        v-if="full_main.status_validation"
-        vertical
-        class="mx-3"
-      ></v-divider>
     </div>
   </div>
 </template>

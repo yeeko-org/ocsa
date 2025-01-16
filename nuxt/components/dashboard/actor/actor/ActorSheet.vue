@@ -73,46 +73,42 @@ const notes = computed(() => {
   })
 })
 
-const children_actors = computed(() => {
-  if (!props.full_main.children_actors_full)
+function buildRelatedActors(actors) {
+  if (!actors)
     return []
-  return props.full_main.children_actors_full.map(actor => {
+  return actors.map(actor => {
     return {
       ...actor,
       parent_actor_full: props.full_main,
       parent_actor: props.full_main.id,
     }
   })
+}
+
+const children_actors = computed(() => {
+  return buildRelatedActors(props.full_main.children_actors_full)
 })
 
-const other_parents = computed(() => {
-  if (!props.full_main.other_parents_full)
-    return []
-  return props.full_main.other_parents_full.map(actor => {
-    return {
-      ...actor,
-      parent_actor_full: props.full_main,
-      parent_actor: props.full_main.id,
-    }
-  })
+const others_parents = computed(() => {
+  return buildRelatedActors(props.full_main.others_parents_full)
 })
 
 </script>
 
 <template>
-  <v-card class="mb-4" v-if="other_parents.length">
+  <v-card class="mb-4" v-if="others_parents.length">
     <v-card-title>
       Actores padres extras
       <span>
-        ({{ other_parents.length }})
+        ({{ others_parents.length }})
       </span>
     </v-card-title>
     <v-card-text>
       <PanelsResult
-        :results="other_parents"
+        :results="others_parents"
         :collection_data="schemas.collections_dict['actor']"
         :show_details="show_details"
-        :total_count="other_parents.length"
+        :total_count="others_parents.length"
         in_sheet
         is_simple
       />

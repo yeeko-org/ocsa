@@ -40,6 +40,7 @@ const megaproject_type = computed(() => {
         label_plural="proyectos"
         color="purple"
         class="mx-1"
+        horizontal
       />
     </template>
   </HeaderCommon>

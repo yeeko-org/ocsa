@@ -2,6 +2,7 @@
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import TripleBooleanFilter from "~/components/dashboard/custom_filters/TripleBooleanFilter.vue";
 
 const props = defineProps({
   final_filters: Object,
@@ -44,6 +45,13 @@ const applyFilters = () => {
       :category_group_value="filter_box.category_group_value"
       :forced_level="filter_box.forced_level"
       is_filter
+    />
+    <TripleBooleanFilter
+      v-else-if="filter_box.component && filter_box.component === 'TripleBooleanFilter'"
+      :final_filters="final_filters"
+      :field="filter_box.field"
+      :label="filter_box.title"
+      @apply-filters="applyFilters"
     />
     <h5 v-else>{{filter_box.title || filter_box.name}}</h5>
   </v-col>
