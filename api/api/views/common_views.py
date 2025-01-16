@@ -4,6 +4,8 @@ from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 
+from api.views.confirm_delete import CustomDeleteMixin
+
 
 class UnaccentSearchFilter(SearchFilter):
 
@@ -17,7 +19,9 @@ class UnaccentSearchFilter(SearchFilter):
             return LOOKUP_SEP.join([field_name, 'unaccent', 'icontains'])
 
 
-class BaseViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
+class BaseViewSet(
+    CustomDeleteMixin, MergeSerializerMixin, viewsets.ModelViewSet
+):
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
     # filterset_class = FilterSet
@@ -78,4 +82,3 @@ class BaseStatusViewSet(BaseViewSet):
 #             queryset = queryset.filter(filter_query)
 #
 #         return queryset
-
