@@ -24,6 +24,7 @@ class StatusControl(models.Model):
     is_public = models.BooleanField(default=True)
     open_editor = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
+    priority = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.group} - {self.public_name}"

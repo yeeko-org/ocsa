@@ -129,7 +129,7 @@ class Sector(models.Model):
     order = models.SmallIntegerField(default=50)
 
     def __str__(self):
-        return self.name
+        return self.name or 'Sin nombre'
 
     class Meta:
         ordering = ['order', 'name']

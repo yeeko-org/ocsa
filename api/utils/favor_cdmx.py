@@ -62,7 +62,7 @@ def write_csv(all_data: List[Dict[str, str]]) -> None:
     print("base_dir", base_dir)
 
     # csv_path = f"{base_dir}\\fixture\\filtered_notes.csv"
-    csv_path = "utils/filtered_notes.csv"
+    csv_path = "fixture/filtered_notes.csv"
     print("csv_path", csv_path)
 
     # delimiter; "|"  and encoding='utf-8
@@ -78,7 +78,7 @@ def write_csv(all_data: List[Dict[str, str]]) -> None:
 def main():
     import json
 
-    data = json.load(open('utils/all_notes.json', 'r', encoding='utf-8'))
+    data = json.load(open('fixture/all_notes.json', 'r', encoding='utf-8'))
 
     filtered_data = filter_data(data)
 

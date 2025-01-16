@@ -221,14 +221,25 @@ class ProyectoToProject:
     def migrate_proyecto(self, proyecto: Proyecto):
 
         project_a = self.get_project(proyecto)
-        if project_a.parent_project or not proyecto.proyecto_vinculado:
-            # print(f"Already has parent")
+
+        if not proyecto.proyecto_vinculado:
             return
 
         project_b = self.get_project(proyecto.proyecto_vinculado)
 
         if project_b.parent_project == project_a:
             # CASO 2, doble relación, no hacer nada
+            return
+        elif project_a.parent_project:
+            if project_a.parent_project == project_b:
+                return
+            print(f"Already has parent")
+            project_a.others_parents.add(project_b)
+            project_a.status_validation_id = 'need_reclassify'
+            project_a.save()
+            project_a.add_comment(
+                f"YEEKO: Tiene más de aun agrupador, "
+                f"se agregó {project_b.name}")
             return
         elif project_b.parent_project:
             project_a.parent_project = project_b.parent_project
@@ -245,9 +256,12 @@ class ProyectoToProject:
             conflict=project_b.conflict,
             megaproject_type=project_b.megaproject_type,
             is_grouper=True,
+            status_validation_id='could_reclassify'
         )
 
         project_a.parent_project = project_c  # type: ignore
         project_a.save()
         project_b.parent_project = project_c  # type: ignore
         project_b.save()
+        project_c.add_comment(
+            f"YEEKO: Agrupador creado desde {project_b.name}")

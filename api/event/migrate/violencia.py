@@ -19,7 +19,7 @@ class MigrateViolenciaToEvent(EventBase):
     number_men: Optional[int] = None
     number_mix: Optional[int] = None
 
-    sector_social_participant: Optional[Participant] = None  # Victima
+    victima_participante: Optional[Participant] = None  # Victima
     responsables: dict[str, List[Participant]]
     resp_types = ["estatal", "no_estatal"]
 
@@ -94,25 +94,36 @@ class MigrateViolenciaToEvent(EventBase):
             return
 
         project_name = self.mention.project.name
-        sector_s_name = (
+        # sector_s_name = (
+        #     f"Víctima del sector {sector_s_name} del proyecto {project_name}")
+        actor_name = (
             f"Víctima del sector {sector_s_name} del proyecto {project_name}")
-        sector_social_actor, _ = self.get_actor(sector_s_name)
+        actor_victima, _ = self.get_actor(actor_name)
 
-        similar_count = Sector.objects.filter(
-            name__istartswith=sector_s_name).count()
+        similar_count = Sector.objects\
+            .filter(name__istartswith=sector_s_name).count()
 
-        sector_social_victima = Sector.objects.create(
-            name=sector_s_name +
-            f" ({similar_count})" if similar_count else "",
+        # sector_social_victima = Sector.objects.create(
+        #     name=sector_s_name +
+        #     f" ({similar_count})" if similar_count else "",
+        #     sector_group=self.default_sector_group
+        # )
+        sector_social_victima, created = Sector.objects.get_or_create(
+            name=sector_s_name,
             sector_group=self.default_sector_group
         )
-        sector_social_actor.sector = sector_social_victima
-        sector_social_actor.save()
+        actor_victima.sector = sector_social_victima
+        actor_victima.status_validation_id = "need_reclassify"
+        actor_victima.save()
+        actor_victima.add_comment(
+            f"YEEKO: Se creó este nombre porque se identificó como nombre "
+            "genérico, sin embargo, debe mejorar su nombre."
+        )
 
-        sector_social_actor.belongs.add(self.get_belong("is_leader"))
+        # sector_social_actor.belongs.add(self.get_belong("is_leader"))
 
-        self.sector_social_participant = self.add_participant(
-            sector_social_actor, self.mention, get_object=True)
+        self.victima_participante = self.add_participant(
+            actor_victima, self.mention, get_object=True)
 
     def get_not_generic_name(self, name: str) -> str:
         return f"{name} del proyecto {self.mention.project.name}"
@@ -163,8 +174,8 @@ class MigrateViolenciaToEvent(EventBase):
 
     def migrate(self):
 
-        if self.sector_social_participant:
-            self.set_involved(self.sector_social_participant, "Víctima")
+        if self.victima_participante:
+            self.set_involved(self.victima_participante, "Víctima")
         for resp_type in self.resp_types:
             for responsable in self.responsables[resp_type]:
                 self.set_involved(responsable, "Responsable")

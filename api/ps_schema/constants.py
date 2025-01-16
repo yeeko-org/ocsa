@@ -69,6 +69,11 @@ all_collections = {
                 {"filter_name": "status_projects", "hidden": True},
                 {"filter_name": "impact_types", "hidden": True},
                 {"filter_name": "event_types", "hidden": True},
+                {
+                    "title": "Es agrupador", "field": "is_grouper",
+                    "component": "TripleBooleanFilter", "hidden": True
+                },
+
             ],
             "available_actions": ["merge"],
         },

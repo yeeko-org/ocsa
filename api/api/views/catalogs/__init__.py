@@ -107,7 +107,8 @@ class SectorGroupViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
             .update(sector_group=to_obj)
 
 
-class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
+# class SectorViewSet(MergeSerializerMixin, viewsets.ModelViewSet):
+class SectorViewSet(BaseStatusViewSet, viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
     queryset = Sector.objects.all()

@@ -4,7 +4,7 @@ from actor.models import Participant
 from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
     ImpactSerializer, ActorBasicSerializer,
-    LocationFullSerializer)
+    LocationFullSerializer, ProjectBasicSerializer, ProjectMiniSerializer)
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
@@ -65,19 +65,16 @@ class ProjectFileSerializer(serializers.ModelSerializer):
         fields = ['id', 'file', 'uploaded_at', 'name', 'url']
 
 
-class ProjectFullSerializer(serializers.ModelSerializer):
+class ProjectFullSerializer(ProjectBasicSerializer):
     files = ProjectFileSerializer(many=True, read_only=True)
-    parent_project_full = serializers.SerializerMethodField(
-        read_only=True)
     conflict_full = ConflictSerializer(read_only=True, source='conflict')
     extractivism_type = serializers.SerializerMethodField(
         read_only=True)
     mentions = MentionFullSerializer(many=True, read_only=True)
-    locations = LocationFullSerializer(many=True, read_only=True)
-
-    def get_parent_project_full(self, obj):
-        if obj.parent_project:
-            return ProjectFullSerializer(obj.parent_project).data
+    others_parents_full = ProjectMiniSerializer(
+        many=True, read_only=True, source='others_parents')
+    children_projects_full = ProjectBasicSerializer(
+        many=True, read_only=True, source='children_projects')
 
     def get_extractivism_type(self, obj):
         return None
@@ -85,3 +82,4 @@ class ProjectFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+

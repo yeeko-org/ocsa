@@ -49,7 +49,8 @@ class Actor(CommentsMixin, models.Model):
     # Capital.nacionalidad
     countries = models.ManyToManyField(Country, blank=True)
     sector = models.ForeignKey(
-        Sector, on_delete=models.CASCADE, blank=True, null=True)
+        Sector, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='actors')
     sector_name = models.CharField(
         max_length=255, blank=True, null=True,
         verbose_name='Nombre del sector (opcional)')
@@ -134,7 +135,7 @@ class Participant(models.Model):
     #     blank=True, null=True, verbose_name='Intereses (extensión)')
 
     def __str__(self):
-        return self.actor
+        return f"{self.actor}"
 
     class Meta:
         verbose_name = 'Participante'

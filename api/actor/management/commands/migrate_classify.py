@@ -95,7 +95,7 @@ class Command(BaseCommand):
         # InterestSubtype.objects.filter(status_validation__isnull=True)\
         #     .update(status_validation_id='original')
 
-        default_is = InterestSubtype.objects.get(name='por definir')
+        default_is = InterestSubtype.objects.get(name='general')
         Interest.objects.all().update(
             interest_subtype=default_is
         )

@@ -75,7 +75,7 @@ class Event(models.Model):
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.mention
+        return str(self.mention)
 
     class Meta:
         verbose_name = 'Evento'

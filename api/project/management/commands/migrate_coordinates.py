@@ -45,15 +45,33 @@ class Command(BaseCommand):
         self.set_min_status()
 
     def set_min_status(self):
-        from django.db.models import Min
         st_dict = {st.order: st for st in StatusControl.objects.all()}
-        projects = Project.objects.all()\
-            .annotate(min_location=Min('locations__status_location__order'))
+        projects = Project.objects.all().prefetch_related('locations')
+        "empty"
+        "initial"
+        "filled"
+        "need_consensus"
+        "finished"
+        "initial_v1"
+        "need_fix"
+        "could_enhance"
+        "migrated_v1"
+        custom_order = [
+            'empty', 'need_fix', 'could_enhance', 'need_consensus',
+            'initial', 'initial_v1', 'filled', 'migrated_v1', 'finished']
         for project in projects:
-            status_location = st_dict.get(project.min_location)
-            if status_location:
-                project.status_location = status_location
-                project.save()
+            # status_locations = project.values_list(
+            #     'locations__status_location', flat=True)
+            status_locations = project.locations.values_list(
+                'status_location_id', flat=True)
+            if status_locations:
+                custom_min = min(
+                    [custom_order.index(st) for st in status_locations])
+                status_location = custom_order[custom_min]
+                project.status_location_id = status_location
+            if not project.status_location_id:
+                project.status_location_id = 'empty'
+            project.save()
 
     def dms_to_dd(self, dms: str) -> float:
 

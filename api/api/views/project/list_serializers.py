@@ -82,10 +82,21 @@ class LocationFullSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProjectMiniSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Project
+        fields = '__all__'
+
+
 class ProjectBasicSerializer(serializers.ModelSerializer):
     mentions = MentionSerializer(many=True, read_only=True)
     locations = LocationFullSerializer(many=True, read_only=True)
     conflict_full = ConflictSerializer(read_only=True, source='conflict')
+    children_projects = serializers.PrimaryKeyRelatedField(
+        many=True, read_only=True)
+    parent_project_full = ProjectMiniSerializer(
+        read_only=True, source='parent_project')
 
     class Meta:
         model = Project
@@ -108,4 +119,6 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "status_location",
             "mentions",
             "locations",
+            "children_projects",
+            "parent_project_full"
         ]

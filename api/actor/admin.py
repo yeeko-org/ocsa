@@ -9,5 +9,5 @@ class OriginReferenceAdmin(admin.ModelAdmin):
         'actor_created', 'created_at'
     )
     raw_id_fields = ('actor',)
-    search_fields = ('actor__name','actor__id', 'origin_id')
+    search_fields = ('actor__name', 'actor__id', 'origin_id')
     list_filter = ('type_model', 'field_name', 'actor_created')

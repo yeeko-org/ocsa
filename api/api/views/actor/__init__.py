@@ -1,5 +1,5 @@
 from django.db.models import F
-from django_filters import FilterSet, NumberFilter
+from django_filters import FilterSet, NumberFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions
@@ -34,13 +34,15 @@ class ActorFilter(FilterSet):
     participant_group = NumberFilter(
         field_name='participants__participant_types__participant_group',
         lookup_expr='exact')
+    belong = CharFilter(
+        field_name='belongs', lookup_expr='exact')
 
     class Meta:
         model = Actor
         fields = {
             'sector': ['exact'],
             'indigenous_group': ['exact'],
-            'belongs': ['exact'],
+            # 'belongs': ['exact'],
             'network_seq': ['exact'],
         }
 

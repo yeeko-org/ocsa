@@ -60,6 +60,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class ActorMiniSerializer(serializers.ModelSerializer):
     mentions_count = serializers.SerializerMethodField(read_only=True)
+    # TODO LUCIAN: Esto debe ser así?
     sector_group = serializers.SerializerMethodField(read_only=True)
 
     def get_mentions_count(self, obj: Actor):
@@ -114,8 +115,8 @@ class ActorFullSerializer(ActorBaseSerializer):
     participants = ParticipantMiniSerializer(many=True, read_only=True)
     notes = serializers.SerializerMethodField(read_only=True)
     projects = serializers.SerializerMethodField(read_only=True)
-    other_parents_full = serializers.SerializerMethodField(read_only=True)
-    # origin_references = OriginReferenceSerializer(many=True)
+    others_parents_full = ActorMiniSerializer(
+        many=True, read_only=True, source='others_parents')
     children_actors_full = ActorMiniSerializer(
         many=True, read_only=True, source='children_actors')
 
@@ -133,8 +134,8 @@ class ActorFullSerializer(ActorBaseSerializer):
             ).distinct(), many=True
         ).data
 
-    def get_other_parents_full(self, obj: Actor):
-        return ActorMiniSerializer(obj.others_parents.all(), many=True).data
+    # def get_others_parents_full(self, obj: Actor):
+    #     return ActorMiniSerializer(obj.others_parents.all(), many=True).data
 
 
 class ActorCreateSerializer(serializers.ModelSerializer):

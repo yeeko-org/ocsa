@@ -39,6 +39,7 @@ class ProjectFilter(FilterSet):
             'status_validation': ['exact'],
             'megaproject_type': ['exact'],
             'status_project': ['exact'],
+            'is_grouper': ['exact'],
         }
 
 
@@ -48,6 +49,7 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
         "conflict",
     ).prefetch_related(
         "locations",
+        "children_projects",
         "mentions",
         "mentions__note",
         "mentions__impacts",
@@ -76,6 +78,13 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
     serializer_class = ProjectBasicSerializer
 
     action_add_file_param = "project"
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == 'retrieve':
+            queryset = queryset\
+                .prefetch_related("others_parents")
+        return queryset
 
     def get_serializer_class(self):
         action_serializer = {

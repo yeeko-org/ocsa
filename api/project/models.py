@@ -87,7 +87,7 @@ class Project(models.Model):
     parent_project = models.ForeignKey(
         'self', on_delete=models.CASCADE,
         verbose_name='Proyecto en el que se agrupa',
-        blank=True, null=True)
+        blank=True, null=True, related_name='children_projects')
     others_parents = models.ManyToManyField(
         'self', blank=True, verbose_name='Otros proyectos en los que se agrupa')
     conflict = models.ForeignKey(
