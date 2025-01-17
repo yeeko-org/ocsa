@@ -518,7 +518,7 @@ class Estado(CustomModel):
         Temporalidad, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return self.proyecto or str(self.pk)
+        return str(self.proyecto) or str(self.pk)
 
     class Meta:
         managed = False

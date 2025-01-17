@@ -78,6 +78,9 @@ class Actor(CommentsMixin, models.Model):
         if not name or self.name == name:
             return
 
+        if not self.alternative_names:
+            self.alternative_names = ""
+
         alternative_names = self.alternative_names.split(',')
         alternative_names = [n.strip() for n in alternative_names]
 

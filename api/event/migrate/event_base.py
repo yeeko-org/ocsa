@@ -1,7 +1,7 @@
 from actor.migrate.common import ActorBase
 from source.models import Mention
 from event.models import Event
-from classify.models import SectorGroup, Sector
+from classify.models import SectorGroup
 from work_flux.models import StatusControl
 from event.models import EventType, EventSubtype, EventGroup
 from ocsa_legacy.models import Violencia
@@ -28,11 +28,13 @@ class EventBase(ActorBase):
         if not event_type_name:
             event_type_name = f"No Especificado de {group_name}"
 
-        event_type, created = EventType.objects.get_or_create(
-            name=event_type_name)
-        if created:
-            event_type.event_group = EventGroup.objects.get(name=group_name)
-            event_type.save()
+        event_group, _ = EventGroup.objects.get_or_create(name=group_name)
+
+        event_type, _ = EventType.objects.get_or_create(
+            name=event_type_name, defaults={
+                "event_group": event_group
+            })
+
         if not event_subtype_name or event_subtype_name == "NE":
             event_subtype, _ = EventSubtype.objects.get_or_create(
                 name=f"No Especificado de {event_type_name}")
@@ -71,4 +73,3 @@ class EventBase(ActorBase):
             # EventLocation.objects.get_or_create(
             #     event=self.event, location=location
             # )
-
