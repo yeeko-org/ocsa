@@ -6,7 +6,7 @@ from classify.models import SectorGroup, Sector
 from event.models import (
     Event, EventGroup, InvolvedRole, EventSubtype, EventType, Involved)
 from ocsa_legacy.models import (
-    FormaHechoViolencia, HechosViolencia, SectorSocial, Violencia)
+    FormaHechoViolencia, HechosViolencia, Opositores, SectorSocial, Violencia)
 
 from .generics import generic_responsables
 
@@ -27,7 +27,7 @@ class MigrateViolenciaToEvent(EventBase):
         self.violencia = violencia
         self.mention = self.get_mention(self.violencia)
         self.event = self.get_main_event()
-        viol_to_ubic_query = self.violencia.violenciatoubicacion_set.all()
+        viol_to_ubic_query = self.violencia.violenciatoubicacion_set.all()  # type: ignore
         self.set_locations(viol_to_ubic_query)
         self.set_involved_nums()
         self.sector_res = {
@@ -45,6 +45,8 @@ class MigrateViolenciaToEvent(EventBase):
         self.set_sector_social_actor()
         for resp_type in self.resp_types:
             self.set_responsables(resp_type)
+
+        self.add_opositors()
 
     def reset_responsables(self):
         for resp_type in self.resp_types:
@@ -171,6 +173,16 @@ class MigrateViolenciaToEvent(EventBase):
             number_men=self.number_men,
             number_mix=self.number_mix
         )
+
+    def add_opositors(self):
+        opositores = Opositores.objects.filter(
+            violenciatoopositor__violencia=self.violencia)
+
+        for opositor in opositores:
+            actor, _ = self.get_actor(opositor.nombre)
+            _ = self.add_participant(
+                actor, self.mention, ["Opositor"],
+                get_object=True)
 
     def migrate(self):
 
