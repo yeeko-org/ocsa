@@ -1,9 +1,11 @@
 from typing import Dict
 from classify.models import Belong, IndigenousGroup, SectorGroup, Sector
 from ocsa_legacy.models import (
-    CatSubpoblacionAfectada, FormaOrganizacion, InteresesOpositores,
-    Opositores)
+    CatSubpoblacionAfectada, FormaOrganizacion, InteresesOpositores, Nota,
+    Opositores, Proyecto)
 from actor.migrate.common import ActorBase
+from project.models import Project
+from source.models import Mention, Note
 
 
 class OpositorToActorMigration(ActorBase):
@@ -158,3 +160,43 @@ class OpositorToActorMigration(ActorBase):
             self.register_origin(
                 other_opositor, opositor.pk, "Opositores", created_other,
                 field="otros_opositores")
+
+
+class OpositorAddParticipantMigration(ActorBase):
+    errors = []
+    sectors: Dict[str, Sector] = {}
+    belongs: Dict[str, Belong] = {}
+    indigenous_groups: Dict[str, IndigenousGroup] = {}
+
+    def __init__(self):
+        super().__init__()
+        opositores = Opositores.objects.all()
+
+        for opositor in opositores:
+            try:
+                self.migrate_to_actor(opositor)
+            except Exception as e:
+                self.errors.append([opositor, e])
+
+    def migrate_to_actor(self, opositor: Opositores):
+        if not opositor.nombre:
+            return
+
+        opositor_actor, _ = self.get_actor(opositor.nombre)
+
+        nota_ids = list(
+            Nota.objects.filter(opositortonotas__opositor=opositor)
+            .values_list("pk", flat=True).distinct())
+
+        notes = Note.objects.filter(nota_id_ref__in=nota_ids).distinct()
+
+        proyecto_ids = list(
+            Proyecto.objects
+            .filter(opositortoproyecto__opositor=opositor)
+            .values_list("pk", flat=True).distinct())
+        projects = Project.objects.filter(proyecto_id_ref__in=proyecto_ids)
+
+        for note in notes:
+            mentions = Mention.objects.filter(note=note, project__in=projects)
+            for mention in mentions:
+                self.add_participant(opositor_actor, mention, ["Mention"])
