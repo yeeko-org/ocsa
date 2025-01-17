@@ -1,21 +1,25 @@
 from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import viewsets, permissions, mixins
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework import mixins, permissions, viewsets
+from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from actor.models import Actor
 from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
 from api.views.action_file import ActionFileMixin
-from project.models import Project, ProjectFile, Conflict
-from space_time.models import Location
-from source.models import Mention
-from .create_serializers import ProjectCreateSerializer, ProjectEditSerializer
+from api.views.actor.serializers import ActorFullCountSerializer
+from api.views.common_views import UnaccentSearchFilter
 from api.views.note.serializers import ProjectSemiFullSerializer
-from .list_serializers import ProjectBasicSerializer, ConflictSerializer
+from project.models import Conflict, Project, ProjectFile
+from source.models import Mention
+from space_time.models import Location
+
+from .list_serializers import ConflictSerializer, ProjectBasicSerializer
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
-from api.views.common_views import UnaccentSearchFilter, OrderingAutoFilter
 
 
 class ProjectFilter(FilterSet):
@@ -64,7 +68,8 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
     filterset_class = ProjectFilter
 
     # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
-    filter_backends = [UnaccentSearchFilter, OrderingFilter, DjangoFilterBackend]
+    filter_backends = [UnaccentSearchFilter,
+                       OrderingFilter, DjangoFilterBackend]
     search_fields = [
         "name",
         "alternative_name",
@@ -104,6 +109,15 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
             .update(project=to_obj)
         Mention.objects.filter(project=from_obj)\
             .update(project=to_obj)
+
+    @action(detail=True, methods=['get'])
+    def actors(self, request, pk=None):
+        project = self.get_object()
+        actors = Actor.objects.filter(
+            participants__mention__project=project
+        ).distinct()
+
+        return Response(ActorFullCountSerializer(actors, many=True).data)
 
 
 class ProjectFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):

@@ -148,3 +148,16 @@ class ActorEditeSerializer(ActorCreateSerializer):
     pass
 
 
+class ActorFullCountSerializer(ActorFullSerializer):
+    def get_projects(self, obj: Actor):
+        data = []
+        for proyect in Project.objects.filter(
+            mentions__participants__actor=obj
+        ).distinct():
+            proyect_data = ProjectBaseSerializer(proyect).data
+            proyect_data["mentions_count"] = Mention.objects.filter(  # type: ignore
+                project=proyect,
+                participants__actor=obj
+            ).count()
+            data.append(proyect_data)
+        return data
