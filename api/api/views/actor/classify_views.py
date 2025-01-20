@@ -42,9 +42,11 @@ class SectorGroupViewSet(BaseStatusViewSet):
 
 
 class ParticipantGroupViewSet(BaseStatusViewSet):
-    queryset = ParticipantGroup.objects.all()\
-        .annotate(participant_types_count=Count('participant_types'))\
-        .distinct()
+    # TODO QUICK Comentado:
+    # queryset = ParticipantGroup.objects.all()\
+    #     .annotate(participant_types_count=Count('participant_types'))\
+    #     .distinct()
+    queryset = ParticipantGroup.objects.all()
     filterset_fields = []
     serializer_class = ParticipantGroupFullSerializer
 

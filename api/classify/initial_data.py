@@ -64,17 +64,18 @@ class InitParticipantTypes:
             ('Beneficiario', 'support', True, 39, 'proposed'),
             # ("Por definir (de violencias)", 'oppose', False),
         ]
-        for data in init_participant_types:
-            name, position, required_interests, order, st_validation = data
-            participant_group = ParticipantGroup.objects.get(
-                key_name=position)
-            pt, created = ParticipantType.objects.get_or_create(
-                name=name, position=position)
-            pt.order = order
-            pt.required_interests = required_interests
-            pt.participant_group = participant_group
-            pt.status_validation_id = st_validation
-            pt.save()
+        # TODO QUICK Comentado:
+        # for data in init_participant_types:
+        #     name, position, required_interests, order, st_validation = data
+        #     participant_group = ParticipantGroup.objects.get(
+        #         key_name=position)
+        #     pt, created = ParticipantType.objects.get_or_create(
+        #         name=name, position=position)
+        #     pt.order = order
+        #     pt.required_interests = required_interests
+        #     pt.participant_group = participant_group
+        #     pt.status_validation_id = st_validation
+        #     pt.save()
 
 
 class TemporalParticipantTypes:
@@ -93,23 +94,24 @@ class TemporalParticipantTypes:
             ("otros_opositores", 'oppose', True, 12, ''),
         ]
 
-        for data in temporal_participant_types:
-            name, position, required_interests, order, description = data
-            participant_group = ParticipantGroup.objects.get(
-                key_name=position)
-            # comments = ("YEEKO: Es una categoría previa (v.1) pero"
-            #             "deberíamos reclasificar estos actores")
-            pt, _ = ParticipantType.objects.get_or_create(
-                name=name,
-                position=position,
-                status_validation_id="need_reclassify",
-                description=description,
-                # comments=comments
-            )
-            pt.order = order
-            pt.required_interests = required_interests
-            pt.participant_group = participant_group
-            pt.save()
+        # TODO QUICK Comentado:
+        # for data in temporal_participant_types:
+        #     name, position, required_interests, order, description = data
+        #     participant_group = ParticipantGroup.objects.get(
+        #         key_name=position)
+        #     # comments = ("YEEKO: Es una categoría previa (v.1) pero"
+        #     #             "deberíamos reclasificar estos actores")
+        #     pt, _ = ParticipantType.objects.get_or_create(
+        #         name=name,
+        #         position=position,
+        #         status_validation_id="need_reclassify",
+        #         description=description,
+        #         # comments=comments
+        #     )
+        #     pt.order = order
+        #     pt.required_interests = required_interests
+        #     pt.participant_group = participant_group
+        #     pt.save()
 
 
 init_sector_groups = [
