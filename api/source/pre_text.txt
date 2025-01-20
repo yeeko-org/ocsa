@@ -1,0 +1,249 @@
+NOTA COMPLETA:
+
+
+TÍTULO:
+Paran proyecto de basurero tóxico entre SLP y Zacatecas
+
+SUBTÍTULOS:
+Amparo definitivo a opositores
+Se pretende confinar en un rancho hasta 185 mil toneladas de residuos al año
+
+TEXTO:
+Miércoles 11 de julio de 2018, p. 32
+Zacatecas, Zac.
+
+El juzgado federal cuarto de distrito del noveno circuito otorgó un amparo definitivo al Comité en Defensa de la Vida del Altiplano Potosino en contra del basurero de desechos industriales y mineros que empresarios y ex funcionarios estatales pretendían instalar en el rancho Palula, ubicado en el semidesierto que comparten los municipios de Santo Domingo, San Luis Potosí, y Villa de Cos, Zacatecas.
+
+Tras informar lo anterior, integrantes de la Clínica de Litigio Estratégico en Derechos Humanos de la Universidad Autónoma de San Luis Potosí recordaron que, de acuerdo con el proyecto que se entregó a las autoridades ambientales, en ese lugar se pretendía confinar hasta 185 mil toneladas anuales de desechos con altos contenidos de metales pesados y otros tóxicos.
+
+En un comunicado difundido por Facebook, los universitarios informan que, después de más de dos años de litigio contra los permisos ‘‘ilegales’’, el amparo definitivo contra el Centro de Ingeniería y Tecnología Sustentable Palula, SA de CV corona un movimiento de oposición en todo el Altiplano, en el cual confluyeron cientos de agricultores, ganaderos, indígenas wixárikas, académicos, ambientalistas e integrantes de la pastoral social de San Luis Potosí.
+
+El Consejo de la Judicatura publicó ayer un resumen del amparo: ‘‘La Justicia de la Unión ampara y protege a José Contreras Delgado, Tereso Doñez Flores y J. David Ruiz Regino contra los actos reclamados (…) relativos a la licencia de cambio de uso de suelo del 3 de septiembre de 2012, expedida en favor de Centro de Ingeniería y Tecnología Sustentable Palula, SA de CV.’’
+
+El amparo también revoca ‘‘la autorización de impacto y riesgo ambiental del 11 de junio de 2015, contenida en el oficio SGPA/DGIRA/DG. 04340’’.
+
+Como publicó La Jornada el 11 de octubre de 2015, más de 500 campesinos de San Luis Potosí y Zacatecas, autoridades de los municipios de Santo Domingo, Real de Catorce, Mazapil y Villa de Cos, así como representantes de 13 comisarios ejidales, participaron en un foro de análisis sobre el tiradero de desechos industriales y rechazaron el proyecto, promovido por el empresario minero José Cerrillo Chowell, quien estaría asociado con el ex gobernador potosino Marcelo de los Santos Fraga.
+
+En aquella reunión, seis investigadores del Colegio de San Luis Potosí, encabezados por Francisco Peña, presentaron a los pobladores el manifiesto de impacto ambiental del proyecto, que no cumplía con la Ley General de Equilibrio Ecológico y Protección al Ambiente, ya que Cerrillo Chowell omitió consultar a los habitantes para obtener su aprobación.
+
+Aunque formalmente se informó que el basurero se construiría en 20 hectáreas, los especialistas revelaron que ocuparía las 600 hectáreas del rancho Palula, donde concesionarios mineros del centro y norte de México confinarían hasta 185 mil toneladas anuales de desechos industriales que contendrían cianuro, arsénico, cromo, cadmio y mercurio, entre otras sustancias dañinas para la salud y el medio ambiente.
+
+Los habitantes interpusieron dos juicios de amparo, dos denuncias ambientales, una penal y un juicio de nulidad, en los cuales documentaron irregularidades, lo que derivó en suspensiones provisionales y definitivas que a la postre detuvieron el proyecto.
+
+
+Ayúdame a extraer y estructurar en formato JSON la información de la nota anterior utilizando la estructura proporcionada.
+Utiliza solo la información de la nota, no es necesario agregar o inventar información adicional que no esté en la nota.
+ Los catálogos que debes utilizar son los siguientes:
+
+Para extractivism_type, usa el siguiente catálogo
+
+3: "Biomercantilización"
+2: "Extractivismo agroindustrial, de monocultivo, industria ganadera, explotación forestal y recursos bióticos"
+4: "Extractivismo energético"
+5: "Extractivismo hídrico"
+6: "Extractivismo minero"
+7: "Hiperurbanización"
+9: "Megainfraestructura y vías de comunicación"
+8: "Otro"
+
+Para environmental_impact_type, usa el siguiente catálogo
+1: "Agua"
+2: "Biodiversidad"
+3: "Suelo"
+5: "Geología y geomorfología"
+6: "Atmósfera"
+7: "Contaminación auditiva"
+8: "Contaminación sonora"
+
+Para social_impact_type, usa el siguiente catálogo
+
+9: "Otros medios de vida afectados",
+10: "Afectaciones a bienes y servicios",
+11: "Afectaciones a la salud",
+12: "Consulta libre, previa e informada",
+13: "MIA (Manifestación de Impacto Ambiental)",
+15: "Lugar/Sitio",
+16: "Agricultura",
+17: "Debilitamiento del tejido social",
+18: "Ganadería",
+20: "Pesca",
+21: "Explotación forestal",
+22: "Turismo y otros servicios",
+23: "Patrimonio biocultural (tangible e intangible)",
+24: "Mecanismos legales del despojo",
+26: "Urbanización",
+27: "Desalojos",
+28: "Acuicultura",
+29: "Apicultura",
+
+según la siguiente estructura:
+
+"projects": [
+    {
+        "project_details": {
+            "name": "Basurero tóxico en rancho Palula",
+            "extractivism_type": 6,
+            "project_type": "Basurero",
+            "locations": [
+                {
+                    "state": "San Luis Potosí",
+                    "municipality": "Santo Domingo"
+                    "locality": "Rancho Palula"
+                },
+                {
+                    "state": "Zacatecas",
+                    "municipality": "Villa de Cos"
+                    "locality": "Rancho Palula"
+                },
+            ],
+        },
+        "social_impacts": [
+            {
+                "type": 11,
+                "name": "Afectación a la salud",
+                "fragments": [
+                    "En ese lugar se pretendía confinar hasta 185 mil toneladas anuales de desechos con altos contenidos de metales pesados y otros tóxicos.",
+                    "Ocuparía las 600 hectáreas del rancho Palula, donde concesionarios mineros del centro y norte de México confinarían hasta 185 mil toneladas anuales de desechos industriales que contendrían cianuro, arsénico, cromo, cadmio y mercurio, entre otras sustancias dañinas para la salud y el medio ambiente."
+                ],
+                "generic_summary": "Se pretendía confinar centenares de toneladas de desechos con altos contenidos de metales pesados y otros tóxicos."
+            },
+            {
+                "type": 12,
+                "name": "Consulta libre, previa e informada",
+                "fragments": [
+                    "Cerrillo Chowell omitió consultar a los habitantes para obtener su aprobació."
+                ],
+                "generic_summary": "No se consultó a los habitantes para obtener su aprobación."
+            },
+        ],
+        "environmental_impacts": [
+            {
+                "type": 2,
+                "name": "Biodiversidad",
+                "fragments": [
+                    "En ese lugar se pretendía confinar hasta 185 mil toneladas anuales de desechos con altos contenidos de metales pesados y otros tóxicos.",
+                    "Ocuparía las 600 hectáreas del rancho Palula, donde concesionarios mineros del centro y norte de México confinarían hasta 185 mil toneladas anuales de desechos industriales que contendrían cian
+                ],
+                "generic_summary": "Se pretendía confinar centenares de toneladas de desechos con altos contenidos de metales pesados y otros tóxicos."
+            },
+        ],
+        "other_impacts": [
+            "El proyecto fue rechazado por cientos de agricultores, ganaderos, indígenas wixárikas, académicos, ambientalistas e integrantes de la pastoral social de San Luis Potosí.",
+            "Se documentaron irregularidades en el proyecto."
+        ],
+        "all_involved_entities": [
+            {
+                "name": "José Cerrillo Chowell",
+                "role_in_project": "Promotor del proyecto"
+                "description": "Empresario minero",
+                "sector": "Privado"
+            },
+            {
+                "name": "Marcelo de los Santos Fraga",
+                "role_in_project": "Promotor del proyecto"
+                "description": "Ex gobernador potosino",
+                "sector": "Público"
+            },
+            {
+                "name": "José Contreras Delgado",
+                "role_in_project": "Demandante"
+                "description": "Integrante del Comité en Defensa de la Vida del Altiplano Potosino",
+            }
+            {
+                "name": "Tereso Doñez Flores",
+                "role_in_project": "Demandante"
+                "description": "Integrante del Comité en Defensa de la Vida del Altiplano Potosino",
+            }
+            {
+                "name": "J. David Ruiz Regino",
+                "role_in_project": "Demandante"
+                "description": "Integrante del Comité en Defensa de la Vida del Altiplano Potosino",
+            },
+            {
+                "name": "Centro de Ingeniería y Tecnología Sustentable Palula, SA de CV",
+                "role_in_project": "Promotor del proyecto"
+                "description": "Empresa responsable del proyecto",
+            },
+            {
+                "name": "Comité en Defensa de la Vida del Altiplano Potosino",
+                "role_in_project": "Demandante"
+                "description": "Organización opositora al proyecto",
+            },
+            {
+                "name": "Clínica de Litigio Estratégico en Derechos Humanos de la Universidad Autónoma de San Luis Potosí",
+                "role_in_project": "Demandante"
+                "description": "Organización opositora al proyecto",
+                "sector": "Académico"
+            },
+            {
+                "name": "Consejo de la Judicatura",
+                "role_in_project": "Entidad gubernamental"
+                "description": "Entidad que publicó un resumen del amparo",
+                "sector": "Público"
+            },
+            {
+                "name": "6 Investigadores del Colegio de San Luis Potosí",
+                "role_in_project": "Investigadores"
+                "description": "Investigadores del Colegio de San Luis Potosí",
+                "sector": "Académico"
+            },
+            {
+                "name": "Francisco Peña",
+                "role_in_project": "Investigador"
+                "description": "Investigador del Colegio de San Luis Potosí",
+                "sector": "Académico"
+            },
+            {
+                "name": "500 campesinos de San Luis Potosí y Zacatecas",
+                "role_in_project": "Opositores al proyecto"
+                "description": "Campesinos de San Luis Potosí y Zacatecas",
+                "sector": "Sociedad civil"
+            },
+            {
+                "name": "Autoridades de los municipios de Santo Domingo, Real de Catorce, Mazapil y Villa de Cos",
+                "role_in_project": "Opositores al proyecto"
+                "description": "Autoridades de los municipios de Santo Domingo, Real de Catorce, Mazapil y Villa de Cos",
+                "sector": "Gubernamental"
+            },
+            {
+                "name": "Representantes de 13 comisarios ejidales",
+                "role_in_project": "Opositores al proyecto"
+                "description": "Representantes de 13 comisarios ejidales",
+                "sector": "Sociedad civil"
+            },
+            {
+                "name": "Integrantes de la pastoral social de San Luis Potosí",
+                "role_in_project": "Opositores al proyecto"
+                "description": "Integrantes de la pastoral social de San Luis Potosí",
+            },
+            {
+                "name": "Juzgado federal cuarto de distrito del noveno circuito",
+                "role_in_project": "Entidad gubernamental"
+                "description": "Entidad que otorgó un amparo definitivo al Comité en Defensa de la Vida del Altiplano Potosino",
+            },
+            {
+                "name": "Centro de Ingeniería y Tecnología Sustentable Palula, SA de CV",
+                "role_in_project": "Promotor del proyecto"
+                "description": "Empresa responsable del proyecto",
+            }
+        ],
+        "events_or_actions": [
+            {
+                "type": "Litigio",
+                "description": "El juzgado federal cuarto de distrito del noveno circuito otorgó un amparo definitivo al Comité en Defensa de la Vida del Altiplano Potosino en contra del basurero de desechos industriales y mineros que empresarios y ex funcionarios estatales pretendían instalar en el rancho Palula."
+            },
+            {
+                "type": "Reunión",
+                "description": "Más de 500 campesinos de San Luis Potosí y Zacatecas, autoridades de los municipios de Santo Domingo, Real de Catorce, Mazapil y Villa de Cos, así como representantes de 13 comisarios ejidales, participaron en un foro de análisis sobre el tiradero de desechos industriales y rechazaron el proyecto."
+            },
+            {
+                "type": "Comunicado",
+                "description": "Después de más de dos años de litigio contra los permisos ‘‘ilegales’’, el amparo definitivo contra el Centro de Ingeniería y Tecnología Sustentable Palula, SA de CV corona un movimiento de oposición en todo el Altiplano, en el cual confluyeron cientos de agricultores, ganaderos, indígenas wixárikas, académicos, ambientalistas e integrantes de la pastoral social de San Luis Potosí."
+            },
+    }
+]
+
+
+
+
+

@@ -5,6 +5,7 @@ from api.views.project.list_serializers import (
 from api.views.project.retrieve_serializers import (
     ConflictSerializer, ProjectFullSerializer)
 from api.views.space_time.serializers import LocationSerializer
+from api.views.event.serializers import EventSerializer
 from project.models import Project, ProjectFile
 from source.models import Mention, Note, NoteFile, StatusHistory
 from event.models import Event, Involved
@@ -61,6 +62,11 @@ class InvolvedSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class InvolvedFullSerializer(InvolvedSerializer):
+    participant_full = ParticipantSerializer(
+        source='participant', read_only=True)
+
+
 class EventSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -68,7 +74,7 @@ class EventSimpleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class EventSerializer(EventSimpleSerializer):
+class EventEmbedSerializer(EventSimpleSerializer):
     involvements = InvolvedSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
 
@@ -104,7 +110,7 @@ class MentionMegaFullSerializer(MentionFullSerializer):
         source='project', read_only=True)
     # project = ProjectSemiFullSerializer()
     status_history = StatusHistorySerializer(many=True)
-    events = EventSerializer(many=True)
+    events = EventEmbedSerializer(many=True)
 
 
 class NoteFileSerializer(serializers.ModelSerializer):
@@ -132,8 +138,9 @@ class ImpactFullSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class EventFullNoteSerializer(serializers.ModelSerializer):
+class EventFullNoteSerializer(EventEmbedSerializer, EventSerializer):
     note = NoteSerializer(source='mention.note', read_only=True)
+    involvements = InvolvedFullSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event

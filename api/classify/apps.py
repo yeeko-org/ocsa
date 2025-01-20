@@ -9,7 +9,7 @@ class ClassifyConfig(AppConfig):
 
     def ready(self) -> None:
         from .initial_data import (
-            ParticipantTypes, TemporalParticipantTypes, InitSectorGroups,
+            InitParticipantTypes, TemporalParticipantTypes, InitSectorGroups,
             InitSector, InitBelongs, InitParticipantGroups, InitInterestTypes)
 
         _ready = super().ready()
@@ -18,7 +18,7 @@ class ClassifyConfig(AppConfig):
             print('Cargando datos iniciales de clasificadores de actores...')
             InitParticipantGroups()
             InitSectorGroups()
-            ParticipantTypes()
+            InitParticipantTypes()
             TemporalParticipantTypes()
             InitSector()
             InitBelongs()

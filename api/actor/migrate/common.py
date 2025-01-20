@@ -64,7 +64,9 @@ class ActorBase:
         actor.parent_actor = parent  # type: ignore
 
     def add_participant(
-        self, actor: Actor, mention: Optional[Mention],
+        self,
+        actor: Actor,
+        mention: Optional[Mention],
         participant_types: Optional[list] = None,
         interest: Optional[str] = None,
         get_object: Optional[bool] = False
@@ -141,7 +143,7 @@ class ActorBase:
     def get_sector_group_default(self) -> SectorGroup:
         if not hasattr(self, "_default_sector_group"):
             self._default_sector_group, _ = SectorGroup.objects.get_or_create(
-                name="Varios", defaults={"is_collective": True})
+                name="Otros por identificar", defaults={"is_collective": True})
         return self._default_sector_group
 
     def set_sector(self, actor: Actor, sector: str):
@@ -159,8 +161,8 @@ class ActorBase:
             actor_validation = actor.sector.status_validation_id  # type: ignore
             sector_validation = sector_obj.status_validation_id  # type: ignore
             if actor.sector.name == "Contradictorio":
-                error = (f"YEEKO: hay sectores contradictorios:"
-                         f" {actor.sector.name} y {sector_obj.name}")
+                error = (f"YEEKO: hay otro sector contradictorio:"
+                         f" {sector_obj.name}")
                 actor.add_comment(error)
                 # self.errors.append([actor, error])
             elif actor_validation and "reclassify" in actor_validation:

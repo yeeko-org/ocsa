@@ -12,13 +12,12 @@ from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
 from api.views.action_file import ActionFileMixin
 from api.views.actor.serializers import ActorFullCountSerializer
-from api.views.common_views import UnaccentSearchFilter
+from api.views.common_views import UnaccentSearchFilter, BaseStatusViewSet
 from api.views.note.serializers import ProjectSemiFullSerializer
 from project.models import Conflict, Project, ProjectFile
-from source.models import Mention
-from space_time.models import Location
 
-from .list_serializers import ConflictSerializer, ProjectBasicSerializer
+from .list_serializers import (
+    ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer)
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
 
@@ -47,7 +46,7 @@ class ProjectFilter(FilterSet):
         }
 
 
-class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSet):
+class ProjectViewSet(ActionFileMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
@@ -68,8 +67,8 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
     filterset_class = ProjectFilter
 
     # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
-    filter_backends = [UnaccentSearchFilter,
-                       OrderingFilter, DjangoFilterBackend]
+    filter_backends = [
+        UnaccentSearchFilter, OrderingFilter, DjangoFilterBackend]
     search_fields = [
         "name",
         "alternative_name",
@@ -101,23 +100,22 @@ class ProjectViewSet(ActionFileMixin, MergeSerializerMixin, viewsets.ModelViewSe
         }
         return action_serializer.get(self.action, self.serializer_class)
 
-    def get_from_obj(self, from_id):
-        return Project.objects.get(id=from_id)
-
-    def update_relations_merge(self, from_obj, to_obj):
-        Location.objects.filter(project=from_obj)\
-            .update(project=to_obj)
-        Mention.objects.filter(project=from_obj)\
-            .update(project=to_obj)
-
     @action(detail=True, methods=['get'])
-    def actors(self, request, pk=None):
+    def related_actors(self, request, pk=None):
+        from django.db.models import Count
         project = self.get_object()
-        actors = Actor.objects.filter(
-            participants__mention__project=project
-        ).distinct()
+        actors = Actor.objects\
+            .filter(participants__mention__project=project)\
+            .annotate(participant_count=Count('participants'))\
+            .distinct()
 
-        return Response(ActorFullCountSerializer(actors, many=True).data)
+        actor_full = ActorFullCountSerializer(
+            actors, many=True, context={'project': project}).data
+
+        sorted_actors = sorted(
+            actor_full, key=lambda x: x['participant_count'], reverse=True)
+
+        return Response(sorted_actors)
 
 
 class ProjectFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
@@ -127,12 +125,13 @@ class ProjectFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, Ge
     filter_backends = [SearchFilter, OrderingFilter]
 
 
-class ConflictViewSet(viewsets.ModelViewSet):
-    queryset = Conflict.objects.all()
-    permission_classes = [permissions.AllowAny]
-    pagination_class = CustomPagination
-    filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['name']
-    ordering_fields = ['id', 'name']
-    ordering = ['id']
-    serializer_class = ConflictSerializer
+class ConflictViewSet(BaseStatusViewSet):
+    queryset = Conflict.objects.all()\
+        .prefetch_related("projects")
+    serializer_class = ConflictFullSerializer
+
+    def get_serializer_class(self):
+        action_serializer = {
+            'list': ConflictSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)

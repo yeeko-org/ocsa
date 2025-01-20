@@ -82,6 +82,14 @@ class SourceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class SourceFullSerializer(serializers.ModelSerializer):
+    notes_count = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Source
+        fields = "__all__"
+
+
 class LevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Level

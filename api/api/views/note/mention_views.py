@@ -6,7 +6,7 @@ from api.pagination import CustomPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
-from api.views.event import EventSerializer, EventFullSerializer, EventCreateSerializer
+from api.views.event import EventSerializer
 from api.views.note.serializers import (
     MentionSerializer, MentionMegaFullSerializer,
     ParticipantSimpleSerializer, InterestSerializer,
@@ -113,13 +113,14 @@ class EventFilter(FilterSet):
 
     start_date = DateFilter(field_name='date', lookup_expr='gte')
     end_date = DateFilter(field_name='date', lookup_expr='lte')
-    event_type = NumberFilter(
-        field_name='event_subtype__event_types', lookup_expr='exact')
+    # event_type = NumberFilter(
+    #     field_name='event_subtype__event_types', lookup_expr='exact')
 
     class Meta:
         model = Event
         fields = {
-            'event_subtype': ['exact']
+            'event_subtype': ['exact'],
+            'event_type': ['exact']
         }
 
 
@@ -133,9 +134,6 @@ class EventViewSet(viewsets.ModelViewSet):
         )\
         .prefetch_related(
             'involvements',
-            'involvements__participant',
-            'involvements__participant__actor',
-
         )
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
@@ -152,11 +150,19 @@ class EventViewSet(viewsets.ModelViewSet):
 
     serializer_class = EventSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        action_is_detail = self.action in ['retrieve', 'create', 'update']
+        if action_is_detail:
+            return self.queryset.prefetch_related(
+                'involvements__participant',
+                'involvements__participant__actor')
+        return queryset
+
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': EventFullNoteSerializer,
-            # 'retrieve': EventFullSerializer,
-            'create': EventCreateSerializer,
-            'update': EventCreateSerializer
+            'create': EventFullNoteSerializer,
+            'update': EventFullNoteSerializer
         }
         return action_serializer.get(self.action, self.serializer_class)

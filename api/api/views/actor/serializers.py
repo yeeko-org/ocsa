@@ -58,18 +58,30 @@ class LocationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ActorSimpleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Actor
+        fields = [
+            "id",
+            "indigenous_group",
+            "name",
+            "alternative_names",
+            "sector",
+            "geo_reach",
+            "belongs",
+            "status_validation",
+            "network_seq",
+            "children_actors",
+        ]
+
+
 class ActorMiniSerializer(serializers.ModelSerializer):
     mentions_count = serializers.SerializerMethodField(read_only=True)
-    # TODO LUCIAN: Esto debe ser así?
-    sector_group = serializers.SerializerMethodField(read_only=True)
 
     def get_mentions_count(self, obj: Actor):
         mentions_count = getattr(obj, 'mentions_count', None)
         return mentions_count or obj.get_participant_count()
-
-    def get_sector_group(self, obj: Actor):
-        sector_group = getattr(obj, "sector_group", None)
-        return sector_group or obj.get_sector_group()
 
     class Meta:
         model = Actor
@@ -78,12 +90,11 @@ class ActorMiniSerializer(serializers.ModelSerializer):
             "mentions_count",
 
             "indigenous_group",
-            "sector_group",
+            # "sector_group",
 
             "name",
             "alternative_names",
             "sector",
-            "sector_name",
             "geo_reach",
             "belongs",
             "status_validation",
@@ -93,7 +104,7 @@ class ActorMiniSerializer(serializers.ModelSerializer):
         ]
 
 
-class ActorBaseSerializer(ActorMiniSerializer):
+class ActorBaseSerializer(serializers.ModelSerializer):
     participants = ParticipantBaseSerializer(many=True, read_only=True)
     children_actors = serializers.PrimaryKeyRelatedField(
         many=True, read_only=True
@@ -103,7 +114,7 @@ class ActorBaseSerializer(ActorMiniSerializer):
     def get_parent_actor_full(self, obj: Actor):
         # ActorBaseSerializer produce error de recursividad. analizar
         if obj.parent_actor:
-            return ActorMiniSerializer(obj.parent_actor).data
+            return ActorSimpleSerializer(obj.parent_actor).data
         return None
 
     class Meta:
@@ -148,16 +159,25 @@ class ActorEditeSerializer(ActorCreateSerializer):
     pass
 
 
-class ActorFullCountSerializer(ActorFullSerializer):
-    def get_projects(self, obj: Actor):
-        data = []
-        for proyect in Project.objects.filter(
-            mentions__participants__actor=obj
-        ).distinct():
-            proyect_data = ProjectBaseSerializer(proyect).data
-            proyect_data["mentions_count"] = Mention.objects.filter(  # type: ignore
-                project=proyect,
-                participants__actor=obj
-            ).count()
-            data.append(proyect_data)
-        return data
+class ActorFullCountSerializer(ActorSimpleSerializer):
+    participant_count = serializers.ReadOnlyField()
+    participant_types = serializers.SerializerMethodField()
+
+    def get_participant_types(self, obj: Actor):
+        context = self.context
+        project = context.get("project")
+        return obj.participants.filter(
+            mention__project=project
+        ).values_list("participant_types", flat=True)
+
+    # def get_mention_count(self, obj: Actor):
+    #     context = self.context
+    #     project = context.get("project")
+    #     return Mention.objects.filter(
+    #         participants__actor=obj,
+    #         project=project
+    #     ).count()
+
+    class Meta:
+        model = Actor
+        fields = '__all__'

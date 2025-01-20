@@ -41,7 +41,7 @@ class Note(CommentsMixin, models.Model):
     # pero sí hay más, pues hay que registrarlas, pero con is_news=False
     source = models.ForeignKey(
         Source, on_delete=models.CASCADE,
-        verbose_name='Fuente de información')
+        verbose_name='Fuente de información', related_name='notes')
     section = models.CharField(max_length=120, blank=True, null=True)
     pages = models.CharField(max_length=80, blank=True, null=True)
     link = models.CharField(max_length=255, blank=True, null=True)

@@ -4,8 +4,9 @@ from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from api.views.common_views import BaseStatusViewSet, UnaccentSearchFilter
 
-from api.views.catalogs import EventGroupSerializer, EventTypeFullSerializer, EventTypeSerializer, \
-    EventSubtypeFullSerializer, EventSubtypeSerializer
+from api.views.catalogs.event_serializers import (
+    EventGroupSerializer, EventTypeFullSerializer, EventTypeSerializer,
+    EventSubtypeFullSerializer, EventSubtypeSerializer)
 from event.models import EventGroup, EventType, EventSubtype
 
 

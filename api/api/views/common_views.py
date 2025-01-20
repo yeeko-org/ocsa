@@ -19,9 +19,7 @@ class UnaccentSearchFilter(SearchFilter):
             return LOOKUP_SEP.join([field_name, 'unaccent', 'icontains'])
 
 
-class BaseViewSet(
-    CustomDeleteMixin, MergeSerializerMixin, viewsets.ModelViewSet
-):
+class BaseViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
     # filterset_class = FilterSet

@@ -173,7 +173,7 @@ all_collections = {
             "level": "category_subtype",
             "optional_category": True,
             "status_groups": ["validation"],
-            "open_insertion": True,
+            "open_insertion": False,
             "available_actions": ["merge"],
         },
     ],
@@ -241,7 +241,7 @@ all_collections = {
             "model_name": "Belong",
             "level": "category_subtype",
             "cat_params": {"item_id": "key_name"},
-            "open_insertion": True,
+            "open_insertion": False,
             "available_actions": ["merge"],
         },
         {
@@ -331,6 +331,7 @@ all_collections = {
             "name": "Grupo de Evento",
             "plural_name": "Grupos de Eventos",
             "model_name": "EventGroup",
+            "open_insertion": False,
             "level": "category_group",
         },
         {
@@ -358,6 +359,7 @@ all_collections = {
             "name": "Rol en Actividad",
             "plural_name": "Roles en Actividades",
             "model_name": "InvolvedRole",
+            "open_insertion": False,
             "level": "category_subtype",
         },
         {

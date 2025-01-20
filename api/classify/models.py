@@ -8,13 +8,14 @@ POSITION_CHOICES = (
     ('oppose', 'En contra'),
     ('neutral', 'Neutral'),
     ('other', 'Otro'),
+    ('undefined', 'Indefinido'),
 )
 
 
 class ParticipantGroup(models.Model):
 
     name = models.CharField(max_length=255)
-    key_name = models.CharField(max_length=255, blank=True, null=True)
+    key_name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
     color = models.CharField(max_length=255, blank=True, null=True)
@@ -35,7 +36,8 @@ class ParticipantType(models.Model):
     position = models.CharField(
         max_length=14, choices=POSITION_CHOICES, default='undefined')
     participant_group = models.ForeignKey(
-        ParticipantGroup, on_delete=models.CASCADE, blank=True, null=True)
+        ParticipantGroup, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='participant_types')
     required_interests = models.BooleanField(
         default=True, verbose_name='Se requerirá que se agreguen intereses')
     status_validation = models.ForeignKey(
@@ -116,9 +118,8 @@ class SectorGroup(models.Model):
 
 class Sector(models.Model):
     name = models.CharField(max_length=255)
-    needs_name = models.BooleanField(default=False)
     sector_group = models.ForeignKey(
-        SectorGroup, on_delete=models.CASCADE)
+        SectorGroup, on_delete=models.CASCADE, related_name='sectors')
     common_participant_types = models.ManyToManyField(
         ParticipantType, blank=True)
     common_belongs = models.ManyToManyField(

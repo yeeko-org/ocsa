@@ -7,14 +7,6 @@ from space_time.models import Location
 from source.models import Mention, Note
 from event.models import Event
 
-
-class ConflictSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Conflict
-        fields = '__all__'
-
-
 class ActorBasicSerializer(serializers.ModelSerializer):
     participants_count = serializers.SerializerMethodField()
 
@@ -89,10 +81,17 @@ class ProjectMiniSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ConflictSimpleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Conflict
+        fields = '__all__'
+
+
 class ProjectBasicSerializer(serializers.ModelSerializer):
     mentions = MentionSerializer(many=True, read_only=True)
     locations = LocationFullSerializer(many=True, read_only=True)
-    conflict_full = ConflictSerializer(read_only=True, source='conflict')
+    conflict_full = ConflictSimpleSerializer(read_only=True, source='conflict')
     children_projects = serializers.PrimaryKeyRelatedField(
         many=True, read_only=True)
     parent_project_full = ProjectMiniSerializer(
@@ -122,3 +121,11 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "children_projects",
             "parent_project_full"
         ]
+
+
+class ConflictSerializer(ConflictSimpleSerializer):
+    projects = ProjectMiniSerializer(many=True, read_only=True)
+
+
+class ConflictFullSerializer(ConflictSimpleSerializer):
+    projects = ProjectBasicSerializer(many=True, read_only=True)

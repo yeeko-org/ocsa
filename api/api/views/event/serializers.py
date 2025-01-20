@@ -12,14 +12,8 @@ class InvolvedSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     involvements = InvolvedSerializer(many=True)
-    mention = MentionBaseSerializer()
+    mention_full = MentionBaseSerializer(read_only=True, source='mention')
 
-    class Meta:
-        model = Event
-        fields = '__all__'
-
-
-class EventCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'

@@ -17,7 +17,7 @@ class OpositorToActorMigration(ActorBase):
     def __init__(self):
         super().__init__()
         self.default_sg, _ = SectorGroup.objects.get_or_create(
-            name="Varios", defaults={"is_collective": True})
+            name="Otros por identificar", defaults={"is_collective": True})
 
         self.set_sectors()
         self.set_indigenous_group()
@@ -184,19 +184,23 @@ class OpositorAddParticipantMigration(ActorBase):
 
         opositor_actor, _ = self.get_actor(opositor.nombre)
 
-        nota_ids = list(
-            Nota.objects.filter(opositortonotas__opositor=opositor)
-            .values_list("pk", flat=True).distinct())
+        nota_ids = Nota.objects\
+            .filter(opositortonotas__opositor=opositor)\
+            .values_list("pk", flat=True)\
+            .distinct()
+        notes = Note.objects\
+            .filter(nota_id_ref__in=list(nota_ids))\
+            .distinct()
 
-        notes = Note.objects.filter(nota_id_ref__in=nota_ids).distinct()
-
-        proyecto_ids = list(
-            Proyecto.objects
-            .filter(opositortoproyecto__opositor=opositor)
-            .values_list("pk", flat=True).distinct())
-        projects = Project.objects.filter(proyecto_id_ref__in=proyecto_ids)
+        proyecto_ids = Proyecto.objects\
+            .filter(opositortoproyecto__opositor=opositor)\
+            .values_list("pk", flat=True)\
+            .distinct()
+        projects = Project.objects\
+            .filter(proyecto_id_ref__in=list(proyecto_ids))\
+            .distinct()
 
         for note in notes:
             mentions = Mention.objects.filter(note=note, project__in=projects)
             for mention in mentions:
-                self.add_participant(opositor_actor, mention, ["Mention"])
+                self.add_participant(opositor_actor, mention, ["Opositor"])

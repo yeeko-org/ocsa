@@ -47,16 +47,15 @@ class Actor(CommentsMixin, models.Model):
         blank=True, null=True, verbose_name='Se creó solo por relación')
 
     # Capital.nacionalidad
-    countries = models.ManyToManyField(Country, blank=True)
+    countries = models.ManyToManyField(
+        Country, blank=True, related_name='actors')
     sector = models.ForeignKey(
         Sector, on_delete=models.CASCADE, blank=True, null=True,
         related_name='actors')
-    sector_name = models.CharField(
-        max_length=255, blank=True, null=True,
-        verbose_name='Nombre del sector (opcional)')
     geo_reach = models.CharField(
         max_length=15, choices=GEO_REACH_CHOICES, blank=True, null=True)
-    belongs = models.ManyToManyField(Belong, blank=True)
+    belongs = models.ManyToManyField(
+        Belong, blank=True, related_name='actors')
     indigenous_group = models.ForeignKey(
         IndigenousGroup, on_delete=models.CASCADE, blank=True, null=True,
         related_name='actors')
@@ -133,9 +132,8 @@ class Participant(models.Model):
         Actor, on_delete=models.CASCADE, related_name='participants')
     mention = models.ForeignKey(
         Mention, on_delete=models.CASCADE, related_name='participants')
-    participant_types = models.ManyToManyField(ParticipantType, blank=True)
-    # raw_interests = models.TextField(
-    #     blank=True, null=True, verbose_name='Intereses (extensión)')
+    participant_types = models.ManyToManyField(
+        ParticipantType, blank=True, related_name='participants')
 
     def __str__(self):
         return f"{self.actor}"

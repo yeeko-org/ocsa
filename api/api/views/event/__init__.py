@@ -1,4 +1,3 @@
-from api.views.event.serializers import (
-    EventSerializer, EventCreateSerializer, EventFullSerializer)
+from api.views.event.serializers import EventSerializer, EventFullSerializer
 
 

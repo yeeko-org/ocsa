@@ -18,6 +18,8 @@ class InitStatus:
                 "amber", "gpp_maybe", True, True, False, 8),
             ("original", "validation", "Original (v.1)",
                 "light-green", "done", True, True, False, 12),
+            ("yk_proposed", "validation", "Propuesto por Yeeko",
+                "teal", "task", True, False, False, 12),
 
             ("draft", "register", "Borrador",
                 "blue", "edit_note", False, True, False, 8),

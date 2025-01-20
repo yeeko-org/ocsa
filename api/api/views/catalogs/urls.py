@@ -1,11 +1,5 @@
 from django.urls import include, path
 from api.views.catalogs import (
-    ParticipantGroupViewSet,
-    ParticipantTypeViewSet,
-    BelongViewSet,
-    SectorGroupViewSet,
-    SectorViewSet,
-    CountryViewSet,
     InterestGroupViewSet,
     InterestTypeViewSet,
     InterestSubtypeViewSet,
@@ -17,7 +11,8 @@ from api.views.catalogs import (
     MegaprojectTypeViewSet
 )
 from api.views.catalogs.event_views import EventGroupViewSet, EventTypeViewSet, EventSubtypeViewSet
-from api.views.actor.classify_views import IndigenousGroupViewSet
+from api.views.actor.classify_views import IndigenousGroupViewSet, SectorViewSet, SectorGroupViewSet, \
+    ParticipantGroupViewSet, ParticipantTypeViewSet, BelongViewSet, CountryViewSet
 from api.views.catalogs.impact_views import (
     ImpactSubtypeViewSet, ImpactTypeViewSet, ImpactGroupViewSet)
 

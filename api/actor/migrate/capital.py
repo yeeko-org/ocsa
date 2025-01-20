@@ -210,20 +210,21 @@ class CapitalToActorMigration(ActorBase):
 
         if not actor.sector:
             actor.sector = sector_obj
-
         elif actor.sector.name != sector_name:
             if sector_name == "Empresa privada":
                 pass
             elif actor.sector.name == "Empresa privada":
                 actor.sector = sector_obj
             else:
+                comment = (
+                    f"YEEKO: El actor tiene registrado más de un tipo de "
+                    f"capital: {actor.sector.name} y {sector_obj.name}")
                 sector_obj, _ = Sector.objects.get_or_create(
                     name="Contradictorio",
                     sector_group=self.get_sector_group_default(),
                     status_validation_id="need_review")
                 actor.sector = sector_obj
                 actor.status_validation_id = "need_review"  # type: ignore
-                comment = "YEEKO: El actor tiene registrado más de un tipo de capital"
                 actor.add_comment(comment)
         actor.save()
         return actor

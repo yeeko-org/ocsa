@@ -10,7 +10,7 @@ from ocsa_legacy.models import Violencia
 class EventBase(ActorBase):
     mention: Mention
     event: Event
-    default_sector_group = SectorGroup.objects.get(name="Varios")
+    default_sector_group = SectorGroup.objects.get(name="Otros por identificar")
     need_review: StatusControl = StatusControl.objects.get(name="need_review")
 
     def get_event(self, main_model, event_type_name, event_subtype_name):

@@ -1,6 +1,5 @@
 from django_filters import FilterSet, DateFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.viewsets import GenericViewSet
 

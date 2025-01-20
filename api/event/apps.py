@@ -10,10 +10,10 @@ class EventConfig(AppConfig):
         from .models import InvolvedRole
         _ready = super().ready()
         init_involved_roles = [
-            "Victimario",
-            "Responsable",
             "Víctima",
-            "Opositor"]
+            "Opositor",
+            "Destinatario",
+        ]
 
         valid_commands = ["runserver", "migrate_eventos"]
         if any([command in sys.argv for command in valid_commands]):

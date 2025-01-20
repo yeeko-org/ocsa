@@ -13,18 +13,18 @@ from classify.models import (
 )
 
 
+class ParticipantGroupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ParticipantGroup
+        fields = "__all__"
+
+
 class ParticipantTypeSerializer(serializers.ModelSerializer):
     # status_validation = StatusControlSerializer()
 
     class Meta:
         model = ParticipantType
-        fields = "__all__"
-
-
-class ParticipantGroupSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = ParticipantGroup
         fields = "__all__"
 
 

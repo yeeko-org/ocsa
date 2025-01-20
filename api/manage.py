@@ -2,6 +2,13 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+# from django.core.management.commands.runserver import Command as runserver
+
+# try:
+#     runserver.default_port = int(os.getenv("DJANGO_DEFAULT_PORT", 8009))
+# except ValueError:
+#     runserver.default_port = 8009
+# runserver.default_port = 8009
 
 
 def main():

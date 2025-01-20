@@ -34,8 +34,8 @@ class ActorFilter(FilterSet):
     participant_group = NumberFilter(
         field_name='participants__participant_types__participant_group',
         lookup_expr='exact')
-    belong = CharFilter(
-        field_name='belongs', lookup_expr='exact')
+    belong = CharFilter(field_name='belongs', lookup_expr='exact')
+    country = NumberFilter(field_name='countries', lookup_expr='exact')
 
     class Meta:
         model = Actor
@@ -44,12 +44,12 @@ class ActorFilter(FilterSet):
             'indigenous_group': ['exact'],
             # 'belongs': ['exact'],
             'network_seq': ['exact'],
+            'status_validation': ['exact'],
         }
 
 
-class ActorViewMixin(
-    MergeSerializerMixin, viewsets.GenericViewSet
-):
+class ActorViewMixin(viewsets.GenericViewSet):
+
     request: Request
     massive_fields = ["sector_id", "status_validation", "parent_actor_id"]
     queryset = Actor.objects.all().distinct()\
@@ -126,19 +126,6 @@ class ActorViewMixin(
         elements.update(**update_data)
 
         return Response({'message': 'Elements updated successfully'})
-
-    def get_from_obj(self, from_id):
-        return Actor.objects.get(id=from_id)
-
-    def update_relations_merge(self, from_obj, to_obj):
-        Member.objects.filter(actor_individual=from_obj)\
-            .update(actor_individual=to_obj)
-        Member.objects.filter(actor_collective=from_obj)\
-            .update(actor_collective=to_obj)
-        Participant.objects.filter(actor=from_obj)\
-            .update(actor=to_obj)
-        OriginReference.objects.filter(actor=from_obj)\
-            .update(actor=to_obj)
 
     def filter_queryset_not(self, queryset):
         from django.db.models import Q

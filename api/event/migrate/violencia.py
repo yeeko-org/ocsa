@@ -28,6 +28,9 @@ class MigrateViolenciaToEvent(EventBase):
         self.mention = self.get_mention(self.violencia)
         self.event = self.get_main_event()
         viol_to_ubic_query = self.violencia.violenciatoubicacion_set.all()  # type: ignore
+        self.number_mix = 0
+        self.number_men = 0
+        self.number_women = 0
         self.set_locations(viol_to_ubic_query)
         self.set_involved_nums()
         self.sector_res = {
@@ -43,10 +46,11 @@ class MigrateViolenciaToEvent(EventBase):
         self.responsables = {}
         self.reset_responsables()
         self.set_sector_social_actor()
+
         for resp_type in self.resp_types:
             self.set_responsables(resp_type)
 
-        self.add_opositors()
+        self.add_opositores()
 
     def reset_responsables(self):
         for resp_type in self.resp_types:
@@ -88,6 +92,10 @@ class MigrateViolenciaToEvent(EventBase):
                 self.number_women = num_victimas
             if is_hombres:
                 self.number_men = num_victimas
+        self.event.number_mix = self.number_mix
+        self.event.number_women = self.number_women
+        self.event.number_men = self.number_men
+        self.event.save()
 
     def set_sector_social_actor(self):
         sector_s_name = getattr(
@@ -150,8 +158,7 @@ class MigrateViolenciaToEvent(EventBase):
 
         actor, _ = self.get_actor(name)
         participant = self.add_participant(
-            actor, self.mention, ["Por definir (de violencias)"],
-            get_object=True)
+            actor, self.mention, ["Responsable"], get_object=True)
 
         if not actor.sector:
             actor.sector = self.sector_res[resp_type]
@@ -163,31 +170,32 @@ class MigrateViolenciaToEvent(EventBase):
         if participant:
             self.responsables[resp_type].append(participant)
 
-    def set_involved(self, participant, role_name: str):
+    def set_involved(self, participant, role_name: str, add_number: bool = False):
         involved_role, _ = InvolvedRole.objects.get_or_create(name=role_name)
-        Involved.objects.create(
+        involved = Involved.objects.create(
             event=self.event,
             participant=participant,
             involved_role=involved_role,
-            number_women=self.number_women,
-            number_men=self.number_men,
-            number_mix=self.number_mix
         )
+        if add_number:
+            involved.number_women = self.number_women
+            involved.number_men = self.number_men
+            involved.number_mix = self.number_mix
+            involved.save()
 
-    def add_opositors(self):
+    def add_opositores(self):
         opositores = Opositores.objects.filter(
             violenciatoopositor__violencia=self.violencia)
 
         for opositor in opositores:
             actor, _ = self.get_actor(opositor.nombre)
             _ = self.add_participant(
-                actor, self.mention, ["Opositor"],
-                get_object=True)
+                actor, self.mention, ["Víctima"], get_object=True)
 
     def migrate(self):
 
         if self.victima_participante:
-            self.set_involved(self.victima_participante, "Víctima")
+            self.set_involved(self.victima_participante, "Víctima", True)
         for resp_type in self.resp_types:
             for responsable in self.responsables[resp_type]:
                 self.set_involved(responsable, "Responsable")
@@ -237,10 +245,10 @@ class ViolenciaToEventMigrate:
                 event_subtype.save()
 
     def sector_social(self):
-        collective_group, _ = SectorGroup.objects.get_or_create(
-            name="Varios", is_collective=True)
+        collective_group, _ = SectorGroup.objects.get_or_create(name="Otros")
         individual_group, _ = SectorGroup.objects.get_or_create(
-            name="Individuos (Varios)", is_collective=False)
+            name="Individuos", is_collective=False)
+        # default_group, _ = SectorGroup.objects.get_or_create(name="Otros")
         special_sectors = [
             "Trabajador de la empresa", "Otro (Abogado opositor)",
             "Periodista", "Abogado", "Activista", "Agente Federal",
