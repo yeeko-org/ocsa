@@ -31,6 +31,7 @@ from api.views.catalogs.project_serializers import (
     MegaprojectTypeCountSerializer,
     MegaprojectTypeFullSerializer,
     StatusProjectSerializer,
+    StatusProjectFullSerializer,
 )
 from .all import CatalogsView  # noqa
 from ..common_views import BaseViewSet, BaseStatusViewSet
@@ -84,9 +85,9 @@ class StatusControlViewSet(viewsets.ModelViewSet):
 
 class StatusProjectViewSet(BaseStatusViewSet):
     queryset = StatusProject.objects.all()\
-        .annotate(count=Count('projects'))\
+        .annotate(projects_count=Count('projects'))\
         .distinct()
-    serializer_class = StatusProjectSerializer
+    serializer_class = StatusProjectFullSerializer
 
 
 class ExtractivismTypeViewSet(BaseViewSet):

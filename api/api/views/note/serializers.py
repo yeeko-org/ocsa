@@ -130,6 +130,14 @@ class NoteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class StatusHistoryFullSerializer(serializers.ModelSerializer):
+    note_full = NoteSerializer(source='mention.note', read_only=True)
+
+    class Meta:
+        model = StatusHistory
+        fields = '__all__'
+
+
 class ImpactFullSerializer(serializers.ModelSerializer):
     note = NoteSerializer(source='mention.note', read_only=True)
 
