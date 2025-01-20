@@ -14,9 +14,8 @@ POSITION_CHOICES = (
 
 class ParticipantGroup(models.Model):
 
-    # TODO LUCIAN: Este hacerlo primary_key?
-    key_name = models.CharField(max_length=255, primary_key=True)
     name = models.CharField(max_length=255)
+    key_name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
     color = models.CharField(max_length=255, blank=True, null=True)
@@ -36,10 +35,9 @@ class ParticipantType(models.Model):
     name = models.CharField(max_length=255)
     position = models.CharField(
         max_length=14, choices=POSITION_CHOICES, default='undefined')
-    # participant_group = models.ForeignKey(
-    #     ParticipantGroup, on_delete=models.CASCADE,
-    #     blank=True, null=True, related_name='participant_types')
-    participant_group = models.IntegerField(blank=True, null=True)
+    participant_group = models.ForeignKey(
+        ParticipantGroup, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='participant_types')
     required_interests = models.BooleanField(
         default=True, verbose_name='Se requerirá que se agreguen intereses')
     status_validation = models.ForeignKey(

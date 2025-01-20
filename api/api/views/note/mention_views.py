@@ -1,7 +1,7 @@
 from django_filters import FilterSet, DateFilter, NumberFilter
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
-from api.views.common_views import BaseStatusViewSet, UnaccentSearchFilter
+from api.views.common_views import BaseViewSet, UnaccentSearchFilter
 from api.pagination import CustomPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,7 +10,7 @@ from api.views.event import EventSerializer
 from api.views.note.serializers import (
     MentionSerializer, MentionMegaFullSerializer,
     ParticipantSimpleSerializer, InterestSerializer,
-    InvolvedSerializer, StatusHistorySerializer, StatusHistoryFullSerializer)
+    InvolvedSerializer, StatusHistorySerializer)
 from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantSerializer)
 from api.views.note.serializers import ImpactFullSerializer, EventFullNoteSerializer
@@ -102,15 +102,11 @@ class InvolvedViewSet(viewsets.ModelViewSet):
     serializer_class = InvolvedSerializer
 
 
-class StatusHistoryViewSet(BaseStatusViewSet):
-    filterset_fields = ['status_project']
+class StatusHistoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
     queryset = StatusHistory.objects.all()
 
-    serializer_class = StatusHistoryFullSerializer
-
-    def get_serializer_class(self):
-        action_serializer = {'list': StatusHistorySerializer}
-        return action_serializer.get(self.action, self.serializer_class)
+    serializer_class = StatusHistorySerializer
 
 
 class EventFilter(FilterSet):
