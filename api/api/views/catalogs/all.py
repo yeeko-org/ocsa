@@ -80,7 +80,7 @@ class CatalogsView(APIView):
             .filter(network_seq__isnull=False)\
             .values_list('network_seq', flat=True)\
             .distinct()
-        print("networks", networks)
+        # print("networks", networks)
         network_list_sorted = sorted(list(networks))
         final_networks = [{"name": f"Red {i}", "id": i}
                           for i in network_list_sorted]

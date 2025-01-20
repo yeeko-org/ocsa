@@ -15,7 +15,7 @@ POSITION_CHOICES = (
 class ParticipantGroup(models.Model):
 
     name = models.CharField(max_length=255)
-    key_name = models.CharField(max_length=255)
+    short_name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
     color = models.CharField(max_length=255, blank=True, null=True)

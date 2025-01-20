@@ -70,7 +70,7 @@ class CapitalToActorMigration(ActorBase):
         if real_count == 0:
             self.add_error("Ningún nombre de empresa se encontró")
             mention.add_comment("YEEKO: Hay al menos un capital sin nombre")
-            mention.note.status_register_id = "need_new_checking"
+            mention.note.status_register_id = "could_fix"
             mention.note.add_comment(
                 "YEEKO: En alguna mención existe un capital sin nombre")
             return

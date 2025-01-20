@@ -82,13 +82,13 @@ class Command(BaseCommand):
             count = participant.participant_types.all().count()
             if count > 1:
                 cleaned = False
-                print(participant.actor)
+                print(f"Many participan_types: {participant.actor}")
                 all_participant_types = participant.participant_types.all()
                 for participant_type in all_participant_types:
                     print(participant_type)
                 together = tuple(all_participant_types)
                 for participant_type in all_participant_types:
-                    if participant_type.status_validation_id == 'need_reclassify':
+                    if 'reclassify' in participant_type.status_validation_id:
                         participant.participant_types.remove(participant_type)
                         cleaned = True
                         break
@@ -98,7 +98,7 @@ class Command(BaseCommand):
                     combinations[together] += 1
                 # status_validation_id
         for combination, count in combinations.items():
-            print(combination, count)
+            print("combination:", combination, count)
 
     def delete_wrong_event_subtype(self):
         wrong_subtypes = EventSubtype.objects.filter(
