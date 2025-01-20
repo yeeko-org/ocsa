@@ -29,7 +29,7 @@ class InitParticipantGroups:
 
         for position, data in init_participant_groups.items():
             ParticipantGroup.objects.get_or_create(
-                key_name=position,
+                short_name=position,
                 name=data["name"],
                 defaults={
                     "description": "",
@@ -67,7 +67,7 @@ class InitParticipantTypes:
         for data in init_participant_types:
             name, position, required_interests, order, st_validation = data
             participant_group = ParticipantGroup.objects.get(
-                key_name=position)
+                short_name=position)
             pt, created = ParticipantType.objects.get_or_create(
                 name=name, position=position)
             pt.order = order
@@ -87,7 +87,7 @@ class TemporalParticipantTypes:
             # ('Opositores', 'oppose', True, 10),
             ('PoblacionesAfectadas', 'oppose', True, 11, ''),
             ('Estado', 'support', False, 42, ''),
-            ("Por definir (de violencias)", 'other', False, 50, ''),
+            ("Responsable (de violencias)", 'other', False, 50, ''),
             # Estos se van a sacar de la tabla Opositores.otros_opositores, pero no
             # se le van a asignar todos los campos (solo su relación con nota y proyecto)
             ("otros_opositores", 'oppose', True, 12, ''),
@@ -96,7 +96,7 @@ class TemporalParticipantTypes:
         for data in temporal_participant_types:
             name, position, required_interests, order, description = data
             participant_group = ParticipantGroup.objects.get(
-                key_name=position)
+                short_name=position)
             # comments = ("YEEKO: Es una categoría previa (v.1) pero"
             #             "deberíamos reclasificar estos actores")
             pt, _ = ParticipantType.objects.get_or_create(

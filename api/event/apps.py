@@ -10,6 +10,7 @@ class EventConfig(AppConfig):
         from .models import InvolvedRole
         _ready = super().ready()
         init_involved_roles = [
+            "Responsable",
             "Víctima",
             "Opositor",
             "Destinatario",

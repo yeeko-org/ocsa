@@ -1,6 +1,6 @@
 from django.db import models
 # from space_time.models import Location
-from work_flux.models import StatusControl
+from work_flux.models import StatusControl, CommentsMixin
 
 
 class ExtractivismType(models.Model):
@@ -77,7 +77,7 @@ class Conflict(models.Model):
         verbose_name_plural = 'Conflictos Socioambientales'
 
 
-class Project(models.Model):
+class Project(CommentsMixin, models.Model):
     proyecto_id_ref = models.IntegerField(blank=True, null=True)
     legacy_id_mp = models.IntegerField(blank=True, null=True)
     name = models.CharField(
@@ -89,7 +89,8 @@ class Project(models.Model):
         verbose_name='Proyecto en el que se agrupa',
         blank=True, null=True, related_name='children_projects')
     others_parents = models.ManyToManyField(
-        'self', blank=True, verbose_name='Otros proyectos en los que se agrupa')
+        'self', blank=True,
+        verbose_name='Otros proyectos en los que se agrupa')
     conflict = models.ForeignKey(
         Conflict, on_delete=models.CASCADE, blank=True, null=True,
         related_name='projects')

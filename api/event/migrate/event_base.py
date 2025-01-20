@@ -19,11 +19,13 @@ class EventBase(ActorBase):
         is_violencia = isinstance(main_model, Violencia)
         group_name = "Violencia" if is_violencia else "Acciones Colectivas"
         if not event_type_name and not event_subtype_name:
-            group = "Violencia" if is_violencia else "Accion Colectiva"
-            self.mention.add_comment(
-                f"YEEKO: Hay un evento ({group}) no especificado")
+            group = "Violencia" if is_violencia else "Acción Colectiva"
+            self.mention.note.status_validation_id = "could_fix"
+            self.mention.note.add_comment(
+                f"YEEKO: Hay un evento ({group}) no especificado en"
+                f" la mención {self.mention.project.name}")
             complement = "Hecho de violencia" if is_violencia \
-                else "Accion Colectiva"
+                else "Acción Colectiva"
             raise Exception(f"{complement} no encontrado")
         if not event_type_name:
             event_type_name = f"No Especificado de {group_name}"

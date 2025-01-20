@@ -158,7 +158,7 @@ class MigrateViolenciaToEvent(EventBase):
 
         actor, _ = self.get_actor(name)
         participant = self.add_participant(
-            actor, self.mention, ["Responsable"], get_object=True)
+            actor, self.mention, ["Responsable (de violencias)"], get_object=True)
 
         if not actor.sector:
             actor.sector = self.sector_res[resp_type]
@@ -190,7 +190,7 @@ class MigrateViolenciaToEvent(EventBase):
         for opositor in opositores:
             actor, _ = self.get_actor(opositor.nombre)
             _ = self.add_participant(
-                actor, self.mention, ["Víctima"], get_object=True)
+                actor, self.mention, ["Opositor"], get_object=True)
 
     def migrate(self):
 
