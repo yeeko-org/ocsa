@@ -1,6 +1,10 @@
 from django.db import models
 # from space_time.models import Location
 from work_flux.models import StatusControl, CommentsMixin
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from space_time.models import Location
 
 
 class ExtractivismType(models.Model):
@@ -110,6 +114,8 @@ class Project(CommentsMixin, models.Model):
     comments = models.TextField(blank=True, null=True)
 
     files: models.QuerySet["ProjectFile"]
+    status_location_id: str | None
+    locations: models.QuerySet["Location"]
 
     def __str__(self):
         return self.name or "Proyecto sin nombre"
