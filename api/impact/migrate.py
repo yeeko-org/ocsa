@@ -2,16 +2,18 @@ from actor.migrate.common import ActorBase
 from impact.models import Impact, ImpactType, ImpactGroup
 from ocsa_legacy.models import (
     AfectacionEcologica, AfectacionSocial, TipoAfectacionEcologica,
-    TipoAfectacionSocial)
+    TipoAfectacionSocial, AfectacionSocialToUbicacion,
+    AfectacionEcologicaToUbicacion)
 
 
 class AfectacionToImpact(ActorBase):
+    impact: Impact | None
+
     def __init__(self, afectacion: AfectacionEcologica | AfectacionSocial) -> None:
-        # AfectacionEcologica -> Impact,  descripción_ae --> description
-        # AfectacionSocial -> Impact,  descripción_as --> description
         self.afectacion = afectacion
         self.mention = self.get_mention(self.afectacion)
         self.impact_type = self.get_impact_type()
+        self.impact = None
 
     def get_impact_type(self) -> ImpactType:
         if isinstance(self.afectacion, AfectacionEcologica):
@@ -25,17 +27,33 @@ class AfectacionToImpact(ActorBase):
         return ImpactType.objects.get(name=tipo_nombre, impact_group=group)
 
     def migrate(self) -> None:
-        if isinstance(self.afectacion, AfectacionEcologica):
+        is_ae = isinstance(self.afectacion, AfectacionEcologica)
+        if is_ae:
             descripcion_attr = "descripcion_ae"
         else:
             descripcion_attr = "descripcion_as"
 
-        desciption = getattr(self.afectacion, descripcion_attr, None)
-        Impact.objects.get_or_create(
+        description = getattr(self.afectacion, descripcion_attr, None)
+        self.impact, _ = Impact.objects.get_or_create(
             mention=self.mention,
             impact_type=self.impact_type,
-            description=desciption
+            description=description
         )
+        if is_ae:
+            ubicaciones = self.afectacion.afectacionecologicatoubicacion_set.all()
+        else:
+            ubicaciones = self.afectacion.afectacionsocialtoubicacion_set.all()
+        self.set_locations(ubicaciones)
+
+    def set_locations(self, original_locations):
+        from space_time.models import Location
+        for record_to_ubic in original_locations:
+            location = Location.objects.filter(
+                ubicacion_id_ref=record_to_ubic.ubicacion_id).first()  # type: ignore
+            if not location:
+                continue
+            location.impact = self.impact
+            location.save()
 
 
 class AfectacionesToImpactMigrate:

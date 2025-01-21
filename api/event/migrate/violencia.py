@@ -27,10 +27,10 @@ class MigrateViolenciaToEvent(EventBase):
         self.violencia = violencia
         self.mention = self.get_mention(self.violencia)
         self.event = self.get_main_event()
-        viol_to_ubic_query = self.violencia.violenciatoubicacion_set.all()  # type: ignore
         self.number_mix = None
         self.number_men = None
         self.number_women = None
+        viol_to_ubic_query = self.violencia.violenciatoubicacion_set.all()  # type: ignore
         self.set_locations(viol_to_ubic_query)
         self.set_involved_nums()
         self.sector_res = {

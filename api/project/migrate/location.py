@@ -19,7 +19,7 @@ class ProyectoToUbicacionMigrate:
             location = Location.objects.filter(
                 ubicacion_id_ref=ubicacion_id).first()
 
-            if not (project and location):
+            if not (project.exists() and location.exists()):
                 # print(f"Project or Location not found: {proyecto_id}, {ubicacion_id}")
                 continue
             location.project = project

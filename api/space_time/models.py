@@ -2,6 +2,7 @@ from django.db import models
 from work_flux.models import StatusControl
 from project.models import Project
 from event.models import Event
+from impact.models import Impact
 
 
 def default_alternative_names():
@@ -126,6 +127,9 @@ class Location(models.Model):
         related_name="locations")
     event = models.ForeignKey(
         Event, on_delete=models.CASCADE, blank=True, null=True,
+        related_name="locations")
+    impact = models.ForeignKey(
+        Impact, on_delete=models.CASCADE, blank=True, null=True,
         related_name="locations")
     state = models.ForeignKey(
         State, on_delete=models.CASCADE,

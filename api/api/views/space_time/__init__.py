@@ -49,7 +49,7 @@ class LocalityListViewSet(ListSetMixin):
 
 class LocationViewSet(BaseViewSet):
     queryset = Location.objects.all().exclude(
-        project__isnull=True, event__isnull=True)
+        project__isnull=True, event__isnull=True, impact__isnull=True)
     serializer_class = LocationSerializer
 
     filterset_fields = ['status_location']

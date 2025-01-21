@@ -79,6 +79,14 @@ class EventEmbedSerializer(EventSimpleSerializer):
     locations = LocationSerializer(many=True, read_only=True)
 
 
+class ImpactEmbedSerializer(serializers.ModelSerializer):
+    locations = LocationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Impact
+        fields = '__all__'
+
+
 class MentionSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -111,6 +119,7 @@ class MentionMegaFullSerializer(MentionFullSerializer):
     # project = ProjectSemiFullSerializer()
     status_history = StatusHistorySerializer(many=True)
     events = EventEmbedSerializer(many=True)
+    impacts = ImpactEmbedSerializer(many=True)
 
 
 class NoteFileSerializer(serializers.ModelSerializer):

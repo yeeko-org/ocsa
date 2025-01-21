@@ -127,7 +127,9 @@ class CatalogsView(APIView):
                 MegaprojectType.objects.all(), many=True).data,
             "extractivism_types": ExtractivismTypeSerializer(
                 ExtractivismType.objects.all(), many=True).data,
-            "status_project": StatusProjectSerializer(
+            # "status_project": StatusProjectSerializer(
+            #     StatusProject.objects.all(), many=True).data,
+            "status_projects": StatusProjectSerializer(
                 StatusProject.objects.all(), many=True).data,
 
             "sources": SourceSerializer(

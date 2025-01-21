@@ -63,7 +63,6 @@ class EventBase(ActorBase):
 
     def set_locations(self, original_locations):
         from space_time.models import Location
-        # from event.models import EventLocation
         for record_to_ubic in original_locations:
             location = Location.objects.filter(
                 ubicacion_id_ref=record_to_ubic.ubicacion_id).first()  # type: ignore
@@ -71,7 +70,3 @@ class EventBase(ActorBase):
                 continue
             location.event = self.event
             location.save()
-
-            # EventLocation.objects.get_or_create(
-            #     event=self.event, location=location
-            # )
