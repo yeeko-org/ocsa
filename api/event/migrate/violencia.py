@@ -28,9 +28,9 @@ class MigrateViolenciaToEvent(EventBase):
         self.mention = self.get_mention(self.violencia)
         self.event = self.get_main_event()
         viol_to_ubic_query = self.violencia.violenciatoubicacion_set.all()  # type: ignore
-        self.number_mix = 0
-        self.number_men = 0
-        self.number_women = 0
+        self.number_mix = None
+        self.number_men = None
+        self.number_women = None
         self.set_locations(viol_to_ubic_query)
         self.set_involved_nums()
         self.sector_res = {
@@ -104,20 +104,11 @@ class MigrateViolenciaToEvent(EventBase):
             return
 
         project_name = self.mention.project.name
-        # sector_s_name = (
-        #     f"Víctima del sector {sector_s_name} del proyecto {project_name}")
+
         actor_name = (
             f"Víctima del sector {sector_s_name} del proyecto {project_name}")
         actor_victima, _ = self.get_actor(actor_name)
 
-        similar_count = Sector.objects\
-            .filter(name__istartswith=sector_s_name).count()
-
-        # sector_social_victima = Sector.objects.create(
-        #     name=sector_s_name +
-        #     f" ({similar_count})" if similar_count else "",
-        #     sector_group=self.default_sector_group
-        # )
         sector_social_victima, created = Sector.objects.get_or_create(
             name=sector_s_name,
             sector_group=self.default_sector_group
@@ -129,8 +120,6 @@ class MigrateViolenciaToEvent(EventBase):
             f"YEEKO: Se creó este nombre porque se identificó como nombre "
             "genérico, sin embargo, debe mejorar su nombre."
         )
-
-        # sector_social_actor.belongs.add(self.get_belong("is_leader"))
 
         self.victima_participante = self.add_participant(
             actor_victima, self.mention, get_object=True)
@@ -189,8 +178,9 @@ class MigrateViolenciaToEvent(EventBase):
 
         for opositor in opositores:
             actor, _ = self.get_actor(opositor.nombre)
-            _ = self.add_participant(
+            participant = self.add_participant(
                 actor, self.mention, ["Opositor"], get_object=True)
+            self.set_involved(participant, "Víctima", True)
 
     def migrate(self):
 

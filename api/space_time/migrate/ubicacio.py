@@ -15,13 +15,16 @@ class UbicacionesToLocations:
             fields = [
                 "estado", "municipio", "localidad", "latitud", "longitud",
                 "geom", "especificaciones"]
+            some_value = False
             if ubicacion.tipo_ubicacion == "punto":
                 for field in fields:
                     if value := getattr(ubicacion, field):
-                        if value != "SD":
-                            break
-                else:
-                    continue
+                        if value:
+                            some_value = True
+            else:
+                some_value = True
+            if not some_value:
+                continue
             try:
                 self.migrate_ubicacion(ubicacion)
             except Exception as e:
@@ -122,6 +125,7 @@ class UbicacionesToLocations:
             comments.append(
                 "Error al parsear el geojson. El campo se guardará como nulo")
             details += f"geom: {ubicacion.geom}\n\r"
+
         details = details.strip()
         final_comments = None
         if comments:

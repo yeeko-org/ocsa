@@ -7,6 +7,8 @@ orden de ejecucion de migracion de datos:
 python manage.py migrate
 python manage.py runserver
 
+(OPCIONAL) Migrar los usuarios de la base de datos de producción
+
 python manage.py migrate_ps_schemas
 
 python manage.py load_states_data
