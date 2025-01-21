@@ -10,7 +10,7 @@ class ImpactConfig(AppConfig):
     def ready(self) -> None:
         from .initial_data import InitialImpactGroups
         _ready = super().ready()
-        valid_commands = ["runserver", "migrate_classify"]
+        valid_commands = ["migrate_initial_data", "migrate_classify"]
         if any([command in sys.argv for command in valid_commands]):
             print('Cargando datos iniciales de impactos...')
             InitialImpactGroups()

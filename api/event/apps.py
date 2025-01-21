@@ -16,7 +16,7 @@ class EventConfig(AppConfig):
             "Destinatario",
         ]
 
-        valid_commands = ["runserver", "migrate_eventos"]
+        valid_commands = ["migrate_initial_data", "migrate_eventos"]
         if any([command in sys.argv for command in valid_commands]):
             print('Cargando datos iniciales de InvolvedRole...')
             for role in init_involved_roles:
