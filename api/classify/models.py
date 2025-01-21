@@ -56,7 +56,7 @@ class ParticipantType(models.Model):
 
 
 class Belong(models.Model):
-    key_name = models.CharField(max_length=255, primary_key=True)
+    short_name = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
@@ -66,7 +66,7 @@ class Belong(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['order', 'key_name']
+        ordering = ['order', 'short_name']
         verbose_name = 'Grupo de Pertenencia (Vulnerabilidad)'
         verbose_name_plural = 'Grupos de Pertenencia (Vulnerabilidades)'
 

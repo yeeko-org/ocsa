@@ -211,11 +211,11 @@ class InitBelongs:
             ('is_woman_organization', 'Organización de mujeres', 'diversity_1'),
             ('has_protection', 'Tiene Protección', 'security'),
         ]
-        for key_name, value, icon in init_belongs:
-            if Belong.objects.filter(key_name=key_name).exists():
+        for short_name, value, icon in init_belongs:
+            if Belong.objects.filter(short_name=short_name).exists():
                 continue
             Belong.objects.get_or_create(
-                key_name=key_name,
+                short_name=short_name,
                 name=value,
                 icon=icon
             )

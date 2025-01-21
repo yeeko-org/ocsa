@@ -240,7 +240,7 @@ all_collections = {
             "plural_name": "Grupos de Pertenencia (Vulnerabilidades)",
             "model_name": "Belong",
             "level": "category_subtype",
-            "cat_params": {"item_id": "key_name"},
+            "cat_params": {"item_id": "short_name"},
             "open_insertion": False,
             "available_actions": ["merge"],
         },

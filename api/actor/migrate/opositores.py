@@ -53,9 +53,9 @@ class OpositorToActorMigration(ActorBase):
         belong = self.belongs.get(key)
         if not belong:
             try:
-                belong = Belong.objects.get(key_name=key)
+                belong = Belong.objects.get(short_name=key)
             except Belong.DoesNotExist:
-                belong = Belong.objects.create(key_name=key, name=key)
+                belong = Belong.objects.create(short_name=key, name=key)
             self.belongs[key] = belong
         return belong
 
