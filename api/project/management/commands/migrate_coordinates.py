@@ -24,7 +24,9 @@ class Command(BaseCommand):
         file_path = kwargs['file_path']
 
         try:
-            df = pd.read_excel(file_path)
+            df = pd.read_excel(
+                file_path, dtype="string", na_filter=False,
+                keep_default_na=False)
 
             expected_columns = [
                 "ID",
