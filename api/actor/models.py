@@ -41,7 +41,8 @@ class Actor(CommentsMixin, models.Model):
         'self', on_delete=models.CASCADE, null=True, blank=True,
         related_name='children_actors', verbose_name='Actor padre')
     others_parents = models.ManyToManyField(
-        'self', blank=True, verbose_name='Otros padres')
+        'self', blank=True, verbose_name='Otros padres',
+        related_name='children_actors_others')
     network_seq = models.IntegerField(blank=True, null=True)
     is_only_related = models.BooleanField(
         blank=True, null=True, verbose_name='Se creó solo por relación')

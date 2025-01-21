@@ -94,7 +94,8 @@ class Project(CommentsMixin, models.Model):
         blank=True, null=True, related_name='children_projects')
     others_parents = models.ManyToManyField(
         'self', blank=True,
-        verbose_name='Otros proyectos en los que se agrupa')
+        verbose_name='Otros proyectos en los que se agrupa',
+        related_name='others_children_projects')
     conflict = models.ForeignKey(
         Conflict, on_delete=models.CASCADE, blank=True, null=True,
         related_name='projects')
