@@ -44,7 +44,7 @@ def related_objects_report(
         except Exception as e:
             errors.append(
                 f"Error al generar informe para la relación "
-                f"'{related.field.name}' {related.__dict__}: {e}")
+                f"'{related.field.name}'  con related_name: '{related.name}' - {related.__dict__}: {e}")
 
 
 class RecordMerger:

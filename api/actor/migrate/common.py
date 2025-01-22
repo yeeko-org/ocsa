@@ -199,9 +199,9 @@ class ActorBase:
 
     def get_belong(self, key: str) -> Belong:
         try:
-            return Belong.objects.get(key_name=key)
+            return Belong.objects.get(short_name=key)
         except Belong.DoesNotExist:
-            return Belong.objects.create(key_name=key, name=key)
+            return Belong.objects.create(short_name=key, name=key)
 
 
 def text_normalizer(text, to_headers=False) -> str:

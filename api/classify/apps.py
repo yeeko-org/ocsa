@@ -13,7 +13,7 @@ class ClassifyConfig(AppConfig):
             InitSector, InitBelongs, InitParticipantGroups, InitInterestTypes)
 
         _ready = super().ready()
-        valid_commands = ["runserver", "migrate_classify"]
+        valid_commands = ["migrate_initial_data", "migrate_classify"]
         if any([command in sys.argv for command in valid_commands]):
             print('Cargando datos iniciales de clasificadores de actores...')
             InitParticipantGroups()
