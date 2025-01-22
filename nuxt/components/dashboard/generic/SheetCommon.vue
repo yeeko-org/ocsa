@@ -25,7 +25,7 @@ const props = defineProps({
 const child_collections = computed(() => {
   if (!props.collection_data)
     return []
-  // console.log("collection_data", props.collection_data)
+  console.log("collection_data", props.collection_data)
   let collections = []
   props.collection_data.child_relations.forEach(child => {
     let is_category = false
@@ -33,18 +33,26 @@ const child_collections = computed(() => {
       is_category = true
     const child_collection = schemas.value.collections_dict[child.child]
     const results = props.full_main[`${child.child}s`]
-    if (results || !is_category){
-      collections.push({
-        collection_data: child_collection,
-        relation: child,
-        results: results,
-        count: props.full_main[`${child.child}s_count`],
-      })
+    const count = props.full_main[`${child.child}s_count`]
+    let child_data = {
+      collection_data: child_collection,
+      relation: child,
+      count: count,
     }
-
+    if (results || !is_category){
+      child_data.results = results
+      collections.push(child_data)
+    }
+    else if (is_category && count !== undefined && count !== null){
+      collections.push(child_data)
+    }
   })
   // console.log("result", result)
   return collections
+})
+
+const elem_id = computed(() => {
+  return props.collection_data.pk
 })
 
 </script>
@@ -85,7 +93,7 @@ const child_collections = computed(() => {
       <CollectionDisplay
         v-else
         :parent_collection="child_collection.collection_data"
-        :init_filters="{[collection_data.snake_name]: props.full_main.id}"
+        :init_filters="{[collection_data.snake_name]: props.full_main[elem_id]}"
         :init_total_count="child_collection.count"
         direct_sheet
       />

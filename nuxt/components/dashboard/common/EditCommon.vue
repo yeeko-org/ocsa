@@ -1,11 +1,9 @@
 <script setup>
 
-import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
-import Comments from "~/components/dashboard/utils/Comments.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import { saveElement, deleteElement } from "~/composables/save_elements.js";
-// import {saveElement} from "~/composables/save_elements.js";
+import EditCommonFields from "~/components/dashboard/common/EditCommonFields.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 
@@ -25,10 +23,7 @@ const deleting = ref(false)
 const snackbar = ref(false)
 const editForm = ref(null)
 const dialog_delete = ref(false)
-const rules = ref({
-  required: value => !!value || "Campo requerido",
-  defined: value => value !== undefined || "Debes seleccionar una opción",
-})
+const errors = ref(null)
 
 const emits = defineEmits([
     'new-item', 'item-deleted', 'item-saved', 'merge-items'])
@@ -41,12 +36,28 @@ const final_collection_data = computed(() => {
 })
 
 async function saveRecord() {
+  errors.value = null
   const { valid } = await editForm.value.validate()
   if (!valid) return
   saving.value = true
-  const elem_id = props.full_main.id ? 'id' : 'key_name'
-  const is_new = !Boolean(props.full_main[elem_id])
+  // const elem_id = props.full_main.id ? 'id' : 'key_name'
+  const elem_id = final_collection_data.value.pk
+  // let is_new = true
+  // if (props.full_main.id)
+  //   is_new = false
+  // else if (props.full_main.key_name)
+  //   is_new = props.full_main.is_new === true
+  let is_new = true
+  if (elem_id === 'id')
+    is_new = !props.full_main.id
+  else if (elem_id === 'key_name')
+    is_new = props.full_main.is_new === true
   saveElement(final_collection_data.value, props.full_main).then((res) => {
+    if (res.errors) {
+      errors.value = res.errors
+      saving.value = false
+      return
+    }
     if (props.edit_type.key === 'merge')
       emits('merge-items', res)
     else{
@@ -63,9 +74,7 @@ function finishSave(){
 
 function deleteRecord() {
   deleting.value = true
-  // console.log('final_collection_data', final_collection_data.value)
-  const elem_id = props.full_main.id ? 'id' : 'key_name'
-  const id_to_delete = props.full_main[elem_id]
+  const id_to_delete = props.full_main[props.collection_data.pk]
   deleteElement(final_collection_data.value, id_to_delete)
     .then(() => {
       deleting.value = false
@@ -74,131 +83,33 @@ function deleteRecord() {
     })
 }
 
-function openLink(type) {
-  console.log("type", type)
-  if (type === 'icon')
-    window.open('https://fonts.google.com/icons', '_blank')
-    // window.open('https://material.io/resources/icons/?style=baseline', '_blank')
-  else if (type === 'color')
-    window.open('https://vuetifyjs.com/en/styles/colors/#material-colors', '_blank')
-}
-
 </script>
 
 <template>
   <v-card class="mb-3 pa-3" elevation="8">
+    <v-alert
+      v-if="errors"
+      type="error"
+      dismissible
+      border="left"
+      elevation="2"
+      class="mb-3"
+    >
+      {{ errors }}
+    </v-alert>
     <v-form
       ref="editForm"
     >
-      <v-card-text
-        class="d-flex flex-wrap"
+      <EditCommonFields
+        :full_main="full_main"
+        :final_collection_data="final_collection_data"
       >
-        <v-col cols="12" class="d-flex pa-0">
-          <v-text-field
-            v-if="final_collection_data.has.order"
-            v-model="full_main.order"
-            label="Orden"
-            type="number"
-            variant="outlined"
-            class="mr-2"
-            style="max-width: 70px;"
-          >
-          </v-text-field>
-          <v-text-field
-            v-if="final_collection_data.name_field"
-            v-model="full_main[final_collection_data.name_field]"
-            label="Nombre"
-            class="mr-2"
-            variant="outlined"
-            style="width: 300px;"
-            :rules="[rules.required]"
-          />
-          <v-spacer></v-spacer>
-          <template v-if="final_collection_data.status_groups">
-            <StatusDetail
-              v-for="status_group in final_collection_data.status_groups"
-              :final_filters="full_main"
-              :collection="status_group"
-              style="max-width: 300px;"
-              density="default"
-              class="mr-1"
-            />
-          </template>
-          <Comments
-            v-if="final_collection_data.has.comments"
-            :main="full_main"
-            :final_collection_data="final_collection_data"
-          />
-        </v-col>
-        <v-col
-          v-if="final_collection_data.has.icon || final_collection_data.has.color"
-          cols="12"
-          class="d-flex pa-0"
-        >
-          <v-text-field
-            v-if="final_collection_data.has.icon"
-            v-model="full_main.icon"
-            label="Ícono (material icons)"
-            variant="outlined"
-            style="max-width: 260px;"
-            :rules="[rules.required]"
-          >
-            <template v-slot:append>
-              <v-icon
-                @click="openLink('icon')"
-              >open_in_new</v-icon>
-            </template>
-          </v-text-field>
-          <v-text-field
-            v-if="final_collection_data.has.color"
-            v-model="full_main.color"
-            label="Color"
-            variant="outlined"
-            class="ml-6"
-            style="max-width: 220px;"
-            :rules="[rules.required]"
-          >
-            <template v-slot:append>
-              <v-icon
-                @click="openLink('color')"
-              >open_in_new</v-icon>
-            </template>
-          </v-text-field>
-        </v-col>
-        <slot name="edit" :full_main="full_main">
-          EDICIÓN (REVISAR PORQUE NO ES NORMAL)
-        </slot>
-        <v-col
-          v-if="final_collection_data.has.description
-            && final_collection_data.name_field !== 'description'"
-          cols="12"
-          class="d-flex pa-0"
-        >
-          <v-textarea
-            v-model="full_main.description"
-            label="Descripción"
-            rows="1"
-            auto-grow
-            class="mr-2"
-            variant="outlined"
-          ></v-textarea>
-        </v-col>
-        <v-col
-          cols="12"
-          class="d-flex pa-0"
-        >
-          <v-textarea
-            v-if="final_collection_data.has.help_text"
-            v-model="full_main.help_text"
-            label="Texto de ayuda"
-            variant="outlined"
-            rows="2"
-            auto-grow
-            _hide-details
-          >
-          </v-textarea>
-        </v-col>
-      </v-card-text>
+        <template #edit="{ full_main }">
+          <slot name="edit" :full_main="full_main">
+            EDICIÓN 1 (REVISAR PORQUE NO ES NORMAL)
+          </slot>
+        </template>
+      </EditCommonFields>
       <v-card-actions>
         <v-btn
           v-if="final_collection_data.level !== 'secondary'"
@@ -226,7 +137,6 @@ function openLink(type) {
             </div>
           </v-tooltip>
         </v-btn>
-
         <v-spacer></v-spacer>
         <v-btn
           :id="`save_${final_collection_data.snake_name}-${

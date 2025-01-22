@@ -1,6 +1,5 @@
 <script setup>
 
-import ActorCard from "~/components/dashboard/actor/actor/ActorCard.vue";
 import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
 import CardCommon from "~/components/dashboard/common/CardCommon.vue";
 import {storeToRefs} from "pinia";
@@ -37,7 +36,6 @@ const actor_collection_data = computed(() => {
   >
     <template #rows_init="{ item }">
       <CardCommon
-        v-if="item.actor_full || true"
         :full_main="item.actor_full"
         @edited-item="emits('edited-item', item)"
         _search-item="emits('search-item', item)"

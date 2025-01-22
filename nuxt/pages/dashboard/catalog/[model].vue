@@ -109,7 +109,6 @@ const group_results = computed(() => {
           <CollectionDisplay
             v-else
             :parent_collection="collection"
-            :level_name="key"
             :filter_group="filter_group"
           />
 

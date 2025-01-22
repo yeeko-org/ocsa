@@ -9,6 +9,7 @@ function final_snake_name(collection_data) {
 export async function saveElement(collection_data, element) {
   const mainStore = useMainStore()
   const { saveSimple, saveCatalog } = mainStore
+  // console.log("collection_data", collection_data)
   const { snake_name, is_category } = final_snake_name(collection_data)
   if (is_category)
     return await saveCatalog([collection_data, element]).then((response) => {
@@ -20,16 +21,16 @@ export async function saveElement(collection_data, element) {
     })
 }
 
-export async function deleteElement(collection_data, el_id) {
+export async function deleteElement(collection_data, obj_id) {
   const mainStore = useMainStore()
   const { deleteSimple, deleteCatalog } = mainStore
   const { snake_name, is_category } = final_snake_name(collection_data)
   if (is_category)
-    return await deleteCatalog([collection_data, el_id]).then((response) => {
+    return await deleteCatalog([collection_data, obj_id]).then((response) => {
       return response
     })
   else
-    return await deleteSimple([snake_name, el_id]).then((response) => {
+    return await deleteSimple([snake_name, obj_id]).then((response) => {
       return response
     })
 }

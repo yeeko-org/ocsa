@@ -22,6 +22,7 @@ const props = defineProps({
   is_mini: Boolean,
   is_simple: Boolean,
   in_sheet: Boolean,
+  main_action: String,
 })
 
 const group_actions_enabled = ref(true)
@@ -62,7 +63,8 @@ function selectAll() {
   if (sel.value.selected_elems.length === props.results.length)
     sel.value.selected_elems = []
   else
-    sel.value.selected_elems = props.results.map(res => res.id)
+    sel.value.selected_elems = props.results.map(
+        res => res[props.collection_data.pk])
   // selected_elems.value = pet_file_ctrl.data_files.map(df => df.id)
 }
 
@@ -71,24 +73,26 @@ function wantMassiveEdit() {
   edit_type.value = {
     key: 'massive_edit', title: 'Edición masiva', btn: 'Guardar cambios'}
   selected_results.value = props.results.filter(
-      res => sel.value.selected_elems.includes(res.id))
+      res => sel.value.selected_elems.includes(res[props.collection_data.pk]))
   element_to_edit.value = {...{}, ...selected_results.value[0]}
   dialog_edit.value = true
 }
 
 function wantMerge() {
   // console.log("wantMerge", sel.value.selected_elems)
-  edit_type.value = {key: 'merge', title: 'Fusión de elementos', btn: 'Fusionar'}
+  edit_type.value = {
+    key: 'merge', title: 'Fusión de elementos', btn: 'Fusionar'}
   selected_results.value = sel.value.selected_elems.map(
-    id => props.results.find(res => res.id === id))
+    el_id => props.results.find(res => res[props.collection_data.pk] === el_id))
   element_to_edit.value = {...{}, ...selected_results.value[0]}
   dialog_edit.value = true
 }
 
 function addItem() {
-  // console.log("addItem")
   edit_type.value = {key: 'edit', title: 'Agregar Registro', btn: 'Guardar'}
-  element_to_edit.value = {}
+  // console.log("final_filters", props.final_filters)
+  const final_filters = props.final_filters || {}
+  element_to_edit.value = {...final_filters, is_new: true}
   props.collection_data.fields.forEach(field => {
     if (field.default !== undefined && field.default !== null)
       element_to_edit.value[field.name] = field.default
@@ -115,7 +119,8 @@ function saveNewElement({res, is_new}) {
   if (is_new)
     props.results.unshift(res)
   else{
-    const idx = props.results.findIndex(r => r.id === res.id)
+    const elem_id = props.collection_data.pk
+    const idx = props.results.findIndex(r => r[elem_id] === res[elem_id])
     props.results.splice(idx, 1, res)
   }
   closeDialog()
@@ -125,8 +130,9 @@ function mergeItems(res_main) {
   saveNewElement({res: res_main, is_new: false})
   const model_name = `${props.collection_data.app_label}.${
                         props.collection_data.model_name}`
-  const main_id = selected_results.value[0].id
-  const merge_ids = selected_results.value.slice(1).map(res => res.id)
+  const elem_id = props.collection_data.pk
+  const main_id = selected_results.value[0][elem_id]
+  const merge_ids = selected_results.value.slice(1).map(res => res[elem_id])
   merge_ids.forEach(merge_id => {
     let params = {
       model_name,
@@ -138,7 +144,8 @@ function mergeItems(res_main) {
     const is_category = props.collection_data.is_category
     const snake_name = is_category ? props.collection_data.snake_name : null
     mergeSimple([params, snake_name]).then(res => {
-      const idx = props.results.findIndex(result => result.id === merge_id)
+      const idx = props.results.findIndex(
+          result => result[elem_id] === merge_id)
       props.results.splice(idx, 1)
     })
   })
@@ -168,7 +175,7 @@ function selectItem(item) {
       class="mr-3"
       prepend-icon="add"
     >
-      Agregar
+      Nuevo
       {{collection_data.name.length > 15
         ? 'registro' : collection_data.name}}
     </v-btn>
@@ -205,19 +212,21 @@ function selectItem(item) {
       Página {{page_number}} de {{Math.ceil(total_count / final_filters.page_size)}}
       | {{total_count}} Resultados
     </span>
+    <SummaryList
+      v-if="is_mini"
+      :results="results"
+      :collection_data="collection_data"
+      :show_details="show_details"
+      @select-item="selectItem"
+    />
     <PanelList
-      v-if="!is_mini"
+      v-else
       :results="results"
       :collection_data="collection_data"
       :show_details="show_details"
       :sel="sel"
       :is_simple="is_simple"
-    />
-    <SummaryList
-      v-else
-      :results="results"
-      :collection_data="collection_data"
-      :show_details="show_details"
+      :main_action="main_action"
       @select-item="selectItem"
     />
     <v-card-actions v-if="!in_sheet">

@@ -87,7 +87,7 @@ const participants = computed(() => {
     :show_details="show_details"
     :collection_data="collection_data"
   >
-    <template #icon v-if="true">
+    <template #icon>
       <SelectGroup
         :main_object="main"
         filter_group_name="sectors"

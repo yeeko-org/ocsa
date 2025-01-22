@@ -88,7 +88,7 @@ const events_count = computed(() => {
     </template>
     <template #details>
       <ProjectMiniList
-        v-if="!parent || parent !== 'project'"
+        v-if="main && (!parent || parent !== 'project')"
         :mentions="final_mentions"
       />
       <ImpactChip

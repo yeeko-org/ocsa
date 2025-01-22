@@ -20,21 +20,19 @@ const { fetchElements } = mainStore
 
 const props = defineProps({
   parent_collection: Object,
+
   level_name: String,
   filter_group: Object,
   is_mini: Boolean,
   in_sheet: Boolean,
   init_total_count: Number,
   direct_sheet: Boolean,
+  main_action: String,
   init_filters: {
     type: Object,
     default: () => ({}),
   },
 })
-
-// const init_filters = {
-//   status_register: null,
-// }
 
 const results = ref([])
 const q_value = ref("")
@@ -62,6 +60,7 @@ const current_filters = ref([])
 // const panel_result = useTemplateRef('panel-result')
 const childRef = ref(null)
 const emits = defineEmits(['select-item'])
+defineExpose({ setInitResults, changeInitFilters })
 
 onBeforeMount(() => {
   resetFilters()
@@ -174,6 +173,21 @@ function initFilters() {
     visible_filters.value = current_filters.value
   else
     visible_filters.value = current_filters.value.filter(f => !f.hidden)
+}
+
+function setInitResults(init_results){
+  results.value = init_results
+  total_count.value = init_results.length
+}
+
+function changeInitFilters(){
+  if (!props.init_filters)
+    return
+  // final_filters.value
+  Object.entries(props.init_filters).forEach(([key, value]) => {
+    temp_reset.value = true
+    final_filters.value[key] = value
+  })
 }
 
 function addItem() {
@@ -314,6 +328,7 @@ function selectItem(item) {
       color="accent"
     ></v-progress-linear>
     <PanelsResult
+      ref="childRef"
       :results="results"
       :collection_data="collection_data"
       :show_details="show_details"
@@ -321,8 +336,8 @@ function selectItem(item) {
       :total_count="total_count || init_total_count"
       :is_mini="is_mini"
       :in_sheet="in_sheet"
+      :main_action="main_action"
       @update-page-number="applyFilters($event)"
-      ref="childRef"
       @select-item="selectItem"
     />
   </v-card>

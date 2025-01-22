@@ -20,12 +20,16 @@ function selectItem(result) {
   emits('select-item', result)
 }
 
+const elem_id = computed(() => {
+  return props.collection_data.pk
+})
+
 </script>
 
 <template>
   <v-card
     v-for="result in results"
-    :key="result.id"
+    :key="result[elem_id]"
     class="my-2 d-flex align-center px-3"
     :color="collection_data.color"
     variant="tonal"

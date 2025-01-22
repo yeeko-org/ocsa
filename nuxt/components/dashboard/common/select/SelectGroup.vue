@@ -4,6 +4,7 @@ import {computed, nextTick} from "vue";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import GenericSelect from "~/components/dashboard/common/select/GenericSelect.vue";
+import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 const mainStore = useMainStore()
 const { schemas, all_nodes } = storeToRefs(mainStore)
 
@@ -30,11 +31,17 @@ const props = defineProps({
   required: Boolean,
 })
 
+const collection_display = ref(null)
+const loaded = ref(false)
+const dialog_add = ref(false)
+const level_dialog = ref(null)
+const init_filters = ref(null)
+
 const emits = defineEmits(['delete-record'])
 const levels = ['group', 'type', 'subtype']
 
 const filter_node = computed(() => all_nodes.value[props.filter_group_name])
-const filter_group = computed(() => {
+const filter_group_data = computed(() => {
   // console.log("filter_node", filter_node.value)
   return filter_node.value.data
 })
@@ -72,7 +79,7 @@ const subcategory_is_multiple = computed(() => {
     return true
   if (final_main_collection.value){
     const category = final_main_collection.value.categories.find(
-      cat => cat.parent === filter_group.value.category_subtype) || {}
+      cat => cat.parent === filter_group_data.value.category_subtype) || {}
     return category.is_multiple || false
   }
   return false
@@ -84,7 +91,7 @@ const level_names = computed(() => {
     if (props.forced_level === level)
       done = true
     if (!done){
-      const cat_name = filter_group.value[`category_${level}`]
+      const cat_name = filter_group_data.value[`category_${level}`]
       if (cat_name)
         acc[level] = cat_name
     }
@@ -177,13 +184,15 @@ const subtype_items = computed(() => {
         return nodes.value.type.data.all_childs
       return nodes.value.type.children.map(child => child.data)
     }
+    else
+      return []
   }
   else
     return filter_node.value.children.map(child => child.data)
-  return null
 })
 
 onMounted(() => {
+  // TODO: revisar con calma esto:
   if (!props.main_object[level_names.value.type] && nodes.value.type)
     props.main_object[level_names.value.type] = nodes.value.type.data.id
 })
@@ -222,32 +231,31 @@ const display_type = computed(() => {
     ? (props.main_object[level_names.value.type] || type_items.value)
     : true
 })
-const display_indirect_type = computed(() => {
-  if (props.is_filter)
-    return false
-  return props.main_object[level_names.value.type] === undefined
-})
-
 
 nextTick(() => {
   setTimeout(() => {
-    if (props.is_filter || props.is_toolbar)
-      return
-    if (props.main_object[level_names.value.subtype]
-        && !props.main_object[level_names.value.type]){
-      if (nodes.value.subtype)
-        props.main_object[level_names.value.type] = nodes.value.subtype.parent.data.id
-    }
-    if (props.main_object[level_names.value.type]
-        && !props.main_object[level_names.value.group]){
-      // console.log("value type", props.main_object[level_names.value.type])
-      // console.log("node type", nodes.value.type)
-      // console.log("level group name", level_names.value.group)
-      if (nodes.value.type)
-        props.main_object[level_names.value.group] = nodes.value.type.parent.data.id
-    }
+    setInitialData()
   }, 100)
 })
+
+function setInitialData(){
+  if (loaded.value)
+    return
+  loaded.value = true
+  // if (props.is_filter || props.is_toolbar)
+  if (props.is_filter)
+    return
+  if (props.main_object[level_names.value.subtype]
+      && !props.main_object[level_names.value.type]){
+    if (nodes.value.subtype)
+      props.main_object[level_names.value.type] = nodes.value.subtype.parent.data.id
+  }
+  if (props.main_object[level_names.value.type]
+      && !props.main_object[level_names.value.group]){
+    if (nodes.value.type)
+      props.main_object[level_names.value.group] = nodes.value.type.parent.data.id
+  }
+}
 
 const subtype_key = computed(() => {
   const fields = collections.value.subtype.fields
@@ -256,6 +264,65 @@ const subtype_key = computed(() => {
 })
 
 const main_width = computed(() => props.width || 250)
+
+function openDialog(level_name){
+  level_dialog.value = level_name
+  let done = false
+  init_filters.value = Object.entries(level_names.value).reduce((acc, [level, cat_name]) => {
+    // console.log("level", level)
+    const [is_multiple, new_cat_name] = isLevelMultiple(level, cat_name)
+    if (level === level_name)
+      done = true
+    if (!done){
+      let new_value = props.main_object[new_cat_name]
+      if (is_multiple && new_value.length)
+        new_value = new_value[0]
+      acc[cat_name] = new_value
+    }
+    return acc
+  }, {})
+  // console.log("init_filters", init_filters.value)
+  dialog_add.value = true
+  nextTick(() => {
+    collection_display.value.changeInitFilters()
+  })
+}
+
+function isLevelMultiple(level, cat_name){
+  let is_multiple = false
+  if (level === 'subtype')
+    is_multiple = subcategory_is_multiple.value
+  else if (level === 'type')
+    is_multiple = category_is_multiple.value
+  if (is_multiple)
+    cat_name = `${cat_name}s`
+  return [is_multiple, cat_name]
+}
+
+
+function selectItem(item){
+  // console.log("item", item)
+  // console.log("level_dialog", level_dialog.value)
+  // console.log("level_names", level_names.value)
+  // console.log("main_object", props.main_object)
+  const elem_id = item.id || item.key_nme
+  Object.entries(level_names.value).forEach(([level, cat_name]) => {
+    const [is_multiple, new_cat_name] = isLevelMultiple(level, cat_name)
+    if (level === level_dialog.value)
+      props.main_object[new_cat_name] = is_multiple
+        ? [elem_id]
+        : elem_id
+    else
+      props.main_object[new_cat_name] = is_multiple
+        ? []
+        : null
+  })
+  loaded.value = false
+  setInitialData()
+  // console.log("main_object", props.main_object)
+  // console.log("main_node", all_nodes.value[props.filter_group_name])
+  dialog_add.value = false
+}
 
 
 </script>
@@ -307,7 +374,7 @@ const main_width = computed(() => props.width || 250)
     :level_name="level_names.group"
     :is_filter="is_filter"
     :main_width="width || 200"
-    :items="filter_group.category_groups"
+    :items="filter_group_data.category_groups"
     :label="collections.group.name"
     :class="{'mr-2': !is_display}"
     :is_display="is_display"
@@ -326,6 +393,8 @@ const main_width = computed(() => props.width || 250)
     :is_multiple="category_is_multiple"
     :class="{'mr-2': !is_display}"
     :required="required"
+    :collection_data="collections.type"
+    @open-dialog="openDialog('type')"
   />
   <GenericSelect
     v-if="subtype_items && level_names.subtype"
@@ -341,7 +410,25 @@ const main_width = computed(() => props.width || 250)
     :is_multiple="subcategory_is_multiple"
     :label="collections.subtype[subcategory_is_multiple ? 'plural_name' : 'name']"
     :required="required"
+    :collection_data="collections.subtype"
+    @open-dialog="openDialog('subtype')"
   />
+  <v-dialog
+    v-model="dialog_add"
+    max-width="1020"
+  >
+    <v-card>
+      <v-card-text class="py-0">
+        <CollectionDisplay
+          ref="collection_display"
+          :parent_collection="collections[level_dialog]"
+          @select-item="selectItem"
+          main_action="click"
+          :init_filters="init_filters"
+        />
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <style scoped>

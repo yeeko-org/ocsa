@@ -13,6 +13,7 @@ const props = defineProps({
     default: 'Fecha de la nota',
   },
   disabled: Boolean,
+  hide_details: Boolean,
 })
 
 const show_menu_date = ref(false)
@@ -56,6 +57,7 @@ function editDate(date) {
         variant="outlined"
         class="ml-2"
         style="max-width: 180px;"
+        :hide-details="hide_details"
       >
       </v-text-field>
     </template>

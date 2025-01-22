@@ -13,6 +13,7 @@ const rules = ref({
   required: value => !!value || "Campo requerido",
 })
 
+
 </script>
 
 <template>
@@ -24,7 +25,7 @@ const rules = ref({
       hint="⚠️Nombre único (en inglés)"
       persistent-hint
       class="mb-2 mr-3"
-      :disabled="!full_main.is_new"
+      :disabled="!is_edit"
       :rules="[rules.required]"
       style="max-width: 250px;"
     />

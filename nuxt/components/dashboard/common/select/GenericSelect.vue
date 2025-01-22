@@ -1,5 +1,7 @@
 <script setup>
 
+import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
+
 const props = defineProps({
   main_object: {
     type: Object,
@@ -7,6 +9,7 @@ const props = defineProps({
   },
   level: String,
   level_name: String,
+  collection_data: Object,
 
   is_filter: Boolean,
   filter_null: Boolean,
@@ -30,6 +33,9 @@ const props = defineProps({
   required: Boolean,
 })
 
+const dialog_add = ref(false)
+const emits = defineEmits(['open-dialog'])
+
 const final_value = computed(() => {
   if (props.is_multiple){
     // console.log("is_multiple", props.main_object[props.level_name])
@@ -39,6 +45,14 @@ const final_value = computed(() => {
   }
   return props.items.find(
     item => item[props.item_value] === props.main_object[props.level_name])
+})
+
+const show_add = computed(() => {
+  if (props.is_filter)
+    return false
+  if (!props.collection_data)
+    return false
+  return props.collection_data.open_insertion
 })
 
 const rules = computed(() => {
@@ -55,6 +69,10 @@ function disabledNull(){
 function sendNull(){
   props.main_object[props.level_name] = null
   props.main_object[`${props.level_name}_null`] = true
+}
+
+function openDialog(){
+  emits('open-dialog')
 }
 
 </script>
@@ -128,18 +146,26 @@ function sendNull(){
     :rules="rules"
     @update:model-value="disabledNull"
   >
-    <template #append-item v-if="!is_filter">
-      <v-icon
-        color="primary"
-        icon="trip_origin"
-      ></v-icon>
+    <template #append-item v-if="show_add">
+      <div class="px-2">
+        <v-btn
+          variant="elevated"
+          color="accent"
+          class="mt-3 mb-1"
+          append-icon="add"
+          block
+          @click="openDialog"
+        >
+          Agregar
+        </v-btn>
+      </div>
     </template>
     <template #append-item v-else-if="filter_null">
       <v-list-item
         title="Filtrar vacíos"
         @click="sendNull"
       >
-        <template v-slot:prepend v-if="true">
+        <template v-slot:prepend>
           <v-icon
             class="mr-n3"
             :color="'grey'"
@@ -173,6 +199,7 @@ function sendNull(){
       ></v-icon>
       {{ item.title }}
     </template>
+
 <!--    <template #item="{ item, props: {onClick, title, value} }">-->
 <!--      <v-list-item-->
 <!--        @click="onClick"-->

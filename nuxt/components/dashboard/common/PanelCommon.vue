@@ -11,6 +11,10 @@ const props = defineProps({
     required: true,
   },
   sel: Object,
+  main_action: {
+    type: String,
+    default: 'checkbox',
+  }
 })
 
 const full_main = ref({})
@@ -19,7 +23,8 @@ const route_key = computed(() => props.collection_data.app_label)
 const snake_name = computed(() => props.collection_data.snake_name)
 const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
 
-const emits = defineEmits(['finish-open', 'item-saved', 'item-deleted'])
+const emits = defineEmits([
+    'finish-open', 'item-saved', 'item-deleted', 'select-item'])
 
 import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
   .then(module => {
@@ -68,16 +73,40 @@ const background_color = computed(() => {
       class="d-flex align-start flex-shrink-0"
     >
       <v-checkbox
-        v-if="sel"
+        v-if="sel && main_action === 'checkbox'"
         v-model="sel.selected_elems"
-        :value="main.id"
+        :value="main[collection_data.pk]"
         _density="comfortable"
         hide-details
         class="pt-1 pl-1"
       />
+      <v-text-field
+        v-else-if="main_action === 'order'"
+        v-model="main.order"
+        density="compact"
+        label="Orden"
+        variant="solo"
+        hide-details
+        class="pt-1 pl-1"
+        max-width="40"
+      ></v-text-field>
+      <v-btn
+        v-else-if="main_action === 'click'"
+        class="mt-3 ml-1"
+        icon
+        variant="outlined"
+        size="small"
+        @click="emits('select-item', main)"
+      >
+        <v-icon
+          size="large"
+          _class="pt-3 mt-3 pl-3"
+        >ads_click</v-icon>
+      </v-btn>
       <div v-else style="width: 40px;">
 
       </div>
+
     </v-sheet>
     <v-sheet class="flex-grow-1" :color="background_color">
       <slot name="header" :main="main" :openMain="openMain">

@@ -8,24 +8,15 @@ const props = defineProps({
     required: true,
   },
 })
-
-const rules = ref({
-  required: value => !!value || "Campo requerido",
-})
-
 </script>
 
 <template>
   <v-col cols="12" class="d-flex pa-0">
     <v-text-field
-      v-model="full_main.key_name"
-      label="Nombre clave"
+      v-model="full_main.flag_emoji"
+      label="Emoji del país"
       variant="outlined"
-      hint="⚠️Nombre único (en inglés)"
-      persistent-hint
       class="mb-2 mr-3"
-      :disabled="!full_main.is_new"
-      :rules="[rules.required]"
       style="max-width: 250px;"
     />
   </v-col>

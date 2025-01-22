@@ -9,6 +9,20 @@ const props = defineProps({
   title: String,
 })
 
+const participant_type = computed(() => {
+  const part_types = props.full_main.participant_types
+  if (!part_types)
+    return null
+  const unique_part_types = [...new Set(part_types)]
+  if (unique_part_types.length === 1){
+    const main_part_type = unique_part_types[0]
+    console.log("main_part_type", main_part_type)
+    if (main_part_type)
+      return {...props.full_main, participant_type: unique_part_types[0]}
+  }
+  return null
+})
+
 
 </script>
 
@@ -49,6 +63,20 @@ const props = defineProps({
         {{ full_main.name }}
       </span>
     </div>
+    <v-card
+      v-if="full_main.participant_type"
+      variant="elevated"
+      class="d-flex align-center px-3"
+    >
+      <span class="text-accent mr-3">
+        Agregar sugerencia como:
+      </span>
+        <SelectGroup
+          filter_group_name="participant_types"
+          :main_object="full_main"
+          is_display
+        />
+    </v-card>
   </div>
 </template>
 

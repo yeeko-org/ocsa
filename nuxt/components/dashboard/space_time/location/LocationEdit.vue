@@ -1,12 +1,11 @@
 <script setup>
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import {nextTick} from "vue";
 const mainStore = useMainStore()
-const { full_geo } = storeToRefs(mainStore)
-const { getGeo, saveSimple } = mainStore
+const { full_geo, cats } = storeToRefs(mainStore)
+const { getGeo } = mainStore
 
 const props = defineProps({
   full_main: {
@@ -17,6 +16,11 @@ const props = defineProps({
   is_edit: Boolean,
 })
 
+const location_types = [
+  { id: 'point', name: 'Punto', icon: 'location_on' },
+  { id: 'line', name: 'Línea', icon: 'timeline' },
+  { id: 'polygon', name: 'Polígono', icon: 'map' },
+]
 
 const init_loaded = ref(false)
 const loading_geo = ref(false)
@@ -58,7 +62,7 @@ onMounted(() => {
 })
 
 function changeGeoValue(level, value) {
-  // console.log("changeGeoValue", level, value)
+  console.log("changeGeoValue", level, value)
   updateGeo([level, value])
 }
 
@@ -75,10 +79,21 @@ nextTick(() => {
 <template>
   <v-col cols="12">
     <div class="d-flex align-center flex-wrap">
-      <SelectGroup
-        :main_object="full_main"
-        filter_group_name="states"
-        :width="200"
+<!--      <SelectGroup-->
+<!--        v-if="false"-->
+<!--        :main_object="full_main"-->
+<!--        filter_group_name="states"-->
+<!--        :width="200"-->
+<!--      />-->
+      <v-autocomplete
+        v-model="full_main.state"
+        :items="cats.states || []"
+        item-title="short_name"
+        item-value="id"
+        label="Estado"
+        variant="outlined"
+        width="200"
+        @update:model-value="changeGeoValue('state', $event)"
       />
       <v-autocomplete
         v-model="full_main.municipality"
@@ -102,9 +117,51 @@ nextTick(() => {
         variant="outlined"
         class="ml-2"
         max-width="320"
-        min-width="260"
+        min-width="240"
       >
       </v-autocomplete>
+      <v-select
+        v-model="full_main.type_location"
+        :items="location_types"
+        item-title="name"
+        item-value="id"
+        variant="solo-filled"
+        bg-color="grey-lighten-2"
+        :menu-icon="null"
+        class="ml-2"
+        style="max-width: 56px;"
+      >
+        <template #prepend-item>
+          <div class="px-2 py-2 text-grey">
+            Tipo de ubicación:
+          </div>
+        </template>
+        <template #item="{ item, props: {onClick, title, value} }">
+          <v-list-item
+            @click="onClick"
+            :title="title"
+            :value="value"
+          >
+            <template v-slot:prepend v-if="item.raw.icon">
+              <v-icon
+                color="primary"
+                :icon="item.raw.icon || 'trip_origin'"
+              ></v-icon>
+            </template>
+          </v-list-item>
+        </template>
+
+        <template #selection="{ item }">
+          <v-icon
+            v-if="item.raw.icon"
+            color="primary"
+            size="24"
+            :icon="item.raw.icon || 'trip_origin'"
+            class="mr-2"
+          ></v-icon>
+<!--          {{ item.title }}-->
+        </template>
+      </v-select>
       <v-text-field
         v-model="full_main.latitude"
         label="Latitud"

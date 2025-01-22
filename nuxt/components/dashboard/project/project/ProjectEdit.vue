@@ -54,11 +54,18 @@ const changeParentProject = (parent_project) => {
       @delete-item="full_main.conflict = null"
     />
   </v-col>
-  <v-col cols="12" class="pa-0 d-flex">
+  <v-col cols="12" md="8" class="pa-0 d-flex">
     <SelectGroup
       :main_object="full_main"
       filter_group_name="project_types"
-      :width="360"
+      :width="300"
+    />
+  </v-col>
+  <v-col cols="12" md="4" class="pa-0 d-flex">
+    <SelectGroup
+      :main_object="full_main"
+      filter_group_name="status_projects"
+      :width="300"
     />
   </v-col>
   <v-col cols="12" md="4" class="pa-0 d-flex">

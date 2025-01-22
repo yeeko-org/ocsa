@@ -262,8 +262,6 @@ const calculateNewCats = (data, schemas) => {
         .id(d => d.new_id)
         .parentId(d => d.parent_id)
         (all_data)
-      // find id 'subtype_1' and get all children
-      // console.log("new_cats", new_cats[fg.key_name].find(d => d.id === 'subtype_1').descendants())
     }
     catch (e){
       console.log("Error", e)
@@ -283,8 +281,10 @@ const calculateNewCats = (data, schemas) => {
 
 function getLastId(data) {
   const id = data.id || data.key_name
-  const method = id ? 'put' : 'post'
-  const last_id = id ? `${id}/` : ''
+  // const id = data.id
+  const is_old = data.id && !data.is_new
+  const method = is_old ? 'put' : 'post'
+  const last_id = is_old ? `${id}/` : ''
   return { method, last_id }
 }
 
@@ -386,6 +386,7 @@ export const useMainStore = defineStore('main', {
         return response.data
       } catch (error) {
         console.error(error);
+        return {errors: error.response.data}
       }
     },
     async saveCatalog([collection_data, data]) {
@@ -406,9 +407,11 @@ export const useMainStore = defineStore('main', {
             el => el[elem_id] === response.data[elem_id])
           this.cats[real_group][index] = response.data
         }
+        this.all_nodes = calculateNewCats(this.cats, this.schemas)
         return response.data
       } catch (error) {
         console.error(error);
+        return {errors: error.response.data}
       }
     },
     async patchSimple([collection, id, data]) {
@@ -439,8 +442,7 @@ export const useMainStore = defineStore('main', {
         this.cleanDelete(collection, id)
         return id
       } catch (error) {
-        console.error(error)
-        ;
+        console.error(error);
       }
     },
     cleanDelete(collection, id) {
@@ -450,6 +452,7 @@ export const useMainStore = defineStore('main', {
       const index = this.cats[real_group].findIndex(
         el => el.id === id)
       this.cats[real_group].splice(index, 1)
+      this.all_nodes = calculateNewCats(this.cats, this.schemas)
     },
     async mergeSimple([params, category_name]) {
       this.setHeader()
@@ -488,6 +491,16 @@ export const useMainStore = defineStore('main', {
         console.error(error);
       }
     },
+    async getRelatedActors(proj_id) {
+      try {
+        let response = await ApiService.get(`/project/${proj_id}/related_actors/`);
+        return response.data
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+
+    },
   },
   getters: {
     status_dict(state) {
@@ -502,5 +515,10 @@ export const useMainStore = defineStore('main', {
       })
       return status_dict
     },
+    event_group_violence(state) {
+      if (!state.cats)
+        return {}
+      return state.cats.event_groups.find(vo => vo.name === 'Violencia')
+    }
   },
 })

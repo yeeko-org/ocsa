@@ -37,7 +37,7 @@ const all_counts = computed(() => {
 
   Object.entries(types_counts).forEach(([key, value]) => {
     const type_node = filter_node.value.find(
-        type => type.id === `type_${key}`)
+      type => type.id === `type_${key}`)
     const current_group = type_node.data[filter_node.value.data.category_group]
     groups_counts[current_group].current_types.push({
       name: type_node.data.name,

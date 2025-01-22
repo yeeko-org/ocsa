@@ -13,6 +13,11 @@ const props = defineProps({
 
 const dialog = ref(false)
 
+function saveCollection() {
+  console.log('saveCollection')
+}
+
+
 </script>
 
 <template>

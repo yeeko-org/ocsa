@@ -6,12 +6,13 @@ const props = defineProps({
   mentions: Array,
 })
 
+
 </script>
 
 <template>
   <div
     class="text-body-2 mr-6"
-    style="max-width: 260px;"
+    style="max-width: 260px; max-height: 80px; overflow: hidden;"
   >
     <div
       v-for="mention in mentions"
@@ -24,8 +25,8 @@ const props = defineProps({
         is_small
       />
       <span class="ml-1">
-      {{ mention.project_full.name }}
-    </span>
+        {{ mention.project_full.name }}
+      </span>
     </div>
   </div>
 

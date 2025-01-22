@@ -263,6 +263,8 @@ const total_count = computed(() => {
         >
         </v-btn>
       </v-alert>
+      <slot name="footer">
+      </slot>
     </v-card>
     <v-dialog
       v-model="dialog_delete"

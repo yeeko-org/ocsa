@@ -28,10 +28,9 @@ const props = defineProps({
     color="blue-grey"
     forced_level="group"
     :second_level="second_level"
-    :additional_fields="{'status_location': 'empty'}"
+    :additional_fields="{'status_location': 'empty', 'type_location': 'point'}"
   >
     <template #rows_init="{item}">
-
       <div
         v-if="!second_level"
         class="d-flex align-start align-self-start"

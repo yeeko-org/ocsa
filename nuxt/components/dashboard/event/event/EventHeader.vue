@@ -20,6 +20,8 @@ const props = defineProps({
 })
 
 const involvement_count = computed(() => {
+  if (!props.main.involvements)
+    return 0
   return props.main.involvements.length
 })
 
@@ -58,7 +60,7 @@ const final_event_types = computed(() => {
     </template>
     <template #title>
       <v-card
-        color="blue"
+        color="lime"
         rounded="lg"
         variant="outlined"
         class="mx-2 d-flex flex-column"
@@ -74,7 +76,7 @@ const final_event_types = computed(() => {
     </template>
     <template #details>
       <ProjectMiniList
-        :mentions="[main.mention]"
+        :mentions="[main.mention_full]"
       />
       <HeaderChip
         :count="involvement_count"
