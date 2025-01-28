@@ -1,6 +1,7 @@
 <script setup>
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
+import UserSelect from "~/components/dashboard/custom_filters/UserSelect.vue";
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
@@ -41,7 +42,7 @@ const props = defineProps({
     />
     <SelectDate
       :init_date="full_main.date"
-      @update-date="Ed = $event"
+      @update-date="full_main.date = $event"
     />
     <v-text-field
       v-model="full_main.section"
@@ -67,15 +68,30 @@ const props = defineProps({
       style="width: 80px;"
     >
     </v-text-field>
+  </div>
+  <div class="d-flex" style="width: 100%;">
     <v-text-field
       v-model="full_main.capture_date"
       label="Fecha de captura"
       variant="plain"
       readonly
       class="ml-3"
-      style="width: 10px;"
+      style="width: 100px;"
     >
     </v-text-field>
+    <UserSelect
+      :final_filters="full_main"
+      field="editor"
+      label="Editor"
+      readonly
+    />
+    <UserSelect
+      :final_filters="full_main"
+      field="reviewer"
+      label="Revisor"
+      class="ml-3"
+      readonly
+    />
   </div>
   <v-text-field
     v-model="full_main.link"

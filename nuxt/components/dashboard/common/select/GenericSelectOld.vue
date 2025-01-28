@@ -42,7 +42,7 @@ const item_value = computed(() => {
 })
 
 const items_built = computed(() => {
-  return cats.value[`${props.collection}s`]
+  return cats.value[props.collection]
   // if (props.collection_group === "impact")
   //   return cats.value["impact_types"].filter(
   //     impact_type => impact_type.impact_group === props.collection)

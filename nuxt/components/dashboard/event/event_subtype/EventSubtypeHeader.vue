@@ -34,7 +34,7 @@ const main_node = computed(() => {
 // })
 
 const event_group = computed(() => {
-  return cats.value.event_groups.find(
+  return cats.value.event_group.find(
     group => group.id === props.main.event_group)
 })
 

@@ -118,7 +118,6 @@ const emits = defineEmits(['open-panel'])
         <div
           v-for="status_group in collection_data.status_groups"
           :key="status_group"
-          _style="width: 158px;"
         >
           <StatusChip
             :main="main"

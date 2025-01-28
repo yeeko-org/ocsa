@@ -20,7 +20,7 @@ const states_tooltip = computed(() => {
   let all_states = props.project.locations.map(loc => loc.state)
   let states = [...new Set(all_states)]
   const full_states = states.reduce((coll, state) => {
-    const curr_state = cats.value.states.find(st => st.id === Number(state))
+    const curr_state = cats.value.state.find(st => st.id === Number(state))
     if (curr_state)
       coll.push(curr_state)
     return coll

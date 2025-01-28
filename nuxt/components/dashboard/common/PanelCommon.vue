@@ -100,7 +100,6 @@ const background_color = computed(() => {
       >
         <v-icon
           size="large"
-          _class="pt-3 mt-3 pl-3"
         >ads_click</v-icon>
       </v-btn>
       <div v-else style="width: 40px;">
@@ -108,6 +107,7 @@ const background_color = computed(() => {
       </div>
 
     </v-sheet>
+
     <v-sheet class="flex-grow-1" :color="background_color">
       <slot name="header" :main="main" :openMain="openMain">
         <v-expansion-panel-title>

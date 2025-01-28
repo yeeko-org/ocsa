@@ -88,7 +88,6 @@ function trashFile(file){
       ></v-file-input>
     </template>
     <template #rows_init="{item}">
-
       <div
         v-if="!second_level"
         class="d-flex align-start align-self-start"
@@ -97,10 +96,7 @@ function trashFile(file){
           Archivo
         </v-chip>
       </div>
-      <v-spacer v-if="false"></v-spacer>
-
       <template v-if="item.file">
-
         <v-chip
           v-if="!show_img"
           large
@@ -119,21 +115,22 @@ function trashFile(file){
             {{item.file.name}}
           </span>
         </v-chip>
-        <embed
-          v-else-if="item.file.includes('.pdf')"
-          :src="item.file"
-          width="640px"
-          height="440px"
-          type="application/pdf"
-          class="ml-6 my-1"
-        />
-        <v-img
+        <div
           v-else
-          :src="item.file"
-          max-height="440"
-          max-width="640"
-          class="ml-6 my-1"
-        ></v-img>
+          class="resizable-container ml-6 my-1"
+        >
+          <embed
+            v-if="item.file.includes('.pdf')"
+            type="application/pdf"
+            :src="item.file"
+            class="_ml-6 _my-1 resizable-pdf"
+          />
+          <v-img
+            v-else
+            :src="item.file"
+            class="resizable-content"
+          ></v-img>
+        </div>
       </template>
       <v-btn
         v-if="false"
@@ -146,5 +143,19 @@ function trashFile(file){
 </template>
 
 <style scoped>
-
+.resizable-container{
+  border: 1px solid black;
+  width: 640px;
+  height: 440px;
+  overflow: auto;
+  resize: both;
+  max-width: 1020px;
+}
+.resizable-content{
+  object-fit: contain;
+}
+.resizable-pdf{
+  width: 100%;
+  height: 98%;
+}
 </style>

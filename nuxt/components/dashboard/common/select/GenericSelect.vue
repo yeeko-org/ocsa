@@ -1,6 +1,7 @@
 <script setup>
 
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
+import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 
 const props = defineProps({
   main_object: {
@@ -34,7 +35,7 @@ const props = defineProps({
 })
 
 const dialog_add = ref(false)
-const emits = defineEmits(['open-dialog'])
+const emits = defineEmits(['open-dialog', 'update-value'])
 
 const final_value = computed(() => {
   if (props.is_multiple){
@@ -48,8 +49,6 @@ const final_value = computed(() => {
 })
 
 const show_add = computed(() => {
-  if (props.is_filter)
-    return false
   if (!props.collection_data)
     return false
   return props.collection_data.open_insertion
@@ -62,8 +61,9 @@ const rules = computed(() => {
   return rules
 })
 
-function disabledNull(){
+function changeValue(val){
   props.main_object[`${props.level_name}_null`] = null
+  emits('update-value', val)
 }
 
 function sendNull(){
@@ -71,8 +71,8 @@ function sendNull(){
   props.main_object[`${props.level_name}_null`] = true
 }
 
-function openDialog(){
-  emits('open-dialog')
+function openDialog(is_add=true){
+  emits('open-dialog', is_add)
 }
 
 </script>
@@ -144,23 +144,50 @@ function openDialog(){
     :style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
     :multiple="is_multiple || filter_multiple"
     :rules="rules"
-    @update:model-value="disabledNull"
+    @update:model-value="changeValue"
   >
-    <template #append-item v-if="show_add">
-      <div class="px-2">
+    <template #append-item v-if="!is_filter">
+      <div class="px-2 d-flex align-center">
+        <template v-if="show_add">
+          <div
+            class="flex-grow-1 pr-2"
+          >
+            <v-btn
+              variant="elevated"
+              color="accent"
+              append-icon="add"
+              block
+              @click="openDialog(true)"
+            >
+              Agregar
+            </v-btn>
+          </div>
+          <div class="flex-shrink-1">
+            <v-btn
+              variant="outlined"
+              color="accent"
+              icon
+              @click="openDialog(false)"
+              v-tooltip="`Gestionar ${collection_data.plural_name}`"
+            >
+              <v-icon>settings</v-icon>
+            </v-btn>
+          </div>
+        </template>
         <v-btn
-          variant="elevated"
+          v-else
+          variant="outlined"
           color="accent"
-          class="mt-3 mb-1"
-          append-icon="add"
+          class="mt-2 _mb-1"
+          append-icon="settings"
           block
-          @click="openDialog"
+          @click="openDialog(false)"
         >
-          Agregar
+          Gestionar
         </v-btn>
       </div>
     </template>
-    <template #append-item v-else-if="filter_null">
+    <template #append-item v-if="filter_null">
       <v-list-item
         title="Filtrar vacíos"
         @click="sendNull"
@@ -173,7 +200,6 @@ function openDialog(){
           ></v-icon>
         </template>
       </v-list-item>
-
     </template>
     <template #item="{ item, props: {onClick, title, value} }">
       <v-list-item
@@ -181,23 +207,49 @@ function openDialog(){
         :title="title"
         :subtitle="item.raw.description"
         :value="value"
+        :lines="false"
+        max-width="400"
+        min-height="52"
       >
         <template v-slot:prepend v-if="item.raw.icon">
           <v-icon
-            :color="item.raw.color || 'grey'"
+            :color="item.raw.color || 'grey-darken-3'"
             :icon="item.raw.icon || 'trip_origin'"
           ></v-icon>
+        </template>
+        <template
+          v-slot:title
+          v-if="item.raw.status_validation !== undefined"
+        >
+          <div class="d-flex align-start">
+            {{ item.title }}
+            <StatusChip
+              collection="validation"
+              :main="item.raw"
+              x_small
+              disabled
+              hide_details
+            />
+          </div>
         </template>
       </v-list-item>
     </template>
     <template #selection="{ item }" v-if="!is_multiple">
       <v-icon
         v-if="item.raw.icon"
-        :color="item.raw.color || 'grey'"
+        :color="item.raw.color || 'grey-darken-3'"
         :icon="item.raw.icon || 'trip_origin'"
         class="mr-2"
       ></v-icon>
       {{ item.title }}
+      <StatusChip
+        v-if="item.raw.status_validation !== undefined"
+        collection="validation"
+        :main="item.raw"
+        x_small
+        disabled
+        hide_details
+      />
     </template>
 
 <!--    <template #item="{ item, props: {onClick, title, value} }">-->

@@ -14,6 +14,11 @@ const props = defineProps({
   },
   disabled: Boolean,
   hide_details: Boolean,
+  is_filter: Boolean,
+  max_width: {
+    type: String,
+    default: '180px',
+  },
 })
 
 const show_menu_date = ref(false)
@@ -32,7 +37,9 @@ const getDate = computed(() => {
 function editDate(date) {
   console.log("edit date", date)
   // props.full_main.date = dayjs(date).format('YYYY-MM-DD')
-  const new_date = dayjs(date).format('YYYY-MM-DD')
+  let new_date = null
+  if (date)
+    new_date = dayjs(date).format('YYYY-MM-DD')
   emits('update-date', new_date)
   show_menu_date.value = false
 }
@@ -54,10 +61,14 @@ function editDate(date) {
         :model-value="human_date"
         readonly
         :label="label"
-        variant="outlined"
+        :variant="is_filter ? 'underlined' : 'outlined'"
         class="ml-2"
-        style="max-width: 180px;"
-        :hide-details="hide_details"
+        :style="`max-width: ${max_width}`"
+        :hide-details="is_filter"
+        :clearable="is_filter"
+        :density="is_filter ? 'compact' : 'default'"
+        clear-icon="close"
+        @click:clear="editDate(null)"
       >
       </v-text-field>
     </template>

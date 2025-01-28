@@ -73,10 +73,20 @@ function finishSave(){
 }
 
 function deleteRecord() {
+  errors.value = null
   deleting.value = true
   const id_to_delete = props.full_main[props.collection_data.pk]
   deleteElement(final_collection_data.value, id_to_delete)
-    .then(() => {
+    .then((res) => {
+      console.log("res", res)
+      if (res.errors) {
+        const error_msg = "No se pudo eliminar el registro si tiene datos relacionados"
+        errors.value = `${error_msg}: \n${
+          JSON.stringify(res.errors.report_data)}`
+        deleting.value = false
+        dialog_delete.value = false
+        return
+      }
       deleting.value = false
       dialog_delete.value = false
       emits('item-deleted', id_to_delete)
@@ -91,11 +101,11 @@ function deleteRecord() {
       v-if="errors"
       type="error"
       dismissible
-      border="left"
       elevation="2"
       class="mb-3"
+      v-html="errors"
+      style="white-space: pre-wrap;"
     >
-      {{ errors }}
     </v-alert>
     <v-form
       ref="editForm"

@@ -11,8 +11,6 @@ import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import {nextTick} from "vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
-import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
-import Comments from "~/components/dashboard/utils/Comments.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { saveSimple, getRelatedActors } = mainStore

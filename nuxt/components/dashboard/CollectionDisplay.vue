@@ -1,7 +1,7 @@
 <script setup>
 import {computed, onMounted, ref, onBeforeMount, watch, nextTick } from "vue";
 import {useMainStore} from '~/store/index'
-import SelectFilters from "~/components/dashboard/common/select/SelectFilters.vue";
+import FiltersList from "~/components/dashboard/common/select/FiltersList.vue";
 import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
 // import { status_filters } from "~/composables/filters.js";
 
@@ -28,6 +28,7 @@ const props = defineProps({
   init_total_count: Number,
   direct_sheet: Boolean,
   main_action: String,
+  init_in_edition: Array,
   init_filters: {
     type: Object,
     default: () => ({}),
@@ -79,6 +80,16 @@ const simplified_filters = computed(() =>{
   return current_filters.value.length <= 3
 })
 
+const sorted_results = computed(() => {
+  if (!props.init_in_edition)
+    return results.value
+  const in_edition = results.value.filter(
+    res => props.init_in_edition.includes(res.id))
+  const not_in_edition = results.value.filter(
+    res => !props.init_in_edition.includes(res.id))
+  return [...in_edition, ...not_in_edition]
+})
+
 watch(
   final_filters, (val) => {
     if (!temp_reset.value)
@@ -94,7 +105,6 @@ watch(
     debounceApplyFilters()
   }
 )
-
 // const is_category = computed(() =>
 //   collection_data.value.level.includes('category'))
 
@@ -224,7 +234,7 @@ function selectItem(item) {
       </v-card-subtitle>
     </template>
     <v-row class="mx-0" v-if="collection_data">
-      <v-col cols="12" _class="py-0" v-if="!simplified_filters">
+      <v-col cols="12" class="px-0" v-if="!simplified_filters">
         <v-chip-group
           v-model="visible_filters"
           multiple
@@ -245,7 +255,7 @@ function selectItem(item) {
           </v-chip>
         </v-chip-group>
       </v-col>
-      <SelectFilters
+      <FiltersList
         v-if="!simplified_filters"
         :final_filters="final_filters"
         :visible_filters="visible_filters"
@@ -254,7 +264,7 @@ function selectItem(item) {
     <v-row>
       <v-col
         cols="12"
-        class="d-flex mb-2 mt-0"
+        class="d-flex mb-2 mt-0 flex-wrap"
         :order="simplified_filters ? 1 : 'last'"
       >
         <v-text-field
@@ -265,7 +275,6 @@ function selectItem(item) {
           clearable
           base-color="blue"
           color="indigo"
-          _bg-color="grey lighten-2"
           variant="underlined"
           hide-details
           max-width="300"
@@ -286,12 +295,12 @@ function selectItem(item) {
           class="mx-3"
           style="max-width: 220px; min-width: 130px;"
         ></v-select>
-        <SelectFilters
+        <v-spacer></v-spacer>
+        <FiltersList
           v-if="simplified_filters"
           :final_filters="final_filters"
           :visible_filters="visible_filters"
         />
-        <v-spacer></v-spacer>
 <!--        <v-btn-->
 <!--          color="accent"-->
 <!--          variant="outlined"-->
@@ -329,7 +338,7 @@ function selectItem(item) {
     ></v-progress-linear>
     <PanelsResult
       ref="childRef"
-      :results="results"
+      :results="sorted_results"
       :collection_data="collection_data"
       :show_details="show_details"
       :final_filters="final_filters"

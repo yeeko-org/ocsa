@@ -21,7 +21,10 @@ const single_items = [
     :label="label"
     clearable
     variant="underlined"
+    density="compact"
+    hide-details
     min-width="140"
+    max-width="220"
   >
   </v-select>
 </template>

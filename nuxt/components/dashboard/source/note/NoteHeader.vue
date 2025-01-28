@@ -41,7 +41,7 @@ const pretty_date = computed(() => {
   return dayjs(note.value.date).format("DD/MM/YYYY")
 })
 const source = computed(() => {
-  return cats.value.sources.find(src => src.id === note.value.source)
+  return cats.value.source.find(src => src.id === note.value.source)
 })
 
 const events_count = computed(() => {

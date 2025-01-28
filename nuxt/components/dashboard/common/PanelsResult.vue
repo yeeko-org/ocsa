@@ -6,6 +6,7 @@ import SummaryList from "~/components/dashboard/common/SummaryList.vue";
 import EditCommon from "~/components/dashboard/common/EditCommon.vue";
 import MassiveActions from "~/components/dashboard/utils/MassiveActions.vue";
 import {useMainStore} from "~/store/index.js";
+import MassiveEdit from "~/components/dashboard/common/MassiveEdit.vue";
 
 const mainStore = useMainStore()
 const { mergeSimple } = mainStore
@@ -155,6 +156,11 @@ function mergeItems(res_main) {
   sel.value.selected_elems = []
 }
 
+function massiveFinish(){
+  closeDialog()
+  emits('update-page-number', 1)
+}
+
 function selectItem(item) {
   emits('select-item', item)
 }
@@ -258,7 +264,17 @@ function selectItem(item) {
         {{edit_type.title}}
       </v-card-title>
       <v-card-text>
+        <MassiveEdit
+          v-if="edit_type.key === 'massive_edit'"
+          :full_main="element_to_edit"
+          :collection_data="collection_data"
+          @massive-finish="massiveFinish"
+          ref="editRef"
+          :ids_to_edit="sel.selected_elems"
+        >
+        </MassiveEdit>
         <EditCommon
+          v-else
           :full_main="element_to_edit"
           :collection_data="collection_data"
           @item-saved="saveNewElement"

@@ -12,7 +12,7 @@ const props = defineProps({
 })
 
 const all_belongs = computed(() => {
-  return cats.value.belongs.filter(
+  return cats.value.belong.filter(
       belong => props.actor.belongs.includes(belong.key_name))
 })
 

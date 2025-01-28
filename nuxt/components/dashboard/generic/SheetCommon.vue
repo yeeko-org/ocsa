@@ -25,29 +25,28 @@ const props = defineProps({
 const child_collections = computed(() => {
   if (!props.collection_data)
     return []
-  console.log("collection_data", props.collection_data)
   let collections = []
-  props.collection_data.child_relations.forEach(child => {
-    let is_category = false
-    if (!child.is_multiple && child.link_type !== "category")
-      is_category = true
-    const child_collection = schemas.value.collections_dict[child.child]
-    const results = props.full_main[`${child.child}s`]
-    const count = props.full_main[`${child.child}s_count`]
-    let child_data = {
-      collection_data: child_collection,
-      relation: child,
-      count: count,
+  props.collection_data.child_relation_fields.forEach(field => {
+    const snake_name = field.related_snake_name
+    const child_collection = schemas.value.collections_dict[snake_name]
+    const is_m2m = field.relation_type === 'many_to_many'
+    if (is_m2m){
+      if (props.collection_data.level === 'category_subtype'
+          && child_collection.level === 'category_type')
+        return
     }
-    if (results || !is_category){
-      child_data.results = results
-      collections.push(child_data)
-    }
-    else if (is_category && count !== undefined && count !== null){
-      collections.push(child_data)
+    const results = props.full_main[`${snake_name}s`]
+    const count = props.full_main[`${snake_name}s_count`]
+    const has_count = count !== undefined && count !== null
+    if (!is_m2m || results || has_count){
+      collections.push({
+        collection_data: child_collection,
+        relation_id: field.id,
+        count: count,
+        results: results,
+      })
     }
   })
-  // console.log("result", result)
   return collections
 })
 
@@ -60,7 +59,7 @@ const elem_id = computed(() => {
 <template>
   <v-card
     v-for="child_collection in child_collections"
-    :key="child_collection.relation.id"
+    :key="child_collection.relation_id"
     class="mb-4"
   >
     <v-card-title>

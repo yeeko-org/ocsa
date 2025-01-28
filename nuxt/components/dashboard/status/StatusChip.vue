@@ -100,7 +100,7 @@ const label = computed(() => {
     </span>
     <v-icon
       v-if="props.x_small"
-      :color="item_built.color"
+      :color="disabled ? `${item_built.color}-lighten-2` : item_built.color"
       class="ml-1"
       x-small
     >{{item_built.icon}}</v-icon>

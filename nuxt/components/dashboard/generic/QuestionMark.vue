@@ -1,4 +1,7 @@
 <script setup>
+import {useMainStore} from "~/store/index.js";
+const mainStore = useMainStore()
+// const { saveCollection } = mainStore
 
 const props = defineProps({
   size: {
@@ -13,8 +16,12 @@ const props = defineProps({
 
 const dialog = ref(false)
 
-function saveCollection() {
-  console.log('saveCollection')
+function saveDefinition() {
+  console.log('props.collection_data', props.collection_data)
+  mainStore.saveCollection(props.collection_data).then((res) => {
+    console.log('res', res)
+    dialog.value = false
+  })
 }
 
 
@@ -28,6 +35,16 @@ function saveCollection() {
     @click="dialog = true"
   >
     <v-icon>question_mark</v-icon>
+    <v-tooltip
+      activator="parent"
+      location="end"
+    >
+      <div
+        style="max-width: 600px; white-space: pre-line;"
+        v-text="collection_data.help_text"
+      >
+      </div>
+    </v-tooltip>
     <v-dialog
       v-model="dialog"
       max-width="1100"
@@ -49,11 +66,10 @@ function saveCollection() {
         <v-card-text>
           <v-textarea
             v-model="collection_data.help_text"
-            label="Descripción"
+            label="Texto de ayuda"
             rows="4"
             auto-grow
           >
-
           </v-textarea>
           <v-code v-if="false">
             {{ collection_data }}
@@ -64,9 +80,9 @@ function saveCollection() {
           <v-btn
             color="accent"
             variant="elevated"
-
+            @click="saveDefinition"
           >
-            Guardar
+            Guardar definición
           </v-btn>
         </v-card-actions>
       </v-card>

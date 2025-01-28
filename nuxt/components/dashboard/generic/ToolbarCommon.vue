@@ -52,19 +52,6 @@ const main_collection = computed(() =>
 const child_collection = computed(() =>
   schemas.value.collections_dict[props.child_relation_name])
 
-// const child_relation = computed(() =>{
-//   // console.log("main_collection", main_collection.value)
-//   // console.log("main_object", props.main_object)
-//   // console.log("filter_group", filter_group.value)
-//   // console.log("child_collection", child_collection.value)
-//   const main = main_collection.value.child_relations.find(
-//     child => child.child === props.child_relation_name)
-//   // console.log("child_relation", main)
-//   return main
-// })
-
-// const field = computed(() => `${props.child_relation_name}s`)
-
 const addItem = (group=null) => {
   // console.log("child_collection", child_collection.value)
   if (props.emit_add){
@@ -248,7 +235,6 @@ const total_count = computed(() => {
         v-if="total_count === 0"
         :type="required ? 'error' : 'warning'"
         variant="flat"
-        border="start"
       >
         {{ required ? 'Debes' : 'Intenta' }}
         agregar al menos un {{child_collection.name}}

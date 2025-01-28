@@ -3,7 +3,7 @@ import { useMainStore } from '~/store'
 export function positionCounter(participants) {
   const mainStore = useMainStore()
   const { cats, positions } = mainStore
-  const participant_types = cats.participant_types
+  const participant_types = cats.participant_type
   let new_positions = Object.entries(positions).reduce((acc, [key, position]) => {
     acc[key] = {...position, count: 0, projects: {}, key: key}
     return acc

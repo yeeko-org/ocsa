@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 
 const menu_drawer = ref(false)
 import {useMainStore} from "~/store/index.js";
@@ -22,7 +22,7 @@ onBeforeMount(() => {
 })
 
 const disable_open = ref(false)
-
+const group = ref(null)
 
 const collection_data = computed(() => {
   // console.log('route', route)
@@ -61,6 +61,13 @@ function openItem(ev, val){
   // :to="`/dashboard/${collection.snake_name}`"
   // router.push(val)
 }
+
+watch(
+  group, (val) => {
+    console.log('group', val)
+    menu_drawer.value = false
+  }
+)
 
 </script>
 
@@ -109,10 +116,9 @@ function openItem(ev, val){
     <v-navigation-drawer
       v-model="menu_drawer"
       app
-      expand-on-hover
+      temporary
       mobile-breakpoint="960"
       width="280"
-      mini-variant
     >
       <v-list nav open-strategy="multiple" _active-class="text-primary">
         <v-list-item>
@@ -145,7 +151,8 @@ function openItem(ev, val){
                   :prepend-icon="collection.icon || 'category'"
                   :base-color="collection.color ? `${collection.color}` : 'grey-darken-1'"
                   @click="openItem($event, collection.snake_name)"
-                  :class="collection.level === 'primary' ? '' : 'ml-3'"
+                  :class="collection.level === 'primary' ? '' : '_ml-3'"
+                  :active-class="collection.level === 'primary' ? '' : 'font-weight-bold'"
                 >
                   <template v-slot:append="{ isActive, select }">
                     <v-icon
@@ -176,26 +183,28 @@ function openItem(ev, val){
               :prepend-icon="collection.icon"
               :title="collection.name"
             ></v-list-item>
+            <v-divider></v-divider>
           </template>
         </client-only>
         <v-divider></v-divider>
         <v-list-item
           href="https://apiocsa.yeeko.org/admin/profile_auth/user/"
           target="_blank"
+          title="Gestión de usuarios"
         >
           <template v-slot:prepend>
             <v-icon color="accent">manage_accounts</v-icon>
           </template>
-          Gestión de usuarios
+
         </v-list-item>
         <v-list-item
           href="https://apiocsa.yeeko.org/admin/work_flux/statuscontrol/"
           target="_blank"
+          title="Gestión de status"
         >
           <template v-slot:prepend>
             <v-icon color="accent">account_tree</v-icon>
           </template>
-          Gestión de status
         </v-list-item>
       </v-list>
     </v-navigation-drawer>

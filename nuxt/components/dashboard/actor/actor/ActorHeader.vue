@@ -33,7 +33,7 @@ const unique_projects = computed(() => {
 
 const unique_notes = computed(() => {
   let source_dict = {}
-  cats.value.sources.forEach(source => {
+  cats.value.source.forEach(source => {
     source_dict[source.id] = source.name
   })
   let set_notes = new Set()

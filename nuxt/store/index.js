@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import ApiService from "./common";
 import colorMixin from "~/mixins/colorMixin";
 // import { mande } from 'mande'
-// import { menu_content } from "~/composables/menu.js";
 import * as d3 from 'd3';
 import {status_filters} from "~/composables/filters.js";
 
@@ -34,15 +33,12 @@ const build_positions = () => {
 
 const calculateSchemas = (data) => {
   let filter_groups = data.filter_groups.map(fg => {
-    fg.links = data.collection_links.filter(cl =>
-      cl.filter_group === fg.key_name)
     return {...fg, ...fg.addl_config}
   })
   const filters_dict = filter_groups.reduce((obj, fg) => {
     obj[fg.key_name] = fg
     return obj
   }, {})
-
   const has_fields = [
     "comments", "description", "help_text", "order", "color", "icon"]
   // const name_fields = ["name", "title", "description"]
@@ -52,16 +48,13 @@ const calculateSchemas = (data) => {
       if (new_fg.main_collection !== coll.snake_name)
         return arr
       if (new_fg.category_group)
-        new_fg.category_groups = data[`${new_fg.category_group}s`] || []
+        new_fg.category_groups = data[new_fg.category_group] || []
       return [...arr, new_fg]
     }, [])
-    coll.categories = data.collection_links.filter(
-      cl => cl.child === coll.snake_name && cl.link_type === 'category')
-    coll.child_relations = data.collection_links.filter(cl =>
-      cl.parent === coll.snake_name && cl.link_type)
-    coll.parent_relations = data.collection_links.filter(cl =>
-      cl.child === coll.snake_name && cl.link_type !== 'category'
-    )
+    const valid_relations = ['one_to_many', 'many_to_many']
+    coll.child_relation_fields = coll.fields.filter(field => {
+      return valid_relations.includes(field.relation_type)
+    })
     const primary_key = coll.fields.find(f => f.primary_key)
     coll.pk = primary_key ? primary_key.name : 'id'
     name_fields.forEach(field => {
@@ -99,12 +92,16 @@ const calculateSchemas = (data) => {
       const filter_data = filters_dict[f.filter_name]
       const new_filter = {...filter_data, ...f}
       if (filter_data.category_group){
-        const category_groups = data[`${filter_data.category_group}s`] || []
+        const category_groups = data[filter_data.category_group] || []
         category_groups.forEach(cg => {
           const short_name = `${new_filter.short_prev} ${cg.name}`
           const name = `${new_filter.prev} ${cg.name}`
           let current_filter = {
-            name, short_name, category_group_value: cg.id}
+            name,
+            short_name,
+            category_group_value: cg.id,
+            original_name: new_filter.name
+          }
           arr.push({...new_filter, ...cg, ...current_filter})
         })
         return arr
@@ -115,6 +112,7 @@ const calculateSchemas = (data) => {
     coll.is_category = coll.level.includes('category_')
     if (coll.is_category){
       const fg = filter_groups.find(fg => fg[coll.level] === coll.snake_name)
+      // const fg = filters_dict[coll.snake_name]
       if (fg){
         coll.filter_group = fg
         const short_level = coll.level.replace('category_', '')
@@ -122,7 +120,10 @@ const calculateSchemas = (data) => {
           ...fg,
           short_name: `${fg.short_prev} ${fg.name}`,
           name: `${fg.prev} ${fg.name}`,
+          original_name: fg.name,
           forced_level: short_level,
+          order: 1,
+          hide_in_filter: false,
         }
         collection_filters.push(new_filter_group)
       }
@@ -147,6 +148,7 @@ const calculateSchemas = (data) => {
         title: "Nombre / Título",
         value: coll.name_field
       })
+    collection_filters = collection_filters.sort((a, b) => a.order - b.order)
 
     coll.collection_filters = collection_filters
     coll.available_sorts = available_sorts
@@ -163,7 +165,6 @@ const calculateSchemas = (data) => {
     "collections_dict": collections_dict,
     "filter_groups": filter_groups,
     "levels": data.levels,
-    "collection_links": data.collection_links,
     "filters_dict": filters_dict,
   }
 }
@@ -173,17 +174,22 @@ const calculateNewCats = (data, schemas) => {
   schemas.filter_groups.forEach(fg => {
     if (fg.key_name === 'geographicals')
       return
-    const is_multiple = fg.links.some(l => l.is_multiple)
+
     // console.log("filter_group:", fg.key_name, is_multiple)
     // v-else-if="!filter_box.category_group && !filter_box.category_type"
-    const subtype_key = fg.category_subtype
-    const type_key = fg.category_type
     const group_key = fg.category_group
-    let subtypes = data[`${subtype_key}s`] || data[subtype_key]
-    if (subtype_key === 'country')
-      subtypes = data.countries
-    let types = data[`${type_key}s`] || []
-    let groups = data[`${group_key}s`] || []
+    const type_key = fg.category_type
+    const subtype_key = fg.category_subtype
+    let subtypes = data[subtype_key] || []
+    let types = data[type_key] || []
+    let groups = data[group_key] || []
+
+    const subtype_collection = schemas.collections_dict[subtype_key]
+    let type_field = subtype_collection.fields.find(field =>
+      field.related_snake_name === fg.category_type)
+    if (type_field)
+      type_field.is_multiple = type_field.relation_type === 'many_to_many'
+
     let root = {
       new_id: "root",
       parent: null,
@@ -192,9 +198,33 @@ const calculateNewCats = (data, schemas) => {
     root = {...root, ...fg}
     let new_types = []
     let types_dict = {}
+    const first_group = groups[0]
+    if (type_key){
+      const some_is_empty = subtypes.some(st => {
+        const type_value = st[type_field.name]
+        if (typeof Array.isArray(type_value))
+          return !type_value.length
+        return !type_value
+      })
+      if (some_is_empty){
+        let new_type ={
+          id: 'empty',
+          new_id: "type_empty",
+          name: 'Desconocido ⚠️',
+          original_types: null,
+          color: "red",
+          icon: "error_outline",
+          is_mix: true,
+        }
+        if (group_key)
+          new_type[group_key] = first_group.id
+        new_types.push(new_type)
+      }
+    }
+
     subtypes = subtypes.map(st => {
-      if (is_multiple){
-        let all_types = st[`${type_key}s`]
+      if (type_field && type_field.is_multiple){
+        let all_types = st[type_field.name]
         all_types.forEach(t => {
           if (!types_dict[t])
             types_dict[t] = []
@@ -202,25 +232,26 @@ const calculateNewCats = (data, schemas) => {
         })
         if (all_types.length === 1)
           st.parent_id = `type_${all_types[0]}`
+        else if (!all_types.length){
+          st.parent_id = "type_empty"
+          // console.log("No first type", st)
+        }
         else{
-          const first_type = types.find(t => t.id === all_types[0])
           let new_type_key = ''
-          if (!first_type){
-            new_type_key = 'other'
-          }
-          else if (group_key)
-            new_type_key = first_type[`${group_key}`]
           const join_id = all_types.join('_')
           const names = all_types.map(t =>
             types.find(tt => tt.id === t).name)
+          if (group_key){
+            const first_type = types.find(t => t.id === all_types[0])
+            new_type_key = first_type[group_key]
+          }
           st.parent_id = `type_${join_id}`
           if (!new_types.find(t => t.id === join_id)){
             let new_type = {
               id: join_id,
-              name: `Mixto: ${names ? names.join(', ') : 'desconocidos'}`,
+              name: `Mixto: ${names.join(', ')}`,
               original_types: all_types.map(t =>
                 types.find(tt => tt.id === t)),
-              parent_id: `type_${all_types[0]}`,
               new_id: `type_${join_id}`,
               color: "black",
               icon: "group_work",
@@ -232,23 +263,23 @@ const calculateNewCats = (data, schemas) => {
           }
         }
       }
-      else{
-        const value = st[type_key]
-        st.parent_id = type_key ? `type_${value}` : "root"
-      }
+      else if (type_key)
+        st.parent_id = `type_${st[type_field.name]}`
+      else
+        st.parent_id = "root"
       st.new_id = `subtype_${st.id}`
       return st
     })
     types = [...types, ...new_types]
-    types = types.map(t => {
-      if (group_key && !t[group_key]) {
-        console.log("No group key", t)
+    types = types.map(type => {
+      if (group_key && !type[group_key]) {
+        console.log("No group key", type)
       }
-      t.parent_id = group_key ? `group_${t[group_key]}` : "root"
-      t.new_id = `type_${t.id}`
-      if (is_multiple)
-        t.all_childs = types_dict[t.id]
-      return t
+      type.parent_id = group_key ? `group_${type[group_key]}` : "root"
+      type.new_id = `type_${type.id}`
+      if (type_field.is_multiple)
+        type.all_childs = types_dict[type.id]
+      return type
     })
     groups = groups.map(g => {
       g.parent_id = "root"
@@ -280,6 +311,8 @@ const calculateNewCats = (data, schemas) => {
 }
 
 function getLastId(data) {
+  if (data.elems_ids)
+    return { method: 'post', last_id: 'massive_edit/' }
   const id = data.id || data.key_name
   // const id = data.id
   const is_old = data.id && !data.is_new
@@ -396,16 +429,13 @@ export const useMainStore = defineStore('main', {
       const full_url = `catalogs/${collection}/${last_id}`
       try {
         let response = await ApiService[method](full_url, data);
-        let real_group = `${collection}s`
-        if (collection === 'country')
-          real_group = 'countries'
         if (method === 'post')
-          this.cats[real_group].unshift(response.data)
+          this.cats[collection].unshift(response.data)
         else {
           const elem_id = response.data.id ? 'id' : 'key_name'
-          const index = this.cats[real_group].findIndex(
+          const index = this.cats[collection].findIndex(
             el => el[elem_id] === response.data[elem_id])
-          this.cats[real_group][index] = response.data
+          this.cats[collection][index] = response.data
         }
         this.all_nodes = calculateNewCats(this.cats, this.schemas)
         return response.data
@@ -427,10 +457,10 @@ export const useMainStore = defineStore('main', {
       this.setHeader()
       try {
         await ApiService.delete(`/${group}/${id}/`);
-        return id
+        return {success: true}
       } catch (error) {
-        console.error(error)
-        ;
+        console.error(error);
+        return {errors: error.response.data}
       }
     },
     async deleteCatalog([collection_data, id]) {
@@ -440,18 +470,17 @@ export const useMainStore = defineStore('main', {
       try {
         await ApiService.delete(full_url);
         this.cleanDelete(collection, id)
-        return id
+        // return id
+        return {success: true}
       } catch (error) {
         console.error(error);
+        return {errors: error.response.data}
       }
     },
     cleanDelete(collection, id) {
-      let real_group = `${collection}s`
-      if (collection === 'country')
-        real_group = 'countries'
-      const index = this.cats[real_group].findIndex(
+      const index = this.cats[collection].findIndex(
         el => el.id === id)
-      this.cats[real_group].splice(index, 1)
+      this.cats[collection].splice(index, 1)
       this.all_nodes = calculateNewCats(this.cats, this.schemas)
     },
     async mergeSimple([params, category_name]) {
@@ -499,7 +528,16 @@ export const useMainStore = defineStore('main', {
         console.error(error)
         ;
       }
-
+    },
+    async saveCollection(data) {
+      this.setHeader()
+      try {
+        let response = await ApiService.put(`collection/${data.snake_name}/`, data);
+        return response.data
+      } catch (error) {
+        console.error(error);
+        return {errors: error.response.data}
+      }
     },
   },
   getters: {
@@ -518,7 +556,17 @@ export const useMainStore = defineStore('main', {
     event_group_violence(state) {
       if (!state.cats)
         return {}
-      return state.cats.event_groups.find(vo => vo.name === 'Violencia')
-    }
+      return state.cats.event_group.find(vo => vo.name === 'Violencia')
+    },
+    all_users(state) {
+      if (!state.cats)
+        return []
+      return state.cats.user
+    },
+    full_editors(state) {
+      if (!state.cats)
+        return []
+      return state.cats.user.filter(user => user.full_editor || user.is_superuser)
+    },
   },
 })

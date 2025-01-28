@@ -87,7 +87,7 @@ nextTick(() => {
 <!--      />-->
       <v-autocomplete
         v-model="full_main.state"
-        :items="cats.states || []"
+        :items="cats.state || []"
         item-title="short_name"
         item-value="id"
         label="Estado"

@@ -34,8 +34,10 @@ const props = defineProps({
 const collection_display = ref(null)
 const loaded = ref(false)
 const dialog_add = ref(false)
+const main_action = ref("click")
 const level_dialog = ref(null)
 const init_filters = ref(null)
+const init_in_edition = ref(null)
 
 const emits = defineEmits(['delete-record'])
 const levels = ['group', 'type', 'subtype']
@@ -78,9 +80,9 @@ const subcategory_is_multiple = computed(() => {
   if (is_multiple.value)
     return true
   if (final_main_collection.value){
-    const category = final_main_collection.value.categories.find(
-      cat => cat.parent === filter_group_data.value.category_subtype) || {}
-    return category.is_multiple || false
+    const subtype_field = final_main_collection.value.fields.find(field =>
+      field.related_snake_name === collections.value.subtype.snake_name)
+    return subtype_field && subtype_field.relation_type === 'many_to_many'
   }
   return false
 })
@@ -185,7 +187,7 @@ const subtype_items = computed(() => {
       return nodes.value.type.children.map(child => child.data)
     }
     else
-      return []
+      return null
   }
   else
     return filter_node.value.children.map(child => child.data)
@@ -265,7 +267,7 @@ const subtype_key = computed(() => {
 
 const main_width = computed(() => props.width || 250)
 
-function openDialog(level_name){
+function openDialog(level_name, is_add=true){
   level_dialog.value = level_name
   let done = false
   init_filters.value = Object.entries(level_names.value).reduce((acc, [level, cat_name]) => {
@@ -281,7 +283,22 @@ function openDialog(level_name){
     }
     return acc
   }, {})
-  // console.log("init_filters", init_filters.value)
+  let real_value = null
+  if (level_name === 'group')
+    real_value = props.main_object[level_names.value['group']]
+  else if (level_name === 'type')
+    real_value = props.main_object[type_field.value]
+  else if (level_name === 'subtype')
+    real_value = props.main_object[subtype_field.value]
+  if (real_value){
+    if (typeof real_value === 'object')
+      init_in_edition.value = real_value
+    else
+      init_in_edition.value = [real_value]
+  }
+  else
+    init_in_edition.value = null
+  main_action.value = is_add ? "click" : "checkbox"
   dialog_add.value = true
   nextTick(() => {
     collection_display.value.changeInitFilters()
@@ -322,6 +339,12 @@ function selectItem(item){
   // console.log("main_object", props.main_object)
   // console.log("main_node", all_nodes.value[props.filter_group_name])
   dialog_add.value = false
+}
+
+function changeValue(level_name, value){
+  if (level_name === 'group')
+    props.main_object[type_field.value] = null
+  props.main_object[subtype_field.value] = null
 }
 
 
@@ -379,6 +402,7 @@ function selectItem(item){
     :class="{'mr-2': !is_display}"
     :is_display="is_display"
     :required="required"
+    @update-value="changeValue('group', $event)"
   />
   <GenericSelect
     v-if="display_type"
@@ -394,7 +418,8 @@ function selectItem(item){
     :class="{'mr-2': !is_display}"
     :required="required"
     :collection_data="collections.type"
-    @open-dialog="openDialog('type')"
+    @open-dialog="openDialog('type', $event)"
+    @update-value="changeValue('type', $event)"
   />
   <GenericSelect
     v-if="subtype_items && level_names.subtype"
@@ -411,20 +436,39 @@ function selectItem(item){
     :label="collections.subtype[subcategory_is_multiple ? 'plural_name' : 'name']"
     :required="required"
     :collection_data="collections.subtype"
-    @open-dialog="openDialog('subtype')"
+    @open-dialog="openDialog('subtype', $event)"
   />
   <v-dialog
     v-model="dialog_add"
     max-width="1020"
   >
     <v-card>
+      <v-card-title class="text-h5 d-flex">
+        {{ collections[level_dialog].plural_name }}
+        <v-spacer></v-spacer>
+        <v-btn
+          icon
+          @click="dialog_add = false"
+          variant="text"
+        >
+          <v-icon>close</v-icon>
+        </v-btn>
+      </v-card-title>
       <v-card-text class="py-0">
+        <v-alert
+          v-if="main_action === 'click'"
+          type="info"
+          variant="outlined"
+        >
+          Antes de agregar un nuevo registro, explora las categorías disponibles
+        </v-alert>
         <CollectionDisplay
           ref="collection_display"
           :parent_collection="collections[level_dialog]"
           @select-item="selectItem"
-          main_action="click"
+          :main_action="main_action"
           :init_filters="init_filters"
+          :init_in_edition="init_in_edition"
         />
       </v-card-text>
     </v-card>
