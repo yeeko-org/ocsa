@@ -28,6 +28,8 @@ python manage.py migrate_coordinates /path/
 python manage.py migrate_project_files --source /path/ --output migrate_project_files_exit.json
 python manage.py migrate_note_files --source /path/ --output migrate_note_files_exit.json
 
+python manage.py datum_recovery
+
 ID a partir del cual son borradores: 3915
 
 from source.models.models import Note
