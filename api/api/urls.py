@@ -13,6 +13,7 @@ from api.views.auth.login_views import UserLoginAPIView
 from api.views.space_time import LocationViewSet
 # from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
+from api.views.ps_schemas.views import CollectionViewSet
 
 router = DefaultRouter()
 
@@ -35,6 +36,8 @@ router.register(r'event', EventViewSet, basename='event')
 router.register(r'involved', InvolvedViewSet, basename='involved')
 
 router.register(r'location', LocationViewSet, basename='location')
+
+router.register(r'collection', CollectionViewSet, basename='collection')
 
 
 urlpatterns = [

@@ -39,14 +39,11 @@ class ProjectFileSerializer(serializers.ModelSerializer):
 
 class ProjectSemiFullSerializer(serializers.ModelSerializer):
     files = ProjectFileSerializer(many=True, read_only=True)
-    parent_project = serializers.SerializerMethodField(read_only=True)
+    parent_project_full = ProjectSerializer(
+        read_only=True, source='parent_project')
     conflict_full = ConflictSerializer(read_only=True, source='conflict')
     extractivism_type = serializers.SerializerMethodField()
     locations = LocationSmallSerializer(many=True, read_only=True)
-
-    def get_parent_project(self, obj):
-        if obj.parent_project:
-            return ProjectFullSerializer(obj.parent_project).data
 
     def get_extractivism_type(self, obj):
         return None

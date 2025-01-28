@@ -115,6 +115,7 @@ class ActorViewMixin(viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        elements_ids = data.get('elems_ids')
 
         update_data = {}
         for field in self.massive_fields:
@@ -122,23 +123,11 @@ class ActorViewMixin(viewsets.GenericViewSet):
                 update_data[field] = data[field]
 
         queryset = self.get_queryset()
-        elements = queryset.filter(id__in=data['elems_ids'])
+        elements = queryset.filter(id__in=elements_ids)
         elements.update(**update_data)
 
-        return Response({'message': 'Elements updated successfully'})
-
-    def filter_queryset_not(self, queryset):
-        from django.db.models import Q
-        queryset = super().filter_queryset(queryset)
-        search_query = self.request.query_params.get('q', '')
-        if search_query:
-            filter_query = Q()
-            for field in self.search_fields:
-                # filter_query |= Q(**{f'{field}__unaccent__icontains': search_query})
-                filter_query |= Q(**{f'{field}__icontains': search_query})
-            queryset = queryset.filter(filter_query)
-
-        return queryset
+        list_serializer = self.get_serializer(elements, many=True)
+        return Response(list_serializer.data)
 
 
 class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):

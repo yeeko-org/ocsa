@@ -11,7 +11,7 @@ class InitStatus:
             ("rejected", "validation", "Rechazado",
                 "red", "bug_report", False, False, False, 10),
             ("validated", "validation", "Aprobado",
-                "green", "verified", True, False, False, 14),
+                "green", "done_all", True, False, False, 14),
             ("need_reclassify", "validation", "Requiere re-clasificarse",
                 "orange", "gpp_bad", True, False, False, 4),
             ("could_reclassify", "validation", "Podría re-clasificarse",
@@ -20,7 +20,10 @@ class InitStatus:
                 "light-green", "done", True, False, False, 12),
             ("yk_proposed", "validation", "Propuesto por Yeeko",
                 "teal", "task", True, False, False, 12),
-
+            ("expired", "validation", "Caducas (no usar)",
+                "red", "disabled_by_default", True, False, False, 10,
+                "Clasificaciones de la versión anterior que ya no serán usadas"),
+            # is_public, open_editor, is_deleted
             ("draft", "register", "Borrador",
                 "blue", "edit_note", False, True, False, 8),
             ("created", "register", "Creado (para revisarse)",
@@ -75,6 +78,10 @@ class InitStatus:
                 priority = data[8]
             except IndexError:
                 priority = 99
+            try:
+                description = data[9]
+            except IndexError:
+                description = None
             status, _ = StatusControl.objects.get_or_create(
                 name=name
             )
@@ -92,4 +99,5 @@ class InitStatus:
             status.open_editor = open_editor
             status.is_deleted = is_deleted
             status.priority = priority
+            status.description = description
             status.save()

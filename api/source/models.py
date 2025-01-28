@@ -45,8 +45,6 @@ class Note(CommentsMixin, models.Model):
     section = models.CharField(max_length=120, blank=True, null=True)
     pages = models.CharField(max_length=80, blank=True, null=True)
     link = models.CharField(max_length=255, blank=True, null=True)
-    screenshot = models.ImageField(
-        upload_to='screenshots/', blank=True, null=True)
     date = models.DateField()
     capture_date = models.DateField(blank=True, null=True)
     editor = models.ForeignKey(

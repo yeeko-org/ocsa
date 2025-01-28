@@ -13,11 +13,26 @@ all_collections = {
             "plural_name": "Notas",
             "model_name": "Note",
             "level": "primary",
-            "status_groups": ["register"],
             "color": 'deep-purple',
             "icon": 'newspaper',
             "all_filters": [
                 {"filter_name": "source_types", "hidden": False},
+                {
+                    "title": "Fechas",
+                    "component": "RangeDates", "hidden": False
+                },
+                {
+                    "title": "Editor", "field": "editor",
+                    "component": "UserSelect", "hidden": True
+                },
+                {
+                    "title": "Revisor", "field": "reviewer",
+                    "component": "UserSelect", "hidden": True
+                },
+                {
+                    "title": "Con archivos", "field": "has_files",
+                    "component": "TripleBooleanFilter", "hidden": True
+                },
             ],
         },
         {
@@ -56,7 +71,6 @@ all_collections = {
             "plural_name": "Proyectos",
             "model_name": "Project",
             "level": "primary",
-            "status_groups": ["validation", "location"],
             "icon": 'factory',
             "color": 'purple',
             "sort_fields": [
@@ -83,7 +97,6 @@ all_collections = {
             "plural_name": "Status de Proyectos",
             "model_name": "StatusProject",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -105,7 +118,6 @@ all_collections = {
             "plural_name": "Tipos de Megaproyecto",
             "model_name": "MegaprojectType",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -117,7 +129,6 @@ all_collections = {
             "level": "primary",
             "icon": 'local_fire_department',
             "color": 'pink',
-            "status_groups": ["validation"],
             "available_actions": ["merge"],
         },
         {
@@ -133,7 +144,6 @@ all_collections = {
         #     "plural_name": "Ubicaciones de Proyecto",
         #     "model_name": "ProjectLocation",
         #     "level": "relational",
-        #     "status_groups": ["location"],
         # },
     ],
     "impact": [
@@ -162,7 +172,6 @@ all_collections = {
             "plural_name": "Tipos de Afectación",
             "model_name": "ImpactType",
             "level": "category_type",
-            "status_groups": ["validation"],
             "available_actions": ["merge"],
         },
         {
@@ -172,7 +181,6 @@ all_collections = {
             "model_name": "ImpactSubtype",
             "level": "category_subtype",
             "optional_category": True,
-            "status_groups": ["validation"],
             "open_insertion": False,
             "available_actions": ["merge"],
         },
@@ -184,7 +192,6 @@ all_collections = {
             "plural_name": "Actores",
             "model_name": "Actor",
             "level": "primary",
-            "status_groups": ["validation"],
             "icon": 'recent_actors',
             "color": 'blue',
             "sort_fields": [
@@ -230,7 +237,6 @@ all_collections = {
             "plural_name": "Subtipos de Participación en Proyecto",
             "model_name": "ParticipantType",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -250,7 +256,6 @@ all_collections = {
             "plural_name": "Pueblos Indígenas",
             "model_name": "IndigenousGroup",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -260,7 +265,6 @@ all_collections = {
             "plural_name": "Grupos Sectoriales",
             "model_name": "SectorGroup",
             "level": "category_type",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -270,7 +274,6 @@ all_collections = {
             "plural_name": "Sectores",
             "model_name": "Sector",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -287,7 +290,6 @@ all_collections = {
             "plural_name": "Tipos de interés",
             "model_name": "InterestType",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -297,7 +299,6 @@ all_collections = {
             "plural_name": "Subtipos de interés",
             "model_name": "InterestSubtype",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -307,7 +308,6 @@ all_collections = {
             "plural_name": "Paises",
             "model_name": "Country",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -325,6 +325,7 @@ all_collections = {
                 {"filter_name": "event_types", "hidden": False},
                 # {"name": "involved_roles", "hidden": False},
             ],
+            "available_actions": ["massive_edit"],
         },
         {
             "snake_name": "event_group",
@@ -340,9 +341,8 @@ all_collections = {
             "plural_name": "Tipos de Eventos",
             "model_name": "EventType",
             "level": "category_type",
-            "status_groups": ["validation"],
             "open_insertion": True,
-            "available_actions": ["merge"],
+            "available_actions": ["merge", "massive_edit"],
         },
         {
             "snake_name": "event_subtype",
@@ -350,7 +350,6 @@ all_collections = {
             "plural_name": "Subtipos de Eventos",
             "model_name": "EventSubtype",
             "level": "category_subtype",
-            "status_groups": ["validation"],
             "open_insertion": True,
             "available_actions": ["merge"],
         },
@@ -375,7 +374,6 @@ all_collections = {
         #     "plural_name": "Ubicaciones de Eventos",
         #     "model_name": "EventLocation",
         #     "level": "relational",
-        #     "status_groups": ["location"],
         # },
     ],
     "space_time": [
@@ -406,7 +404,7 @@ all_collections = {
             "plural_name": "Ubicaciones",
             "model_name": "Location",
             "level": "primary",
-            "status_groups": ["location"],
+            "available_actions": ["massive_edit"],
         },
     ]
 }
@@ -425,6 +423,7 @@ filter_groups = [
     {
         "key_name": "project_types",
         "name": "Clasificación de Proyecto",
+        "short_name": "Clasif. de Proyecto",
         "plural_name": "Clasificaciones de Proyecto",
         "main_collection": "project-project",
         "filter_collections": [
@@ -577,11 +576,12 @@ filter_groups = [
     }
 ]
 
-collection_links = [
+deprecated_collection_links = [
     {
         "parent": "source-source",
         "child": "source-note",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": True,
     },
     {
@@ -609,6 +609,7 @@ collection_links = [
         "parent": "project-status_project",
         "child": "source-status_history",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": True,
     },
     {
@@ -623,6 +624,7 @@ collection_links = [
         "parent": "project-megaproject_type",
         "child": "project-project",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": True,
     },
     {
@@ -636,12 +638,14 @@ collection_links = [
         "parent": "project-status_project",
         "child": "project-project",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": False,
     },
     # {
     #     "parent": "project-status_location",
     #     "child": "project-project",
     #     "link_type": "category",
+    #     "is_category": True,
     # },
     {
         "parent": "classify-participant_group",
@@ -675,12 +679,14 @@ collection_links = [
         "parent": "classify-sector",
         "child": "actor-actor",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": False,
     },
     {
         "parent": "classify-belong",
         "child": "actor-actor",
         "link_type": "category",
+        "is_category": True,
         "is_multiple": True,
         "is_mandatory": False,
     },
@@ -688,6 +694,7 @@ collection_links = [
         "parent": "classify-indigenous_group",
         "child": "actor-actor",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": False,
     },
     {
@@ -701,6 +708,7 @@ collection_links = [
         "parent": "classify-participant_type",
         "child": "actor-participant",
         "link_type": "category",
+        "is_category": True,
         "is_multiple": True,
         "is_mandatory": True,
     },
@@ -722,6 +730,7 @@ collection_links = [
         "parent": "classify-interest_subtype",
         "child": "actor-interest",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": True,
     },
     {
@@ -750,6 +759,7 @@ collection_links = [
         "parent": "event-event_type",
         "child": "event-event",
         "link_type": "category",
+        "is_category": True,
         "is_provisional": True,
         "is_mandatory": False,
     },
@@ -757,6 +767,7 @@ collection_links = [
         "parent": "event-event_subtype",
         "child": "event-event",
         "link_type": "category",
+        "is_category": True,
         "is_provisional": False,
     },
     {
@@ -777,6 +788,7 @@ collection_links = [
         "parent": "event-involved_role",
         "child": "event-involved",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": True,
     },
     {
@@ -803,12 +815,14 @@ collection_links = [
         "parent": "impact-impact_type",
         "child": "impact-impact",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": True,
     },
     {
         "parent": "impact-impact_subtype",
         "child": "impact-impact",
         "link_type": "category",
+        "is_category": True,
         "is_mandatory": False,
     },
     {

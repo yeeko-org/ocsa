@@ -9,13 +9,14 @@ class ImpactGroup(models.Model):
     color = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     is_social = models.BooleanField(default=True)
+    show_position = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = 'Grupo de Impacto'
-        verbose_name_plural = 'Grupos de Impactos'
+        verbose_name = 'Grupo de Afectaciones'
+        verbose_name_plural = 'Grupos de Afectaciones'
 
 
 class ImpactType(models.Model):
@@ -30,14 +31,15 @@ class ImpactType(models.Model):
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=0)
+    has_displacement = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
 
     class Meta:
         ordering = ['order']
-        verbose_name = 'Tipo de Impacto'
-        verbose_name_plural = 'Tipos de Impactos'
+        verbose_name = 'Tipo de Afectación'
+        verbose_name_plural = 'Tipos de Afectaciones'
 
 
 class ImpactSubtype(models.Model):
@@ -56,8 +58,8 @@ class ImpactSubtype(models.Model):
 
     class Meta:
         ordering = ['order']
-        verbose_name = 'Subtipo de Impacto'
-        verbose_name_plural = 'Subtipos de Impactos'
+        verbose_name = 'Subtipo de Afectación'
+        verbose_name_plural = 'Subtipos de Afectaciones'
 
 
 class Impact(models.Model):
@@ -74,5 +76,5 @@ class Impact(models.Model):
         return f'{self.impact_type} - {self.mention}'
 
     class Meta:
-        verbose_name = 'Impacto'
-        verbose_name_plural = 'Impactos'
+        verbose_name = 'Afectación'
+        verbose_name_plural = 'Afectaciones'

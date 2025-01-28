@@ -1,10 +1,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions
-from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
-
+from rest_framework.decorators import action
 from api.views.confirm_delete import CustomDeleteMixin
+from rest_framework.response import Response
 
 
 class UnaccentSearchFilter(SearchFilter):
@@ -59,6 +59,28 @@ class BaseStatusViewSet(BaseViewSet):
     ordering_fields = ['__auto__']
     filter_backends = [
         UnaccentSearchFilter, DjangoFilterBackend, OrderingAutoFilter]
+
+
+class MassiveEdit(viewsets.ModelViewSet):
+
+    @action(detail=False, methods=['post'])
+    def massive_edit(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        elements_ids = request.data.pop('elems_ids')
+
+        update_data = {}
+        # for field in self.massive_fields:
+        for field in data:
+            update_data[field] = data[field]
+
+        queryset = self.get_queryset()
+        elements = queryset.filter(id__in=elements_ids)
+        elements.update(**update_data)
+
+        list_serializer = self.get_serializer(elements, many=True)
+        return Response(list_serializer.data)
 
 
 # class UnaccentMixin(viewsets.GenericViewSet):

@@ -14,6 +14,7 @@ from api.views.note.serializers import (
 from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantSerializer)
 from api.views.note.serializers import ImpactFullSerializer, EventFullNoteSerializer
+from api.views.common_views import MassiveEdit
 
 from source.models import Mention, StatusHistory
 from actor.models import Participant, Interest
@@ -128,7 +129,7 @@ class EventFilter(FilterSet):
         }
 
 
-class EventViewSet(viewsets.ModelViewSet):
+class EventViewSet(MassiveEdit, viewsets.ModelViewSet):
     queryset = Event.objects.all()\
         .select_related(
             'event_type',
@@ -139,7 +140,6 @@ class EventViewSet(viewsets.ModelViewSet):
         .prefetch_related(
             'involvements',
         )
-    # permission_classes = [permissions.IsAuthenticated]
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination

@@ -31,4 +31,4 @@ python manage.py migrate_note_files --source /path/ --output migrate_note_files_
 ID a partir del cual son borradores: 3915
 
 from source.models.models import Note
-Note.objects.filter(id__gte=3915).update(status='created')
+Note.objects.filter(id__gte=3915).update(status_register='created')

@@ -2,6 +2,7 @@ from django.db import models
 from source.models import Mention
 from actor.models import Participant
 from work_flux.models import StatusControl
+# from impact.models import Impact
 # from space_time.models import Location
 
 
@@ -29,6 +30,7 @@ class EventType(models.Model):
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=20)
+    has_displacement = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -116,6 +118,23 @@ class Involved(models.Model):
     class Meta:
         verbose_name = 'Involucrado en Evento'
         verbose_name_plural = 'Involucrados en Eventos'
+
+
+# class Displacement(models.Model):
+#     event = models.ForeignKey(
+#         Event, on_delete=models.CASCADE,
+#         blank=True, null=True, related_name='displacements')
+#     impact = models.ForeignKey(
+#         Impact, on_delete=models.CASCADE, blank=True, null=True,
+#         related_name='displacements')
+#     # massive_type = models.CharField(max_length=255, blank=True, null=True)
+#
+#     def __str__(self):
+#         return f"{self.event} - {self.participant}"
+#
+#     class Meta:
+#         verbose_name = 'Desplazamiento forzado'
+#         verbose_name_plural = 'Desplazamientos forzados'
 
 
 # class EventLocation(models.Model):

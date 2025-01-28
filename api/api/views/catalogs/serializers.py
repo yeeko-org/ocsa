@@ -1,13 +1,10 @@
 from rest_framework import serializers
 
-from api.views.project.list_serializers import ImpactSerializer
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup, Impact
 from source.models import Source
-# from project.models import Project
 from work_flux.models import StatusControl
-# from api.views.actor.serializers import ProjectBaseSerializer
 
-from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
+from ps_schema.models import Level, Collection, FilterGroup
 
 
 class StatusControlSerializer(serializers.ModelSerializer):
@@ -102,10 +99,10 @@ class CollectionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CollectionLinkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CollectionLink
-        fields = "__all__"
+# class CollectionLinkSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = CollectionLink
+#         fields = "__all__"
 
 
 class FilterGroupSerializer(serializers.ModelSerializer):

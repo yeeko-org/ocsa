@@ -1,5 +1,5 @@
 from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
-from ps_schema.constants import all_collections, collection_links, filter_groups
+from ps_schema.constants import all_collections, deprecated_collection_links, filter_groups
 
 
 class InitLevels:
@@ -25,6 +25,7 @@ class InitLevels:
 
 def field_of_models(collection: Collection):
     from django.apps import apps
+    from utils.obj_str import camel_to_snake
     from django.db.models import CharField, TextField, IntegerField
     app_name = collection.app_label
     if not app_name:
@@ -45,6 +46,7 @@ def field_of_models(collection: Collection):
             elif field.one_to_one:
                 relation_type = "one_to_one"
             else:
+                # many_to_one
                 relation_type = "relation"
         else:
             is_primary_key = field.primary_key
@@ -101,6 +103,8 @@ def field_of_models(collection: Collection):
                 pass
             try:
                 meta = field.related_model._meta
+                camel_name = camel_to_snake(meta.object_name)
+                final_field["related_snake_name"] = camel_name
                 final_field["related_model"] = meta.object_name
                 final_field["related_app_label"] = meta.app_label
             except AttributeError:
@@ -114,6 +118,7 @@ def field_of_models(collection: Collection):
 class InitCollections:
 
     def __init__(self):
+        from django.apps import apps
         levels_dict = {level.key_name: level for level in Level.objects.all()}
         # Collection.objects.all().delete()
         order_base = 0
@@ -121,16 +126,24 @@ class InitCollections:
         for app_label, collections in all_collections.items():
             for collection in collections:
                 order += 1
+                model_name = collection['model_name']
                 new_collection, _ = Collection.objects.get_or_create(
                     snake_name=collection['snake_name'],
                     level=levels_dict[collection['level']],
                     app_label=app_label)
-                new_collection.name = collection['name']
-                new_collection.plural_name = collection['plural_name']
-                new_collection.model_name = collection['model_name']
-                # new_collection.status_group = collection.get('status_group', None)
-                new_collection.status_groups = collection.get(
-                    'status_groups', None)
+                my_model = apps.get_model(app_label, model_name)
+                meta_data = meta_data = my_model._meta
+                verbose_name = meta_data.verbose_name
+                verbose_name_plural = meta_data.verbose_name_plural
+                name = collection.get('name', verbose_name)
+                plural_name = collection.get('plural_name', verbose_name_plural)
+                # if (name != verbose_name):
+                #     print(f"Name: {name} - Verbose: {verbose_name}")
+                # if (plural_name != verbose_name_plural):
+                #     print(f"Plural: {plural_name} - Verbose: {verbose_name_plural}")
+                new_collection.name = name
+                new_collection.plural_name = plural_name
+                new_collection.model_name = model_name
                 new_collection.optional_category = collection.get(
                     'optional_category', False)
                 new_collection.icon = collection.get('icon', None)
@@ -188,7 +201,7 @@ class InitCollectionLinks:
         collections_dict = {
             f"{collection.app_label}-{collection.snake_name}": collection
             for collection in Collection.objects.all()}
-        for link in collection_links:
+        for link in deprecated_collection_links:
             filter_group_obj = None
             if filter_group := link.get('filter_group', None):
                 filter_group_obj = FilterGroup.objects.get(

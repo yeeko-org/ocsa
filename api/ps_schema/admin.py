@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import register
-from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
+from ps_schema.models import Level, Collection, FilterGroup
 
 
 @register(Level)
@@ -9,19 +9,6 @@ class PsSchemaAdmin(admin.ModelAdmin):
     list_editable = ('order',)
 
 
-class CollectionLinkInline(admin.TabularInline):
-    model = CollectionLink
-    fk_name = 'parent'
-    extra = 0
-
-
-class CollectionLinkChildInline(admin.TabularInline):
-    model = CollectionLink
-    fk_name = 'child'
-    extra = 0
-
-
-@register(CollectionLink)
 class CollectionLinkAdmin(admin.ModelAdmin):
     list_display = ('parent', 'child', 'link_type', 'is_multiple', 'is_provisional', 'is_mandatory')
     list_filter = (
@@ -37,7 +24,6 @@ class CollectionAdmin(admin.ModelAdmin):
         'link_list_display')
     list_editable = ('order',)
     list_filter = ('level', 'app_label')
-    inlines = [CollectionLinkInline, CollectionLinkChildInline]
 
     def link_list_display(self, obj):
         from django.utils.html import format_html

@@ -11,7 +11,7 @@ class InvolvedSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
-    involvements = InvolvedSerializer(many=True)
+    involvements = InvolvedSerializer(many=True, read_only=True)
     mention_full = MentionBaseSerializer(read_only=True, source='mention')
 
     class Meta:

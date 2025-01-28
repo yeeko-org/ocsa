@@ -1,4 +1,3 @@
-from rest_framework import viewsets, permissions
 from django.db.models import Count
 from api.views.actor.classify_serializers import (
     IndigenousGroupSerializer, IndigenousGroupFullSerializer,

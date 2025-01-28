@@ -20,8 +20,8 @@ from event.models import (
     EventType,
     EventSubtype,
     InvolvedRole,)
-
-from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
+from profile_auth.models import User
+from ps_schema.models import Level, Collection, FilterGroup
 
 from space_time.models import State
 from project.models import MegaprojectType, ExtractivismType, StatusProject
@@ -38,9 +38,9 @@ from api.views.catalogs.serializers import (
     StatusControlSerializer,
     LevelSerializer,
     CollectionSerializer,
-    CollectionLinkSerializer,
     FilterGroupSerializer,
 )
+from api.views.auth.serializers import UserProfileSerializer
 from api.views.catalogs import StatusProjectSerializer
 from api.views.catalogs.project_serializers import (
     MegaprojectTypeSerializer,
@@ -85,66 +85,66 @@ class CatalogsView(APIView):
         final_networks = [{"name": f"Red {i}", "id": i}
                           for i in network_list_sorted]
         catalogs = {
-            "participant_types": ParticipantTypeSerializer(
+            "user": UserProfileSerializer(
+                User.objects.all(), many=True).data,
+            "participant_type": ParticipantTypeSerializer(
                 ParticipantType.objects.all(), many=True).data,
-            "participant_groups": ParticipantGroupSerializer(
+            "participant_group": ParticipantGroupSerializer(
                 ParticipantGroup.objects.all(), many=True).data,
-            "belongs": BelongSerializer(
+            "belong": BelongSerializer(
                 Belong.objects.all(), many=True).data,
-            "indigenous_groups": IndigenousGroupSerializer(
+            "indigenous_group": IndigenousGroupSerializer(
                 IndigenousGroup.objects.all(), many=True).data,
-            "sector_groups": SectorGroupSerializer(
+            "sector_group": SectorGroupSerializer(
                 SectorGroup.objects.all(), many=True).data,
-            "sectors": SectorSerializer(sectors, many=True).data,
-            "countries": CountrySerializer(
+            "sector": SectorSerializer(sectors, many=True).data,
+            "country": CountrySerializer(
                 Country.objects.all(), many=True).data,
-            "networks": final_networks,
+            "network": final_networks,
 
-            "interest_groups": InterestGroupSerializer(
+            "interest_group": InterestGroupSerializer(
                 InterestGroup.objects.all(), many=True).data,
-            "interest_types": InterestTypeSerializer(
+            "interest_type": InterestTypeSerializer(
                 InterestType.objects.all(), many=True).data,
-            "interest_subtypes": InterestSubtypeSerializer(
+            "interest_subtype": InterestSubtypeSerializer(
                 InterestSubtype.objects.all(), many=True).data,
 
-            "event_groups": EventGroupSerializer(
+            "event_group": EventGroupSerializer(
                 EventGroup.objects.all(), many=True).data,
-            "event_types": EventTypeSerializer(
+            "event_type": EventTypeSerializer(
                 EventType.objects.all(), many=True).data,
-            "event_subtypes": EventSubtypeSerializer(
+            "event_subtype": EventSubtypeSerializer(
                 EventSubtype.objects.all(), many=True).data,
-            "involved_roles": InvolvedRoleSerializer(
+            "involved_role": InvolvedRoleSerializer(
                 InvolvedRole.objects.all(), many=True).data,
 
-            "impact_groups": ImpactGroupSerializer(
+            "impact_group": ImpactGroupSerializer(
                 ImpactGroup.objects.all(), many=True).data,
-            "impact_subtypes": ImpactSubtypeSimpleSerializer(
+            "impact_subtype": ImpactSubtypeSimpleSerializer(
                 ImpactSubtype.objects.all(), many=True).data,
-            "impact_types": ImpactTypeSimpleSerializer(
+            "impact_type": ImpactTypeSimpleSerializer(
                 ImpactType.objects.all(), many=True).data,
 
-            "megaproject_types": MegaprojectTypeSerializer(
+            "megaproject_type": MegaprojectTypeSerializer(
                 MegaprojectType.objects.all(), many=True).data,
-            "extractivism_types": ExtractivismTypeSerializer(
+            "extractivism_type": ExtractivismTypeSerializer(
                 ExtractivismType.objects.all(), many=True).data,
             # "status_project": StatusProjectSerializer(
             #     StatusProject.objects.all(), many=True).data,
-            "status_projects": StatusProjectSerializer(
+            "status_project": StatusProjectSerializer(
                 StatusProject.objects.all(), many=True).data,
 
-            "sources": SourceSerializer(
+            "source": SourceSerializer(
                 Source.objects.all(), many=True).data,
             "status_control": StatusControlSerializer(
                 StatusControl.objects.all(), many=True).data,
-            "states": StateListSerializer(
+            "state": StateListSerializer(
                 State.objects.all(), many=True).data,
 
             "levels": LevelSerializer(
                 Level.objects.all(), many=True).data,
             "collections": CollectionSerializer(
                 Collection.objects.all(), many=True).data,
-            "collection_links": CollectionLinkSerializer(
-                CollectionLink.objects.all(), many=True).data,
             "filter_groups": FilterGroupSerializer(
                 FilterGroup.objects.all(), many=True).data,
         }

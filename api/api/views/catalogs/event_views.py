@@ -2,7 +2,7 @@ from django.db.models import Count
 from rest_framework import viewsets, permissions
 from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from api.views.common_views import BaseStatusViewSet, UnaccentSearchFilter
+from api.views.common_views import BaseStatusViewSet, MassiveEdit
 
 from api.views.catalogs.event_serializers import (
     EventGroupSerializer, EventTypeFullSerializer, EventTypeSerializer,
@@ -17,7 +17,7 @@ class EventGroupViewSet(viewsets.ModelViewSet):
     serializer_class = EventGroupSerializer
 
 
-class EventTypeViewSet(BaseStatusViewSet):
+class EventTypeViewSet(MassiveEdit, BaseStatusViewSet):
     queryset = EventType.objects.all()\
         .prefetch_related('event_subtypes')\
         .annotate(count=Count('events'))\

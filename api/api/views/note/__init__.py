@@ -1,4 +1,4 @@
-from django_filters import FilterSet, DateFilter, CharFilter
+from django_filters import FilterSet, DateFilter, CharFilter, BooleanFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.viewsets import GenericViewSet
@@ -18,11 +18,15 @@ class NoteFilter(FilterSet):
     start_date = DateFilter(field_name='date', lookup_expr='gte')
     end_date = DateFilter(field_name='date', lookup_expr='lte')
     status_register = CharFilter(field_name='status_register__name')
+    has_files = BooleanFilter(
+        field_name='files', lookup_expr='isnull', exclude=True)
 
     class Meta:
         model = Note
         fields = {
-            'source': ['exact']
+            'source': ['exact'],
+            'editor': ['exact'],
+            'reviewer': ['exact'],
         }
 
 
@@ -37,7 +41,6 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
             'mentions__participants__actor',
             'mentions__participants__interests',
             'mentions__events',
-            'mentions__events__involvements',
     )
 
     pagination_class = CustomPagination
@@ -63,6 +66,10 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
             'files',
             'mentions__project__locations',
             'mentions__project__conflict',
+            'mentions__project__parent_project',
+            'mentions__events__involvements',
+            'mentions__events__locations',
+            'mentions__status_history',
         ) if is_retrieve else queryset
         return queryset
 
@@ -77,6 +84,17 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
 
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        data['editor'] = request.user.id
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        data = request.data
+        if request.user.is_full_editor:
+            data['reviewer'] = request.user.id
+        return super().update(request, *args, **kwargs)
 
 
 class NoteFileViewSet(mixins.DestroyModelMixin, GenericViewSet):

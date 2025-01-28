@@ -86,8 +86,7 @@ class ProjectViewSet(ActionFileMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         if self.action == 'retrieve':
-            queryset = queryset\
-                .prefetch_related("others_parents")
+            queryset = queryset.prefetch_related("others_parents")
         return queryset
 
     def get_serializer_class(self):

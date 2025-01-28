@@ -60,7 +60,6 @@ class Collection(models.Model):
         default=False, verbose_name="Colección opcional")
     # status_group = models.CharField(
     #     max_length=20, choices=GROUP_CHOICES, blank=True, null=True)
-    status_groups = models.JSONField(blank=True, null=True)
     all_filters = models.JSONField(
         default=list, verbose_name="Grupos de filtros")
 
