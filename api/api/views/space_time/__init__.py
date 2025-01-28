@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions
+from django_filters import FilterSet, CharFilter
 
 from api.pagination import CustomPagination
 from space_time.models import (
@@ -47,10 +48,26 @@ class LocalityListViewSet(ListSetMixin):
     serializer_class = LocalitySerializer
 
 
+class LocationFilter(FilterSet):
+
+    only_by = CharFilter(method='filter_only_by')
+
+    def filter_only_by(self, queryset, name, value):
+        options = ["project", "event", "impact"]
+        if value not in options:
+            return queryset
+
+        filter_kwargs = {f"{value}__isnull": False}
+        return queryset.filter(**filter_kwargs)
+
+    class Meta:
+        model = Location
+        fields = ['only_by', "status_location"]
+
+
 class LocationViewSet(BaseViewSet):
     queryset = Location.objects.all().exclude(
         project__isnull=True, event__isnull=True, impact__isnull=True)
     serializer_class = LocationSerializer
 
-    filterset_fields = ['status_location']
-
+    filterset_class = LocationFilter
