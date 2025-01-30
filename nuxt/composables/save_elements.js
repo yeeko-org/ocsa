@@ -21,6 +21,17 @@ export async function saveElement(collection_data, element) {
     })
 }
 
+export async function patchElement(collection_data, elem_id, params) {
+  const mainStore = useMainStore()
+  const { patchSimple } = mainStore
+  // console.log("collection_data", collection_data)
+  const { snake_name, is_category } = final_snake_name(collection_data)
+  const path = is_category ? `catalogs/${snake_name}` : snake_name
+  return await patchSimple([path, elem_id, params]).then((response) => {
+    return response
+  })
+}
+
 export async function deleteElement(collection_data, obj_id) {
   const mainStore = useMainStore()
   const { deleteSimple, deleteCatalog } = mainStore

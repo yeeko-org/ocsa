@@ -124,10 +124,12 @@ function openLink(type) {
       <v-textarea
         v-if="final_collection_data.has.help_text"
         v-model="full_main.help_text"
-        label="Texto de ayuda"
+        label="Texto visible de ayuda"
         variant="outlined"
         rows="2"
         auto-grow
+        hint="Aparecerá una 'alerta' cuando se seleccione esta categoría"
+        persistent-hint
         _hide-details
       >
       </v-textarea>

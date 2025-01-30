@@ -22,6 +22,13 @@ const props = defineProps({
     :width="320"
     required
   />
+  <v-switch
+    v-model="full_main.has_displacement"
+    label="Desplegar Desplazamiento Forzado"
+    class="ml-4"
+    color="accent"
+    append-icon="hiking"
+  />
 </template>
 
 <style scoped>

@@ -4,6 +4,7 @@ import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import { saveElement, deleteElement } from "~/composables/save_elements.js";
 import EditCommonFields from "~/components/dashboard/common/EditCommonFields.vue";
+import AlertInfo from "~/components/dashboard/common/AlertInfo.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 
@@ -107,6 +108,10 @@ function deleteRecord() {
       style="white-space: pre-wrap;"
     >
     </v-alert>
+    <AlertInfo
+      :help_text="final_collection_data.help_text"
+      class="mb-3"
+    />
     <v-form
       ref="editForm"
     >

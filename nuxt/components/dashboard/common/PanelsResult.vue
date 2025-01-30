@@ -27,7 +27,7 @@ const props = defineProps({
 })
 
 const group_actions_enabled = ref(true)
-const sel = ref({"selected_elems": []})
+const sel = ref({"selected_elems": [], "show_order": false})
 const edit_type = ref({
   key: 'edit', title: 'Agregar registro', btn: 'Guardar'})
 
@@ -47,6 +47,10 @@ const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
 
 const init_indirect = computed(() => {
   return !props.results.length && props.total_count
+})
+
+const final_main_action = computed(() => {
+  return sel.value.show_order ? 'order' : props.main_action
 })
 
 import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
@@ -181,12 +185,27 @@ function selectItem(item) {
       class="mr-3"
       prepend-icon="add"
     >
-      Nuevo
+      Crear
       {{collection_data.name.length > 15
         ? 'registro' : collection_data.name}}
     </v-btn>
     <v-spacer></v-spacer>
-    <v-divider vertical class="mx-2" color="blue"></v-divider>
+    <template
+      v-if="collection_data.has.order && collection_data.level !== 'category_group'"
+    >
+      <v-divider vertical class="mx-2" color="blue"></v-divider>
+      <v-switch
+        v-model="sel.show_order"
+        label="Reordenar"
+        class="mr-3"
+        hide-details
+      ></v-switch>
+    </template>
+    <v-divider
+      vertical
+      class="mx-2"
+      color="blue"
+    ></v-divider>
     <MassiveActions
       v-if="results.length && collection_data.available_actions.length"
       :sel="sel"
@@ -232,7 +251,7 @@ function selectItem(item) {
       :show_details="show_details"
       :sel="sel"
       :is_simple="is_simple"
-      :main_action="main_action"
+      :main_action="final_main_action"
       @select-item="selectItem"
     />
     <v-card-actions v-if="!in_sheet">

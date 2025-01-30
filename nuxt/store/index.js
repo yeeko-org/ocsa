@@ -148,6 +148,11 @@ const calculateSchemas = (data) => {
         title: "Nombre / Título",
         value: coll.name_field
       })
+    if (coll.has.order)
+      available_sorts.push({
+        title: "Orden",
+        value: "order"
+      })
     collection_filters = collection_filters.sort((a, b) => a.order - b.order)
 
     coll.collection_filters = collection_filters
@@ -311,8 +316,10 @@ const calculateNewCats = (data, schemas) => {
 }
 
 function getLastId(data) {
-  if (data.elems_ids)
-    return { method: 'post', last_id: 'massive_edit/' }
+  if (data.elems_ids){
+    return { method: 'patch', last_id: `${data.elems_ids[0]}/massive_patch/` }
+  }
+    // return { method: 'post', last_id: 'massive_edit/' }
   const id = data.id || data.key_name
   // const id = data.id
   const is_old = data.id && !data.is_new
@@ -553,10 +560,29 @@ export const useMainStore = defineStore('main', {
       })
       return status_dict
     },
+    collections_summary(state) {
+      return state.schemas.collections.reduce((obj, coll) => {
+        obj[coll.snake_name] = {
+          'value': coll.snake_name,
+          'title': coll.name,
+          'name': coll.name,
+          'plural_name': coll.plural_name,
+          'icon': coll.icon,
+          'color': coll.color,
+        }
+        return obj
+      })
+    },
     event_group_violence(state) {
       if (!state.cats)
         return {}
-      return state.cats.event_group.find(vo => vo.name === 'Violencia')
+      return state.cats.event_group.find(eg => eg.name === 'Violencia')
+    },
+    event_group_show_position(state) {
+      if (!state.cats)
+        return []
+      let event_groups = state.cats.event_group.filter(eg => eg.show_position)
+      return event_groups.map(eg => eg.id)
     },
     all_users(state) {
       if (!state.cats)

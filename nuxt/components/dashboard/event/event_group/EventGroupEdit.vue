@@ -18,6 +18,13 @@ const props = defineProps({
     readonly
     style="max-width: 340px;"
   />
+  <v-switch
+    v-model="full_main.show_position"
+    label="Desplegar Intención de Mecanismo"
+    class="ml-4"
+    color="accent"
+    append-icon="double_arrow"
+  />
 </template>
 
 <style scoped>

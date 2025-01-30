@@ -41,7 +41,7 @@ function saveDefinition() {
     >
       <div
         style="max-width: 600px; white-space: pre-line;"
-        v-text="collection_data.help_text"
+        v-text="collection_data.description"
       >
       </div>
     </v-tooltip>
@@ -65,8 +65,8 @@ function saveDefinition() {
         </v-card-title>
         <v-card-text>
           <v-textarea
-            v-model="collection_data.help_text"
-            label="Texto de ayuda"
+            v-model="collection_data.description"
+            label="Descripción"
             rows="4"
             auto-grow
           >
@@ -74,6 +74,15 @@ function saveDefinition() {
           <v-code v-if="false">
             {{ collection_data }}
           </v-code>
+          <v-textarea
+            v-model="collection_data.help_text"
+            label="Texto visible de ayuda"
+            rows="4"
+            auto-grow
+            hint="Aparece siempre arriba de los elementos como 'alerta'"
+            persistent-hint
+          >
+          </v-textarea>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>

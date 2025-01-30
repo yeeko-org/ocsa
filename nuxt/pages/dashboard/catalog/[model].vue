@@ -61,7 +61,8 @@ const group_results = computed(() => {
   console.log("level_names", level_names.value)
   const type_name = level_names.value.type
   return filter_node.value.children.map(child => {
-    return {...child.data, [`${type_name}s_count`]: child.children.length}
+    return {...child.data,
+      [`${type_name}s_count`]: child.children ? child.children.length : 0}
   })
 })
 

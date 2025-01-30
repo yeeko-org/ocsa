@@ -19,7 +19,7 @@ export const status_filters = {
   },
   "status_location": {
     name: "de Ubicación",
-    hidden: true,
+    hidden: false,
     key_name: "location",
     collection: "status_location",
     collection_group: "status",

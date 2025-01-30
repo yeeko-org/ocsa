@@ -2,7 +2,7 @@
 import {ref, computed, nextTick, shallowRef} from 'vue'
 import { getElement } from "~/composables/save_elements.js";
 import EditCommon from "~/components/dashboard/common/EditCommon.vue";
-
+import { patchElement } from "~/composables/save_elements.js";
 
 const props = defineProps({
   main: Object,
@@ -41,7 +41,7 @@ const openMain = () => {
   // const group = props.group
   // const real_group = group.parent ? `catalogs/${group.key}` : group.key
   const level = props.collection_data.level
-  console.log('level', level)
+  // console.log('level', level)
   if (level === 'category_group'){
     emits('finish-open')
     full_main.value = props.main
@@ -63,6 +63,23 @@ const background_color = computed(() => {
   return `${base_color}-lighten-5`
 })
 
+const is_group = computed(() =>
+  props.collection_data.level === 'category_group')
+
+const saveOrder = (val) => {
+  console.log('saveOrder', val)
+  console.log('val', props.main.order)
+
+  if (!val) return
+  const params = {order: props.main.order}
+  const collection = props.collection_data.snake_name
+  // const collection = props.final_collection_data.snake_name
+  patchElement(props.collection_data, props.main.id, params).then((res) => {
+    // want_edit_comment.value = false
+    console.log('order saved', res)
+  })
+}
+
 
 </script>
 
@@ -70,26 +87,44 @@ const background_color = computed(() => {
   <v-expansion-panel class="d-flex">
     <v-sheet
       :color="background_color"
-      class="d-flex align-start flex-shrink-0"
+      class="d-flex align-start flex-shrink-0 justify-center"
     >
+      <v-card
+        v-if="is_group"
+        variant="plain"
+        color="grey-darken-1"
+        class="mt-0 px-0 pt-2 pb-1 text-center"
+        width="44"
+      >
+        <div class="text-caption">Orden:</div>
+        <div>{{main.order}}</div>
+      </v-card>
+      <v-card
+        v-else-if="main_action === 'order'"
+        variant="outlined"
+        color="grey-darken-1"
+        class="mt-2 px-0 pt-2 pb-1"
+        width="44"
+      >
+        <v-text-field
+          v-model="main.order"
+          density="compact"
+          label="Orden"
+          variant="plain"
+          hide-details
+          width="42"
+          class="px-1"
+          @update:model-value="saveOrder"
+        ></v-text-field>
+      </v-card>
       <v-checkbox
-        v-if="sel && main_action === 'checkbox'"
+        v-else-if="sel && main_action === 'checkbox'"
         v-model="sel.selected_elems"
         :value="main[collection_data.pk]"
         _density="comfortable"
         hide-details
         class="pt-1 pl-1"
       />
-      <v-text-field
-        v-else-if="main_action === 'order'"
-        v-model="main.order"
-        density="compact"
-        label="Orden"
-        variant="solo"
-        hide-details
-        class="pt-1 pl-1"
-        max-width="40"
-      ></v-text-field>
       <v-btn
         v-else-if="main_action === 'click'"
         class="mt-3 ml-1"

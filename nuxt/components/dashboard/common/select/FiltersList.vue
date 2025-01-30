@@ -5,6 +5,8 @@ import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import TripleBooleanFilter from "~/components/dashboard/custom_filters/TripleBooleanFilter.vue";
 import RangeDates from "~/components/dashboard/custom_filters/RangeDates.vue";
 import UserSelect from "~/components/dashboard/custom_filters/UserSelect.vue";
+import OnlyByFilter from "~/components/dashboard/custom_filters/OnlyByFilter.vue";
+import LocationType from "~/components/dashboard/custom_filters/LocationType.vue";
 
 const props = defineProps({
   final_filters: Object,
@@ -57,28 +59,46 @@ const applyFilters = () => {
         is_filter
       />
     </div>
-    <TripleBooleanFilter
-      v-else-if="filter_box.component && filter_box.component === 'TripleBooleanFilter'"
-      :final_filters="final_filters"
-      :field="filter_box.field"
-      :label="filter_box.title"
-      class="pr-3 pl-0 py-1"
-    />
-    <RangeDates
-      v-else-if="filter_box.component && filter_box.component === 'RangeDates'"
-      :final_filters="final_filters"
-      :field="filter_box.field"
-      :label="filter_box.title"
-      class="pr-3 pl-0 py-1"
-    />
-    <UserSelect
-      v-else-if="filter_box.component && filter_box.component === 'UserSelect'"
-      :final_filters="final_filters"
-      :field="filter_box.field"
-      :label="filter_box.title"
-      class="pr-3 pl-0 py-1"
-      is_filter
-    />
+    <template
+      v-else-if="filter_box.component"
+    >
+
+      <TripleBooleanFilter
+        v-if="filter_box.component === 'TripleBooleanFilter'"
+        :final_filters="final_filters"
+        :field="filter_box.field"
+        :label="filter_box.title"
+        class="pr-3 pl-0 py-1"
+      />
+      <RangeDates
+        v-else-if="filter_box.component === 'RangeDates'"
+        :final_filters="final_filters"
+        :field="filter_box.field"
+        :label="filter_box.title"
+      />
+      <UserSelect
+        v-else-if="filter_box.component === 'UserSelect'"
+        :final_filters="final_filters"
+        :field="filter_box.field"
+        :label="filter_box.title"
+        class="pr-3 pl-0 py-1"
+        is_filter
+      />
+      <OnlyByFilter
+        v-else-if="filter_box.component === 'OnlyByFilter'"
+        :final_filters="final_filters"
+        :field="filter_box.field"
+        :label="filter_box.title"
+        :filter_box="filter_box"
+        class="pr-3 pl-0 py-1"
+      />
+      <LocationType
+        v-else-if="filter_box.component === 'LocationType'"
+        :full_main="final_filters"
+        is_filter
+      />
+      <h5 v-else>{{filter_box.title || filter_box.name}}</h5>
+    </template>
     <h5 v-else>{{filter_box.title || filter_box.name}}</h5>
   </template>
 

@@ -6,8 +6,9 @@ import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import {computed} from "vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 const mainStore = useMainStore()
-const { event_group_violence } = storeToRefs(mainStore)
+const { event_group_violence, event_group_show_position } = storeToRefs(mainStore)
 
 
 const props = defineProps({
@@ -31,7 +32,8 @@ const all_actors = computed(() => {
     field="events"
     two_columns
     color="lime"
-    :additional_fields="{'involvements': [], 'locations': []}"
+    :additional_fields="{
+      'involvements': [], 'locations': [], 'displacements': []}"
     required
   >
     <template #rows="{ item }">
@@ -79,6 +81,16 @@ const all_actors = computed(() => {
             max-width="140"
             hide-details
           ></v-text-field>
+        </div>
+      </template>
+      <template v-if="event_group_show_position.includes(item.event_group)">
+        <div class="text-subtitle-1 mt-4">Intencionalidad:</div>
+        <div class="d-flex mr-8">
+          <SelectGroup
+            :main_object="item"
+            filter_group_name="purposes"
+            main_collection_name="event"
+          />
         </div>
       </template>
     </template>
@@ -163,6 +175,48 @@ const all_actors = computed(() => {
         main_collection_name="event"
         second_level
       />
+      <ToolbarCommon
+        v-if="false"
+        :main_object="item"
+        main_collection_name="event"
+        filter_group_name="states"
+        child_relation_name="displacement"
+        field="displacements"
+        second_level
+        color="orange"
+        required
+      >
+        <template #rdows="{ item }">
+          <v-select
+            v-model="item.participant"
+            :items="all_actors"
+            item-title="name"
+            item-value="id"
+            label="Participante"
+            variant="outlined"
+          ></v-select>
+        </template>
+<!--        <template #footer>-->
+<!--          <v-card-->
+<!--            class="ma-2"-->
+<!--            elevation="2"-->
+<!--            variant="flat"-->
+<!--            color="white"-->
+<!--          >-->
+<!--            Sugerencias rápidas (comming soon...)-->
+<!--          </v-card>-->
+<!--        </template>-->
+        <template #rows_init="{ item }" v-if="true">
+          <v-select
+            v-model="item.participant"
+            :items="all_actors"
+            item-title="name"
+            item-value="id"
+            label="Participante"
+            variant="outlined"
+          ></v-select>
+        </template>
+      </ToolbarCommon>
     </template>
   </ToolbarCommon>
 

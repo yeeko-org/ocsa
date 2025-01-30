@@ -43,6 +43,13 @@ const props = defineProps({
         :count="main.event_subtype_count"
         collection_name="event_subtype"
       />
+      <v-icon
+        v-if="main.has_displacement"
+        color="red darken-2"
+        class="ml-3"
+        v-tooltip="`Muestra Desplazamiento Forzado`"
+      >
+      </v-icon>
     </template>
   </HeaderCommon>
 </template>

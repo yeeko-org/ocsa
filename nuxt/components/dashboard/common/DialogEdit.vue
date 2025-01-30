@@ -51,7 +51,7 @@ function saveItem({res, is_new}) {
   <v-card>
     <v-card-title class="text-h5 d-flex">
       <span v-if="!full_main.id">
-        Nuevo {{collection_data.name}}
+        Crear {{collection_data.name}}
       </span>
       <span v-else>
         Editar {{collection_data.name}}

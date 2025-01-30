@@ -2,8 +2,6 @@
 import PanelList from "~/components/dashboard/common/PanelList.vue";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
-import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 

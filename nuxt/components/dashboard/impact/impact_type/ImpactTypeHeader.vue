@@ -43,6 +43,14 @@ const props = defineProps({
         :count="main.impact_subtype_count ? 1 : 0"
         collection_name="impact_subtype"
       />
+      <v-icon
+        v-if="main.has_displacement"
+        color="red darken-2"
+        class="ml-3"
+        v-tooltip="`Muestra Desplazamiento Forzado`"
+      >
+        hiking
+      </v-icon>
     </template>
   </HeaderCommon>
 

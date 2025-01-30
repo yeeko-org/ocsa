@@ -4,6 +4,7 @@ import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
+import AlertInfo from "~/components/dashboard/common/AlertInfo.vue";
 
 const props = defineProps({
   main_object: Object,  // Mention
@@ -186,6 +187,15 @@ const total_count = computed(() => {
           </v-btn>
         </slot>
       </v-toolbar>
+      <v-card
+        v-if="child_collection.help_text"
+        class="ma-2"
+        elevation="2"
+      >
+        <AlertInfo
+          :help_text="child_collection.help_text"
+        />
+      </v-card>
       <v-card
         v-for="(item, index) in main_object[field]"
         :key="index"

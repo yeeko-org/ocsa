@@ -159,7 +159,7 @@ function resetFilters() {
   if (props.direct_sheet)
     temp_reset.value = true
   final_filters.value = {
-    ordering: null,  // '-id',
+    ordering: collection_data.value.has.order ? 'order' : null,
     page_size: 40,
   }
   results.value = []

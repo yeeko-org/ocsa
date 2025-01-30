@@ -70,6 +70,14 @@ const merge_fields = ref([])
         class="ml-4"
       >
       </v-switch>
+      <v-switch
+        v-model="full_main.has_displacement"
+        label="Desplegar Desplazamiento Forzado"
+        class="ml-4"
+        color="accent"
+        append-icon="hiking"
+      />
+
     </v-col>
   </v-row>
 
