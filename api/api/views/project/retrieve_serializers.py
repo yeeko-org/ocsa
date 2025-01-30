@@ -4,7 +4,7 @@ from actor.models import Participant
 from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
     ImpactSerializer, ActorBasicSerializer,
-    LocationFullSerializer, ProjectBasicSerializer, ProjectMiniSerializer)
+    ProjectBasicSerializer, ProjectMiniSerializer)
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention

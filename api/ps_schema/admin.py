@@ -10,7 +10,7 @@ class PsSchemaAdmin(admin.ModelAdmin):
 
 
 class CollectionLinkAdmin(admin.ModelAdmin):
-    list_display = ('parent', 'child', 'link_type', 'is_multiple', 'is_provisional', 'is_mandatory')
+    list_display = ('parent', 'child', 'link_type', 'is_multiple', 'is_provisional')
     list_filter = (
         'link_type', 'is_multiple', 'is_provisional', 'is_mandatory',
         'parent__app_label', 'child__app_label')

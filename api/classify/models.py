@@ -149,6 +149,7 @@ class InterestGroup(models.Model):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Agrupador de tipos de interés'
         verbose_name_plural = 'Agrupadores de tipos de interés'
 
@@ -170,6 +171,7 @@ class InterestType(models.Model):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Tipo de interés'
         verbose_name_plural = 'Tipos de interés'
 
@@ -188,6 +190,7 @@ class InterestSubtype(models.Model):
         return self.name
 
     class Meta:
+        ordering = ['order']
         verbose_name = 'Subtipo de interés'
         verbose_name_plural = 'Subtipos de interés'
 

@@ -5,6 +5,7 @@ from source.models import Source
 from work_flux.models import StatusControl
 
 from ps_schema.models import Level, Collection, FilterGroup
+from space_time.models import State
 
 
 class StatusControlSerializer(serializers.ModelSerializer):
@@ -109,4 +110,10 @@ class FilterGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterGroup
         fields = "__all__"
+
+
+class StateListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = State
+        fields = '__all__'
 

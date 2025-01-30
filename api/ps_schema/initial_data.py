@@ -214,6 +214,5 @@ class InitCollectionLinks:
             cl.link_type = link['link_type']
             cl.is_provisional = link.get('is_provisional', False)
             cl.is_multiple = link.get('is_multiple', False)
-            cl.is_mandatory = link.get('is_mandatory', False)
             cl.filter_group = filter_group_obj
             cl.save()

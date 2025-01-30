@@ -4,7 +4,7 @@ from api.views.actor import ActorViewSet, ActorMiniListViewSet
 from api.views.project import (
     ProjectViewSet, ProjectFileViewSet, ConflictViewSet)
 from api.views.generic_merge.views import MergeRecordsView
-
+from api.views.df.df_views import DisplacementViewSet
 from api.views.note import NoteViewSet, NoteFileViewSet
 from api.views.note.mention_views import (
     MentionViewSet, ParticipantViewSet, ImpactViewSet,
@@ -32,8 +32,11 @@ router.register(r'status_history', StatusHistoryViewSet, basename='status histor
 router.register(r'impact', ImpactViewSet, basename='impact')
 router.register(r'participant', ParticipantViewSet, basename='participant')
 router.register(r'interest', InterestViewSet, basename='interest')
+
 router.register(r'event', EventViewSet, basename='event')
 router.register(r'involved', InvolvedViewSet, basename='involved')
+
+router.register(r'displacement', DisplacementViewSet, basename='displacement')
 
 router.register(r'location', LocationViewSet, basename='location')
 

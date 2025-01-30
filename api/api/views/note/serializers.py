@@ -4,7 +4,7 @@ from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantSerializer)
 from api.views.project.retrieve_serializers import (
     ConflictSerializer, ProjectFullSerializer)
-from api.views.space_time.serializers import LocationSerializer
+# from api.views.space_time.serializers import LocationSerializer
 from api.views.event.serializers import EventSerializer
 from project.models import Project, ProjectFile
 from source.models import Mention, Note, NoteFile, StatusHistory
@@ -13,6 +13,12 @@ from actor.models import Participant, Interest
 from impact.models import Impact
 # from impact.models import Impact
 from space_time.models import Location
+
+
+class LocationSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
 
 
 class LocationSmallSerializer(serializers.ModelSerializer):
@@ -73,11 +79,11 @@ class EventSimpleSerializer(serializers.ModelSerializer):
 
 class EventEmbedSerializer(EventSimpleSerializer):
     involvements = InvolvedSerializer(many=True, read_only=True)
-    locations = LocationSerializer(many=True, read_only=True)
+    locations = LocationSimpleSerializer(many=True, read_only=True)
 
 
 class ImpactEmbedSerializer(serializers.ModelSerializer):
-    locations = LocationSerializer(many=True, read_only=True)
+    locations = LocationSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Impact

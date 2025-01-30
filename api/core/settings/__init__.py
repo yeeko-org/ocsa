@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'actor',
     'impact',
     'event',
+    'df',
 ]
 
 MIDDLEWARE = [

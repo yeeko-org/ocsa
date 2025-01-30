@@ -3,7 +3,8 @@ from event.models import (
     EventGroup,
     EventType,
     EventSubtype,
-    InvolvedRole,)
+    InvolvedRole,
+    Purpose)
 from api.views.event.serializers import EventSerializer
 from api.views.common_serializers import CommonCount
 
@@ -59,4 +60,13 @@ class InvolvedRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvolvedRole
         fields = "__all__"
+
+
+class PurposeSerializer(serializers.ModelSerializer):
+    events_count = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Purpose
+        fields = "__all__"
+
 

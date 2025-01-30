@@ -14,8 +14,9 @@ from api.views.space_time.serializers import (
     MunicipalityListSerializer,
     LocalitySerializer,
     LocationSerializer,
+    LocationFullSerializer,
     StateRetrieveSerializer,)
-from ..common_views import BaseViewSet, BaseStatusViewSet
+from ..common_views import BaseViewSet, BaseStatusViewSet, OnlyByFilterMixin
 
 
 class ListSetMixin(viewsets.ReadOnlyModelViewSet):
@@ -48,6 +49,14 @@ class LocalityListViewSet(ListSetMixin):
     serializer_class = LocalitySerializer
 
 
+# class LocationFilter(OnlyByFilterMixin):
+#     only_options = ["project", "event", "impact"]
+#
+#     class Meta:
+#         model = Location
+#         fields = ['only_by', "status_location"]
+
+
 class LocationFilter(FilterSet):
 
     only_by = CharFilter(method='filter_only_by')
@@ -62,12 +71,16 @@ class LocationFilter(FilterSet):
 
     class Meta:
         model = Location
-        fields = ['only_by', "status_location"]
+        fields = ['only_by', "status_location", "state"]
 
 
 class LocationViewSet(BaseViewSet):
     queryset = Location.objects.all().exclude(
         project__isnull=True, event__isnull=True, impact__isnull=True)
-    serializer_class = LocationSerializer
-
+    serializer_class = LocationFullSerializer
     filterset_class = LocationFilter
+
+    def get_serializer_class(self):
+        action_serializer = {'list': LocationSerializer}
+        return action_serializer.get(self.action, self.serializer_class)
+

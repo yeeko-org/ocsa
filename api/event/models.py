@@ -12,8 +12,10 @@ class EventGroup(models.Model):
         max_length=80, blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    help_text = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=2)
     color = models.CharField(max_length=255, blank=True, null=True)
+    show_position = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['order']
@@ -38,6 +40,7 @@ class EventType(models.Model):
     class Meta:
         verbose_name = 'Tipo de Evento'
         verbose_name_plural = 'Tipos de Eventos'
+        ordering = ['order']
 
 
 class EventSubtype(models.Model):
@@ -60,6 +63,20 @@ class EventSubtype(models.Model):
         verbose_name_plural = 'Subtipos de Eventos'
 
 
+class Purpose(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=10)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Propósito de Evento'
+        verbose_name_plural = 'Propósitos de Eventos'
+
+
 class Event(models.Model):
     mention = models.ForeignKey(
         Mention, on_delete=models.CASCADE, blank=True, null=True,
@@ -76,6 +93,9 @@ class Event(models.Model):
     number_women = models.IntegerField(blank=True, null=True)
     number_men = models.IntegerField(blank=True, null=True)
     number_mix = models.IntegerField(blank=True, null=True)
+    purpose = models.ForeignKey(
+        Purpose, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='events')
 
     description = models.TextField(blank=True, null=True)
 

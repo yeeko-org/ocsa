@@ -1,4 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import FilterSet, CharFilter
 from rest_framework import viewsets, permissions
 from api.pagination import CustomPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -54,11 +55,15 @@ class OrderingAutoFilter(OrderingFilter):
         return final_valid_fields
 
 
-class BaseStatusViewSet(BaseViewSet):
-    filterset_fields = ['status_validation']
+class BaseGenericViewSet(BaseViewSet):
+    filterset_fields = []
     ordering_fields = ['__auto__']
     filter_backends = [
         UnaccentSearchFilter, DjangoFilterBackend, OrderingAutoFilter]
+
+
+class BaseStatusViewSet(BaseGenericViewSet):
+    filterset_fields = ['status_validation']
 
 
 class MassiveEdit(viewsets.ModelViewSet):
@@ -81,6 +86,39 @@ class MassiveEdit(viewsets.ModelViewSet):
 
         list_serializer = self.get_serializer(elements, many=True)
         return Response(list_serializer.data)
+
+    @action(detail=True, methods=['patch'])
+    def massive_patch(self, request, pk=None):
+        elements_ids = request.data.pop('elems_ids')
+        print("elements_ids: ", elements_ids)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        update_data = {}
+        # for field in self.massive_fields:
+        for field in data:
+            update_data[field] = data[field]
+
+        queryset = self.get_queryset()
+        elements = queryset.filter(id__in=elements_ids)
+        elements.update(**update_data)
+
+        list_serializer = self.get_serializer(elements, many=True)
+        return Response(list_serializer.data)
+
+
+class OnlyByFilterMixin(FilterSet):
+
+    only_by = CharFilter(method='filter_only_by')
+    only_options = ["project", "event", "impact"]
+
+    def filter_only_by(self, queryset, name, value):
+        if value not in self.only_options:
+            return queryset
+
+        filter_kwargs = {f"{value}__isnull": False}
+        return queryset.filter(**filter_kwargs)
 
 
 # class UnaccentMixin(viewsets.GenericViewSet):

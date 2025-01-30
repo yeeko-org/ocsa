@@ -7,6 +7,7 @@ from space_time.models import Location
 from source.models import Mention, Note
 from event.models import Event
 
+
 class ActorBasicSerializer(serializers.ModelSerializer):
     participants_count = serializers.SerializerMethodField()
 

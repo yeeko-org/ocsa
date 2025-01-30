@@ -4,8 +4,7 @@ from api.views.actor.classify_serializers import (
     SectorFullSerializer, SectorGroupSerializer,
     ParticipantGroupSerializer, ParticipantTypeSerializer,
     ParticipantGroupFullSerializer, BelongSerializer, CountrySerializer)
-from api.views.common_views import BaseViewSet, BaseStatusViewSet
-from api.views.space_time import ListSetMixin
+from api.views.common_views import BaseStatusViewSet
 from classify.models import IndigenousGroup, Sector, SectorGroup, ParticipantGroup, ParticipantType, Belong, Country
 
 

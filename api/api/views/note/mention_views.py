@@ -125,14 +125,14 @@ class EventFilter(FilterSet):
         model = Event
         fields = {
             'event_subtype': ['exact'],
-            'event_type': ['exact']
+            'event_type': ['exact'],
+            'purpose': ['exact'],
         }
 
 
 class EventViewSet(MassiveEdit, viewsets.ModelViewSet):
     queryset = Event.objects.all()\
         .select_related(
-            'event_type',
             'mention',
             'mention__note',
             'mention__project',

@@ -87,7 +87,6 @@ all_collections = {
                     "title": "Es agrupador", "field": "is_grouper",
                     "component": "TripleBooleanFilter", "hidden": True
                 },
-
             ],
             "available_actions": ["merge"],
         },
@@ -221,6 +220,7 @@ all_collections = {
             "model_name": "Interest",
             "level": "secondary",
             "color": "cyan",
+            "available_actions": ["massive_edit"],
         },
     ],
     "classify": [
@@ -322,6 +322,7 @@ all_collections = {
             "color": 'lime',
             "all_filters": [
                 {"filter_name": "event_types", "hidden": False},
+                {"filter_name": "purposes", "hidden": True},
                 # {"name": "involved_roles", "hidden": False},
             ],
             "available_actions": ["massive_edit"],
@@ -367,6 +368,13 @@ all_collections = {
             "model_name": "Involved",
             "level": "relational",
         },
+        {
+            "snake_name": "purpose",
+            "name": "Propósito del Mecanismo",
+            "plural_name": "Propósitos de Mecanismos",
+            "model_name": "Purpose",
+            "level": "category_subtype",
+        },
         # {
         #     "snake_name": "event_location",
         #     "name": "Ubicación de Evento",
@@ -374,6 +382,36 @@ all_collections = {
         #     "model_name": "EventLocation",
         #     "level": "relational",
         # },
+    ],
+    "df": [
+        {
+            "snake_name": "displacement",
+            "name": "Desplazamiento Forzado",
+            "plural_name": "Desplazamientos Forzados",
+            "model_name": "Displacement",
+            "level": "primary",
+            "icon": 'hiking',
+            "color": 'orange',
+            "all_filters": [
+                {"filter_name": "dimensions", "hidden": False},
+                {"filter_name": "population_sizes", "hidden": False},
+                {
+                    "title": "Colección", "field": "only_by",
+                    "component": "OnlyByFilter", "hidden": False,
+                    "options": ["event", "impact"]
+                },
+            ],
+        },
+        {
+            "snake_name": "dimension",
+            "model_name": "Dimension",
+            "level": "category_subtype",
+        },
+        {
+            "snake_name": "population_size",
+            "model_name": "PopulationSize",
+            "level": "category_subtype",
+        },
     ],
     "space_time": [
         {
@@ -404,6 +442,18 @@ all_collections = {
             "model_name": "Location",
             "level": "primary",
             "available_actions": ["massive_edit"],
+            "all_filters": [
+                {"filter_name": "states", "hidden": False},
+                {
+                    "title": "Colección", "field": "only_by",
+                    "component": "OnlyByFilter", "hidden": False,
+                    "options": ["project", "event", "impact"]
+                },
+                {
+                    "title": "Tipo de ubicación", "component": "LocationType",
+                    "field": "type_location", "hidden": True,
+                },
+            ],
         },
     ]
 }
@@ -414,9 +464,6 @@ filter_groups = [
         "name": "Fuente de información",
         "plural_name": "Fuentes de información",
         "main_collection": "source-note",
-        "filter_collections": [
-            "source-note",
-        ],
         "category_subtype": "source-source",
     },
     {
@@ -425,10 +472,6 @@ filter_groups = [
         "short_name": "Clasif. de Proyecto",
         "plural_name": "Clasificaciones de Proyecto",
         "main_collection": "project-project",
-        "filter_collections": [
-            "project-project",
-            "actor-actor",
-        ],
         "category_type": "project-extractivism_type",
         "category_subtype": "project-megaproject_type",
     },
@@ -437,9 +480,6 @@ filter_groups = [
         "name": "Tipo de Participación",
         "plural_name": "Tipos de Participación",
         "main_collection": "actor-actor",
-        "filter_collections": [
-            "actor-actor",
-        ],
         "category_type": "classify-participant_group",
         "category_subtype": "classify-participant_type",
     },
@@ -448,9 +488,6 @@ filter_groups = [
         "name": "Grupo de Pertenencia",
         "plural_name": "Grupos de Pertenencia",
         "main_collection": "actor-actor",
-        "filter_collections": [
-            "actor-actor",
-        ],
         "category_subtype": "classify-belong",
         "addl_config": {"item_id": "key_name"},
     },
@@ -459,9 +496,6 @@ filter_groups = [
         "name": "Grupo Indígena",
         "plural_name": "Grupos Indígenas",
         "main_collection": "actor-actor",
-        "filter_collections": [
-            "actor-actor",
-        ],
         "category_subtype": "classify-indigenous_group",
     },
     {
@@ -469,9 +503,6 @@ filter_groups = [
         "name": "Sector",
         "plural_name": "Sectores",
         "main_collection": "actor-actor",
-        "filter_collections": [
-            "actor-actor",
-        ],
         "category_type": "classify-sector_group",
         "category_subtype": "classify-sector",
     },
@@ -480,10 +511,6 @@ filter_groups = [
         "name": "Tipo de interés",
         "plural_name": "Tipos de interés",
         "main_collection": "actor-interest",
-        "filter_collections": [
-            "actor-interest",
-            "actor-actor",
-        ],
         "category_group": "classify-interest_group",
         "category_type": "classify-interest_type",
         "category_subtype": "classify-interest_subtype",
@@ -497,9 +524,6 @@ filter_groups = [
         "name": "Clasificación de Evento",
         "plural_name": "Clasificaciones de Eventos",
         "main_collection": "event-event",
-        "filter_collections": [
-            "event-event",
-        ],
         "category_group": "event-event_group",
         "category_type": "event-event_type",
         "category_subtype": "event-event_subtype",
@@ -513,19 +537,20 @@ filter_groups = [
         "name": "Rol en Actividad",
         "plural_name": "Roles en Actividades",
         "main_collection": "event-event",
-        "filter_collections": [
-            "event-event",
-        ],
         "category_subtype": "event-involved_role",
+    },
+    {
+        "key_name": "purposes",
+        "name": "Propósito",
+        "plural_name": "Propósitos",
+        "main_collection": "event-event",
+        "category_subtype": "event-purpose",
     },
     {
         "key_name": "impact_types",
         "name": "Clasificación de Afectación",
         "plural_name": "Clasificaciones de Afectación",
         "main_collection": "impact-impact",
-        "filter_collections": [
-            "impact-impact",
-        ],
         "category_group": "impact-impact_group",
         "category_type": "impact-impact_type",
         "category_subtype": "impact-impact_subtype",
@@ -533,6 +558,27 @@ filter_groups = [
             "short_prev": "Af.",
             "prev": "Afectación",
         },
+    },
+    {
+        "key_name": "dimensions",
+        "name": "Dimensión",
+        "plural_name": "Dimensiones",
+        "main_collection": "df-displacement",
+        "category_subtype": "df-dimension",
+    },
+    {
+        "key_name": "population_sizes",
+        "name": "Tamaño de Población",
+        "plural_name": "Tamaños de Población",
+        "main_collection": "df-displacement",
+        "category_subtype": "df-population_size",
+    },
+    {
+        "key_name": "countries",
+        "name": "País",
+        "plural_name": "Paises",
+        "main_collection": "actor-actor",
+        "category_subtype": "classify-country",
     },
     {
         "key_name": "states",
@@ -546,9 +592,6 @@ filter_groups = [
         "name": "Geográficos",
         "plural_name": "Geográficos",
         "main_collection": "space_time-location",
-        "filter_collections": [
-            "space_time-location",
-        ],
         "category_group": "space_time-state",
         "category_type": "space_time-municipality",
         "category_subtype": "space_time-locality",
@@ -558,294 +601,11 @@ filter_groups = [
         "name": "Status de Proyecto",
         "plural_name": "Status de Proyectos",
         "main_collection": "project-project",
-        "filter_collections": [
-            "project-project",
-        ],
         "category_subtype": "project-status_project",
     },
-    {
-        "key_name": "countries",
-        "name": "País",
-        "plural_name": "Paises",
-        "main_collection": "actor-actor",
-        "filter_collections": [
-            "actor-actor",
-        ],
-        "category_subtype": "classify-country",
-    }
 ]
 
-deprecated_collection_links = [
-    {
-        "parent": "source-source",
-        "child": "source-note",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "source-note",
-        "child": "source-mention",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "project-project",
-        "child": "source-mention",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "source-mention",
-        "child": "source-status_history",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "project-status_project",
-        "child": "source-status_history",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "project-extractivism_type",
-        "child": "project-megaproject_type",
-        "link_type": "grouper",
-        "filter_group": "project_types",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "project-megaproject_type",
-        "child": "project-project",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "project-conflict",
-        "child": "project-project",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": False,
-    },
-    {
-        "parent": "project-status_project",
-        "child": "project-project",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": False,
-    },
-    # {
-    #     "parent": "project-status_location",
-    #     "child": "project-project",
-    #     "link_type": "category",
-    #     "is_category": True,
-    # },
-    {
-        "parent": "classify-participant_group",
-        "child": "classify-participant_type",
-        "link_type": "grouper",
-        "filter_group": "participant_types",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "classify-sector_group",
-        "child": "classify-sector",
-        "link_type": "grouper",
-        "filter_group": "sectors",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "classify-interest_group",
-        "child": "classify-interest_type",
-        "link_type": "grouper",
-        "filter_group": "interest_types",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "classify-interest_type",
-        "child": "classify-interest_subtype",
-        "link_type": "grouper",
-        "filter_group": "interest_types",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "classify-sector",
-        "child": "actor-actor",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": False,
-    },
-    {
-        "parent": "classify-belong",
-        "child": "actor-actor",
-        "link_type": "category",
-        "is_category": True,
-        "is_multiple": True,
-        "is_mandatory": False,
-    },
-    {
-        "parent": "classify-indigenous_group",
-        "child": "actor-actor",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": False,
-    },
-    {
-        "parent": "classify-country",
-        "child": "actor-actor",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": False,
-    },
-    {
-        "parent": "classify-participant_type",
-        "child": "actor-participant",
-        "link_type": "category",
-        "is_category": True,
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "source-mention",
-        "child": "actor-participant",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "actor-actor",
-        "child": "actor-participant",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "classify-interest_subtype",
-        "child": "actor-interest",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "actor-participant",
-        "child": "actor-interest",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "event-event_group",
-        "child": "event-event_type",
-        "link_type": "grouper",
-        "filter_group": "event_types",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "event-event_type",
-        "child": "event-event_subtype",
-        "link_type": "grouper",
-        "filter_group": "event_types",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "event-event_type",
-        "child": "event-event",
-        "link_type": "category",
-        "is_category": True,
-        "is_provisional": True,
-        "is_mandatory": False,
-    },
-    {
-        "parent": "event-event_subtype",
-        "child": "event-event",
-        "link_type": "category",
-        "is_category": True,
-        "is_provisional": False,
-    },
-    {
-        "parent": "source-mention",
-        "child": "event-event",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "event-event",
-        "child": "event-involved",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "event-involved_role",
-        "child": "event-involved",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "actor-participant",
-        "child": "event-involved",
-        "link_type": "relational",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "impact-impact_group",
-        "child": "impact-impact_type",
-        "link_type": "grouper",
-        "filter_group": "impact_types",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "impact-impact_type",
-        "child": "impact-impact_subtype",
-        "link_type": "grouper",
-        "filter_group": "impact_types",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "impact-impact_type",
-        "child": "impact-impact",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "impact-impact_subtype",
-        "child": "impact-impact",
-        "link_type": "category",
-        "is_category": True,
-        "is_mandatory": False,
-    },
-    {
-        "parent": "source-mention",
-        "child": "impact-impact",
-        "link_type": "relational",
-        "is_multiple": True,
-        "is_mandatory": True,
-    },
-    {
-        "parent": "space_time-state",
-        "child": "space_time-municipality",
-        "link_type": "grouper",
-        "filter_group": "geographicals",
-        "is_mandatory": True,
-    },
-    {
-        "parent": "space_time-municipality",
-        "child": "space_time-locality",
-        "link_type": "grouper",
-        "filter_group": "geographicals",
-        "is_mandatory": True,
-    },
-]
+deprecated_collection_links = []
 
 
 def send_many_requests():

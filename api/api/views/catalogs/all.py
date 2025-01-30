@@ -1,7 +1,32 @@
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
+
+from ps_schema.models import Level, Collection, FilterGroup
+from impact.models import ImpactSubtype, ImpactType, ImpactGroup
+from source.models import Source
+from work_flux.models import StatusControl
+from space_time.models import State
+from api.views.catalogs.serializers import (
+    ImpactGroupSerializer,
+    ImpactSubtypeSimpleSerializer,
+    ImpactTypeSimpleSerializer,
+    SourceSerializer,
+    StatusControlSerializer,
+    LevelSerializer,
+    CollectionSerializer,
+    FilterGroupSerializer,
+    StateListSerializer,
+)
+
+from profile_auth.models import User
+from api.views.auth.serializers import UserProfileSerializer
+
+from project.models import (
+    MegaprojectType, ExtractivismType, StatusProject)
+from api.views.catalogs import StatusProjectSerializer
+from api.views.catalogs.project_serializers import (
+    MegaprojectTypeSerializer, ExtractivismTypeSerializer)
 
 from classify.models import (
     ParticipantType,
@@ -15,36 +40,6 @@ from classify.models import (
     InterestSubtype,
     Country,
 )
-from event.models import (
-    EventGroup,
-    EventType,
-    EventSubtype,
-    InvolvedRole,)
-from profile_auth.models import User
-from ps_schema.models import Level, Collection, FilterGroup
-
-from space_time.models import State
-from project.models import MegaprojectType, ExtractivismType, StatusProject
-
-from impact.models import ImpactSubtype, ImpactType, ImpactGroup
-from source.models import Source
-from work_flux.models import StatusControl
-
-from api.views.catalogs.serializers import (
-    ImpactGroupSerializer,
-    ImpactSubtypeSimpleSerializer,
-    ImpactTypeSimpleSerializer,
-    SourceSerializer,
-    StatusControlSerializer,
-    LevelSerializer,
-    CollectionSerializer,
-    FilterGroupSerializer,
-)
-from api.views.auth.serializers import UserProfileSerializer
-from api.views.catalogs import StatusProjectSerializer
-from api.views.catalogs.project_serializers import (
-    MegaprojectTypeSerializer,
-    ExtractivismTypeSerializer)
 from api.views.catalogs.classify_serializers import (
     ParticipantTypeSerializer,
     ParticipantGroupSerializer,
@@ -57,15 +52,24 @@ from api.views.catalogs.classify_serializers import (
     IndigenousGroupSerializer, CountrySerializer,
 )
 
+from event.models import (
+    EventGroup,
+    EventType,
+    EventSubtype,
+    InvolvedRole,
+    Purpose)
 from api.views.catalogs.event_serializers import (
     EventGroupSerializer,
     EventTypeSerializer,
     EventSubtypeSerializer,
     InvolvedRoleSerializer,
+    PurposeSerializer,
 )
-from api.views.space_time.serializers import (
-    StateListSerializer,
-)
+
+from df.models import Dimension, PopulationSize
+from api.views.catalogs.df_serializers import (
+    DimensionSerializer, PopulationSizeSerializer)
+
 from actor.models import Actor
 
 
@@ -117,6 +121,13 @@ class CatalogsView(APIView):
                 EventSubtype.objects.all(), many=True).data,
             "involved_role": InvolvedRoleSerializer(
                 InvolvedRole.objects.all(), many=True).data,
+            "purpose": PurposeSerializer(
+                Purpose.objects.all(), many=True).data,
+
+            "dimension": DimensionSerializer(
+                Dimension.objects.all(), many=True).data,
+            "population_size": PopulationSizeSerializer(
+                PopulationSize.objects.all(), many=True).data,
 
             "impact_group": ImpactGroupSerializer(
                 ImpactGroup.objects.all(), many=True).data,

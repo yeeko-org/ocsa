@@ -10,11 +10,14 @@ from api.views.catalogs import (
     ExtractivismTypeViewSet,
     MegaprojectTypeViewSet
 )
-from api.views.catalogs.event_views import EventGroupViewSet, EventTypeViewSet, EventSubtypeViewSet
+from api.views.catalogs.event_views import (
+    EventGroupViewSet, EventTypeViewSet, EventSubtypeViewSet,
+    PurposeViewSet)
 from api.views.actor.classify_views import IndigenousGroupViewSet, SectorViewSet, SectorGroupViewSet, \
     ParticipantGroupViewSet, ParticipantTypeViewSet, BelongViewSet, CountryViewSet
 from api.views.catalogs.impact_views import (
     ImpactSubtypeViewSet, ImpactTypeViewSet, ImpactGroupViewSet)
+from api.views.df.df_views import DimensionViewSet, PopulationSizeViewSet
 
 from rest_framework import routers
 
@@ -36,7 +39,11 @@ router.register(r'interest_subtype', InterestSubtypeViewSet, basename='catalog_i
 router.register(r'event_group', EventGroupViewSet, basename='catalog_event_group')
 router.register(r'event_type', EventTypeViewSet, basename='catalog_event_type')
 router.register(r'event_subtype', EventSubtypeViewSet, basename='catalog_event_subtype')
+router.register(r'purpose', PurposeViewSet, basename='catalog_purpose')
 router.register(r'involved_role', InvolvedRoleViewSet, basename='catalog_involved_role')
+
+router.register(r'dimension', DimensionViewSet, basename='catalog_dimension')
+router.register(r'population_size', PopulationSizeViewSet, basename='catalog_population_size')
 
 router.register(r'extractivism_type', ExtractivismTypeViewSet, basename='catalog_extractivism_type')
 router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')

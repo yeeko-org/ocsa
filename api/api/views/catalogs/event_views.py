@@ -6,8 +6,9 @@ from api.views.common_views import BaseStatusViewSet, MassiveEdit
 
 from api.views.catalogs.event_serializers import (
     EventGroupSerializer, EventTypeFullSerializer, EventTypeSerializer,
-    EventSubtypeFullSerializer, EventSubtypeSerializer)
-from event.models import EventGroup, EventType, EventSubtype
+    EventSubtypeFullSerializer, EventSubtypeSerializer,
+    PurposeSerializer)
+from event.models import EventGroup, EventType, EventSubtype, Purpose
 
 
 class EventGroupViewSet(viewsets.ModelViewSet):
@@ -24,6 +25,7 @@ class EventTypeViewSet(MassiveEdit, BaseStatusViewSet):
         .distinct()
     serializer_class = EventTypeFullSerializer
     filterset_fields = ['status_validation', 'event_group']
+    ordering_fields = ['order']
 
     def get_serializer_class(self):
         action_serializer = {
@@ -58,3 +60,11 @@ class EventSubtypeViewSet(BaseStatusViewSet):
             'list': EventSubtypeSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+
+class PurposeViewSet(BaseStatusViewSet):
+    queryset = Purpose.objects.all()\
+        .annotate(events_count=Count('events'))\
+        .distinct()
+    serializer_class = PurposeSerializer
+    filterset_fields = []
