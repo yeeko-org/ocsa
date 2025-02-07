@@ -134,3 +134,43 @@ class StatusHistory(models.Model):
     class Meta:
         verbose_name = 'Historial de estatus de proyecto'
         verbose_name_plural = 'Historiales de estatus de proyectos'
+
+
+class ScrapedRecord(models.Model):
+    date_from = models.DateField()
+    date_to = models.DateField()
+    source = models.ForeignKey(
+        Source, on_delete=models.CASCADE, related_name='scraped_records')
+    scraped_date = models.DateField(auto_now_add=True)
+
+
+class Article(models.Model):
+    PRECLASIFICATION_CHOICES = [
+        ('Invalido', 'Invalido'),
+        ('Valido', 'Valido'),
+        ('Podría ser', 'Podría ser'),
+    ]
+    uid = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
+    source = models.ForeignKey(
+        Source, on_delete=models.CASCADE, related_name='articles')
+    section = models.CharField(max_length=120, blank=True, null=True)
+    url = models.CharField(max_length=255)
+    imgs = models.TextField(blank=True, null=True)
+    basic_content = models.TextField(blank=True, null=True)
+    scraped_date = models.DateField(auto_now_add=True)
+    metadata = models.JSONField(blank=True, null=True)
+
+    preclasification = models.CharField(
+        choices=PRECLASIFICATION_CHOICES, blank=True, null=True)
+
+    autor = models.CharField(max_length=255, blank=True, null=True)
+    content = models.TextField(blank=True, null=True)
+    images = models.JSONField(blank=True, null=True)
+    published_date = models.DateField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.uid} - {self.title}"
+
+    class Meta:
+        unique_together = ['uid', 'source']
