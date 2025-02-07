@@ -77,6 +77,8 @@ const category_is_multiple = computed(() => {
 })
 
 const subcategory_is_multiple = computed(() => {
+  if (props.forced_level)
+    return false
   if (is_multiple.value)
     return true
   if (final_main_collection.value){
@@ -117,13 +119,18 @@ const category_values = computed(() => {
     let value = props.main_object[cat_name]
     if (!value && level === 'group' && props.category_group_value)
       value = props.category_group_value
-    if (level === 'subtype' && typeof value === 'object' && subcategory_is_multiple.value)
-      acc[level] = value[0]
-    else if (level === 'type' && typeof value === 'object' && category_is_multiple.value){
-      acc[level] = value[0]
+    try{
+      if (level === 'subtype' && typeof value === 'object' && subcategory_is_multiple.value)
+        acc[level] = value[0]
+      else if (level === 'type' && typeof value === 'object' && category_is_multiple.value)
+        acc[level] = value[0]
+      else
+        acc[level] = value
     }
-    else
-      acc[level] = value
+    catch (error){
+      console.log("error", error)
+      console.log("value", value)
+    }
     return acc
   }, {})
 })
@@ -257,6 +264,7 @@ function setInitialData(){
     if (nodes.value.type)
       props.main_object[level_names.value.group] = nodes.value.type.parent.data.id
   }
+
 }
 
 const subtype_key = computed(() => {
@@ -342,9 +350,13 @@ function selectItem(item){
 }
 
 function changeValue(level_name, value){
-  if (level_name === 'group')
+  if (level_name === 'group'){
     props.main_object[type_field.value] = null
+  }
   props.main_object[subtype_field.value] = null
+  props.main_object[level_names.value[level_name]] = value
+
+
 }
 
 
