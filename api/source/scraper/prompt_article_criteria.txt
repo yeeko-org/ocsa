@@ -1,0 +1,40 @@
+Tengo el contenido de un articulo, Necesito clasificar si se refieren o mencionan proyectos extractivos, es decir, el articulo deberá mencionar proyectos, obras y/o infraestructuras asociadas a actividades en el territorio mexicano. de la siguiente lista de criterios, revisa cuales cumple el articulo
+
+"afectaciones sociales"
+"afectaciones ecológicas"
+"hechos de violencia"
+"acciones colectivas" que emprenden las personas y las colectividades para manifestar su inconformidad o rechazo al proyecto y defender su territorio
+"presencia de opositores" individuales o colectivos
+
+
+Devuelve un objeto JSON los criterios y una bandera si cumple con el mismo.
+
+====
+12 proyectos extractivos amenazan a los bosques de la Sierra Norte de Puebla y a quienes habitan ahí. Comunidades resisten desde hace años.
+
+Puebla, a 21 de mayo del 2024. El recién lanzado proyecto de investigación Sierra de Apuestas revela que 361,000 hectáreas y 4,674,861,713 m3 de agua al año han sido entregados en la Sierra Norte de Puebla, a través de concesiones, licencias y contratos a empresas de capital privado (nacional y extranjero) para el desarrollo de 12 proyectos extractivos.
+
+Instalados en una extensión equivalente al 9.2% de la superficie total del estado de Puebla, estos proyectos de hidrocarburos, minería metálica y no metálica, hidroeléctricos y fotovoltaicos, requieren grandes extensiones de territorio y cantidades de agua y otros recursos naturales, amenazando la enorme diversidad ecológica, social y cultural de la región, así como la forma de vida que han elegido las comunidades que ahí habitan.
+
+A pesar de que la información sobre quiénes se benefician y obtienen ganancias con estos proyectos es opaca, Sierra de Apuestas logra desentrañar los datos y exponer los nombres de los beneficiarios reales. Operando en una dinámica empresarial e institucional donde los bienes naturales de esta región parecieran ser el premio mayor, inversionistas como Vanguard Group Inc., Dimensional Fund, BlackRock Inc., Amundi Asset Management, Norges Bank, Bpifrance, y algunas de las personas más ricas de México y Europa, como las familias Rivero González, Veyrat, Barboso y Sánchez Galán, frecuentemente actúan a través de estructuras corporativas complejas y empresas fachada para ocultar su responsabilidad. También, a menudo utilizan estrategias para influir en las políticas y regulaciones para su beneficio, aprovechando su poder económico y sus conexiones.
+
+Estos proyectos, como se constata en la investigación, generalmente se concretan a través de procesos de planeación y autorización por parte de las instituciones que no garantizan el derecho de las comunidades al consentimiento y la consulta previa, libre, informada, de buena fe y culturalmente adecuada. Además, frecuentemente carecen de protocolos que aseguren el diálogo y la toma de decisiones participativas, lo que genera la imposición violenta de los proyectos.
+
+En este escenario, los pueblos indígenas Nahua/Maseual, Totonaco, Otomí, Tepehua y comunidades mestizas de la región han mostrado una fuerte resistencia desde hace años contra estos proyectos extractivos, logrando frenar algunos, como ocurrió con la minera Almaden Minerals en el municipio de Ixtacamaxtitlán.
+
+Sin embargo, existe un segmento de la población que no cuenta con información sobre proyectos mineros y los derechos humanos en ese contexto, lo que puede exponer a las comunidades a situaciones de vulnerabilidad. Es indispensable que las autoridades se aseguren de que se brinde información completa y precisa sobre los impactos de la minería para proteger la salud y bienestar de las comunidades, así como garantizar que sus derechos sean respetados. En este sentido, Sierra de Apuestas aporta información importante, simplificada y de fácil acceso para las comunidades.
+
+Los ejidos y comunidades forestales han jugado un papel importante en la defensa del territorio. Organizados en colectivos como el Colectivo Regional en Defensa de los Bosques y el Territorio, utilizan diversas estrategias de resistencia que incluyen la organización comunitaria, manifestaciones públicas, acciones colectivas y estrategias legales para defender el modelo de desarrollo que quieren: prácticas económicas sustentables (como la agricultura tradicional y el manejo forestal comunitario) que garantizan un modo de vida sostenible para ellos, ellas, y las generaciones futuras.
+
+Sierra de Apuestas es el resultado de un esfuerzo colaborativo entre el Colectivo Regional en Defensa de los Bosques y el Territorio y PODER, que tiene como objetivo ser una fuente de información oportuna para la organización y movilización frente a las violaciones a los derechos humanos de un Estado capturado por la actividad empresarial. Alojado en una plataforma web, este proyecto muestra el impacto de la organización comunitaria y la importancia de la transparencia para la defensa del territorio y los derechos humanos. Mediante mapas, infografías, diagramas, y bases de datos interactivas se puede conocer más sobre los proyectos extractivos en la SNP y las corporaciones que los sustentan.
+
+
+====
+
+{
+  "afectaciones_sociales": true,
+  "afectaciones_ecologicas": true,
+  "hechos_de_violencia": true,
+  "acciones_colectivas": true,
+  "presencia_de_opositores": true
+}
