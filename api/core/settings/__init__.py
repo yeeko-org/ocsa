@@ -110,6 +110,11 @@ DATABASES = {
 # ---------------------------------SECURITY-----------------------------------
 
 SECRET_KEY = '***REMOVED***'
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_TOKENS_MAX_LENGTH = getenv_int("OPENAI_TOKENS_MAX_LENGTH", 128000)
+OPENAI_ENGINE = os.getenv("OPENAI_ENGINE", "gpt-4o")
+
 ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS", ["*"])
 DEBUG = True
 
@@ -171,7 +176,7 @@ if DATABASE_LEGACY_NAME:
         }
 
     if DATABASE_LEGACY_SCHEMA:
-        legacy['OPTIONS'] = { # type: ignore
+        legacy['OPTIONS'] = {  # type: ignore
             'options': f'-c search_path={DATABASE_LEGACY_SCHEMA}',
         }
 
@@ -220,3 +225,14 @@ REST_FRAMEWORK = {
     ],
 
 }
+
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+
+CELERY_RESULT_BACKEND = os.getenv(
+    "CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+
+CELERY_TASK_RESULT_EXPIRES = getenv_int("CELERY_TASK_RESULT_EXPIRES", 3600)
+
+
+LAJORNADA_SOURCE_ID = os.getenv("LAJORNADA_SOURCE_ID", 4)
