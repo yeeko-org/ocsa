@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import Note, NoteFile
+from .models import Note, NoteFile, ScrapedRecord, Article, Source
+
+
+@admin.register(Source)
+class SourceAdmin(admin.ModelAdmin):
+    pass
 
 
 class NoteFileInline(admin.TabularInline):
@@ -15,3 +20,19 @@ class NoteAdmin(admin.ModelAdmin):
     search_fields = ['title', 'nota_id_ref']
     list_filter = ['source']
     ordering = ['date']
+
+
+@admin.register(ScrapedRecord)
+class ScrapedRecordAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'source', 'from_date', 'to_date', 'scraped_date']
+    list_filter = ['source']
+    ordering = ['scraped_date']
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ['title', 'preclasification',
+                    'source', 'scraped_date', 'url']
+    search_fields = ['title']
+    list_filter = ['source', "scraped", "preclasification"]
+    ordering = ['scraped_date']
