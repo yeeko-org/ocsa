@@ -1,19 +1,32 @@
 from datetime import date
 
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 
-from source.models import Source
+from source.models import ScrapedRecord, Source
 from source.scraper.articles import (
     ArticleScraper, MainScraper, ManagerScraper, get_content)
 
 
 class JornadaManagerScraper(ManagerScraper):
-    def set_source(self):
-        self.source, _ = Source.objects.get_or_create(
-            main_url="https://www.jornada.com.mx/", defaults={
-                "name": "La Jornada",
-                "is_news": True
-            })
+
+    def __init__(
+            self, from_date: str | date, to_date: str | date,
+            recover_record: ScrapedRecord | None = None
+    ) -> None:
+        super().__init__(
+            from_date, to_date, JornadaMainScraper, JornadaArticleScraper,
+            recover_record=recover_record
+        )
+
+    def get_source(self) -> Source:
+        if not hasattr(self, "_source"):
+            self._source, _ = Source.objects.get_or_create(
+                main_url="https://www.jornada.com.mx/", defaults={
+                    "name": "La Jornada",
+                    "is_news": True
+                })
+        return self._source
 
 
 class JornadaMainScraper(MainScraper):
@@ -50,8 +63,11 @@ class JornadaMainScraper(MainScraper):
     def get_articles(self):
         for _, section_data in self.sections_dict.items():
             section_url = section_data["url"]
-            section_data["articles"] = JornadaSectionScraper(
-                section_url).articles
+            try:
+                section_data["articles"] = JornadaSectionScraper(
+                    section_url).articles
+            except Exception as e:
+                section_data["error"] = str(e)
 
 
 class JornadaSectionScraper:
@@ -89,8 +105,9 @@ class JornadaSectionScraper:
             footer_text = footer.get_text(strip=True) if footer else ""
 
             article_content = " ".join(content_texts) + " " + footer_text
-
+            url = str(url)
             article = {
+                "uid": url.split("/")[-1] if url else None,
                 "title": title,
                 "url": url,
                 "imgs": imgs,
@@ -102,13 +119,19 @@ class JornadaSectionScraper:
 
 class JornadaArticleScraper(ArticleScraper):
 
-    def get_article_data(self):
+    def get_article_data(ja):
 
-        article = self.soup_content.find('article')
-        self.title = article.find('div', class_='cabeza')\
+        article = ja.soup_content.find('article')
+        ja.title = article.find('div', class_='cabeza')\
             .get_text(strip=True)
-        self.author = article.find('div', class_='credito-autor')\
-            .find('span').get_text(strip=True)
-        self.content = "\n".join(
+        ja.content = "\n".join(
             [p.get_text(strip=True) for p in article.find_all('p')])
-        self.images = [img['src'] for img in article.find_all('img', src=True)]
+        ja.images = [img['src'] for img in article.find_all('img', src=True)]
+        try:
+            ja.author = article.find('div', class_='credito-autor')\
+                .find('span').get_text(strip=True)
+        except AttributeError:
+            ja.author = None
+
+    def get_main_body(self) -> Tag:
+        return self.soup_content.find('article')
