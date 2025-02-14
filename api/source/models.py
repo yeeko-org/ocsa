@@ -137,19 +137,35 @@ class StatusHistory(models.Model):
 
 
 class ScrapedRecord(models.Model):
-    date_from = models.DateField()
-    date_to = models.DateField()
+    STATUS_CHOICES = [
+        ("get_sections", "Traer secciones"),
+        ("record_articles", "Guardar artículos"),
+        ("preclassify", "Preclasificar"),
+        ("criteria", "Criterios"),
+        ("completed", "Completado"),
+        ("failed", "Fallido"),
+    ]
+    from_date = models.DateField()
+    to_date = models.DateField()
     source = models.ForeignKey(
         Source, on_delete=models.CASCADE, related_name='scraped_records')
     scraped_date = models.DateField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20, blank=True, null=True, choices=STATUS_CHOICES)
+
+    data = models.JSONField(blank=True, null=True)
+    errors = models.JSONField(blank=True, null=True)
+    preclassification = models.JSONField(blank=True, null=True)
 
 
 class Article(models.Model):
+
     PRECLASIFICATION_CHOICES = [
-        ('Invalido', 'Invalido'),
-        ('Valido', 'Valido'),
-        ('Podría ser', 'Podría ser'),
+        ('inválido', 'Invalido'),
+        ('válido', 'Valido'),
+        ('podría ser', 'Podría ser'),
     ]
+
     uid = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     source = models.ForeignKey(
@@ -162,12 +178,22 @@ class Article(models.Model):
     metadata = models.JSONField(blank=True, null=True)
 
     preclasification = models.CharField(
-        choices=PRECLASIFICATION_CHOICES, blank=True, null=True)
+        choices=PRECLASIFICATION_CHOICES, blank=True, null=True, max_length=10)
 
     autor = models.CharField(max_length=255, blank=True, null=True)
+    html_content = models.TextField(blank=True, null=True)
     content = models.TextField(blank=True, null=True)
     images = models.JSONField(blank=True, null=True)
     published_date = models.DateField(blank=True, null=True)
+
+    criteria = models.JSONField(blank=True, null=True)
+
+    scraped = models.ForeignKey(
+        ScrapedRecord, on_delete=models.CASCADE, related_name='articles')
+
+    note = models.ForeignKey(
+        Note, on_delete=models.CASCADE, related_name='articles',
+        blank=True, null=True)
 
     def __str__(self):
         return f"{self.uid} - {self.title}"
