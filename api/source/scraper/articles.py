@@ -2,17 +2,25 @@ from abc import ABC, abstractmethod
 from datetime import date, datetime, timedelta
 import json
 import re
-from typing import Dict, List, Type
+from typing import Any, Dict, List, Type
 
 import requests
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 
 from source.models import Article, ScrapedRecord, Source
 from utils.open_ai import JsonRequestOpenAI
+from django.db.models import Q
+from django.conf import settings
+
+REQUESTS_DEFAULT_HEADERS = {'User-Agent': 'Mozilla/4.0'}
+PRECLASSIFY_ARTICLES_BLOCK = getattr(
+    settings, "PRECLASSIFY_ARTICLES_BLOCK", 100)
 
 
 def get_content(url) -> BeautifulSoup:
-    response = requests.get(url)
+
+    response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS)
     if response.status_code == 200:
         return BeautifulSoup(response.text, "html.parser")
     else:
@@ -62,47 +70,129 @@ def get_date_range(
 
 
 class ManagerScraper(ABC):
-    date_format = "%Y/%m/%d"
+    scraped_record: ScrapedRecord
     main_scraper_class: Type["MainScraper"]
     article_scraper_class: Type["ArticleScraper"]
+
+    date_format = "%Y/%m/%d"
     source: Source
     articles_by_date: Dict[str, dict]
     articles_for_openAI: dict
     articles_by_uid: Dict[str, Article]
+    overlapping_dates: list
+    errors: list
+    pre_classify_response: Any
+
+    open_ai_engine: str | None
+
+    def add_error(self, error: str, exception: Exception | None = None):
+        if exception:
+            raise exception
+        if not self.scraped_record:
+            self.errors.append(f"{error}: {exception or ''}")
+            return
+
+        if not self.scraped_record.errors:
+            self.scraped_record.errors = []
+
+        self.scraped_record.errors.append(f"{error}: {exception or ''}")
+        self.scraped_record.save()
 
     def __init__(
-            self, start_date: str | date, end_date: str | date,
-            main_scraper_class: Type["MainScraper"]
-    ) -> None:
-        self.set_source()
-        str_dates = get_date_range(
-            start_date, end_date, date_out_format=self.date_format)
-        main_scraper_class = main_scraper_class
-        self.articles_by_date = {}
+            self, from_date: str | date, to_date: str | date,
+            main_scraper_class: Type["MainScraper"],
+            article_scraper_class: Type["ArticleScraper"],
+            recover_record: ScrapedRecord | None = None,
+            open_ai_engine: str | None = None
 
-        ScrapedRecord.objects.create(
-            source=self.source, date_from=start_date, date_to=end_date)
+    ) -> None:
+        self.main_scraper_class = main_scraper_class
+        self.article_scraper_class = article_scraper_class
+        self.overlapping_dates = []
+        self.articles_by_uid = {}
+        self.errors = []
+        self.open_ai_engine = open_ai_engine
+
+        if recover_record:
+            self.scraped_record = recover_record
+            self.source = recover_record.source or self.get_source()
+            return
+
+        if not self.check_overlapping_records(from_date, to_date):
+            return
+
+        self.scraped_record = ScrapedRecord.objects.create(
+            source=self.get_source(), from_date=date_in_date(from_date),
+            to_date=date_in_date(to_date))
+
+    def check_overlapping_records(self, from_date, to_date):
+        from_date = date_in_date(from_date)
+        to_date = date_in_date(to_date)
+
+        overlapping_records = ScrapedRecord.objects.filter(
+            from_date__lte=to_date,
+            to_date__gte=from_date,
+            source=self.get_source(),
+            status__isnull=False
+        ).exclude(status="failed")
+
+        self.overlapping_dates = [
+            [record.from_date.strftime("%Y/%m/%d"),
+             record.to_date.strftime("%Y/%m/%d")]
+            for record in overlapping_records
+        ]
+
+        if self.overlapping_dates:
+            self.add_error("Ya existen registros para las fechas")
+            return False
+        return True
+
+    def scrape_sections(self):
+
+        str_dates = get_date_range(
+            self.scraped_record.from_date, self.scraped_record.to_date,
+            date_out_format=self.date_format)
+
+        articles_by_date = {}
+
+        self.scraped_record.status = "get_sections"
+        self.scraped_record.save()
 
         for date_ in str_dates:
-            # TODO: Verificar si ya se exploro esta fecha?
 
-            sections_dict = main_scraper_class(date_).sections_dict
-            self.articles_by_date[date_] = sections_dict
+            try:
+                sections_dict = self.main_scraper_class(date_).sections_dict
+            except Exception as e:
+                sections_dict = {
+                    "error": f"Error getting sections for date {date_}",
+                    "exception": str(e)
+                }
+            articles_by_date[date_] = sections_dict
+
+        self.scraped_record.data = articles_by_date  # type: ignore
+        self.scraped_record.save()
 
     @abstractmethod
-    def set_source(self):
+    def get_source(self) -> Source:
         raise NotImplementedError
 
     def record_articles(self):
+        self.scraped_record.status = "record_articles"
+        self.scraped_record.save()
+
         self.articles_for_openAI = {}
         self.articles_by_uid = {}
-        for date_, sections_dict in self.articles_by_date.items():
+        for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
             for section_name, section_data in sections_dict.items():
                 for article_data in section_data.get("articles", []):
-                    # TODO: agregar en los scrapers un uid para identificar el articulo
-                    self.check_article(article_data, section_name, date_)
+                    try:
+                        self.record_article(article_data, section_name, date_)
+                    except Exception as e:
+                        article_data.setdefault("errors", []).append(str(e))
 
-    def check_article(self, article_data: dict, section_name: str, date_: str):
+        self.scraped_record.save()
+
+    def record_article(self, article_data: dict, section_name: str, date_: str):
         uid = article_data.get("uid") or ""
         title = article_data.get("title")
         url = article_data.get("url")
@@ -119,7 +209,8 @@ class ManagerScraper(ABC):
             "basic_content": content,
             "metadata": metadata,
             "section": section_name,
-            "published_date": date_in_date(date_)
+            "published_date": date_in_date(date_),
+            "scraped": self.scraped_record,
         }
 
         article_obj, _ = Article.objects.get_or_create(
@@ -135,38 +226,56 @@ class ManagerScraper(ABC):
         }
         self.articles_by_uid[uid] = article_obj
 
-    def get_preclassify_articles_response(self):
+    def make_preclassify_articles(self):
+        self.scraped_record.status = "preclassify"
+        self.scraped_record.save()
         if not self.articles_for_openAI:
             return
 
+        # TODO: lotera los articulos en bloque de constante gobal
+
+        articles_for_openAI = list(self.articles_for_openAI.values())
+        for i in range(0, len(articles_for_openAI), PRECLASSIFY_ARTICLES_BLOCK):
+            self.preclassify_articles(
+                articles_for_openAI[i:i+PRECLASSIFY_ARTICLES_BLOCK])
+
+        self.scraped_record.save()
+
+    def preclassify_articles(self, articles: List[dict]):
         try:
-            full_prompt = json.dumps(list(self.articles_for_openAI.values()))
+            full_prompt = json.dumps(articles)
         except TypeError as e:
             print(f"Error converting to json: {e}")
 
         pre_classify_request = JsonRequestOpenAI(
-            "source/scraper/prompt_pre_clasify.txt")
+            "source/scraper/prompt_pre_clasify.txt", engine=self.open_ai_engine)
 
-        pre_classify_response = pre_classify_request.send_prompt(full_prompt)
-        if not pre_classify_response:
+        self.pre_classify_response = pre_classify_request.send_prompt(
+            full_prompt)
+        if not self.pre_classify_response:
             print("No response from OpenAI")
             return
 
         """
         {
             "1": "válido",
-            "6": "invalido",
+            "6": "inválido",
             "7": "podría ser"
         }
         """
         try:
-            pre_classify_response_items = pre_classify_response.items()  # type: ignore
+            pre_classify_response_items = self.pre_classify_response.items()  # type: ignore
         except Exception as e:
-            print(f"Error getting items from response: {e}")
+            self.add_error("Error getting items from response", e)
             return
+        if not self.scraped_record.preclassification:
+            self.scraped_record.preclassification = []  # type: ignore
+        self.scraped_record.preclassification += pre_classify_response_items
 
         for uid, preclasification in pre_classify_response_items:
-            if preclasification not in ["válido", "invalido", "podría ser"]:
+            # print(f"Preclasification for {uid}: {preclasification}")
+            # print(f"objeto: {self.articles_by_uid.get(uid)}")
+            if preclasification not in ["válido", "inválido", "podría ser"]:
                 continue
             article_obj = self.articles_by_uid.get(uid)
             if not article_obj:
@@ -175,14 +284,36 @@ class ManagerScraper(ABC):
             article_obj.preclasification = preclasification
             article_obj.save()
 
-    def full_scrape_articles(self, update: bool = False, check_criteria: bool = False):
-        for _, article_obj in self.articles_by_uid.items():
+    def full_scrape_articles(self, update: bool = False, check_criteria: bool = True):
+
+        self.scraped_record.status = "criteria"
+        self.scraped_record.save()
+        if self.articles_by_uid:
+            articles_objetcs = self.articles_by_uid.values()
+        else:
+            articles_objetcs = list(Article.objects.filter(
+                scraped=self.scraped_record))
+        print(f"Full scrape articles for {len(articles_objetcs)} articles")
+        x = 0
+        for article_obj in articles_objetcs:
+            x += 1
+            print(f"Article {x} {article_obj.uid}")
 
             if article_obj.preclasification in ["válido", "podría ser"]:
-                article_scraper = self.article_scraper_class(
-                    article_obj, update=update)
+                try:
+                    article_scraper = self.article_scraper_class(
+                        article_obj, update=update,
+                        open_ai_engine=self.open_ai_engine)
+                except Exception as e:
+                    self.add_error(
+                        f"Error scraping article {article_obj.uid}", e)
                 if check_criteria:
-                    article_scraper.get_criteria()
+                    try:
+                        article_scraper.get_reduced_content_text()
+                        article_scraper.get_criteria()
+                    except Exception as e:
+                        self.add_error(
+                            f"Error getting criteria for article {article_obj.uid}", e)
 
 
 class MainScraper(ABC):
@@ -193,6 +324,7 @@ class MainScraper(ABC):
             "url": "url_section",
             "articles": [
                 {
+                    "uid": "uid",
                     "title": "title",
                     "url": "url",
                     "imgs": "imgs",
@@ -236,10 +368,18 @@ class ArticleScraper(ABC):
     author: str | None
     content: str
     images: List[str]
+    open_ai_engine: str | None
 
-    def __init__(self, article: Article, update: bool = False):
+    def __init__(
+            self, article: Article, update: bool = False,
+            open_ai_engine: str | None = None
+    ):
+        self.open_ai_engine = open_ai_engine
         self.article = article
-        if article.content and not update:
+        if article.html_content and not update:
+            self.soup_content = BeautifulSoup(
+                article.html_content, "html.parser")
+            self.get_article_data()
             return
         self.soup_content = get_content(article.url)
         try:
@@ -251,6 +391,8 @@ class ArticleScraper(ABC):
         article.title = self.title or article.title
         article.autor = self.author or article.autor
         article.content = self.content or article.content
+        article.html_content = str(
+            self.get_main_body()) or article.html_content
         article.images = self.images or article.images  # type: ignore
         article.save()
 
@@ -258,9 +400,14 @@ class ArticleScraper(ABC):
     def get_article_data(self):
         raise NotImplementedError
 
+    @abstractmethod
+    def get_main_body(self) -> Tag:
+        raise NotImplementedError
+
     def get_criteria(self):
         article_criteria_request = JsonRequestOpenAI(
-            "source/scraper/prompt_article_criteria.txt")
+            "source/scraper/prompt_article_criteria.txt",
+            engine=self.open_ai_engine)
 
         pre_classify_response = article_criteria_request\
             .send_prompt(self.article.content)
@@ -268,5 +415,62 @@ class ArticleScraper(ABC):
         if not pre_classify_response:
             print("No response from OpenAI")
             return
-        
-        # TODO: Guardar criterios en el modelo
+
+        if not isinstance(pre_classify_response, dict):
+            print("Invalid response")
+            return
+        self.article.criteria = pre_classify_response
+        self.article.save()
+
+    def get_reduced_content_text(self):
+        body = self.get_main_body()
+        if not body:
+            return
+        body = body
+        title = self.title
+        if title not in body.get_text():
+            title = None
+
+        excluded_tags = [
+            'script', 'style', 'noscript', 'svg', 'button', 'input',
+            'textarea', 'select', 'option', 'form', 'fieldset', 'canvas',
+            'nav', 'aside', 'address', 'map', 'area',
+            'legend', 'iframe', 'embed', 'object', 'param', 'video', 'audio']
+        for excluded_tag in excluded_tags:
+            for tag in body.find_all(excluded_tag):
+                tag.decompose()
+        main_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ul']
+        begin_title = not bool(title)
+        for tag in body.find_all():
+            tag_text = tag.get_text(strip=True)
+            if not tag_text and tag.name not in main_tags:
+                tag.decompose()
+            if not begin_title:
+                direct_text = tag.string
+                if direct_text and title in direct_text:
+                    begin_title = True
+            if not begin_title:
+                if title not in tag_text:
+                    tag.decompose()
+
+        allowed_attrs = ['class', 'id', 'href', 'src', 'alt', 'title']
+        # new_body = BeautifulSoup('', 'html.parser')
+        for tag in body.find_all():
+            relevant_attrs = {
+                key: value for key, value in tag.attrs.items()
+                if key in allowed_attrs
+            }
+            tag.attrs = relevant_attrs
+        try:
+            # body_encoding = body.encode("utf-8")
+            self.article.html_content = body.prettify()\
+                .encode("utf-8", errors="ignore").decode("utf-8")
+            # print("Body4:", self.htmml_content)
+        except Exception as e:
+            print("Error body.pretty:", e)
+            print("-" * 50)
+            print("Body5:", body)
+            raise e
+        # new_html = body.prettify()
+        self.article.content = body.get_text(separator="\n")
+        self.article.save()
