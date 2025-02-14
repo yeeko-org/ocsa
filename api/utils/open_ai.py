@@ -1,6 +1,5 @@
 import json
 import re
-from typing import Optional
 import openai
 
 from django.conf import settings
@@ -27,11 +26,14 @@ class JsonRequestOpenAI:
     first_response: dict
     prompt: str
 
-    def __init__(self, prompt_path: str, to_json: bool = True):
+    def __init__(
+            self, prompt_path: str, to_json: bool = True,
+            engine: str | None = None
+    ):
         openai_api_key = getattr(settings, 'OPENAI_API_KEY', None)
 
         self.client = openai.OpenAI(api_key=openai_api_key)
-        self.engine = getattr(settings, 'OPENAI_ENGINE', 'gpt-4o')
+        self.engine = engine or MODEL_NAME
         self.messages: list[dict] = []
         self.to_json = to_json
         self.response = None
@@ -81,10 +83,7 @@ class JsonRequestOpenAI:
             return response.choices[0].message.content
 
     def build_msg(self, prompt, role="user"):
-        # print("-"*50)
-        # print(f"role: {role}\nprompt: {prompt}\n")
-        if len(prompt) > 9000:
-            prompt = prompt[:9000]
+
         if self.to_json and role == "assistant":
             try:
                 prompt = json.dumps(json.loads(prompt))
