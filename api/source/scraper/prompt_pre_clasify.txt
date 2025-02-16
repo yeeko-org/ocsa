@@ -13,9 +13,9 @@ clasifica como "inválidos" los artículos que no están relacionados con los pu
 
 Las cuatro posibles clasificaciones son:
 
-"válido" para artículos que hablan sobre proyectos extractivos en México
-"inválido" para artículos que no están relacionados con proyectos extractivos en México
-"podría ser" para artículos que podrían estar relacionados con proyectos extractivos en México, pero no está claro
+"valid" para artículos que hablan sobre proyectos extractivos en México
+"invalid" para artículos que no están relacionados con proyectos extractivos en México
+"maybe" para artículos que podrían estar relacionados con proyectos extractivos en México, pero no está claro
 
 
 Devuelve un objeto JSON con el uid del artículo y la clasificación correspondiente.
@@ -64,11 +64,11 @@ Devuelve un objeto JSON con el uid del artículo y la clasificación correspondi
 ====
 
 {
-    "1": "válido",
-    "2": "válido",
-    "3": "válido",
-    "4": "podría ser",
-    "5": "podría ser",
-    "6": "invalido",
-    "7": "podría ser"
+    "1": "valid",
+    "2": "valid",
+    "3": "valid",
+    "4": "maybe",
+    "5": "maybe",
+    "6": "invalid",
+    "7": "maybe"
 }

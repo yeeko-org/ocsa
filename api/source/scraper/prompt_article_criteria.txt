@@ -32,9 +32,9 @@ Sierra de Apuestas es el resultado de un esfuerzo colaborativo entre el Colectiv
 ====
 
 {
-  "afectaciones_sociales": true,
-  "afectaciones_ecologicas": true,
-  "hechos_de_violencia": true,
-  "acciones_colectivas": true,
-  "presencia_de_opositores": true
+  "social_impacts": true,
+  "ecological_impacts": true,
+  "acts_of_violence": true,
+  "collective_actions": true,
+  "presence_of_opponents": true
 }
