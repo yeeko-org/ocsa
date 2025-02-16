@@ -1,15 +1,15 @@
 Tengo una lista de títulos de artículos de noticias, cada bloque tiene uid, title y content.
 
-Necesito clasificar si el titulo y/o el contenido se refieren o mencionan proyectos extractivos, es decir, el articulo deberá mencionar proyectos, obras y/o infraestructuras asociadas a actividades en el territorio mexicano y almenos uno de los siguientes elementos:
+Necesito clasificar si el título y/o el contenido se refieren o mencionan proyectos extractivistas, es decir, el artículo deberá mencionar proyectos, obras y/o infraestructuras asociadas a actividades en el territorio mexicano y al menos uno de los siguientes elementos:
 
-afectaciones sociales
+Afectaciones sociales
 afectaciones ecológicas
-hechos de violencia
+Hechos de violencia
 acciones colectivas que emprenden las personas y las colectividades para manifestar su inconformidad o rechazo al proyecto y defender su territorio
 presencia de opositores individuales o colectivos
 
 
-clasifica como "inválidos" los artículos que no están relacionados con los puntos anteriores
+Clasifica como "inválidos" los artículos que no están relacionados con los puntos anteriores
 
 Las cuatro posibles clasificaciones son:
 
@@ -18,7 +18,7 @@ Las cuatro posibles clasificaciones son:
 "podría ser" para artículos que podrían estar relacionados con proyectos extractivos en México, pero no está claro
 
 
-Devuelve un objeto JSON con el uid del artículo y la clasificación correspondiente.
+Devuelve un objeto JSON con el uid de cada uno de los artículos y la clasificación correspondiente.
 
 ====
 
