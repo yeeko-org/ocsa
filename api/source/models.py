@@ -161,9 +161,9 @@ class ScrapedRecord(models.Model):
 class Article(models.Model):
 
     PRECLASIFICATION_CHOICES = [
-        ('inválido', 'Invalido'),
-        ('válido', 'Valido'),
-        ('podría ser', 'Podría ser'),
+        ('invalid', 'Invalido'),
+        ('valid', 'Valido'),
+        ('maybe', 'Podría ser'),
     ]
 
     uid = models.CharField(max_length=255)
@@ -194,6 +194,18 @@ class Article(models.Model):
     note = models.ForeignKey(
         Note, on_delete=models.CASCADE, related_name='articles',
         blank=True, null=True)
+
+    def get_certainty_degree(self):
+        if not self.criteria:
+            return 0
+
+        degree = 0
+
+        degree += int(bool(self.criteria.get("social_impacts")))
+        degree += int(bool(self.criteria.get("ecological_impacts")))
+        degree += int(bool(self.criteria.get("acts_of_violence")))
+        degree += int(bool(self.criteria.get("collective_actions")))
+        degree += int(bool(self.criteria.get("presence_of_opponents")))
 
     def __str__(self):
         return f"{self.uid} - {self.title}"

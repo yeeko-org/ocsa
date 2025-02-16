@@ -32,7 +32,7 @@ class ScrapedRecordAdmin(admin.ModelAdmin):
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
     list_display = ['title', 'preclasification',
-                    'source', 'scraped_date', 'url']
+                    'source', 'published_date', 'url']
     search_fields = ['title']
     list_filter = ['source', "scraped", "preclasification"]
     ordering = ['scraped_date']
