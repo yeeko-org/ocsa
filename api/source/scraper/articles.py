@@ -112,6 +112,7 @@ class ManagerScraper(ABC):
         self.articles_by_uid = {}
         self.errors = []
         self.open_ai_engine = open_ai_engine
+        self.scraped_record = None
 
         if recover_record:
             self.scraped_record = recover_record
@@ -176,7 +177,7 @@ class ManagerScraper(ABC):
     def get_source(self) -> Source:
         raise NotImplementedError
 
-    def record_articles(self):
+    def record_articles(self, reset_preclass: bool = False):
         self.scraped_record.status = "record_articles"
         self.scraped_record.save()
 
@@ -184,15 +185,23 @@ class ManagerScraper(ABC):
         self.articles_by_uid = {}
         for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
             for section_name, section_data in sections_dict.items():
+                if section_name in ["error", "exception"]:
+                    print(f"Error in {date_}/{section_name} : {section_data}")
+                    continue
                 for article_data in section_data.get("articles", []):
                     try:
-                        self.record_article(article_data, section_name, date_)
+                        self.record_article(
+                            article_data, section_name, date_,
+                            reset_preclass=reset_preclass)
                     except Exception as e:
                         article_data.setdefault("errors", []).append(str(e))
 
         self.scraped_record.save()
 
-    def record_article(self, article_data: dict, section_name: str, date_: str):
+    def record_article(
+            self, article_data: dict, section_name: str, date_: str,
+            reset_preclass: bool = False
+    ):
         uid = article_data.get("uid") or ""
         title = article_data.get("title")
         url = article_data.get("url")
@@ -214,9 +223,9 @@ class ManagerScraper(ABC):
         }
 
         article_obj, _ = Article.objects.get_or_create(
-            uid=uid, source=self.source, defaults=defaults)
+            uid=uid, source=self.get_source(), defaults=defaults)
 
-        if article_obj.preclasification:
+        if article_obj.preclasification and not reset_preclass:
             return
 
         self.articles_for_openAI[uid] = {
@@ -231,8 +240,6 @@ class ManagerScraper(ABC):
         self.scraped_record.save()
         if not self.articles_for_openAI:
             return
-
-        # TODO: lotera los articulos en bloque de constante gobal
 
         articles_for_openAI = list(self.articles_for_openAI.values())
         for i in range(0, len(articles_for_openAI), PRECLASSIFY_ARTICLES_BLOCK):
@@ -256,13 +263,6 @@ class ManagerScraper(ABC):
             print("No response from OpenAI")
             return
 
-        """
-        {
-            "1": "válido",
-            "6": "inválido",
-            "7": "podría ser"
-        }
-        """
         try:
             pre_classify_response_items = self.pre_classify_response.items()  # type: ignore
         except Exception as e:
@@ -275,7 +275,7 @@ class ManagerScraper(ABC):
         for uid, preclasification in pre_classify_response_items:
             # print(f"Preclasification for {uid}: {preclasification}")
             # print(f"objeto: {self.articles_by_uid.get(uid)}")
-            if preclasification not in ["válido", "inválido", "podría ser"]:
+            if preclasification not in ["valid", "invalid", "maybe"]:
                 continue
             article_obj = self.articles_by_uid.get(uid)
             if not article_obj:
@@ -299,7 +299,7 @@ class ManagerScraper(ABC):
             x += 1
             print(f"Article {x} {article_obj.uid}")
 
-            if article_obj.preclasification in ["válido", "podría ser"]:
+            if article_obj.preclasification in ["valid", "maybe"]:
                 try:
                     article_scraper = self.article_scraper_class(
                         article_obj, update=update,
