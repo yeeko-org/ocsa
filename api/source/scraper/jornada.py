@@ -10,13 +10,16 @@ from source.scraper.articles import (
 
 class JornadaManagerScraper(ManagerScraper):
 
+    
+
     def __init__(
             self, from_date: str | date, to_date: str | date,
-            recover_record: ScrapedRecord | None = None
+            recover_record: ScrapedRecord | None = None,
+            open_ai_engine: str | None = None
     ) -> None:
         super().__init__(
             from_date, to_date, JornadaMainScraper, JornadaArticleScraper,
-            recover_record=recover_record
+            recover_record=recover_record, open_ai_engine=open_ai_engine
         )
 
     def get_source(self) -> Source:
@@ -39,6 +42,7 @@ class JornadaMainScraper(MainScraper):
                 continue
             for article in section_data["articles"]:
                 article["url"] = f"{self.main_url()}{article.get('url')}"
+                article["uid"] = f"{scraper_date}/{article.get('uid')}"
 
     def main_url(self):
         return f"https://www.jornada.com.mx/{self.scraper_date}/"
