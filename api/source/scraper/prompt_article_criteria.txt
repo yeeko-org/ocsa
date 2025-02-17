@@ -1,15 +1,26 @@
-Tengo el contenido de un articulo, Necesito clasificar si se refieren o mencionan proyectos extractivos, es decir, el articulo deberá mencionar proyectos, obras y/o infraestructuras asociadas a actividades en el territorio mexicano. de la siguiente lista de criterios, revisa cuales cumple el articulo
+Tengo el contenido de un artículo de prensa.
 
-"afectaciones sociales"
-"afectaciones ecológicas"
-"hechos de violencia"
-"acciones colectivas" que emprenden las personas y las colectividades para manifestar su inconformidad o rechazo al proyecto y defender su territorio
-"presencia de opositores" individuales o colectivos
+Necesito identificar (para el campo has_project), si mencionan algún proyecto o megaproyecto. Algunos tipos de proyectos o extractivismo son:
+-Agroindustria, monocultivo, industria ganadera, forestal y recursos bióticos
+-Minería
+-Hídricos
+-Energéticos
+-Hiperurbanización (desarrollos inmobiliarios, turismo, conjuntos comerciales, gestión de espacios, parques industriales, basureros, etc.)
+-Infraestructura y vías de comunicación
 
 
-Devuelve un objeto JSON los criterios y una bandera si cumple con el mismo.
+También necesito identificar si se hace mención para cada uno de los siguientes elementos:
+
+social_impacts: Cuando exista alguna afectación social, como desplazamiento violaciones a DDHH, medios de vida, etc.
+ecological_impacts: Afectación ecológica
+acts_of_violence: Acción contra de la población o los opositores
+collective_actions: Protesta, demanda, denuncia o cualquier acción para detener o modificar el proyecto
+has_opponents: Existe algún opositor al proyecto, ya sea individual o colectivo
+
+Devuelve un objeto JSON con los criterios y un valor booleano para cada uno de ellos.
 
 ====
+
 12 proyectos extractivos amenazan a los bosques de la Sierra Norte de Puebla y a quienes habitan ahí. Comunidades resisten desde hace años.
 
 Puebla, a 21 de mayo del 2024. El recién lanzado proyecto de investigación Sierra de Apuestas revela que 361,000 hectáreas y 4,674,861,713 m3 de agua al año han sido entregados en la Sierra Norte de Puebla, a través de concesiones, licencias y contratos a empresas de capital privado (nacional y extranjero) para el desarrollo de 12 proyectos extractivos.
@@ -32,9 +43,10 @@ Sierra de Apuestas es el resultado de un esfuerzo colaborativo entre el Colectiv
 ====
 
 {
+  "has_project": true,
   "social_impacts": true,
   "ecological_impacts": true,
   "acts_of_violence": true,
   "collective_actions": true,
-  "presence_of_opponents": true
+  "has_opponents": true
 }

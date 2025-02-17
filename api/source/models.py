@@ -173,11 +173,12 @@ class Article(models.Model):
     section = models.CharField(max_length=120, blank=True, null=True)
     url = models.CharField(max_length=255)
     imgs = models.TextField(blank=True, null=True)
+    images = models.JSONField(blank=True, null=True)
     basic_content = models.TextField(blank=True, null=True)
     scraped_date = models.DateField(auto_now_add=True)
     metadata = models.JSONField(blank=True, null=True)
 
-    preclasification = models.CharField(
+    preclassification = models.CharField(
         choices=PRECLASIFICATION_CHOICES, blank=True, null=True, max_length=10)
 
     autor = models.CharField(max_length=255, blank=True, null=True)
@@ -200,12 +201,14 @@ class Article(models.Model):
             return 0
 
         degree = 0
-
+        if bool(self.criteria.get("has_project")):
+            degree += 10
         degree += int(bool(self.criteria.get("social_impacts")))
         degree += int(bool(self.criteria.get("ecological_impacts")))
         degree += int(bool(self.criteria.get("acts_of_violence")))
         degree += int(bool(self.criteria.get("collective_actions")))
-        degree += int(bool(self.criteria.get("presence_of_opponents")))
+        degree += int(bool(self.criteria.get("has_opponents")))
+        return degree
 
     def __str__(self):
         return f"{self.uid} - {self.title}"

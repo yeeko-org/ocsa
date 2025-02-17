@@ -61,7 +61,7 @@ class JsonRequestOpenAI:
                 messages=self.messages,  # type: ignore
                 temperature=0.6,
                 max_tokens=16000,
-                top_p=0.8,
+                # top_p=0.8,
                 frequency_penalty=0,
                 presence_penalty=0
             )

@@ -1,0 +1,52 @@
+Tengo una lista de artículos de noticias, cada bloque tiene id, title y section, en algunos casos también un "content" preliminar de 1 o 2 párrafos.
+
+Identifica los artículos que mencionen algún proyecto o megaproyecto en México (excluye otros países). Algunos tipos de proyectos son:
+-Agroindustria, monocultivo, industria ganadera, forestal y recursos bióticos
+-Minería
+-Hídricos
+-Energéticos
+-Hiperurbanización (desarrollos inmobiliarios, turismo, conjuntos comerciales, gestión de espacios, parques industriales, basureros, etc.)
+-Infraestructura y vías de comunicación
+
+Además de mencionar algún proyecto, la nota debe contener al menos 1 de los siguientes elementos:
+-Afectación social
+-Afectación ecológica
+-Protesta, demanda, denuncia o cualquier acción para detener o modificar el proyecto
+-Opositor al proyecto (persona, organización, comunidad, etc.)
+-Acción contra de la población o los opositores
+
+Las cuatro posibles clasificaciones son:
+"valid": Cuando exista certeza de que cumple el criterio de selección: menciona un proyecto y contiene al menos un elemento adicional
+"invalid": para artículos que sin lugar a dudas no mencionan o no mencionarían proyectos o bien, porque hablan de otros temas no relacionados.
+"maybe": para artículos que no son claros en su contenido o que podrían cumplir con los criterios de selección, pero se requiere obtener el contenido completo de la nota para confirmar. También cuando sean artículos de opinión con un título poco claro o genérico.
+
+Devuelve un objeto JSON con el uid de cada uno de los artículos y la clasificación correspondiente.
+
+====
+
+{
+  "1": "México pierde el caso contra la minera submarina Odyssey Marine y deberá pagarle más de 37 millones de dólares",
+  "2": "López Obrador declara como área natural protegida los terrenos en pugna con la minera estadounidense Vulcan Materials",
+  "3": "Revelan trama de complicidades en operación de basurero en Puebla",
+  "4": "Pemex, de la promesa de soberanía energética a una deuda infinita de más de 100.000 millones de dólares",
+  "5": "Discutirán hoy sobre dos temas",
+  "6": "El Tri se enfrenta a Argentina en un partido clave para la Copa América (Deportes)",
+  "7": "Vecinos vigilarán suspensión de proyecto inmobiliario en que participa la esposa del presidente de Ecuador (Mundo)",
+  "8": "Autoridades, indiferentes ante conflicto entre vecinos y minera en Durango (Economía)",
+  "9": "	Astillero (Opinión)",
+}
+
+
+====
+
+{
+    "1": "maybe",
+    "2": "maybe",
+    "3": "valid",
+    "4": "invalid",
+    "5": "maybe",
+    "6": "invalid",
+    "7": "invalid",
+    "8": "valid",
+    "9": "maybe"
+}

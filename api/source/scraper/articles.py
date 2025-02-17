@@ -15,7 +15,7 @@ from django.conf import settings
 
 REQUESTS_DEFAULT_HEADERS = {'User-Agent': 'Mozilla/4.0'}
 PRECLASSIFY_ARTICLES_BLOCK = getattr(
-    settings, "PRECLASSIFY_ARTICLES_BLOCK", 100)
+    settings, "PRECLASSIFY_ARTICLES_BLOCK", 500)
 
 
 def get_content(url) -> BeautifulSoup:
@@ -78,25 +78,13 @@ class ManagerScraper(ABC):
     source: Source
     articles_by_date: Dict[str, dict]
     articles_for_openAI: dict
-    articles_by_uid: Dict[str, Article]
+    articles_by_id: Dict[int, Article]
     overlapping_dates: list
     errors: list
     pre_classify_response: Any
+    pre_classify_request: JsonRequestOpenAI
 
     open_ai_engine: str | None
-
-    def add_error(self, error: str, exception: Exception | None = None):
-        if exception:
-            raise exception
-        if not self.scraped_record:
-            self.errors.append(f"{error}: {exception or ''}")
-            return
-
-        if not self.scraped_record.errors:
-            self.scraped_record.errors = []
-
-        self.scraped_record.errors.append(f"{error}: {exception or ''}")
-        self.scraped_record.save()
 
     def __init__(
             self, from_date: str | date, to_date: str | date,
@@ -109,7 +97,7 @@ class ManagerScraper(ABC):
         self.main_scraper_class = main_scraper_class
         self.article_scraper_class = article_scraper_class
         self.overlapping_dates = []
-        self.articles_by_uid = {}
+        self.articles_by_id = {}
         self.errors = []
         self.open_ai_engine = open_ai_engine
         self.scraped_record = None
@@ -125,6 +113,19 @@ class ManagerScraper(ABC):
         self.scraped_record = ScrapedRecord.objects.create(
             source=self.get_source(), from_date=date_in_date(from_date),
             to_date=date_in_date(to_date))
+
+    def add_error(self, error: str, exception: Exception | None = None):
+        if exception:
+            raise exception
+        if not self.scraped_record:
+            self.errors.append(f"{error}: {exception or ''}")
+            return
+
+        if not self.scraped_record.errors:
+            self.scraped_record.errors = []
+
+        self.scraped_record.errors.append(f"{error}: {exception or ''}")
+        self.scraped_record.save()
 
     def check_overlapping_records(self, from_date, to_date):
         from_date = date_in_date(from_date)
@@ -177,12 +178,12 @@ class ManagerScraper(ABC):
     def get_source(self) -> Source:
         raise NotImplementedError
 
-    def record_articles(self, reset_preclass: bool = False):
+    def record_articles(self, reset: bool = False):
         self.scraped_record.status = "record_articles"
         self.scraped_record.save()
 
         self.articles_for_openAI = {}
-        self.articles_by_uid = {}
+        self.articles_by_id = {}
         for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
             for section_name, section_data in sections_dict.items():
                 if section_name in ["error", "exception"]:
@@ -191,8 +192,7 @@ class ManagerScraper(ABC):
                 for article_data in section_data.get("articles", []):
                     try:
                         self.record_article(
-                            article_data, section_name, date_,
-                            reset_preclass=reset_preclass)
+                            article_data, section_name, date_, reset=reset)
                     except Exception as e:
                         article_data.setdefault("errors", []).append(str(e))
 
@@ -200,21 +200,21 @@ class ManagerScraper(ABC):
 
     def record_article(
             self, article_data: dict, section_name: str, date_: str,
-            reset_preclass: bool = False
+            reset: bool = False
     ):
         uid = article_data.get("uid") or ""
         title = article_data.get("title")
         url = article_data.get("url")
         if not all([uid, title, url]):
             return
-        imgs = article_data.get("imgs")
+        images = article_data.get("images")
         content = article_data.get("content")
         metadata = article_data.get("metadata")
 
         defaults = {
             "title": title,
             "url": url,
-            "imgs": imgs,
+            "images": images,
             "basic_content": content,
             "metadata": metadata,
             "section": section_name,
@@ -225,15 +225,19 @@ class ManagerScraper(ABC):
         article_obj, _ = Article.objects.get_or_create(
             uid=uid, source=self.get_source(), defaults=defaults)
 
-        if article_obj.preclasification and not reset_preclass:
+        if article_obj.preclassification and not reset:
             return
+        article_id = article_obj.id
+        self.articles_by_id[article_id] = article_obj
 
-        self.articles_for_openAI[uid] = {
+        article_for_ai = {
+            "id": article_id,
             "title": title,
-            "content": content,
-            "uid": uid
+            "section": section_name,
         }
-        self.articles_by_uid[uid] = article_obj
+        if content:
+            article_for_ai["content"] = content
+        self.articles_for_openAI[article_id] = article_for_ai
 
     def make_preclassify_articles(self):
         self.scraped_record.status = "preclassify"
@@ -241,23 +245,36 @@ class ManagerScraper(ABC):
         if not self.articles_for_openAI:
             return
 
-        articles_for_openAI = list(self.articles_for_openAI.values())
-        for i in range(0, len(articles_for_openAI), PRECLASSIFY_ARTICLES_BLOCK):
+        articles_for_ia = list(self.articles_for_openAI.values())
+        for i in range(0, len(articles_for_ia), PRECLASSIFY_ARTICLES_BLOCK):
             self.preclassify_articles(
-                articles_for_openAI[i:i+PRECLASSIFY_ARTICLES_BLOCK])
+                articles_for_ia[i:i + PRECLASSIFY_ARTICLES_BLOCK])
 
         self.scraped_record.save()
 
     def preclassify_articles(self, articles: List[dict]):
         try:
-            full_prompt = json.dumps(articles)
+            # full_prompt = json.dumps(articles)
+            simple_articles = {}
+            for article in articles:
+                title = article.get("title")
+                if section := article.get("section"):
+                    title = f"{title} ({section})"
+                simple_articles[article["id"]] = title
+            full_prompt = json.dumps(simple_articles)
         except TypeError as e:
             print(f"Error converting to json: {e}")
+            return
 
-        pre_classify_request = JsonRequestOpenAI(
-            "source/scraper/prompt_pre_clasify.txt", engine=self.open_ai_engine)
+        prompt_path = "source/scraper/prompt_pre_classify.txt"
+        # TODO: Lucian, comentemos esto, pero es super difícil de encontrar
+        # algunas cosas como el engine, está en muchos lados y no sé si
+        # está declarado acá o allá o en dónde y me confundo, pasa mucho en
+        # muchos lados y me pierdo entre miles de declaraciones aisladas.
+        self.pre_classify_request = JsonRequestOpenAI(
+            prompt_path, engine=self.open_ai_engine)
 
-        self.pre_classify_response = pre_classify_request.send_prompt(
+        self.pre_classify_response = self.pre_classify_request.send_prompt(
             full_prompt)
         if not self.pre_classify_response:
             print("No response from OpenAI")
@@ -272,48 +289,53 @@ class ManagerScraper(ABC):
             self.scraped_record.preclassification = []  # type: ignore
         self.scraped_record.preclassification += pre_classify_response_items
 
-        for uid, preclasification in pre_classify_response_items:
-            # print(f"Preclasification for {uid}: {preclasification}")
+        for article_id, preclassification in pre_classify_response_items:
+            # print(f"Preclassification for {uid}: {preclasification}")
             # print(f"objeto: {self.articles_by_uid.get(uid)}")
-            if preclasification not in ["valid", "invalid", "maybe"]:
+            if preclassification not in ["valid", "invalid", "maybe"]:
+                print(f"Invalid preclassification: {preclassification}")
                 continue
-            article_obj = self.articles_by_uid.get(uid)
+            # article_obj = self.articles_by_uid.get(uid)
+            article_id = int(article_id)
+            article_obj = self.articles_by_id.get(article_id)
             if not article_obj:
                 continue
 
-            article_obj.preclasification = preclasification
+            article_obj.preclassification = preclassification
             article_obj.save()
 
     def full_scrape_articles(self, update: bool = False, check_criteria: bool = True):
 
         self.scraped_record.status = "criteria"
         self.scraped_record.save()
-        if self.articles_by_uid:
-            articles_objetcs = self.articles_by_uid.values()
+        # if self.articles_by_uid:
+        if self.articles_by_id:
+            articles_objects = self.articles_by_id.values()
         else:
-            articles_objetcs = list(Article.objects.filter(
+            articles_objects = list(Article.objects.filter(
                 scraped=self.scraped_record))
-        print(f"Full scrape articles for {len(articles_objetcs)} articles")
+        print(f"Full scrape articles for {len(articles_objects)} articles")
         x = 0
-        for article_obj in articles_objetcs:
+        for article_obj in articles_objects:
             x += 1
-            print(f"Article {x} {article_obj.uid}")
+            if article_obj.preclassification not in ["valid", "maybe"]:
+                continue
 
-            if article_obj.preclasification in ["valid", "maybe"]:
+            print(f"Article {x} {article_obj.uid}")
+            try:
+                article_scraper = self.article_scraper_class(
+                    article_obj, update=update,
+                    open_ai_engine=self.open_ai_engine)
+            except Exception as e:
+                self.add_error(
+                    f"Error scraping article {article_obj.uid}", e)
+            if check_criteria:
                 try:
-                    article_scraper = self.article_scraper_class(
-                        article_obj, update=update,
-                        open_ai_engine=self.open_ai_engine)
+                    article_scraper.get_reduced_content_text()
+                    article_scraper.get_criteria()
                 except Exception as e:
                     self.add_error(
-                        f"Error scraping article {article_obj.uid}", e)
-                if check_criteria:
-                    try:
-                        article_scraper.get_reduced_content_text()
-                        article_scraper.get_criteria()
-                    except Exception as e:
-                        self.add_error(
-                            f"Error getting criteria for article {article_obj.uid}", e)
+                        f"Error getting criteria for article {article_obj.uid}", e)
 
 
 class MainScraper(ABC):

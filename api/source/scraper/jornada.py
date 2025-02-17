@@ -10,8 +10,6 @@ from source.scraper.articles import (
 
 class JornadaManagerScraper(ManagerScraper):
 
-    
-
     def __init__(
             self, from_date: str | date, to_date: str | date,
             recover_record: ScrapedRecord | None = None,
@@ -99,7 +97,7 @@ class JornadaSectionScraper:
             else:
                 continue
 
-            imgs = [img["src"] for img in container.find_all(  # type: ignore
+            images = [img["src"] for img in container.find_all(  # type: ignore
                 "img", src=True)]
 
             content_texts = [p.get_text(strip=True) for p in container.find_all(  # type: ignore
@@ -114,7 +112,8 @@ class JornadaSectionScraper:
                 "uid": url.split("/")[-1] if url else None,
                 "title": title,
                 "url": url,
-                "imgs": imgs,
+                # "imgs": images,
+                "images": images,
                 "content": article_content
             }
 
