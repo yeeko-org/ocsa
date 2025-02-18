@@ -27,7 +27,7 @@ Devuelve un objeto JSON con el uid de cada uno de los artículos y la clasificac
 ====
 
 {
-  "1": "México pierde el caso contra la minera submarina Odyssey Marine y deberá pagarle más de 37 millones de dólares",
+  "1": "Encuesta de Movimiento Ciudadano",
   "2": "López Obrador declara como área natural protegida los terrenos en pugna con la minera estadounidense Vulcan Materials",
   "3": "Revelan trama de complicidades en operación de basurero en Puebla",
   "4": "Trabajadores son despedidos tras explosión",
@@ -39,19 +39,17 @@ Devuelve un objeto JSON con el uid de cada uno de los artículos y la clasificac
   "10": "Campesinos no han recibido su indemnización",
   "11": "Astillero (Opinión)",
   "12": "Pemex, de la promesa de soberanía energética a una deuda infinita de más de 100.000 millones de dólares",
-  "13": "Caos en la bolsa de valores",
-  "14": "Encuesta de Movimiento Ciudadano",
+  "13": "Caos en la bolsa de valores"
 }
-
 
 ====
 
 {
-    "1": "maybe",
+    "1": "invalid",
     "2": "maybe",
     "3": "valid",
     "4": "maybe",
-    "5": "maybe",
+    "5": "unknown",
     "6": "invalid",
     "7": "valid",
     "8": "valid",
@@ -59,6 +57,6 @@ Devuelve un objeto JSON con el uid de cada uno de los artículos y la clasificac
     "10": "maybe",
     "11": "unknown",
     "12": "invalid",
-    "13": "invalid",
-    "14": "invalid"
+    "13": "invalid"
 }
+

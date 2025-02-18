@@ -27,7 +27,8 @@ class Command(BaseCommand):
 
         valid_articles = {
             article["url"]: article for article in articles
-            if article["preclassification"] in ["valid", "maybe", "indirect"]
+            # if article["preclassification"] in ["valid", "maybe", "unknown"]
+            if article["is_selected"]
         }
         articles_by_url = {article["url"]: article for article in articles}
 
@@ -45,7 +46,7 @@ class Command(BaseCommand):
                 print(f"!! Nota {note.link} sin articulo similar")
                 print(f"Articulo: {note.title}")
                 if article:
-                    print(f"Articulo del req {article['request_pre_openai']}\n")
+                    print("Articulo encontrado\n")
                 else:
                     print("-----")
                 continue

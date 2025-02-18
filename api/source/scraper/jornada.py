@@ -13,11 +13,13 @@ class JornadaManagerScraper(ManagerScraper):
     def __init__(
             self, from_date: str | date, to_date: str | date,
             recover_record: ScrapedRecord | None = None,
-            open_ai_engine: str | None = None
+            open_ai_engine: str | None = None,
+            is_test: bool = False
     ) -> None:
         super().__init__(
             from_date, to_date, JornadaMainScraper, JornadaArticleScraper,
-            recover_record=recover_record, open_ai_engine=open_ai_engine
+            recover_record=recover_record, open_ai_engine=open_ai_engine,
+            is_test=is_test
         )
 
     def get_source(self) -> Source:
@@ -47,6 +49,8 @@ class JornadaMainScraper(MainScraper):
 
     def get_sections(self):
         self.sections_dict = {}
+        excluded_sections = [
+            "Mundo", "Espectáculos", "Deportes", "Cartones", "Ciencias"]
         main_sections = self.soup_content.find(
             "div", class_="main-sections gui menu")
         if main_sections:
@@ -57,6 +61,8 @@ class JornadaMainScraper(MainScraper):
                         "div") if a_tag else None
                     if a_tag and div_tag and "href" in a_tag.attrs:  # type: ignore
                         section_name = div_tag.text.strip()  # type: ignore
+                        if section_name in excluded_sections:
+                            continue
                         section_url = a_tag["href"]  # type: ignore
                         if section_name:
                             self.sections_dict[section_name] = {

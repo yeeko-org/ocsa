@@ -33,7 +33,8 @@ class Command(BaseCommand):
                     "title": article.title,
                     "url": article.url,
                     "preclassification": article.preclassification,
-                    "request_pre_openai": article.request_pre_openai,
+                    "is_selected": article.is_selected,
+                    "criteria": article.criteria,
                     # "certainty_degree": article.get_certainty_degree(),
                 }
                 for article in self.articles

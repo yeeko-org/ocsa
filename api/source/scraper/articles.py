@@ -8,7 +8,8 @@ import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
-from source.models import Article, ScrapedRecord, Source
+from source.models import (
+    Article, ScrapedRecord, Source, ArticleQualify, QualifySchema)
 from utils.open_ai import JsonRequestOpenAI
 from django.conf import settings
 
@@ -84,15 +85,19 @@ class ManagerScraper(ABC):
     pre_classify_request: JsonRequestOpenAI
 
     open_ai_engine: str | None
+    qualify_schema: QualifySchema | None
 
     def __init__(
             self, from_date: str | date, to_date: str | date,
             main_scraper_class: Type["MainScraper"],
             article_scraper_class: Type["ArticleScraper"],
             recover_record: ScrapedRecord | None = None,
-            open_ai_engine: str | None = None
+            open_ai_engine: str | None = None,
+            is_test: bool = False
 
     ) -> None:
+        self.block_size = PRECLASSIFY_ARTICLES_BLOCK
+        self.block_full_articles = 1
         self.main_scraper_class = main_scraper_class
         self.article_scraper_class = article_scraper_class
         self.overlapping_dates = []
@@ -100,6 +105,7 @@ class ManagerScraper(ABC):
         self.errors = []
         self.open_ai_engine = open_ai_engine
         self.scraped_record = None
+        self.is_test = is_test
 
         if recover_record:
             self.scraped_record = recover_record
@@ -238,20 +244,40 @@ class ManagerScraper(ABC):
             article_for_ai["content"] = content
         self.articles_for_openAI.append(article_for_ai)
 
-    def make_preclassify_articles(self):
+    def make_preclassify_articles(
+            self, block_size: int = 0, alt_version: bool = False):
         self.scraped_record.status = "preclassify"
         self.scraped_record.save()
+        if block_size:
+            self.block_size = block_size
+
         if not self.articles_for_openAI:
             return
+        prompt_path = "source/scraper/prompt_pre_classify.txt"
+        prompt_version = "preclassify_v1"
+        if alt_version:
+            prompt_path = "source/scraper/prompt_pre_classify_v2.txt"
+            prompt_version = "preclassify_v2"
+
+        if self.is_test:
+            self.qualify_schema, _ = QualifySchema.objects.get_or_create(
+                scraped_record=self.scraped_record,
+                ia_model=self.open_ai_engine,
+                prompt_version=prompt_version,
+                batch_size=self.block_size)
+        else:
+            self.qualify_schema = None
 
         len_articles = len(self.articles_for_openAI)
-        for i in range(0, len_articles, PRECLASSIFY_ARTICLES_BLOCK):
+        print(f"Preclassify articles for {len_articles} articles")
+        for i in range(0, len_articles, self.block_size):
+            print(f"Preclassifying articles {i} to {i + self.block_size}")
             self.preclassify_articles(
-                self.articles_for_openAI[i:i + PRECLASSIFY_ARTICLES_BLOCK])
+                self.articles_for_openAI[i:i + self.block_size], prompt_path)
 
         self.scraped_record.save()
 
-    def preclassify_articles(self, articles: List[dict]):
+    def preclassify_articles(self, articles: List[dict], prompt_path: str):
         try:
             # full_prompt = json.dumps(articles)
             simple_articles = {}
@@ -262,10 +288,10 @@ class ManagerScraper(ABC):
                 simple_articles[article["id"]] = title
             full_prompt = json.dumps(simple_articles, ensure_ascii=False)
         except TypeError as e:
-            print(f"Error converting to json: {e}")
+            print(f"Error converting to json art: {e}")
+            print("articles:", articles)
             return
 
-        prompt_path = "source/scraper/prompt_pre_classify.txt"
         # TODO: Lucian, comentemos esto, pero es super difícil de encontrar
         # algunas cosas como el engine, está en muchos lados y no sé si
         # está declarado acá o allá o en dónde y me confundo, pasa mucho en
@@ -287,11 +313,11 @@ class ManagerScraper(ABC):
         if not self.scraped_record.preclassification:
             self.scraped_record.preclassification = []  # type: ignore
         self.scraped_record.preclassification += pre_classify_response_items
-        counter = {"maybe": 0, "valid": 0, "invalid": 0, "indirect": 0}
+        counter = {"maybe": 0, "valid": 0, "invalid": 0, "unknown": 0}
         for article_id, preclassification in pre_classify_response_items:
             # print(f"Preclassification for {uid}: {preclasification}")
             # print(f"objeto: {self.articles_by_uid.get(uid)}")
-            if preclassification not in ["valid", "invalid", "maybe", "indirect"]:
+            if preclassification not in ["valid", "invalid", "maybe", "unknown"]:
                 print(f"Invalid preclassification: {preclassification}")
                 continue
             # article_obj = self.articles_by_uid.get(uid)
@@ -300,44 +326,130 @@ class ManagerScraper(ABC):
             article_obj = self.articles_by_id.get(article_id)
             if not article_obj:
                 continue
-
-            article_obj.preclassification = preclassification
-            article_obj.request_pre_openai = request_id
-            article_obj.save()
+            is_selected = preclassification in ["valid", "maybe", "unknown"]
+            if self.is_test:
+                change_value = self.get_change_value(is_selected, article_obj)
+                _ = ArticleQualify.objects.create(
+                    article=article_obj,
+                    qualify_schema=self.qualify_schema,
+                    is_selected=is_selected,
+                    change_value=change_value,
+                    request_id=request_id)
+            else:
+                article_obj.preclassification = preclassification
+                article_obj.save()
         print(f"counters: {counter.items()}")
 
-    def full_scrape_articles(self, update: bool = False, check_criteria: bool = True):
+    def get_change_value(self, is_selected: bool, article_obj: Article):
+        if article_obj.is_selected == is_selected:
+            return "selected" if is_selected else "not_selected"
+        return "plus" if is_selected else "minus"
+
+    def full_scrape_articles(
+            self, update: bool = False, check_criteria: bool = True,
+            all_articles: bool = False, block_size: int = 0):
 
         self.scraped_record.status = "criteria"
         self.scraped_record.save()
+        if block_size:
+            self.block_full_articles = block_size
+        if self.is_test:
+            self.qualify_schema, _ = QualifySchema.objects.get_or_create(
+                scraped_record=self.scraped_record,
+                ia_model=self.open_ai_engine,
+                prompt_version="criteria_v1",
+                batch_size=self.block_full_articles)
+        else:
+            self.qualify_schema = None
         # if self.articles_by_uid:
+        # print("articles_by_id:", bool(self.articles_by_id))
         if self.articles_by_id:
-            articles_objects = self.articles_by_id.values()
+            articles_objects = list(self.articles_by_id.values())
+            print("type of articles_objects:", type(articles_objects))
         else:
             articles_objects = list(Article.objects.filter(
                 scraped=self.scraped_record))
-        print(f"Full scrape articles for {len(articles_objects)} articles")
-        x = 0
-        for article_obj in articles_objects:
-            x += 1
-            if article_obj.preclassification not in ["valid", "maybe", "indirect"]:
-                continue
+        len_articles = len(articles_objects)
+        print(f"Full scrape articles for {len_articles} articles")
+        if not all_articles:
+            articles_objects = [
+                article for article in articles_objects
+                if article.preclassification in ["valid", "maybe", "unknown"]
+            ]
+        for i in range(0, len_articles, self.block_full_articles):
+            init_msg = "Scraping and classifying article"
+            if self.block_full_articles > 1:
+                print(f"{init_msg}s {i} to {i + self.block_full_articles}")
+            elif i % 10 == 0:
+                print(f"{init_msg} {i}")
+            self.full_scrape_batch(
+                articles_objects[i:i + self.block_full_articles],
+                update=update, check_criteria=check_criteria)
 
-            print(f"Article {x} {article_obj.uid}")
+    def full_scrape_batch(
+            self, articles: List[Article], update: bool = False,
+            check_criteria: bool = True):
+        many_articles = self.block_full_articles > 1
+        full_content = ""
+
+        for article in articles:
             try:
                 article_scraper = self.article_scraper_class(
-                    article_obj, update=update,
-                    open_ai_engine=self.open_ai_engine)
+                    article, update=update)
+            except Exception as e:
+                return self.add_error(
+                    f"Error scraping article {article.id}", e)
+            try:
+                article_scraper.get_reduced_content_text()
+                # article_scraper.get_criteria()
+                content = article_scraper.article.content.strip()
+                if many_articles:
+                    full_content += f"-- ARTÍCULO {article.id} --\n{content}\n\n"
+                else:
+                    full_content = content
             except Exception as e:
                 self.add_error(
-                    f"Error scraping article {article_obj.uid}", e)
-            if check_criteria:
-                try:
-                    article_scraper.get_reduced_content_text()
-                    article_scraper.get_criteria()
-                except Exception as e:
-                    self.add_error(
-                        f"Error getting criteria for article {article_obj.uid}", e)
+                    f"Error getting criteria for article {article.id}", e)
+        if not full_content:
+            return
+
+        if not check_criteria:
+            return
+
+        prompt_criteria = "prompt_articles_criteria.txt" \
+            if many_articles else "prompt_article_criteria.txt"
+        articles_criteria_request = JsonRequestOpenAI(
+            f"source/scraper/{prompt_criteria}",
+            engine=self.open_ai_engine)
+
+        pre_classify_response, req_id = articles_criteria_request\
+            .send_prompt(full_content)
+
+        if not pre_classify_response:
+            print("No response from OpenAI")
+            return
+
+        if not isinstance(pre_classify_response, dict):
+            print("Invalid response")
+            return
+        if not many_articles:
+            pre_classify_response = {articles[0].id: pre_classify_response}
+        for article_id, criteria in pre_classify_response.items():
+            article = Article.objects.get(pk=int(article_id))
+            certain_degree = article.get_certainty_degree(criteria)
+            is_selected = certain_degree > 10
+            if self.is_test:
+                change_value = self.get_change_value(is_selected, article)
+                _ = ArticleQualify.objects.create(
+                    article=article,
+                    qualify_schema=self.qualify_schema,
+                    is_selected=is_selected,
+                    change_value=change_value,
+                    request_id=req_id)
+            else:
+                article.criteria = criteria
+                article.is_selected = is_selected
+                article.save()
 
 
 class MainScraper(ABC):
@@ -394,11 +506,7 @@ class ArticleScraper(ABC):
     images: List[str]
     open_ai_engine: str | None
 
-    def __init__(
-            self, article: Article, update: bool = False,
-            open_ai_engine: str | None = None
-    ):
-        self.open_ai_engine = open_ai_engine
+    def __init__(self, article: Article, update: bool = False):
         self.article = article
         if article.html_content and not update:
             self.soup_content = BeautifulSoup(
@@ -427,25 +535,6 @@ class ArticleScraper(ABC):
     @abstractmethod
     def get_main_body(self) -> Tag:
         raise NotImplementedError
-
-    def get_criteria(self):
-        article_criteria_request = JsonRequestOpenAI(
-            "source/scraper/prompt_article_criteria.txt",
-            engine=self.open_ai_engine)
-
-        pre_classify_response, req_id = article_criteria_request\
-            .send_prompt(self.article.content)
-
-        if not pre_classify_response:
-            print("No response from OpenAI")
-            return
-
-        if not isinstance(pre_classify_response, dict):
-            print("Invalid response")
-            return
-        self.article.criteria = pre_classify_response
-        self.article.request_criteria_openai = req_id
-        self.article.save()
 
     def get_reduced_content_text(self):
         body = self.get_main_body()

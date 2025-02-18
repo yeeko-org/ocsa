@@ -29,7 +29,7 @@ class Command(BaseCommand):
 
         valid_articles = {
             article["url"]: article for article in articles
-            if article["preclassification"] in ["valid", "maybe", "indirect"]
+            if article["preclassification"] in ["valid", "maybe", "unknown"]
         }
         articles_by_url = {article["url"]: article for article in articles}
 

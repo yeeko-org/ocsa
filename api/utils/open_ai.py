@@ -61,7 +61,6 @@ class JsonRequestOpenAI:
                 messages=self.messages,  # type: ignore
                 temperature=0.6,
                 max_tokens=16000,
-                # top_p=0.8,
                 frequency_penalty=0,
                 presence_penalty=0
             )
@@ -86,9 +85,10 @@ class JsonRequestOpenAI:
 
         if self.to_json and role == "assistant":
             try:
-                prompt = json.dumps(json.loads(prompt))
+                prompt = json.dumps(json.loads(prompt), ensure_ascii=False)
             except Exception as e:
                 print(f"Error converting to json: {e}")
+                print("prompt:", prompt)
         self.messages.append({
             "role": role,
             "content": [

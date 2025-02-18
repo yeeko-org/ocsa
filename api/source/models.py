@@ -165,6 +165,7 @@ class Article(models.Model):
         ('valid', 'Valido'),
         ('maybe', 'Podría ser'),
         ('indirect', 'Indirecto'),
+        ('unknown', 'Desconocido'),
     ]
 
     uid = models.CharField(max_length=255)
@@ -182,10 +183,6 @@ class Article(models.Model):
     preclassification = models.CharField(
         max_length=10, choices=PRECLASSIFICATION_CHOICES,
         blank=True, null=True)
-    request_pre_openai = models.CharField(
-        max_length=255, blank=True, null=True)
-    request_criteria_openai = models.CharField(
-        max_length=255, blank=True, null=True)
 
     autor = models.CharField(max_length=255, blank=True, null=True)
     html_content = models.TextField(blank=True, null=True)
@@ -194,6 +191,7 @@ class Article(models.Model):
     published_date = models.DateField(blank=True, null=True)
 
     criteria = models.JSONField(blank=True, null=True)
+    is_selected = models.BooleanField(blank=True, null=True)
 
     scraped = models.ForeignKey(
         ScrapedRecord, on_delete=models.CASCADE, related_name='articles')
@@ -202,18 +200,19 @@ class Article(models.Model):
         Note, on_delete=models.CASCADE, related_name='articles',
         blank=True, null=True)
 
-    def get_certainty_degree(self):
-        if not self.criteria:
+    def get_certainty_degree(self, criteria: dict = None) -> int:
+        criteria = criteria or self.criteria
+        if not criteria:
             return 0
 
         degree = 0
-        if bool(self.criteria.get("has_project")):
+        if bool(criteria.get("has_project")):
             degree += 10
-        degree += int(bool(self.criteria.get("has_opponents")))
-        degree += int(bool(self.criteria.get("social_impacts")))
-        degree += int(bool(self.criteria.get("ecological_impacts")))
-        degree += int(bool(self.criteria.get("acts_of_violence")))
-        degree += int(bool(self.criteria.get("collective_actions")))
+        degree += int(bool(criteria.get("has_opponents")))
+        degree += int(bool(criteria.get("social_impacts")))
+        degree += int(bool(criteria.get("ecological_impacts")))
+        degree += int(bool(criteria.get("acts_of_violence")))
+        degree += int(bool(criteria.get("collective_actions")))
         return degree
 
     def __str__(self):
@@ -221,3 +220,53 @@ class Article(models.Model):
 
     class Meta:
         unique_together = ['uid', 'source']
+
+
+class QualifySchema(models.Model):
+    PROMPT_VERSION_CHOICES = [
+        ('preclassify_v1', 'Preclasificación v1'),
+        ('preclassify_v2', 'Preclasificación v2'),
+        ('criteria_v1', 'Criterios v1'),
+        ('criteria_v2', 'Criterios v2'),
+    ]
+    scraped_record = models.ForeignKey(
+        ScrapedRecord, on_delete=models.CASCADE,
+        related_name='schemas', blank=True, null=True)
+    ia_model = models.CharField(max_length=255)
+    prompt_version = models.CharField(
+        max_length=20, choices=PROMPT_VERSION_CHOICES)
+    batch_size = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.ia_model} - {self.prompt_version} ({self.batch_size})"
+
+    class Meta:
+        verbose_name = 'Esquema de calificación'
+        verbose_name_plural = 'Esquemas de calificación'
+
+
+class ArticleQualify(models.Model):
+    CHANGE_OPTIONS = [
+        ('minus', 'Erróneamente excluido'),
+        ('plus', 'Erróneamente incluido'),
+        ('selected', 'Incluido correctamente'),
+        ('not_selected', 'Excluido correctamente'),
+    ]
+    article = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='qualifications')
+    qualify_schema = models.ForeignKey(
+        QualifySchema, on_delete=models.CASCADE, related_name='qualifications')
+    is_selected = models.BooleanField(blank=True, null=True)
+    criteria = models.JSONField(blank=True, null=True)
+    certainty_degree = models.IntegerField(blank=True, null=True)
+    change_value = models.CharField(
+        max_length=20, choices=CHANGE_OPTIONS, blank=True, null=True)
+    request_id = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.article} - {self.ia_model}"
+
+    class Meta:
+        verbose_name = 'Calificación de artículo'
+        verbose_name_plural = 'Calificaciones de artículos'
+
