@@ -10,7 +10,6 @@ from bs4.element import Tag
 
 from source.models import Article, ScrapedRecord, Source
 from utils.open_ai import JsonRequestOpenAI
-from django.db.models import Q
 from django.conf import settings
 
 REQUESTS_DEFAULT_HEADERS = {'User-Agent': 'Mozilla/4.0'}
@@ -77,7 +76,7 @@ class ManagerScraper(ABC):
     date_format = "%Y/%m/%d"
     source: Source
     articles_by_date: Dict[str, dict]
-    articles_for_openAI: dict
+    articles_for_openAI: list
     articles_by_id: Dict[int, Article]
     overlapping_dates: list
     errors: list
@@ -182,7 +181,7 @@ class ManagerScraper(ABC):
         self.scraped_record.status = "record_articles"
         self.scraped_record.save()
 
-        self.articles_for_openAI = {}
+        self.articles_for_openAI = []
         self.articles_by_id = {}
         for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
             for section_name, section_data in sections_dict.items():
@@ -237,7 +236,7 @@ class ManagerScraper(ABC):
         }
         if content:
             article_for_ai["content"] = content
-        self.articles_for_openAI[article_id] = article_for_ai
+        self.articles_for_openAI.append(article_for_ai)
 
     def make_preclassify_articles(self):
         self.scraped_record.status = "preclassify"
@@ -245,10 +244,10 @@ class ManagerScraper(ABC):
         if not self.articles_for_openAI:
             return
 
-        articles_for_ia = list(self.articles_for_openAI.values())
-        for i in range(0, len(articles_for_ia), PRECLASSIFY_ARTICLES_BLOCK):
+        len_articles = len(self.articles_for_openAI)
+        for i in range(0, len_articles, PRECLASSIFY_ARTICLES_BLOCK):
             self.preclassify_articles(
-                articles_for_ia[i:i + PRECLASSIFY_ARTICLES_BLOCK])
+                self.articles_for_openAI[i:i + PRECLASSIFY_ARTICLES_BLOCK])
 
         self.scraped_record.save()
 
@@ -261,7 +260,7 @@ class ManagerScraper(ABC):
                 if section := article.get("section"):
                     title = f"{title} ({section})"
                 simple_articles[article["id"]] = title
-            full_prompt = json.dumps(simple_articles)
+            full_prompt = json.dumps(simple_articles, ensure_ascii=False)
         except TypeError as e:
             print(f"Error converting to json: {e}")
             return
@@ -274,8 +273,8 @@ class ManagerScraper(ABC):
         self.pre_classify_request = JsonRequestOpenAI(
             prompt_path, engine=self.open_ai_engine)
 
-        self.pre_classify_response = self.pre_classify_request.send_prompt(
-            full_prompt)
+        self.pre_classify_response, request_id = self.pre_classify_request\
+            .send_prompt(full_prompt)
         if not self.pre_classify_response:
             print("No response from OpenAI")
             return
@@ -288,21 +287,24 @@ class ManagerScraper(ABC):
         if not self.scraped_record.preclassification:
             self.scraped_record.preclassification = []  # type: ignore
         self.scraped_record.preclassification += pre_classify_response_items
-
+        counter = {"maybe": 0, "valid": 0, "invalid": 0, "indirect": 0}
         for article_id, preclassification in pre_classify_response_items:
             # print(f"Preclassification for {uid}: {preclasification}")
             # print(f"objeto: {self.articles_by_uid.get(uid)}")
-            if preclassification not in ["valid", "invalid", "maybe"]:
+            if preclassification not in ["valid", "invalid", "maybe", "indirect"]:
                 print(f"Invalid preclassification: {preclassification}")
                 continue
             # article_obj = self.articles_by_uid.get(uid)
+            counter[preclassification] += 1
             article_id = int(article_id)
             article_obj = self.articles_by_id.get(article_id)
             if not article_obj:
                 continue
 
             article_obj.preclassification = preclassification
+            article_obj.request_pre_openai = request_id
             article_obj.save()
+        print(f"counters: {counter.items()}")
 
     def full_scrape_articles(self, update: bool = False, check_criteria: bool = True):
 
@@ -318,7 +320,7 @@ class ManagerScraper(ABC):
         x = 0
         for article_obj in articles_objects:
             x += 1
-            if article_obj.preclassification not in ["valid", "maybe"]:
+            if article_obj.preclassification not in ["valid", "maybe", "indirect"]:
                 continue
 
             print(f"Article {x} {article_obj.uid}")
@@ -431,7 +433,7 @@ class ArticleScraper(ABC):
             "source/scraper/prompt_article_criteria.txt",
             engine=self.open_ai_engine)
 
-        pre_classify_response = article_criteria_request\
+        pre_classify_response, req_id = article_criteria_request\
             .send_prompt(self.article.content)
 
         if not pre_classify_response:
@@ -442,6 +444,7 @@ class ArticleScraper(ABC):
             print("Invalid response")
             return
         self.article.criteria = pre_classify_response
+        self.article.request_criteria_openai = req_id
         self.article.save()
 
     def get_reduced_content_text(self):

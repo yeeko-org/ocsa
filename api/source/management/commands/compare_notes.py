@@ -6,7 +6,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        from source.models import Note, Source
+        from source.models import Note, Source, Article
         from datetime import datetime
 
         # leer el archivo json
@@ -27,9 +27,9 @@ class Command(BaseCommand):
 
         valid_articles = {
             article["url"]: article for article in articles
-            if article["preclassification"] in ["valid", "maybe"]
+            if article["preclassification"] in ["valid", "maybe", "indirect"]
         }
-        # articles_by_url = {article["url"]: article for article in articles}
+        articles_by_url = {article["url"]: article for article in articles}
 
         notes = Note.objects.filter(
             date__range=[from_date, to_date], source=source)
@@ -40,18 +40,21 @@ class Command(BaseCommand):
         for note in notes:
             if not note.link:
                 continue
-            article = valid_articles.get(note.link)
-            if not article:
-                print(f"Nota {note.link} sin articulo similar")
+            article = articles_by_url.get(note.link)
+            if note.link not in valid_articles:
+                print(f"!! Nota {note.link} sin articulo similar")
                 print(f"Articulo: {note.title}")
-                print("")
+                if article:
+                    print(f"Articulo del req {article['request_pre_openai']}\n")
+                else:
+                    print("-----")
                 continue
             # print(f"Nota {note.link} con articulo similar")
             print(f"Perfecto: {article['title']} ({article['preclassification']})")
             if certainty_degree := article.get("certainty_degree"):
                 print(f"grado de criterios: {certainty_degree}")
             # print(f"grado de criterios: {article['certainty_degree']}")
-            print("")
+            # print("")
             _ = valid_articles.pop(note.link, None)
 
         if not valid_articles:
@@ -60,7 +63,5 @@ class Command(BaseCommand):
         print("\n=== Artículos preclasificados válidos sin notas === \n")
         print(f"Total de Artículos: {len(valid_articles)}")
         for urls, article in valid_articles.items():
-            print(f"Articulo: {article['title']}")
-            print(f"preclasificado: {article['preclassification']}")
+            print(f"{article['preclassification']}: {article['title']}")
             print(f"url: {urls}")
-            print("")

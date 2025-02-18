@@ -29,7 +29,7 @@ class Command(BaseCommand):
 
         valid_articles = {
             article["url"]: article for article in articles
-            if article["preclassification"] in ["valid", "maybe"]
+            if article["preclassification"] in ["valid", "maybe", "indirect"]
         }
         articles_by_url = {article["url"]: article for article in articles}
 
@@ -56,7 +56,5 @@ class Command(BaseCommand):
         print("\n=== Artículos preclasificados válidos sin notas === \n")
         print(f"Total de Artículos: {len(valid_articles)}")
         for urls, article in valid_articles.items():
-            print(f"Articulo: {article['title']}")
-            print(f"preclasificado: {article['preclassification']}")
+            print(f"{article['preclassification']}: {article['title']}")
             print(f"url: {urls}")
-            print("")

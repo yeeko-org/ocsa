@@ -6,7 +6,7 @@ from django.conf import settings
 import tiktoken
 
 TOKENS_MAX_LENGTH = getattr(settings, 'OPENAI_TOKENS_MAX_LENGTH', 128000)
-MODEL_NAME = getattr(settings, 'OPENAI_ENGINE', 'gpt-4o')
+MODEL_NAME = getattr(settings, 'OPENAI_ENGINE', 'gpt-4o-2024-11-20')
 
 
 def format_prompt_text(text: str, has_pipe: bool = False):
@@ -50,7 +50,7 @@ class JsonRequestOpenAI:
 
     def send_prompt(self, new_prompt):
         if not new_prompt:
-            return None
+            return None, None
         self.build_msg(new_prompt, "user")
         response_format = {"type": "json_object"} \
             if self.to_json else None
@@ -74,13 +74,13 @@ class JsonRequestOpenAI:
         if self.to_json:
             json_response = response.choices[0].message.content
             if not json_response:
-                return None
+                return None, None
             try:
-                return json.loads(json_response)
+                return json.loads(json_response), response.id
             except Exception:
-                return None
+                return None, None
         else:
-            return response.choices[0].message.content
+            return response.choices[0].message.content, response.id
 
     def build_msg(self, prompt, role="user"):
 

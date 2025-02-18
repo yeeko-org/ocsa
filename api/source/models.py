@@ -160,10 +160,11 @@ class ScrapedRecord(models.Model):
 
 class Article(models.Model):
 
-    PRECLASIFICATION_CHOICES = [
+    PRECLASSIFICATION_CHOICES = [
         ('invalid', 'Invalido'),
         ('valid', 'Valido'),
         ('maybe', 'Podría ser'),
+        ('indirect', 'Indirecto'),
     ]
 
     uid = models.CharField(max_length=255)
@@ -172,14 +173,19 @@ class Article(models.Model):
         Source, on_delete=models.CASCADE, related_name='articles')
     section = models.CharField(max_length=120, blank=True, null=True)
     url = models.CharField(max_length=255)
+    # No entiendo por qué teníamos esto e images, según yo esto no va
     imgs = models.TextField(blank=True, null=True)
-    images = models.JSONField(blank=True, null=True)
     basic_content = models.TextField(blank=True, null=True)
     scraped_date = models.DateField(auto_now_add=True)
     metadata = models.JSONField(blank=True, null=True)
 
     preclassification = models.CharField(
-        choices=PRECLASIFICATION_CHOICES, blank=True, null=True, max_length=10)
+        max_length=10, choices=PRECLASSIFICATION_CHOICES,
+        blank=True, null=True)
+    request_pre_openai = models.CharField(
+        max_length=255, blank=True, null=True)
+    request_criteria_openai = models.CharField(
+        max_length=255, blank=True, null=True)
 
     autor = models.CharField(max_length=255, blank=True, null=True)
     html_content = models.TextField(blank=True, null=True)
@@ -203,11 +209,11 @@ class Article(models.Model):
         degree = 0
         if bool(self.criteria.get("has_project")):
             degree += 10
+        degree += int(bool(self.criteria.get("has_opponents")))
         degree += int(bool(self.criteria.get("social_impacts")))
         degree += int(bool(self.criteria.get("ecological_impacts")))
         degree += int(bool(self.criteria.get("acts_of_violence")))
         degree += int(bool(self.criteria.get("collective_actions")))
-        degree += int(bool(self.criteria.get("has_opponents")))
         return degree
 
     def __str__(self):

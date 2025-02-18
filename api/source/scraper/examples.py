@@ -2,7 +2,7 @@
 
 from pprint import pprint
 from source.scraper.jornada import JornadaManagerScraper
-from source.models import ScrapedRecord
+from source.models import ScrapedRecord, Article
 
 
 # la clase requiere de las 2 fechas, si solo se realizara de un solo dia, se
@@ -13,8 +13,10 @@ from source.models import ScrapedRecord
 # Si existe cruce de fechas ya escrapeadas producira error, excepto si se el
 # registro tiene el estado de "failed"., lo que permitira volver a intentar
 
+# manager_scraper = JornadaManagerScraper(
+#     "2022/10/01", "2022/12/31", open_ai_engine="gpt-4o-mini")
 manager_scraper = JornadaManagerScraper(
-    "2023/05/16", "2023/05/21", open_ai_engine="gpt-4o-mini")
+    "2023/05/05", "2023/05/05", open_ai_engine="gpt-4o-mini")
 
 print(manager_scraper.scraped_record)
 manager_scraper.scrape_sections()
@@ -30,6 +32,9 @@ pprint(manager_scraper.scraped_record.data)
 manager_scraper = JornadaManagerScraper(
     "", "", recover_record=ScrapedRecord.objects.last(),
     open_ai_engine="gpt-4o-mini")
+manager_scraper = JornadaManagerScraper(
+    "", "", recover_record=ScrapedRecord.objects.get(pk=10),
+    open_ai_engine="gpt-4o-mini")
 
 # record articles genera los registros de los articulos con get_or_create
 # basado en el uid y el source, tambien genera los datos de las listas
@@ -43,6 +48,29 @@ manager_scraper.scraped_record.preclassification
 manager_scraper.full_scrape_articles()
 
 
-# python manage.py articles_json "2023-05-16" "2023-05-21" 4
+# python manage.py articles_json "2022-10-01" "2022-12-31" 4
+# python manage.py articles_json "2023-05-05" "2023-05-05" 4
 
 # python manage.py compare_notes --settings=core.settings_prod
+
+
+big_scraper = ScrapedRecord.objects.get(pk=10)
+pre_classify = big_scraper.preclassification
+
+req_id = 1000
+for i in range(0, len(pre_classify), 500):
+    current_batch = pre_classify[i:i+500]
+    counts = {"maybe": 0, "valid": 0, "invalid": 0, "indirect": 0}
+    all_ids = []
+    for article in current_batch:
+        art_id, classify = article
+        counts[classify] += 1
+        all_ids.append(art_id)
+    Article.objects.filter(pk__in=all_ids).update(request_pre_openai=req_id)
+    print(f"{counts['maybe']} | {counts['valid']} | {counts['invalid']}")
+    req_id += 1
+
+
+
+
+
