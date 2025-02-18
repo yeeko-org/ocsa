@@ -8,21 +8,21 @@ import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
+from django.conf import settings
 from source.models import (
     Article, ScrapedRecord, Source, ArticleQualify, QualifySchema)
 from utils.open_ai import JsonRequestOpenAI
-from django.conf import settings
 
 REQUESTS_DEFAULT_HEADERS = {'User-Agent': 'Mozilla/4.0'}
 PRECLASSIFY_ARTICLES_BLOCK = getattr(
     settings, "PRECLASSIFY_ARTICLES_BLOCK", 500)
 
 
-def get_content(url) -> BeautifulSoup:
+def get_content(url, parser="html.parser") -> BeautifulSoup:
 
     response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS)
     if response.status_code == 200:
-        return BeautifulSoup(response.text, "html.parser")
+        return BeautifulSoup(response.text, parser)
     else:
         raise Exception(
             f"Error al acceder a la página: {response.status_code}")
@@ -33,8 +33,9 @@ def date_in_str(date_: date | str) -> str:
         return date_.strftime("%Y/%m/%d")
 
     pattern = r"^\d{4}/\d{2}/\d{2}$"
-    if not re.match(pattern, date_):
-        raise ValueError("Invalid date format. Must be YYYY/MM/DD")
+    pattern2 = r"^\d{4}\d{2}\d{2}$"
+    if not re.match(pattern, date_) and not re.match(pattern2, date_):
+        raise ValueError("Invalid date format. Must be YYYY/MM/DD or YYYYMMDD")
 
     return date_
 
@@ -45,7 +46,11 @@ def date_in_date(date_: str | date) -> date:
     try:
         return datetime.strptime(date_, "%Y/%m/%d")
     except ValueError as e:
-        raise ValueError(f"Invalid date format. Must be YYYY/MM/DD: {e}")
+
+        try:
+            return datetime.strptime(date_, "%Y%m%d")
+        except ValueError as e:
+            raise ValueError(f"Invalid date format. Must be YYYY/MM/DD: {e}")
 
 
 def get_date_range(
@@ -75,6 +80,7 @@ class ManagerScraper(ABC):
     article_scraper_class: Type["ArticleScraper"]
 
     date_format = "%Y/%m/%d"
+    parser = "html.parser"
     source: Source
     articles_by_date: Dict[str, dict]
     articles_for_openAI: list
@@ -210,7 +216,7 @@ class ManagerScraper(ABC):
         uid = article_data.get("uid") or ""
         title = article_data.get("title")
         url = article_data.get("url")
-        if not all([uid, title, url]):
+        if not all([uid, url]):
             return
         images = article_data.get("images")
         content = article_data.get("content")
@@ -226,7 +232,6 @@ class ManagerScraper(ABC):
             "published_date": date_in_date(date_),
             "scraped": self.scraped_record,
         }
-
         article_obj, _ = Article.objects.get_or_create(
             uid=uid, source=self.get_source(), defaults=defaults)
 
@@ -234,6 +239,9 @@ class ManagerScraper(ABC):
             return
         article_id = article_obj.id
         self.articles_by_id[article_id] = article_obj
+
+        if not title:
+            return
 
         article_for_ai = {
             "id": article_id,
@@ -481,10 +489,11 @@ class MainScraper(ABC):
     soup_content: BeautifulSoup
     sections_dict: Dict[str, dict]
     scraper_date: str
+    parser = "html.parser"
 
     def __init__(self, scraper_date: date | str):
         self.scraper_date = date_in_str(scraper_date)
-        self.soup_content = get_content(self.main_url())
+        self.soup_content = get_content(self.main_url(), self.parser)
 
         self.get_sections()
         self.get_articles()
@@ -511,15 +520,16 @@ class ArticleScraper(ABC):
     content: str
     images: List[str]
     open_ai_engine: str | None
+    parser = "html.parser"
 
     def __init__(self, article: Article, update: bool = False):
         self.article = article
         if article.html_content and not update:
             self.soup_content = BeautifulSoup(
-                article.html_content, "html.parser")
+                article.html_content, self.parser)
             self.get_article_data()
             return
-        self.soup_content = get_content(article.url)
+        self.soup_content = get_content(article.url, self.parser)
         try:
             self.get_article_data()
         except Exception as e:
@@ -532,7 +542,7 @@ class ArticleScraper(ABC):
         article.html_content = str(
             self.get_main_body()) or article.html_content
         article.images = self.images or article.images  # type: ignore
-        article.save()
+        
 
     @abstractmethod
     def get_article_data(self):

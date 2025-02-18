@@ -169,7 +169,7 @@ class Article(models.Model):
     ]
 
     uid = models.CharField(max_length=255)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, blank=True, null=True)
     source = models.ForeignKey(
         Source, on_delete=models.CASCADE, related_name='articles')
     section = models.CharField(max_length=120, blank=True, null=True)

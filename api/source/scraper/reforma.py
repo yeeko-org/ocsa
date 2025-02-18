@@ -1,0 +1,166 @@
+from datetime import date
+
+from bs4 import BeautifulSoup
+from bs4.element import Tag
+
+from source.models import ScrapedRecord, Source
+from source.scraper.articles import (
+    ArticleScraper, MainScraper, ManagerScraper, get_content)
+
+MAIN_URL = (
+    "https://www.reforma.com/edicionimpresa/aplicacionei/webview/ws/"
+    "wsEdImpresa.asmx/LeerXML?strName=https://hemerotecalibre.reforma.com/")
+
+
+class ReformaManagerScraper(ManagerScraper):
+
+    date_format = "%Y%m%d"
+
+    def __init__(
+            self, from_date: str | date, to_date: str | date,
+            recover_record: ScrapedRecord | None = None,
+            open_ai_engine: str | None = None
+    ) -> None:
+        super().__init__(
+            from_date, to_date, ReformaMainScraper, ReformaArticleScraper,
+            recover_record=recover_record, open_ai_engine=open_ai_engine
+        )
+
+    def get_source(self) -> Source:
+        if not hasattr(self, "_source"):
+            self._source, _ = Source.objects.get_or_create(
+                main_url="https://www.reforma.com", defaults={
+                    "name": "El Reforma",
+                    "is_news": True
+                })
+        return self._source
+
+
+class ReformaMainScraper(MainScraper):
+    parser = "xml"
+
+    def __init__(self, scraper_date: date | str):
+        super().__init__(scraper_date)
+
+        for _, section_data in self.sections_dict.items():
+            if "articles" not in section_data:
+                continue
+            for article in section_data["articles"]:
+                article["uid"] = f"{scraper_date}/{article.get('uid')}"
+
+    def main_url(self):
+        return f"{MAIN_URL}{self.scraper_date}/PORTADAS.XML"
+
+    def get_sections(self):
+        self.sections_dict = {}
+
+        for seccion in self.soup_content.find_all("seccion"):
+            if str(seccion.get("fechapub")) != self.scraper_date:
+                continue
+            if directorio := seccion.get("directorio"):
+                directorio = str(directorio).upper()
+            else:
+                continue
+
+            nombre = seccion.get("nombre")
+            id_seccion = seccion.get("idseccion")
+            paginas = [
+                {"numero": pagina.get("numero"), "texto": pagina.text}
+                for pagina in seccion.find_all("pagina")
+            ]
+
+            self.sections_dict[directorio] = {
+                "nombre": nombre,
+                "directorio": directorio,
+                "id_seccion": id_seccion,
+                "pagina": paginas[0] if paginas else None,
+                "url": f"{MAIN_URL}{self.scraper_date}/secciones/{directorio}.XML"
+            }
+
+    def get_articles(self):
+        for _, section_data in self.sections_dict.items():
+            section_url = section_data["url"]
+            try:
+                section_data["articles"] = ReformaSectionScraper(
+                    section_url).articles
+            except Exception as e:
+                section_data["error"] = str(e)
+
+
+class ReformaSectionScraper:
+    soup_content: BeautifulSoup
+    articles: list[dict]
+
+    def __init__(self, url: str):
+        self.soup_content = get_content(url, parser="xml")
+        self.get_articles()
+
+    def get_articles(self):
+
+        self.articles = []
+
+        for seccion in self.soup_content.find_all("nota"):
+            # idcoleccion="1066" folio="2504954" paginacms="0" grupocms="0" ideditorial="0" urlanuncio="" cms="1"
+
+            if uid := seccion.get("folio"):
+                uid = str(uid)
+            else:
+                continue
+
+            idcolecion = seccion.get("idcoleccion")
+            paginacms = seccion.get("paginacms")
+            grupocms = seccion.get("grupocms")
+            ideditorial = seccion.get("ideditorial")
+            cms = seccion.get("cms")
+            url = (
+                "https://www.reforma.com/edicionimpresa/aplicacionEI/webview/"
+                f"iWebView.aspx?Coleccion=1066&Folio={uid}&TipoTrans=8"
+            )
+            self.articles.append({
+                "uid": uid,
+                "idcoleccion": idcolecion,
+                "paginacms": paginacms,
+                "grupocms": grupocms,
+                "ideditorial": ideditorial,
+                "cms": cms,
+                "url": url
+            })
+
+
+class ReformaArticleScraper(ArticleScraper):
+
+    def get_article_data(self):
+        self.title = ""
+        self.content = ""
+        self.images = []
+        self.author = ""
+
+        wrapper = self.get_main_body()
+
+        if not wrapper:
+            return
+
+        title_div = wrapper.find("div", id="divTituloNota")
+        self.title = title_div.get_text(
+            strip=True) if title_div else "No encontrado"
+
+        author_div = wrapper.find("div", class_="autor")
+
+        if author_div:
+            for elem in author_div.find_all_previous():
+                if elem == title_div:
+                    break
+                self.title += " " + elem.get_text(strip=True)
+
+        content_div = wrapper.find("div", id="divImgPagina")
+        self.content = "\n".join(p.get_text(strip=True) for p in content_div.find_all(
+            "p")) if content_div else "No encontrado"
+
+        self.images = [img["src"] for img in content_div.find_all(
+            "img") if img.get("src")] if content_div else []
+
+        self.author = author_div.get_text(
+            strip=True) if author_div else "No especificado"
+
+    def get_main_body(self) -> Tag:
+        return self.soup_content.find("div", id="wrapper")
