@@ -1,6 +1,6 @@
 Tengo el contenido de un artículo de prensa.
 
-Necesito identificar (para el campo has_project), si mencionan algún proyecto o megaproyecto. Un proyecto puede estar mencionado explicitamente con nombre o simplemente referido, por ejemplo, como "la minera", "la eólica", "el desarrollo", "la industria", "la tala clandestina", etc.
+Necesito identificar (projects) la lista de proyecto o los megaproyecto mencionados. Cada proyecto puede estar mencionado explícitamente por su nombre o estar referido (ejemplos: "la minera", "la eólica", "el desarrollo", "complejo industria", "la tala clandestina"). Si no se menciona ningún proyecto, dejar una lista vacía []
 
 Algunos tipos de proyectos o extractivismo son:
 -Agroindustria, monocultivo, industria ganadera, forestal y recursos bióticos
@@ -18,28 +18,29 @@ ecological_impacts: Afectación ecológica
 acts_of_violence: Acción contra de la población o los opositores
 collective_actions: Protesta, demanda, denuncia o cualquier acción para detener o modificar el proyecto
 
+Por último, con el campo "is_foreign", se deberá indicar si se trata de una nota que habla explícitamente solo de otros países distintos a México.
+
 Devuelve un objeto JSON con los criterios y un valor booleano para cada uno de ellos.
 
 ====
+Con bloqueo a vía exigen frenar tala en Ocuilan
 
-Bloquean eólica en Oaxaca
+Ocuilan, Méx., Cansados de las falsas promesas de las autoridades federales y estatales, pobladores de las comunidades de Santa Martha y San Juan Atzingo, entre otras, cerraron ayer, por casi ocho horas, la circulación de la carretera Santiago-Chalma, a fin de exigir la presencia de la Guardia Nacional (GN) y la policía estatal para frenar la tala clandestina que prolifera en esta zona limítrofe con Morelos
 
-Unos 200 propietarios que rentan sus tierras al parque de aerogeneradores BiiNisa, de la empresa Eólica del Sur, bloquearon ayer el acceso principal a las instalaciones para denunciar que la compañía dañó sus terrenos con obras y no ha cumplido con los contratos.
+Hace un par de años, explicaron, una comisión de habitantes de San Juan Atzingo acudió a Palacio Nacional a demandar apoyo al gobierno federal y como resultado fueron enviados elementos de la GN; no obstante, éstos permanecieron en el área perjudicada sólo unas semanas.
 
-Los arrendadores, armados con piedras y palos, se apostaron a la entrada del parque eólico, donde se instalan torres de aerogeneradores, lo que, según los inconformes, ha causado ‘‘infinidad’’ de afectaciones.
+Están exterminando los bosques y por más denuncias que se hacen nadie mueve un dedo, las autoridades no hacen nada. Hasta coordenadas se les han dado de donde está ocurriendo el saqueo y no actúan. Hay una total negligencia, reclamó un manifestante.
 
-Dieron a conocer que 300 propietarios integrados en cinco comités reclaman
-al representante de Eólica del Sur, Eduardo Centeno, cumplir varios compromisos. ‘Nos prometieron que iban a reforestar, pero han derribado muchos árboles para montar las torres. Eso es un ecocidio’, dijeron.
-
-Otra de sus preocupaciones es que no se ha aclarado en qué se aplicarán 25 millones de pesos que la eólica entregó al ayuntamiento. Los inconformes exigen que se destinen a obras sociales
+Arnulfo Gómez añadió que tal ha sido la devastación, que de las nueve lagunas que había en la zona, ahora sólo quedan tres y están a punto de desaparecer.
 
 ====
 
 {
-  "has_project": true,
-  "social_impacts": false,
+  "projects": ["tala clandestina"],
+  "has_opponents": true,
+  "social_impacts": true,
   "ecological_impacts": true,
   "acts_of_violence": false,
   "collective_actions": true,
-  "has_opponents": true
+  "is_foreign": false
 }

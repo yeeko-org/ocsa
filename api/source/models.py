@@ -191,6 +191,7 @@ class Article(models.Model):
     published_date = models.DateField(blank=True, null=True)
 
     criteria = models.JSONField(blank=True, null=True)
+    certainty_degree = models.IntegerField(blank=True, null=True)
     is_selected = models.BooleanField(blank=True, null=True)
 
     scraped = models.ForeignKey(
@@ -206,13 +207,15 @@ class Article(models.Model):
             return 0
 
         degree = 0
-        if bool(criteria.get("has_project")):
+        if bool(criteria.get("projects", [])):
             degree += 10
-        degree += int(bool(criteria.get("has_opponents")))
-        degree += int(bool(criteria.get("social_impacts")))
-        degree += int(bool(criteria.get("ecological_impacts")))
-        degree += int(bool(criteria.get("acts_of_violence")))
-        degree += int(bool(criteria.get("collective_actions")))
+        degree += int(bool(criteria.get("has_opponents")))  # 1.1
+        degree += int(bool(criteria.get("social_impacts")))  # 1
+        degree += int(bool(criteria.get("ecological_impacts")))  # 1.5
+        degree += int(bool(criteria.get("acts_of_violence")))  # 1
+        degree += int(bool(criteria.get("collective_actions")))  # 1
+        if bool(criteria.get("is_foreign")):
+            degree *= -1
         return degree
 
     def __str__(self):

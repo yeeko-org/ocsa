@@ -393,23 +393,26 @@ class ManagerScraper(ABC):
         full_content = ""
 
         for article in articles:
-            try:
-                article_scraper = self.article_scraper_class(
-                    article, update=update)
-            except Exception as e:
-                return self.add_error(
-                    f"Error scraping article {article.id}", e)
-            try:
-                article_scraper.get_reduced_content_text()
-                # article_scraper.get_criteria()
-                content = article_scraper.article.content.strip()
-                if many_articles:
-                    full_content += f"-- ARTÍCULO {article.id} --\n{content}\n\n"
-                else:
-                    full_content = content
-            except Exception as e:
-                self.add_error(
-                    f"Error getting criteria for article {article.id}", e)
+            if not self.is_test:
+                try:
+                    article_scraper = self.article_scraper_class(
+                        article, update=update)
+                except Exception as e:
+                    return self.add_error(
+                        f"Error scraping article {article.id}", e)
+                try:
+                    article_scraper.get_reduced_content_text()
+                    content = article_scraper.article.content.strip()
+                except Exception as e:
+                    return self.add_error(
+                        f"Error getting criteria for article {article.id}", e)
+            else:
+                content = article.basic_content.strip()
+
+            if many_articles:
+                full_content += f"-- ARTÍCULO {article.id} --\n{content}\n\n"
+            else:
+                full_content = content
         if not full_content:
             return
 
@@ -444,10 +447,13 @@ class ManagerScraper(ABC):
                     article=article,
                     qualify_schema=self.qualify_schema,
                     is_selected=is_selected,
+                    criteria=criteria,
+                    certainty_degree=certain_degree,
                     change_value=change_value,
                     request_id=req_id)
             else:
                 article.criteria = criteria
+                article.certainty_degree = certain_degree
                 article.is_selected = is_selected
                 article.save()
 

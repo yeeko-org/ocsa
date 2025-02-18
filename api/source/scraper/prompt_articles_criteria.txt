@@ -1,6 +1,6 @@
 Tengo el contenido de algunos artículos de prensa.
 
-Necesito identificar (para el campo has_project), si mencionan algún proyecto o megaproyecto. Un proyecto puede estar mencionado explicitamente con nombre o simplemente referido, por ejemplo, como "la minera", "la eólica", "el desarrollo", "la industria", "la tala clandestina", etc.
+Necesito identificar (projects) la lista de proyecto o los megaproyecto que se mencionan en cada artículo. Cada proyecto puede estar mencionado explícitamente por su nombre o estar referido (ejemplos: "la minera", "la eólica", "el desarrollo", "complejo industria", "la tala clandestina"). Si no se menciona ningún proyecto, dejar una lista vacía []
 
 Algunos tipos de proyectos o extractivismo son:
 -Agroindustria, monocultivo, industria ganadera, forestal y recursos bióticos
@@ -18,7 +18,7 @@ ecological_impacts: Afectación ecológica
 acts_of_violence: Acción contra de la población o los opositores
 collective_actions: Protesta, demanda, denuncia o cualquier acción para detener o modificar el proyecto
 
-Por último, con el campo "is_foreign", se deberá indicar si se trata de una nota que habla solo de otros países distintos a México.
+Por último, con el campo "is_foreign", se deberá indicar si se trata de una nota que habla explícitamente solo de otros países distintos a México.
 
 Devuelve un objeto JSON con el ID de cada artículo y que contenga todos los criterios con un valor booleano para cada uno de ellos.
 
@@ -46,11 +46,23 @@ Están exterminando los bosques y por más denuncias que se hacen nadie mueve un
 
 Arnulfo Gómez añadió que tal ha sido la devastación, que de las nueve lagunas que había en la zona, ahora sólo quedan tres y están a punto de desaparecer.
 
+-- ARTÍCULO 354 --
+
+Conagua exhorta a actuar hoy para evitar futuros conflictos por el líquido
+
+El director de la Comisión Nacional del Agua (Conagua), Germán Martínez, sostuvo que no se debe ceder a la idea de que los conflictos futuros serán por el vital líquido, por lo que llamó a que entre todos los usuarios se comparta el recurso de forma sustentable, al tiempo que académicos y activistas advirtieron que en México existe un inadecuado manejo del agua, como parte de un escenario que perjudica de manera especial a las mujeres.
+
+Sin presentar un diagnóstico de los conflictos por este tema en el país, el funcionario advirtió que cada vez somos más y el agua dulce sigue siendo la misma, al tiempo que agregó que en el país las reservas se han reducido, es más difícil y costoso acceder a ellas, lo cual genera presiones al presupuesto del que disponemos.
+
+Por su parte, especialistas en temas de recursos hídricos coincidieron durante un conversatorio en que la falta de una nueva ley general de aguas ha provocado que el país lleve 30 años con una norma que impide que el vital líquido sea protegido y que violenta los derechos de la población.
+
+Claudia Gómez Godoy, de la Clínica Jurídica para la Justicia Ambiental, aseveró que el contexto de contaminación, el acaparamiento, el cambio climático y recientemente la pandemia de covid-19, advierten la urgencia de que se renueve el marco legal en esta materia, desde la perspectiva de derechos humanos y de sostenibilidad de los ecosistemas.
+
 ====
 
 {
   "352": {
-    "has_project": true,
+    "projects": ["Eólica del Sur"],
     "has_opponents": true,
     "social_impacts": false,
     "ecological_impacts": true,
@@ -59,8 +71,17 @@ Arnulfo Gómez añadió que tal ha sido la devastación, que de las nueve laguna
     "is_foreign": false
   },
   "353": {
-    "has_project": true,
+    "projects": ["tala clandestina"],
     "has_opponents": true,
+    "social_impacts": true,
+    "ecological_impacts": true,
+    "acts_of_violence": false,
+    "collective_actions": true,
+    "is_foreign": false
+  },
+  "354": {
+    "projects": [],
+    "has_opponents": false,
     "social_impacts": true,
     "ecological_impacts": true,
     "acts_of_violence": false,
