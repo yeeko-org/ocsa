@@ -1,3 +1,6 @@
+from pprint import pprint
+import re
+
 from datetime import date
 
 from bs4 import BeautifulSoup
@@ -10,6 +13,40 @@ from source.scraper.articles import (
 MAIN_URL = (
     "https://www.reforma.com/edicionimpresa/aplicacionei/webview/ws/"
     "wsEdImpresa.asmx/LeerXML?strName=https://hemerotecalibre.reforma.com/")
+
+IGNORE_SECTIONS = [
+    "avisos",
+    "cancha",
+    "gente",
+    "cultura",
+    "vida",
+    "revistar",
+    "deviaje",
+    "automotriz",
+    "moda",
+    "buenamesa",
+    "primerafila",
+    "club",
+    "campanas",
+    "gadgets",
+    "bienesraices",
+    "blindajeautomotriz",
+    "entremuros",
+    "primariasbasessolidas",
+    "edomex",
+    "supertazonlix",
+    "proveedoresdelaindustriarestaurantera",
+    "podiumespecial",
+    "efponteenforma",
+    "posgrados",
+    "universitarios",
+    "clubanuario",
+    "adjudicadoshir",
+    "prevencionessalud",
+    "centenarius",
+    "gadgetslarevista",
+    "podium",
+]
 
 
 class ReformaManagerScraper(ManagerScraper):
@@ -58,6 +95,8 @@ class ReformaMainScraper(MainScraper):
             if str(seccion.get("fechapub")) != self.scraper_date:
                 continue
             if directorio := seccion.get("directorio"):
+                if str(directorio).lower() in IGNORE_SECTIONS:
+                    continue
                 directorio = str(directorio).upper()
             else:
                 continue
@@ -131,36 +170,59 @@ class ReformaArticleScraper(ArticleScraper):
 
     def get_article_data(self):
         self.title = ""
+        self.subtitle = ""
         self.content = ""
         self.images = []
         self.author = ""
+
+        self.get_article_data_script_var()
 
         wrapper = self.get_main_body()
 
         if not wrapper:
             return
 
-        title_div = wrapper.find("div", id="divTituloNota")
-        self.title = title_div.get_text(
-            strip=True) if title_div else "No encontrado"
-
-        author_div = wrapper.find("div", class_="autor")
-
-        if author_div:
-            for elem in author_div.find_all_previous():
-                if elem == title_div:
-                    break
-                self.title += " " + elem.get_text(strip=True)
-
         content_div = wrapper.find("div", id="divImgPagina")
-        self.content = "\n".join(p.get_text(strip=True) for p in content_div.find_all(
-            "p")) if content_div else "No encontrado"
+        if not content_div:
+            return
 
-        self.images = [img["src"] for img in content_div.find_all(
-            "img") if img.get("src")] if content_div else []
+        self.content = "\n".join(
+            p.get_text() for p in content_div.find_all("p"))
 
-        self.author = author_div.get_text(
-            strip=True) if author_div else "No especificado"
+        self.images = [
+            img["src"]
+            for img in content_div.find_all("img")
+            if img.get("src")
+        ]
+
+        if not self.title and self.subtitle:
+            self.title = self.subtitle[:250]
+            if len(self.subtitle) > 250:
+                self.title += "..."
+
+        self.content = "\n".join(
+            [self.title, self.subtitle, self.content]).strip()
 
     def get_main_body(self) -> Tag:
         return self.soup_content.find("div", id="wrapper")
+
+    def get_article_data_script_var(self):
+
+        if not (body := self.soup_content.find("body")):
+            return
+
+        if not (scripts_inside_body := body.find_all("script")):
+            return
+
+        script_contents = [
+            script.string for script in scripts_inside_body if script.string]
+
+        pattern = re.compile(
+            r"var (\w+)\s*=\s*['\"]?([^;'\"]+)['\"]?;?", re.MULTILINE)
+        data = {match[1].strip(): match[2].strip()
+                for match in pattern.finditer("".join(script_contents))}
+
+        self.title = data.get("Titulo", "No encontrado")
+        self.subtitle = data.get("Resumen", "")
+        self.author = data.get("autor", "No especificado")
+        pprint(data)

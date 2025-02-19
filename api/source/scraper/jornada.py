@@ -98,7 +98,7 @@ class JornadaSectionScraper:
             link = container.find(  # type: ignore
                 "a", class_="cabeza", href=True)   # type: ignore
             if link:
-                title = link.get_text(strip=True)
+                title = link.get_text()
                 url = link["href"]  # type: ignore
             else:
                 continue
@@ -106,11 +106,11 @@ class JornadaSectionScraper:
             images = [img["src"] for img in container.find_all(  # type: ignore
                 "img", src=True)]
 
-            content_texts = [p.get_text(strip=True) for p in container.find_all(  # type: ignore
+            content_texts = [p.get_text() for p in container.find_all(  # type: ignore
                 "p", class_=lambda x: x != "more")]
 
             footer = container.find("div", class_="pie-foto")  # type: ignore
-            footer_text = footer.get_text(strip=True) if footer else ""
+            footer_text = footer.get_text() if footer else ""
 
             article_content = " ".join(content_texts) + " " + footer_text
             url = str(url)
@@ -128,19 +128,19 @@ class JornadaSectionScraper:
 
 class JornadaArticleScraper(ArticleScraper):
 
-    def get_article_data(ja):
+    def get_article_data(self):
 
-        article = ja.soup_content.find('article')
-        ja.title = article.find('div', class_='cabeza')\
-            .get_text(strip=True)
-        ja.content = "\n".join(
-            [p.get_text(strip=True) for p in article.find_all('p')])
-        ja.images = [img['src'] for img in article.find_all('img', src=True)]
+        article = self.soup_content.find('article')
+        self.title = article.find('div', class_='cabeza')\
+            .get_text()
+        self.content = "\n".join(
+            [p.get_text() for p in article.find_all('p')])
+        self.images = [img['src'] for img in article.find_all('img', src=True)]
         try:
-            ja.author = article.find('div', class_='credito-autor')\
-                .find('span').get_text(strip=True)
+            self.author = article.find('div', class_='credito-autor')\
+                .find('span').get_text()
         except AttributeError:
-            ja.author = None
+            self.author = None
 
     def get_main_body(self) -> Tag:
         return self.soup_content.find('article')
