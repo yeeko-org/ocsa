@@ -187,7 +187,7 @@ class ReformaArticleScraper(ArticleScraper):
             return
 
         self.content = "\n".join(
-            p.get_text(strip=True) for p in content_div.find_all("p"))
+            p.get_text() for p in content_div.find_all("p"))
 
         self.images = [
             img["src"]
