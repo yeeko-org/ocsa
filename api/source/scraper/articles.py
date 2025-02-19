@@ -355,7 +355,8 @@ class ManagerScraper(ABC):
 
     def full_scrape_articles(
             self, update: bool = False, check_criteria: bool = True,
-            all_articles: bool = False, block_size: int = 0):
+            all_articles: bool = False, block_size: int = 0,
+            prompt_version: str = "v1"):
 
         self.scraped_record.status = "criteria"
         self.scraped_record.save()
@@ -365,7 +366,7 @@ class ManagerScraper(ABC):
             self.qualify_schema, _ = QualifySchema.objects.get_or_create(
                 scraped_record=self.scraped_record,
                 ia_model=self.open_ai_engine,
-                prompt_version="criteria_v1",
+                prompt_version=prompt_version,
                 batch_size=self.block_full_articles)
         else:
             self.qualify_schema = None
@@ -392,11 +393,12 @@ class ManagerScraper(ABC):
                 print(f"{init_msg} {i}")
             self.full_scrape_batch(
                 articles_objects[i:i + self.block_full_articles],
-                update=update, check_criteria=check_criteria)
+                update=update, check_criteria=check_criteria,
+                prompt_version=prompt_version)
 
     def full_scrape_batch(
             self, articles: List[Article], update: bool = False,
-            check_criteria: bool = True):
+            check_criteria: bool = True, prompt_version: str = "v1"):
         many_articles = self.block_full_articles > 1
         full_content = ""
 
@@ -427,8 +429,8 @@ class ManagerScraper(ABC):
         if not check_criteria:
             return
 
-        prompt_criteria = "prompt_articles_criteria.txt" \
-            if many_articles else "prompt_article_criteria.txt"
+        prompt_criteria = (f"prompt_article{'s' if many_articles else ''}"
+                           f"_criteria_{prompt_version}.txt")
         articles_criteria_request = JsonRequestOpenAI(
             f"source/scraper/{prompt_criteria}",
             engine=self.open_ai_engine)
@@ -448,7 +450,7 @@ class ManagerScraper(ABC):
         for article_id, criteria in pre_classify_response.items():
             article = Article.objects.get(pk=int(article_id))
             certain_degree = article.get_certainty_degree(criteria)
-            is_selected = certain_degree > 10
+            is_selected = certain_degree > 11
             if self.is_test:
                 change_value = self.get_change_value(is_selected, article)
                 _ = ArticleQualify.objects.create(

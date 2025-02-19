@@ -1,28 +1,27 @@
-Tengo el contenido de algunos artículos de prensa.
+La base de datos del Observatorio de Conflictos Socioambientales se nutre de la información de notas de prensa, las cuales tienen rigurosos criterios de selección:
 
-Necesito identificar (projects) la lista de proyecto o los megaproyecto que se mencionan en cada artículo. Cada proyecto puede estar mencionado explícitamente por su nombre o estar referido (ejemplos: "la minera", "la eólica", "el desarrollo", "complejo industria", "la tala clandestina"). Si no se menciona ningún proyecto, dejar una lista vacía []
+Las notas puede reportar, describir, o por lo menos mencionar, un megaproyecto existente en algún lugar del territorio mexicano ("projects").
 
-Algunos tipos de proyectos o extractivismo son:
--Agroindustria, monocultivo, industria ganadera, forestal y recursos bióticos
--Minería
--Hídricos
--Energéticos
--Hiperurbanización (desarrollos inmobiliarios, turismo, conjuntos comerciales, gestión de espacios, parques industriales, basureros, etc.)
--Infraestructura y vías de comunicación
+Un megaproyecto es una obra o proyecto de grandes dimensiones que requiere alta inversión de capital, destinado principalmente a la producción de commodities para exportación. Puede tratarse de presas hidroeléctricas, minas, carreteras, vías férreas, extracciones de hidrocarburos, gasoductos, acueductos, refinerías, termoeléctricas, granjas porcinas, polígonos de tala ilegal, monocultivos, salineras, presas de jales, complejos hoteleros, basureros, fraccionamientos o campos de golf, entre otros. Se considera 'existente' cuando ha sido aprobado, adjudicado por licitación, anunciado con inversiones concretas, declarado oficialmente por un gobierno, o se encuentra en cualquier fase desde exploración hasta cierre o abandono. Para su identificación, basta que la nota mencione el megaproyecto, ya sea por su nombre oficial o mediante la descripción de su construcción, aprobación u operación en una ubicación específica. También califican como megaproyectos los ilegales que se realizan sin los permisos correspondientes.
 
-También necesito identificar si se hace mención para cada uno de los siguientes elementos:
+No considerar para la lista de "projects", cuando se mencionan los megaproyectos solo como información corporativa o cuando se mencionan como promesas en campañas políticas.
 
-has_opponents: Existe algún opositor al proyecto, ya sea individual o colectivo
-social_impacts: Cuando exista alguna afectación social, como desplazamiento violaciones a DDHH, medios de vida, etc.
-ecological_impacts: Afectación ecológica
-acts_of_violence: Acción contra de la población o los opositores
-collective_actions: Protesta, demanda, denuncia o cualquier acción para detener o modificar el proyecto
+Además de "projects", debemos identificar si la nota tiene alguna de las siguientes variables (como consecuencia del megaproyecto):
 
-Por último, con el campo "is_foreign", se deberá indicar si se trata de una nota que habla explícitamente solo de otros países distintos a México.
+Afectación social ("social_impacts") → todos aquellos impactos que perturban, de inmediato o a largo plazo, diferentes ámbitos de la vida y de la cotidianidad de las personas que se encuentran en la zona de influencia del megaproyecto, pueden tener implicaciones económicas, sociales, a la salud, a la cultura, etc.
 
-Devuelve un objeto JSON con el ID de cada artículo y que contenga todos los criterios con un valor booleano para cada uno de ellos.
+Afectación ecológica ("ecological_impacts") → Los impactos negativos en los ecosistemas que rompen el equilibrio y repercuten no solo en la biodiversidad y los servicios ecosistémicos, sino también en la salud, en la calidad y en las formas de vida de las personas que dependen de estos para su sustento y bienestar.
+
+Acciones de interferencia ("acts_of_violence") → Acciones, estrategias o mecanismos intencionales que afectan de manera individual o colectiva, la vida, la integridad y/o los derechos de las personas, y que tienen por objetivo impulsar o garantizar la implementación o continuación del megaproyecto en cuestión.
+
+Acción colectiva ("collective_actions") → Acción, estrategia o mecanismo llevado a cabo por un grupo de personas en conjunto (pueden ser las directamente afectadas, o no), que tiene por objetivo expresarse contra el megaproyecto en cuestión. Ejemplos de acción colectiva son: movilización, denuncia pública, protesta, conferencia de prensa, entrega de firmas, cierre de avenidas, bloqueo de carreteras, clausura simbólica del megaproyecto, entre otras.
+
+Por último, con el campo "is_foreign" ayúdame a identificar si se trata de una nota que habla explícitamente solo de otros países distintos a México.
+
+Ayúdame a identificar, para cada una de las notas, cada uno de los criterios mencionados (de inclusión y exclusión) devuélveme un objeto JSON con el ID de la nota y dentro de este objeto, un objeto con los criterios y un valor booleano para cada uno de ellos. Para el caso de projects, dame una lista de strings (puede estar vacía si no se menciona ningún proyecto de nuestro interés).
 
 ====
+
 -- ARTÍCULO 352 --
 Bloquean eólica en Oaxaca
 
@@ -63,7 +62,6 @@ Claudia Gómez Godoy, de la Clínica Jurídica para la Justicia Ambiental, aseve
 {
   "352": {
     "projects": ["Eólica del Sur"],
-    "has_opponents": true,
     "social_impacts": false,
     "ecological_impacts": true,
     "acts_of_violence": false,
@@ -72,7 +70,6 @@ Claudia Gómez Godoy, de la Clínica Jurídica para la Justicia Ambiental, aseve
   },
   "353": {
     "projects": ["tala clandestina"],
-    "has_opponents": true,
     "social_impacts": true,
     "ecological_impacts": true,
     "acts_of_violence": false,
@@ -81,11 +78,10 @@ Claudia Gómez Godoy, de la Clínica Jurídica para la Justicia Ambiental, aseve
   },
   "354": {
     "projects": [],
-    "has_opponents": false,
-    "social_impacts": true,
-    "ecological_impacts": true,
+    "social_impacts": false,
+    "ecological_impacts": false,
     "acts_of_violence": false,
-    "collective_actions": true,
+    "collective_actions": false,
     "is_foreign": false
   }
 }

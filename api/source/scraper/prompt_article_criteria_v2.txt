@@ -1,0 +1,45 @@
+La base de datos del Observatorio de Conflictos Socioambientales se nutre de la información de notas de prensa, las cuales tienen rigurosos criterios de selección:
+
+La nota puede reportar, describir, o por lo menos mencionar, un megaproyecto existente en algún lugar del territorio mexicano ("projects").
+
+Un megaproyecto es una obra o proyecto de grandes dimensiones que requiere alta inversión de capital, destinado principalmente a la producción de commodities para exportación. Puede tratarse de presas hidroeléctricas, minas, carreteras, vías férreas, extracciones de hidrocarburos, gasoductos, acueductos, refinerías, termoeléctricas, granjas porcinas, polígonos de tala ilegal, monocultivos, salineras, presas de jales, complejos hoteleros, basureros, fraccionamientos o campos de golf, entre otros. Se considera 'existente' cuando ha sido aprobado, adjudicado por licitación, anunciado con inversiones concretas, declarado oficialmente por un gobierno, o se encuentra en cualquier fase desde exploración hasta cierre o abandono. Para su identificación, basta que la nota mencione el megaproyecto, ya sea por su nombre oficial o mediante la descripción de su construcción, aprobación u operación en una ubicación específica.
+
+No considerar para la lista de "projects", cuando se mencionan los megaproyectos solo como información corporativa o cuando se mencionan como promesas en campañas políticas.
+
+Además de "projects", debemos identificar si la nota tiene alguna de las siguientes variables:
+
+Afectación social ("social_impacts") → todos aquellos impactos que perturban, de inmediato o a largo plazo, diferentes ámbitos de la vida y de la cotidianidad de las personas que se encuentran en la zona de influencia del megaproyecto, pueden tener implicaciones económicas, sociales, a la salud, a la cultura, etc.
+
+Afectación ecológica ("ecological_impacts") → Los impactos negativos en los ecosistemas que rompen el equilibrio y repercuten no solo en la biodiversidad y los servicios ecosistémicos, sino también en la salud, en la calidad y en las formas de vida de las personas que dependen de estos para su sustento y bienestar
+
+Acciones de interferencia ("acts_of_violence") → Acciones, estrategias o mecanismos intencionales que afectan de manera individual o colectiva, la vida, la integridad y/o los derechos de las personas, y que tienen por objetivo impulsar o garantizar la implementación o continuación del megaproyecto en cuestión.
+
+Acción colectiva ("collective_actions") → Acción, estrategia o mecanismo llevado a cabo por un grupo de personas en conjunto (pueden ser las directamente afectadas, o no), que tiene por objetivo expresarse contra el megaproyecto en cuestión. Ejemplos de acción colectiva son: movilización, denuncia pública, protesta, conferencia de prensa, entrega de firmas, cierre de avenidas, bloqueo de carreteras, clausura simbólica del megaproyecto, entre otras.
+
+Por último, con el campo "is_foreign" ayúdame a identificar si se trata de una nota que habla explícitamente solo de otros países distintos a México.
+
+Ayúdame a identificar para la nota, cada uno de los criterios mencionados (de inclusión y exclusión) devuélveme un objeto JSON con el ID de cada artículo y que contenga todos los criterios con un valor booleano para cada uno de ellos. Para el caso de projects, dame una lista de strings (puede estar vacía si no se menciona ningún proyecto de nuestro interés).
+
+====
+
+Con bloqueo a vía exigen frenar tala en Ocuilan
+
+Ocuilan, Méx., Cansados de las falsas promesas de las autoridades federales y estatales, pobladores de las comunidades de Santa Martha y San Juan Atzingo, entre otras, cerraron ayer, por casi ocho horas, la circulación de la carretera Santiago-Chalma, a fin de exigir la presencia de la Guardia Nacional (GN) y la policía estatal para frenar la tala clandestina que prolifera en esta zona limítrofe con Morelos
+
+Hace un par de años, explicaron, una comisión de habitantes de San Juan Atzingo acudió a Palacio Nacional a demandar apoyo al gobierno federal y como resultado fueron enviados elementos de la GN; no obstante, éstos permanecieron en el área perjudicada sólo unas semanas.
+
+Están exterminando los bosques y por más denuncias que se hacen nadie mueve un dedo, las autoridades no hacen nada. Hasta coordenadas se les han dado de donde está ocurriendo el saqueo y no actúan. Hay una total negligencia, reclamó un manifestante.
+
+Arnulfo Gómez añadió que tal ha sido la devastación, que de las nueve lagunas que había en la zona, ahora sólo quedan tres y están a punto de desaparecer.
+
+
+====
+
+{
+  "projects": ["tala clandestina"],
+  "social_impacts": true,
+  "ecological_impacts": true,
+  "acts_of_violence": false,
+  "collective_actions": true,
+  "is_foreign": false
+}

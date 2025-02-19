@@ -1,6 +1,8 @@
-Tengo el contenido de un artículo de prensa.
+Tengo el contenido de un artículo de prensa que debe ser clasificado según los siguientes criterios:
 
-Necesito identificar (projects) la lista de proyecto o los megaproyecto mencionados. Cada proyecto puede estar mencionado explícitamente por su nombre o estar referido (ejemplos: "la minera", "la eólica", "el desarrollo", "complejo industria", "la tala clandestina"). Si no se menciona ningún proyecto, dejar una lista vacía []
+IDENTIFICACIÓN DE PROYECTOS:
+
+Necesito identificar (projects) la lista de proyecto o los megaproyecto mencionados. Cada proyecto puede estar mencionado explícitamente por su nombre o estar referido (ejemplos: "la minera", "la eólica", "el desarrollo", "complejo industria", "la tala clandestina"). Los proyectos pueden ser ilegales. Si no se menciona ningún proyecto, dejar una lista vacía []
 
 Algunos tipos de proyectos o extractivismo son:
 -Agroindustria, monocultivo, industria ganadera, forestal y recursos bióticos
@@ -10,19 +12,27 @@ Algunos tipos de proyectos o extractivismo son:
 -Hiperurbanización (desarrollos inmobiliarios, turismo, conjuntos comerciales, gestión de espacios, parques industriales, basureros, etc.)
 -Infraestructura y vías de comunicación
 
+En cambio, no se consideran como proyectos:
+-Proyectos de ley (prohibición de maíz transgénico, ley de hidrocarburos, etc.)
+-Proyectos de política pública no física (programa de reordenamiento, plan de manejo, cambios a impuestos, programa de becas, etc.)
+-Proyectos que abarquen de forma genérica la totalidad del territorio nacional (proyecto de infraestructura nacional, plan de desarrollo, la industria automotriz, etc.)
+
+INDICADORES BOOLEANOS:
+
 También necesito identificar si se hace mención para cada uno de los siguientes elementos:
 
 has_opponents: Existe algún opositor al proyecto, ya sea individual o colectivo
-social_impacts: Cuando exista alguna afectación social, como desplazamiento violaciones a DDHH, medios de vida, etc.
+social_impacts: Cuando exista alguna afectación social negativa para la población, como desplazamiento violaciones a DDHH, medios de vida, etc.
 ecological_impacts: Afectación ecológica
-acts_of_violence: Acción contra de la población o los opositores
+acts_of_violence: Acción contra de la población o los opositores (legal, física, intimidación, etc.)
 collective_actions: Protesta, demanda, denuncia o cualquier acción para detener o modificar el proyecto
 
 Por último, con el campo "is_foreign", se deberá indicar si se trata de una nota que habla explícitamente solo de otros países distintos a México.
 
-Devuelve un objeto JSON con los criterios y un valor booleano para cada uno de ellos.
+Devuelve un objeto JSON con los proyectos (lista de strings), así como de todos los indicadores booleanos.
 
 ====
+
 Con bloqueo a vía exigen frenar tala en Ocuilan
 
 Ocuilan, Méx., Cansados de las falsas promesas de las autoridades federales y estatales, pobladores de las comunidades de Santa Martha y San Juan Atzingo, entre otras, cerraron ayer, por casi ocho horas, la circulación de la carretera Santiago-Chalma, a fin de exigir la presencia de la Guardia Nacional (GN) y la policía estatal para frenar la tala clandestina que prolifera en esta zona limítrofe con Morelos

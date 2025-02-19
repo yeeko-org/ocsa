@@ -209,11 +209,22 @@ class Article(models.Model):
         degree = 0
         if bool(criteria.get("projects", [])):
             degree += 10
-        degree += int(bool(criteria.get("has_opponents")))  # 1.1
-        degree += int(bool(criteria.get("social_impacts")))  # 1
-        degree += int(bool(criteria.get("ecological_impacts")))  # 1.5
-        degree += int(bool(criteria.get("acts_of_violence")))  # 1
-        degree += int(bool(criteria.get("collective_actions")))  # 1
+        # degree += int(bool(criteria.get("has_opponents")))  # 1.1
+        # degree += int(bool(criteria.get("social_impacts")))  # 1
+        # degree += int(bool(criteria.get("ecological_impacts")))  # 1.5
+        # degree += int(bool(criteria.get("acts_of_violence")))  # 1
+        # degree += int(bool(criteria.get("collective_actions")))  # 1
+        if bool(criteria.get("has_opponents")):
+            degree += 1
+        if bool(criteria.get("social_impacts")):
+            degree += 2
+        if bool(criteria.get("ecological_impacts")):
+            degree += 2
+        if bool(criteria.get("acts_of_violence")):
+            degree += 2
+        if bool(criteria.get("collective_actions")):
+            degree += 2
+
         if bool(criteria.get("is_foreign")):
             degree *= -1
         return degree

@@ -6,13 +6,13 @@ from source.models import (
     ScrapedRecord, Article, QualifySchema, ArticleQualify)
 
 manager_scraper = JornadaManagerScraper(
-    "2022/06/01", "2022/06/25", open_ai_engine="gpt-4o-mini")
+    "2022/07/01", "2022/07/25", open_ai_engine="gpt-4o-mini")
 
 # print(manager_scraper.scraped_record)
 manager_scraper.scrape_sections()
 
 manager_scraper = JornadaManagerScraper(
-    "", "", recover_record=ScrapedRecord.objects.get(pk=17),
+    "", "", recover_record=ScrapedRecord.objects.get(pk=19),
     open_ai_engine="gpt-4o-mini")
 
 manager_scraper = JornadaManagerScraper(
@@ -21,10 +21,11 @@ manager_scraper = JornadaManagerScraper(
 
 manager_scraper.record_articles(reset=True)
 
-manager_scraper.full_scrape_articles(all_articles=True, block_size=1)
+manager_scraper.full_scrape_articles(
+    all_articles=True, block_size=1, prompt_version="v2")
 
-QualifySchema.objects.all().delete()
-Article.objects.filter(scraped__id=17).count()
+# QualifySchema.objects.all().delete()
+Article.objects.filter(scraped__id=18).count()
 
 ########
 
