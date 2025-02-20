@@ -1,3 +1,4 @@
+import threading
 from api.views.common_views import BaseGenericViewSet
 from django.db import connection
 
@@ -71,6 +72,10 @@ class ScrapingDatesView(APIView):
             "errors": manager_scraper.errors,
             "articles": f"{articles_url}?{query}"
         }
+
+        thread = threading.Thread(
+            target=full_scrape_articles, args=(scraped_record,))
+        thread.start()
 
         return Response(response_data)
 
