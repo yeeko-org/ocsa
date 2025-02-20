@@ -2,6 +2,7 @@ import re
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
+import requests
 
 from project.models import Project, StatusProject
 from work_flux.models import StatusControl, CommentsMixin
@@ -68,6 +69,8 @@ class Note(CommentsMixin, models.Model):
     def save(self, *args, **kwargs):
         if not self.capture_date:
             self.capture_date = timezone.now().date()
+        if not self.slug_title:
+            self.set_slug_title(save=False)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -88,6 +91,15 @@ class NoteFile(models.Model):
     file = models.FileField(upload_to=upload_to_note_file, max_length=255)
     old_ref = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def save_file_from_url(self, url, file_name, save=False):
+        from django.core.files.base import ContentFile
+        response = requests.get(url, stream=True)
+
+        if response.status_code == 200:
+            self.file.save(file_name, ContentFile(response.content), save=save)
+            return True
+        return False
 
     def __str__(self):
         return self.file.name if self.file else 'Archivo sin nombre'
@@ -201,6 +213,9 @@ class Article(models.Model):
         Note, on_delete=models.CASCADE, related_name='articles',
         blank=True, null=True)
 
+    def get_meta(self, key: str):
+        return self.metadata.get(key) if self.metadata else None
+
     def get_certainty_degree(self, criteria: dict = None) -> int:
         criteria = criteria or self.criteria
         if not criteria:
@@ -272,4 +287,3 @@ class ArticleQualify(models.Model):
     class Meta:
         verbose_name = 'Calificación de artículo'
         verbose_name_plural = 'Calificaciones de artículos'
-
