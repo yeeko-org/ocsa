@@ -46,9 +46,9 @@ function changeShowDetails() {
 
 export function applyFilters() {
   const mainStore = useMainStore()
-  const { fetchElements, current_collection_data } = mainStore
+  const { fetchElements, current_collection_data, cancelFetch } = mainStore
   // console.log("parent_collectionRef", parent_collectionRef)
-  loading_fetch.value = true
+
   show_details.value = false
   // const function_name = group === 'project' ? fetchProjects : fetchNotes
   // const real_group = group.value.parent ? `catalogs/${current_collection}` : group_name
@@ -56,11 +56,16 @@ export function applyFilters() {
   let collection_name = current_collection_data.snake_name
   if (current_collection_data.is_category)
     collection_name = `catalogs/${collection_name}`
-
-  fetchElements([collection_name, final_filters.value]).then(res => {
-    loading_fetch.value = false
-    total_count.value = res.total
-    results.value = res.results
-    changeShowDetails()
-  })
+  console.log("loading_fetch.value", loading_fetch.value)
+  if (loading_fetch.value)
+    cancelFetch()
+  else{
+    loading_fetch.value = true
+    fetchElements([collection_name, final_filters.value]).then(res => {
+      loading_fetch.value = false
+      total_count.value = res.total
+      results.value = res.results
+      changeShowDetails()
+    })
+  }
 }

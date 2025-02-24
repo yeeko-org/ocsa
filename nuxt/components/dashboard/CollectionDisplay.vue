@@ -16,7 +16,7 @@ const {
   schemas,
   current_collection_data,
 } = storeToRefs(mainStore)
-const { fetchElements } = mainStore
+const { fetchElements, cancelFetch } = mainStore
 
 const props = defineProps({
   parent_collection: Object,
@@ -54,6 +54,7 @@ const final_filters = ref({
   ordering: null,  // '-id',
   page_size: 40,
 })
+const reverse_fetch = ref(false)
 
 const temp_reset = ref(false)
 const visible_filters = ref([])
@@ -113,6 +114,13 @@ const debounceApplyFilters = _debounce(() => {
 }, 800)
 
 function applyFilters(page=null) {
+  if (loading_fetch.value)
+    cancelFetch()
+  else
+    realApplyFilters(page)
+}
+
+function realApplyFilters(page=null) {
   if (page === null){
     page = 1
     if (childRef.value)
@@ -131,6 +139,11 @@ function applyFilters(page=null) {
     ...props.init_filters
   }
   fetchElements([collection_name, params]).then(res => {
+    if (res.cancelled) {
+      reverse_fetch.value = !reverse_fetch.value
+      realApplyFilters(page)
+      return
+    }
     loading_fetch.value = false
     if (!res.results){
       total_count.value = res.length
@@ -332,6 +345,7 @@ function selectItem(item) {
     </v-row>
     <v-progress-linear
       v-if="loading_fetch"
+      :reverse="reverse_fetch"
       indeterminate
       height="10"
       color="accent"

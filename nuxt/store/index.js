@@ -3,7 +3,9 @@ import ApiService from "./common";
 import colorMixin from "~/mixins/colorMixin";
 // import { mande } from 'mande'
 import * as d3 from 'd3';
+import axios from "axios";
 import {status_filters} from "~/composables/filters.js";
+let request = axios.CancelToken.source();
 
 const calculate_status = (status_control) => {
   return status_control.reduce((obj, st) => {
@@ -503,24 +505,46 @@ export const useMainStore = defineStore('main', {
       }
     },
     async fetchElements([group, params]) {
-      // console.log('fetchElements', group, params)
-      try {
-        const result = await ApiService.get(`/${group}/`, {params: params})
-        // if (group.includes('catalogs/')){
-        //   const real_group = group.split('/')[1]
-        // }
-        return result.data
-      } catch (error) {
-        console.error(error)
-      }
+      return new Promise(resolve => {
+        this.setHeader()
+        ApiService.get(`/${group}/`, {
+          cancelToken: request.token, params: params })
+          .then(({ data }) => {
+            return resolve(data)
+          })
+          .catch(thrown => {
+            if (axios.isCancel(thrown)) {
+              request = null
+              request = axios.CancelToken.source()
+              return resolve({ cancelled: true })
+            } else {
+              console.error(thrown)
+            }
+          })
+      })
     },
+    cancelFetch() {
+      if (request)
+        request.cancel("Operation canceled by the user.")
+    },
+    // async fetchElements([group, params]) {
+    //   try {
+    //     const result = await ApiService.get(`/${group}/`,
+    //       {params: params, cancelToken: request.token})
+    //     return result.data
+    //   } catch ((thrown) => {
+    //     if (axios.isCancel(thrown))
+    //       console.log('Request canceled', thrown.message)
+    //     else
+    //       console.error(thrown)
+    //   })
+    // },
     async saveFile([elem_id, file_data, coll_name]) {
       try {
         console.log('elem_id', elem_id)
         let response = await ApiService.post(
           `/${coll_name}/${elem_id}/add_file/`, file_data,
-          {headers: {
-            'Content-Type': 'multipart/form-data'
+          {headers: {'Content-Type': 'multipart/form-data'
           }});
         return response.data
       } catch (error) {
