@@ -5,6 +5,7 @@ from django.utils.text import slugify
 import requests
 
 from project.models import Project, StatusProject
+from utils.open_ai import JsonRequestOpenAI
 from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
 
@@ -236,6 +237,34 @@ class Article(models.Model):
     def __str__(self):
         return f"{self.uid} - {self.title}"
 
+    def get_criteria(self, engine_name: str | None = None, use_deepseek: bool = False):
+        prompt_criteria = "prompt_article_criteria.txt"
+        articles_criteria_request = JsonRequestOpenAI(
+            f"source/scraper/{prompt_criteria}",
+            engine=engine_name, use_deepseek=use_deepseek)
+
+        if not (self.content or self.basic_content):
+            return
+
+        pre_classify_response, _ = articles_criteria_request\
+            .send_prompt(self.content or self.basic_content)
+
+        if not pre_classify_response:
+            print("No response from OpenAI")
+            return
+
+        if not isinstance(pre_classify_response, dict):
+            print("Invalid response")
+            return
+
+        certain_degree = self.get_certainty_degree(pre_classify_response)
+        is_selected = certain_degree > 10
+
+        self.criteria = pre_classify_response
+        self.certainty_degree = certain_degree
+        self.is_selected = is_selected
+        self.save()
+
     class Meta:
         unique_together = ['uid', 'source']
 
@@ -282,7 +311,7 @@ class ArticleQualify(models.Model):
     request_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.article} - {self.ia_model}"
+        return f"{self.article} - {self.qualify_schema}"
 
     class Meta:
         verbose_name = 'Calificación de artículo'
