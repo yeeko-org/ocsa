@@ -23,8 +23,8 @@ const final_collection_data = computed(() => {
 })
 
 const visible_filters = computed(() => {
-  console.log("collection_data", final_collection_data.value)
-  console.log("filters", final_collection_data.value.collection_filters)
+  // console.log("collection_data", final_collection_data.value)
+  // console.log("filters", final_collection_data.value.collection_filters)
   return final_collection_data.value.collection_filters.filter(
     coll => active_fields.value.includes(coll.name))
   // let collection_filters =

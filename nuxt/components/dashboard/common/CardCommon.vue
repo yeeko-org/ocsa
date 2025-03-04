@@ -63,6 +63,7 @@ function closeDialog(event) {
 }
 
 function closeChangeDialog(new_item) {
+  console.log("closeChangeDialog", new_item)
   if (new_item)
     emits('selected-item', new_item)
   dialog_search.value = false
@@ -119,6 +120,7 @@ function closeChangeDialog(new_item) {
           :variant="is_select ? 'text' : 'outlined'"
           @click="editItem(full_main)"
           class="mr-1"
+          v-tooltip="`Editar`"
         ></v-btn>
         <v-btn
           v-if="null_available"
@@ -128,6 +130,7 @@ function closeChangeDialog(new_item) {
           variant="outlined"
           @click="emits('delete-item', full_main)"
           class="mr-1"
+          v-tooltip="`Eliminar`"
         ></v-btn>
       </template>
       <v-btn
@@ -146,6 +149,7 @@ function closeChangeDialog(new_item) {
         variant="outlined"
         @click="searchItem"
         class="mr-1"
+        v-tooltip="`Cambiar`"
       ></v-btn>
     </div>
     <v-dialog

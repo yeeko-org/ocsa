@@ -30,6 +30,11 @@ const changeParentProject = (parent_project) => {
   props.full_main.parent_project_full = parent_project
 }
 
+function changeConflict(conflict) {
+  props.full_main.conflict = conflict.id
+  props.full_main.conflict_full = conflict
+}
+
 </script>
 
 
@@ -51,6 +56,7 @@ const changeParentProject = (parent_project) => {
       class="mb-4"
       null_available
       title="Conflicto"
+      @selected-item="changeConflict($event)"
       @delete-item="full_main.conflict = null"
     />
   </v-col>
