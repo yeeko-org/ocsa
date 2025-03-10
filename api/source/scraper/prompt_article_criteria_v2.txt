@@ -8,7 +8,7 @@ No considerar para la lista de "projects", cuando se mencionan los megaproyectos
 
 Además de "projects", debemos identificar si la nota tiene alguna de las siguientes variables:
 
-Afectación social ("social_impacts") → todos aquellos impactos que perturban, de inmediato o a largo plazo, diferentes ámbitos de la vida y de la cotidianidad de las personas que se encuentran en la zona de influencia del megaproyecto, pueden tener implicaciones económicas, sociales, a la salud, a la cultura, etc.
+Afectación social ("social_impacts") → impactos negativos que perturban, de inmediato o a largo plazo, diferentes ámbitos de la vida y de la cotidianidad de las personas que se encuentran en la zona de influencia del megaproyecto, pueden tener implicaciones negativas económicas, sociales, a la salud, a la cultura, etc.
 
 Afectación ecológica ("ecological_impacts") → Los impactos negativos en los ecosistemas que rompen el equilibrio y repercuten no solo en la biodiversidad y los servicios ecosistémicos, sino también en la salud, en la calidad y en las formas de vida de las personas que dependen de estos para su sustento y bienestar
 
@@ -16,7 +16,7 @@ Acciones de interferencia ("acts_of_violence") → Acciones, estrategias o mecan
 
 Acción colectiva ("collective_actions") → Acción, estrategia o mecanismo llevado a cabo por un grupo de personas en conjunto (pueden ser las directamente afectadas, o no), que tiene por objetivo expresarse contra el megaproyecto en cuestión. Ejemplos de acción colectiva son: movilización, denuncia pública, protesta, conferencia de prensa, entrega de firmas, cierre de avenidas, bloqueo de carreteras, clausura simbólica del megaproyecto, entre otras.
 
-Por último, con el campo "is_foreign" ayúdame a identificar si se trata de una nota que habla explícitamente solo de otros países distintos a México.
+Por último, con el campo "is_foreign" ayúdame a identificar si se trata de una nota que se trata de otro países y NO menciona a México en ningún sentido.
 
 Ayúdame a identificar para la nota, cada uno de los criterios mencionados (de inclusión y exclusión) devuélveme un objeto JSON con el ID de cada artículo y que contenga todos los criterios con un valor booleano para cada uno de ellos. Para el caso de projects, dame una lista de strings (puede estar vacía si no se menciona ningún proyecto de nuestro interés).
 

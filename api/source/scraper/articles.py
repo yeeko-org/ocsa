@@ -362,12 +362,17 @@ class ManagerScraper(ABC):
         self.scraped_record.save()
         if block_size:
             self.block_full_articles = block_size
+        ready_articles = []
         if self.is_test:
             self.qualify_schema, _ = QualifySchema.objects.get_or_create(
                 scraped_record=self.scraped_record,
                 ia_model=self.open_ai_engine,
                 prompt_version=prompt_version,
                 batch_size=self.block_full_articles)
+            ready_articles = Article.objects.filter(
+                scraped=self.scraped_record,
+                qualifications__qualify_schema=self.qualify_schema)\
+                .distinct().values_list("id", flat=True)
         else:
             self.qualify_schema = None
         # if self.articles_by_uid:
@@ -378,13 +383,19 @@ class ManagerScraper(ABC):
         else:
             articles_objects = list(Article.objects.filter(
                 scraped=self.scraped_record))
-        len_articles = len(articles_objects)
-        print(f"Full scrape articles for {len_articles} articles")
         if not all_articles:
             articles_objects = [
                 article for article in articles_objects
                 if article.preclassification in ["valid", "maybe", "unknown"]
             ]
+        if ready_articles:
+            articles_objects = [
+                article for article in articles_objects
+                if article.id not in ready_articles
+            ]
+        len_articles = len(articles_objects)
+        print(f"Full scrape articles for {len_articles} articles")
+
         for i in range(0, len_articles, self.block_full_articles):
             init_msg = "Scraping and classifying article"
             if self.block_full_articles > 1:
@@ -403,7 +414,7 @@ class ManagerScraper(ABC):
         full_content = ""
 
         for article in articles:
-            if not self.is_test:
+            if not self.is_test or not article.content:
                 try:
                     article_scraper = self.article_scraper_class(
                         article, update=update)
@@ -417,7 +428,7 @@ class ManagerScraper(ABC):
                     return self.add_error(
                         f"Error getting criteria for article {article.id}", e)
             else:
-                content = article.basic_content.strip()
+                content = article.content.strip()
 
             if many_articles:
                 full_content += f"-- ARTÍCULO {article.id} --\n{content}\n\n"

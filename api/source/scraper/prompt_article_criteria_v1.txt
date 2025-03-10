@@ -27,7 +27,7 @@ ecological_impacts: Afectación ecológica
 acts_of_violence: Acción contra de la población o los opositores (legal, física, intimidación, etc.)
 collective_actions: Protesta, demanda, denuncia o cualquier acción para detener o modificar el proyecto
 
-Por último, con el campo "is_foreign", se deberá indicar si se trata de una nota que habla explícitamente solo de otros países distintos a México.
+Por último, con el campo "is_foreign" ayúdame a identificar si se trata de una nota que se trata de otro países y NO menciona a México en ningún sentido.
 
 Devuelve un objeto JSON con los proyectos (lista de strings), así como de todos los indicadores booleanos.
 
