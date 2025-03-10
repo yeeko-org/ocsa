@@ -91,6 +91,7 @@ class ManagerScraper(ABC):
     pre_classify_request: JsonRequestOpenAI
 
     open_ai_engine: str | None
+    use_deepseek: bool
     qualify_schema: QualifySchema | None
 
     def __init__(
@@ -99,7 +100,7 @@ class ManagerScraper(ABC):
             article_scraper_class: Type["ArticleScraper"],
             recover_record: ScrapedRecord | None = None,
             open_ai_engine: str | None = None,
-            is_test: bool = False
+            is_test: bool = False, use_deepseek: bool = False
 
     ) -> None:
         self.block_size = PRECLASSIFY_ARTICLES_BLOCK
@@ -110,6 +111,7 @@ class ManagerScraper(ABC):
         self.articles_by_id = {}
         self.errors = []
         self.open_ai_engine = open_ai_engine
+        self.use_deepseek = use_deepseek
         self.scraped_record = None
         self.is_test = is_test
 
@@ -305,7 +307,8 @@ class ManagerScraper(ABC):
         # está declarado acá o allá o en dónde y me confundo, pasa mucho en
         # muchos lados y me pierdo entre miles de declaraciones aisladas.
         self.pre_classify_request = JsonRequestOpenAI(
-            prompt_path, engine=self.open_ai_engine)
+            prompt_path, engine=self.open_ai_engine,
+            use_deepseek=self.use_deepseek)
 
         self.pre_classify_response, request_id = self.pre_classify_request\
             .send_prompt(full_prompt)
@@ -444,7 +447,7 @@ class ManagerScraper(ABC):
                            f"_criteria_{prompt_version}.txt")
         articles_criteria_request = JsonRequestOpenAI(
             f"source/scraper/{prompt_criteria}",
-            engine=self.open_ai_engine)
+            engine=self.open_ai_engine, use_deepseek=self.use_deepseek)
 
         pre_classify_response, req_id = articles_criteria_request\
             .send_prompt(full_content)
@@ -555,7 +558,6 @@ class ArticleScraper(ABC):
         article.html_content = str(
             self.get_main_body()) or article.html_content
         article.images = self.images or article.images  # type: ignore
-        
 
     @abstractmethod
     def get_article_data(self):

@@ -2,8 +2,10 @@ import re
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
+import requests
 
 from project.models import Project, StatusProject
+from utils.open_ai import JsonRequestOpenAI
 from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
 
@@ -68,6 +70,8 @@ class Note(CommentsMixin, models.Model):
     def save(self, *args, **kwargs):
         if not self.capture_date:
             self.capture_date = timezone.now().date()
+        if not self.slug_title:
+            self.set_slug_title(save=False)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -88,6 +92,15 @@ class NoteFile(models.Model):
     file = models.FileField(upload_to=upload_to_note_file, max_length=255)
     old_ref = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def save_file_from_url(self, url, file_name, save=False):
+        from django.core.files.base import ContentFile
+        response = requests.get(url, stream=True)
+
+        if response.status_code == 200:
+            self.file.save(file_name, ContentFile(response.content), save=save)
+            return True
+        return False
 
     def __str__(self):
         return self.file.name if self.file else 'Archivo sin nombre'
@@ -201,6 +214,9 @@ class Article(models.Model):
         Note, on_delete=models.CASCADE, related_name='articles',
         blank=True, null=True)
 
+    def get_meta(self, key: str):
+        return self.metadata.get(key) if self.metadata else None
+
     def get_certainty_degree(self, criteria: dict = None) -> int:
         criteria = criteria or self.criteria
         if not criteria:
@@ -226,6 +242,34 @@ class Article(models.Model):
 
     def __str__(self):
         return f"{self.uid} - {self.title}"
+
+    def get_criteria(self, engine_name: str | None = None, use_deepseek: bool = False):
+        prompt_criteria = "prompt_article_criteria.txt"
+        articles_criteria_request = JsonRequestOpenAI(
+            f"source/scraper/{prompt_criteria}",
+            engine=engine_name, use_deepseek=use_deepseek)
+
+        if not (self.content or self.basic_content):
+            return
+
+        pre_classify_response, _ = articles_criteria_request\
+            .send_prompt(self.content or self.basic_content)
+
+        if not pre_classify_response:
+            print("No response from OpenAI")
+            return
+
+        if not isinstance(pre_classify_response, dict):
+            print("Invalid response")
+            return
+
+        certain_degree = self.get_certainty_degree(pre_classify_response)
+        is_selected = certain_degree > 10
+
+        self.criteria = pre_classify_response
+        self.certainty_degree = certain_degree
+        self.is_selected = is_selected
+        self.save()
 
     class Meta:
         unique_together = ['uid', 'source']
@@ -273,7 +317,7 @@ class ArticleQualify(models.Model):
     request_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.article} - {self.ia_model}"
+        return f"{self.article} - {self.qualify_schema}"
 
     class Meta:
         verbose_name = 'Calificación de artículo'

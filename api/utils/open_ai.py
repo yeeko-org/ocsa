@@ -25,15 +25,24 @@ class JsonRequestOpenAI:
     first_example: str
     first_response: dict
     prompt: str
+    use_deepseek: bool
 
     def __init__(
             self, prompt_path: str, to_json: bool = True,
-            engine: str | None = None
+            engine: str | None = None, use_deepseek: bool = False,
     ):
-        openai_api_key = getattr(settings, 'OPENAI_API_KEY', None)
+        openai_api_key = getattr(
+            settings, "DEEPSEEK_API_KEY" if use_deepseek
+            else "OPENAI_API_KEY", None)
 
-        self.client = openai.OpenAI(api_key=openai_api_key)
-        self.engine = engine or MODEL_NAME
+        self.use_deepseek = use_deepseek
+
+        self.client = openai.OpenAI(
+            api_key=openai_api_key,
+            base_url='https://api.deepseek.com/v1' if use_deepseek else None)
+
+        self.engine = "deepseek-chat" if use_deepseek else (
+            engine or MODEL_NAME)
         self.messages: list[dict] = []
         self.to_json = to_json
         self.response = None
@@ -60,12 +69,12 @@ class JsonRequestOpenAI:
                 response_format=response_format,  # type: ignore
                 messages=self.messages,  # type: ignore
                 temperature=0.6,
-                max_tokens=16000,
+                max_tokens=8190 if self.use_deepseek else 16000,
                 frequency_penalty=0,
                 presence_penalty=0
             )
             self.response = response
-        except openai.BadRequestError as e:
+        except Exception as e:
             print(f"messages: {self.messages}")
             print(f"OpenAI BadRequestError: {e}")
             raise e
@@ -89,14 +98,18 @@ class JsonRequestOpenAI:
             except Exception as e:
                 print(f"Error converting to json: {e}")
                 print("prompt:", prompt)
-        self.messages.append({
-            "role": role,
-            "content": [
+        if self.use_deepseek:
+            content = prompt
+        else:
+            content = [
                 {
                     "type": "text",
                     "text": prompt
                 }
             ]
+        self.messages.append({
+            "role": role,
+            "content": content
         })
 
 

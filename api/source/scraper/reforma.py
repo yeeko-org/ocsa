@@ -121,7 +121,12 @@ class ReformaMainScraper(MainScraper):
             section_url = section_data["url"]
             try:
                 section_data["articles"] = ReformaSectionScraper(
-                    section_url).articles
+                    section_url, meta_section={
+                        "nombre": section_data["nombre"],
+                        "directorio": section_data["directorio"],
+                        "id_seccion": section_data["id_seccion"],
+                        "pagina": section_data["pagina"],
+                    }).articles
             except Exception as e:
                 section_data["error"] = str(e)
 
@@ -129,8 +134,10 @@ class ReformaMainScraper(MainScraper):
 class ReformaSectionScraper:
     soup_content: BeautifulSoup
     articles: list[dict]
+    meta_section: dict
 
-    def __init__(self, url: str):
+    def __init__(self, url: str, meta_section: dict | None = None):
+        self.meta_section = meta_section or {}
         self.soup_content = get_content(url, parser="xml")
         self.get_articles()
 
@@ -155,13 +162,17 @@ class ReformaSectionScraper:
                 "https://www.reforma.com/edicionimpresa/aplicacionEI/webview/"
                 f"iWebView.aspx?Coleccion=1066&Folio={uid}&TipoTrans=8"
             )
-            self.articles.append({
-                "uid": uid,
+            metadata = {
                 "idcoleccion": idcolecion,
                 "paginacms": paginacms,
                 "grupocms": grupocms,
                 "ideditorial": ideditorial,
                 "cms": cms,
+            }
+            metadata.update(self.meta_section)
+            self.articles.append({
+                "uid": uid,
+                "metadata": metadata,
                 "url": url
             })
 
