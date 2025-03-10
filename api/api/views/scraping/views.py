@@ -15,7 +15,6 @@ from api.views.scraping.serializers import (
 from source.models import ScrapedRecord, Article
 from source.scraper.jornada import JornadaManagerScraper
 from source.scraper.reforma import ReformaManagerScraper
-from source.tasks import article_full_content
 
 
 def full_scrape_articles(scraped_record: ScrapedRecord):
