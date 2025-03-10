@@ -17,7 +17,8 @@ from api.views.note.serializers import ProjectSemiFullSerializer
 from project.models import Conflict, Project, ProjectFile
 
 from .list_serializers import (
-    ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer)
+    ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
+    ProjectExportSerializer)
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
 
@@ -60,6 +61,114 @@ class ProjectViewSet(ActionFileMixin, viewsets.ModelViewSet):
         "mentions__participants__actor",
     ).distinct()
     # permission_classes = [permissions.IsAuthenticated]
+    xls_attrs = [
+        {
+            "name": "ID",
+            "width": 8,
+            "field": "id"
+
+        },
+        {
+            "name": "Nombre",
+            "width": 40,
+            "field": "name"
+        },
+        {
+            "name": "Nombres alternativos",
+            "width": 40,
+            "field": "alternative_name"
+        },
+        {
+            "name": "Descripción",
+            "width": 40,
+            "field": "description"
+        },
+        {
+            "name": "ID antiguo",
+            "width": 8,
+            "field": "proyecto_id_ref"
+        },
+        {
+            "name": "ID de conflicto",
+            "width": 8,
+            "field": "conflict__id"
+        },
+        {
+            "name": "Nombre de conflicto",
+            "width": 40,
+            "field": "conflict__name"
+        },
+        {
+            "name": "Descripción de conflicto",
+            "width": 40,
+            "field": "conflict__description"
+        },
+        {
+            "name": "Tipo de megaproyecto",
+            "width": 40,
+            "field": "megaproject_type__name"
+        },
+        {
+            "name": "Tipos de extractivismo",
+            "width": 40,
+            "field": "megaproject_type__extractivism_types"
+        },
+        {
+            "name": "ID de proyecto agrupador",
+            "width": 8,
+            "field": "parent_project__id"
+        },
+        {
+            "name": "Nombre de proyecto agrupador",
+            "width": 40,
+            "field": "parent_project__name"
+        },
+        {
+            "name": "ID de ubicación principal",
+            "width": 8,
+            "field": "locations__id"
+        },
+        {
+            "name": "ID de Entidad",
+            "width": 8,
+            "field": "locations__state__inegi_code"
+        },
+        {
+            "name": "Entidad",
+            "width": 40,
+            "field": "locations__state__name"
+        },
+        {
+            "name": "ID de Municipio",
+            "width": 8,
+            "field": "locations__municipality__inegi_code"
+        },
+        {
+            "name": "Municipio",
+            "width": 40,
+            "field": "locations__municipality__name"
+        },
+        {
+            "name": "ID de Localidad",
+            "width": 8,
+            "field": "locations__locality__inegi_code"
+        },
+        {
+            "name": "Localidad",
+            "width": 40,
+            "field": "locations__locality__name"
+        },
+        {
+            "name": "Latitud",
+            "width": 20,
+            "field": "locations__latitude"
+        },
+        {
+            "name": "Longitud",
+            "width": 20,
+            "field": "locations__longitude"
+        }
+    ]
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
@@ -96,8 +205,13 @@ class ProjectViewSet(ActionFileMixin, viewsets.ModelViewSet):
             # 'update': ProjectEditSerializer,
             'update': ProjectFullSerializer,
             'add_file': ProjectFileSerializer,
+            'export_xls': ProjectExportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    @action(detail=False, methods=['get'])
+    def export_xls(self, request):
+        pass
 
     @action(detail=True, methods=['get'])
     def related_actors(self, request, pk=None):

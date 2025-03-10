@@ -124,6 +124,26 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
         ]
 
 
+class ProjectExportSerializer(serializers.ModelSerializer):
+    main_location = LocationFullSerializer(read_only=True)
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",  # ID
+            "proyecto_id_ref",  # Viejo ID
+            "name",  # Nombre
+            "alternative_name",  # Nombre alternativo
+            "description",  # Descripción
+            "parent_project_id",  # ID del proyecto padre
+            "conflict",
+            "megaproject_type",
+            "is_grouper",
+            "status_validation",
+            "status_project",
+            "status_location",
+        ]
+
 class ConflictSerializer(ConflictSimpleSerializer):
     projects = ProjectMiniSerializer(many=True, read_only=True)
 
