@@ -125,24 +125,65 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
 
 
 class ProjectExportSerializer(serializers.ModelSerializer):
-    main_location = LocationFullSerializer(read_only=True)
+    conflict__id = serializers.ReadOnlyField(source='conflict.id')
+    conflict__name = serializers.ReadOnlyField(source='conflict.name')
+    conflict__description = serializers.ReadOnlyField(
+        source='conflict.description')
+    megaproject_type__name = serializers.ReadOnlyField(
+        source='megaproject_type.name')
+    # megaproject_type__extractivism_types = serializers.ReadOnlyField(
+    #     source='megaproject_type.extractivism_types')
+
+    megaproject_type__extractivism_types = serializers.SerializerMethodField()
+    parent_project__id = serializers.ReadOnlyField(source='parent_project.id')
+    parent_project__name = serializers.ReadOnlyField(
+        source='parent_project.name')
+
+    locations__id = serializers.ReadOnlyField()
+    locations__state__inegi_code = serializers.ReadOnlyField()
+    locations__state__name = serializers.ReadOnlyField()
+    locations__municipality__inegi_code = serializers.ReadOnlyField()
+    locations__municipality__name = serializers.ReadOnlyField()
+    locations__locality__inegi_code = serializers.ReadOnlyField()
+    locations__locality__name = serializers.ReadOnlyField()
+    locations__latitude = serializers.ReadOnlyField()
+    locations__longitude = serializers.ReadOnlyField()
+
+    def get_megaproject_type__extractivism_types(self, obj):
+        # TODO: Ricardo revisar si es necesario hacer esta parte por annotate o prefetch_related
+        if obj.megaproject_type is None:
+            return None
+        return ", ".join([str(x) for x in obj.megaproject_type
+                          .extractivism_types.values_list('id', flat=True)])
 
     class Meta:
         model = Project
         fields = [
-            "id",  # ID
-            "proyecto_id_ref",  # Viejo ID
-            "name",  # Nombre
-            "alternative_name",  # Nombre alternativo
-            "description",  # Descripción
-            "parent_project_id",  # ID del proyecto padre
-            "conflict",
-            "megaproject_type",
-            "is_grouper",
-            "status_validation",
-            "status_project",
-            "status_location",
+            "id",
+            "name",
+            "alternative_name",
+            "description",
+            "proyecto_id_ref",
+
+            "conflict__id",
+            "conflict__name",
+            "conflict__description",
+            "megaproject_type__name",
+            "megaproject_type__extractivism_types",
+            "parent_project__id",
+            "parent_project__name",
+
+            "locations__id",
+            "locations__state__inegi_code",
+            "locations__state__name",
+            "locations__municipality__inegi_code",
+            "locations__municipality__name",
+            "locations__locality__inegi_code",
+            "locations__locality__name",
+            "locations__latitude",
+            "locations__longitude",
         ]
+
 
 class ConflictSerializer(ConflictSimpleSerializer):
     projects = ProjectMiniSerializer(many=True, read_only=True)

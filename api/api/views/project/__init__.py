@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from actor.models import Actor
-from api.merge_mix import MergeSerializerMixin
 from api.pagination import CustomPagination
+from api.views.action_export_xls import ExportXlsMixin
 from api.views.action_file import ActionFileMixin
 from api.views.actor.serializers import ActorFullCountSerializer
 from api.views.common_views import UnaccentSearchFilter, BaseStatusViewSet
@@ -47,7 +47,7 @@ class ProjectFilter(FilterSet):
         }
 
 
-class ProjectViewSet(ActionFileMixin, viewsets.ModelViewSet):
+class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
@@ -169,6 +169,7 @@ class ProjectViewSet(ActionFileMixin, viewsets.ModelViewSet):
             "field": "locations__longitude"
         }
     ]
+    xls_name = "Proyectos"
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
@@ -209,9 +210,40 @@ class ProjectViewSet(ActionFileMixin, viewsets.ModelViewSet):
         }
         return action_serializer.get(self.action, self.serializer_class)
 
-    @action(detail=False, methods=['get'])
-    def export_xls(self, request):
-        pass
+    def get_query_for_export_xls(self):
+        from space_time.models import Location
+        from django.db.models import OuterRef, Subquery
+
+        max_priority_location = Location.objects.filter(
+            project=OuterRef('id')
+        ).order_by('-status_location__priority')
+
+        # TODO: Ricardo el annotate es para traer en una sola peticion los datos
+        # de location y sus relacionados sin sobrecargar el prefetch_related
+        # revisar si se puede subir a global los select_related
+
+        queryset = self.get_queryset()\
+            .select_related("megaproject_type", "parent_project")\
+            .annotate(
+                locations__id=Subquery(max_priority_location.values('id')[:1]),
+                locations__state__inegi_code=Subquery(
+                    max_priority_location.values('state__inegi_code')[:1]),
+                locations__state__name=Subquery(
+                    max_priority_location.values('state__name')[:1]),
+                locations__municipality__inegi_code=Subquery(
+                    max_priority_location.values('municipality__inegi_code')[:1]),
+                locations__municipality__name=Subquery(
+                    max_priority_location.values('municipality__name')[:1]),
+                locations__locality__inegi_code=Subquery(
+                    max_priority_location.values('locality__inegi_code')[:1]),
+                locations__locality__name=Subquery(
+                    max_priority_location.values('locality__name')[:1]),
+                locations__latitude=Subquery(
+                    max_priority_location.values('latitude')[:1]),
+                locations__longitude=Subquery(
+                    max_priority_location.values('longitude')[:1]),
+        )
+        return self.filter_queryset(queryset)
 
     @action(detail=True, methods=['get'])
     def related_actors(self, request, pk=None):
