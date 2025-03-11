@@ -154,7 +154,7 @@ class ProjectExportSerializer(serializers.ModelSerializer):
         if obj.megaproject_type is None:
             return None
         return ", ".join([str(x) for x in obj.megaproject_type
-                          .extractivism_types.values_list('id', flat=True)])
+                          .extractivism_types.values_list('name', flat=True)])
 
     class Meta:
         model = Project

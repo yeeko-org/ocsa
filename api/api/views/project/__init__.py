@@ -197,6 +197,10 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
         queryset = super().get_queryset()
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related("others_parents")
+        elif self.action == "export_xls":
+            user = self.request.user
+            if not (user.is_authenticated and user.is_staff):
+                return queryset.filter(status_validation__is_public=True)
         return queryset
 
     def get_serializer_class(self):
