@@ -63,6 +63,7 @@ class LocationFilter(FilterSet):
 
     def filter_only_by(self, queryset, name, value):
         options = ["project", "event", "impact"]
+        print("filter_only_by", value)
         if value not in options:
             return queryset
 
@@ -71,7 +72,7 @@ class LocationFilter(FilterSet):
 
     class Meta:
         model = Location
-        fields = ['only_by', "status_location", "state"]
+        fields = ['only_by', "status_location", "state", "type_location"]
 
 
 class LocationViewSet(BaseViewSet):

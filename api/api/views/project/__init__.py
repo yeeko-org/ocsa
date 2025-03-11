@@ -198,6 +198,8 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related("others_parents")
         elif self.action == "export_xls":
+            queryset = queryset.prefetch_related(
+                "megaproject_type", "megaproject_type__extractivism_types")
             user = self.request.user
             if not (user.is_authenticated and user.is_staff):
                 return queryset.filter(status_validation__is_public=True)

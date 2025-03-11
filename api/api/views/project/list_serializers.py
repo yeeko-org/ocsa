@@ -124,6 +124,11 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
         ]
 
 
+class ExtractivismTypeSerializer(serializers.RelatedField):
+
+    def to_representation(self, value):
+        return ", ".join(value.extractivism_types.values_list('name', flat=True))
+
 class ProjectExportSerializer(serializers.ModelSerializer):
     conflict__id = serializers.ReadOnlyField(source='conflict.id')
     conflict__name = serializers.ReadOnlyField(source='conflict.name')
@@ -131,10 +136,8 @@ class ProjectExportSerializer(serializers.ModelSerializer):
         source='conflict.description')
     megaproject_type__name = serializers.ReadOnlyField(
         source='megaproject_type.name')
-    # megaproject_type__extractivism_types = serializers.ReadOnlyField(
-    #     source='megaproject_type.extractivism_types')
-
-    megaproject_type__extractivism_types = serializers.SerializerMethodField()
+    megaproject_type__extractivism_types = ExtractivismTypeSerializer(
+        source='megaproject_type', read_only=True)
     parent_project__id = serializers.ReadOnlyField(source='parent_project.id')
     parent_project__name = serializers.ReadOnlyField(
         source='parent_project.name')
@@ -148,13 +151,6 @@ class ProjectExportSerializer(serializers.ModelSerializer):
     locations__locality__name = serializers.ReadOnlyField()
     locations__latitude = serializers.ReadOnlyField()
     locations__longitude = serializers.ReadOnlyField()
-
-    def get_megaproject_type__extractivism_types(self, obj):
-        # TODO: Ricardo revisar si es necesario hacer esta parte por annotate o prefetch_related
-        if obj.megaproject_type is None:
-            return None
-        return ", ".join([str(x) for x in obj.megaproject_type
-                          .extractivism_types.values_list('name', flat=True)])
 
     class Meta:
         model = Project
