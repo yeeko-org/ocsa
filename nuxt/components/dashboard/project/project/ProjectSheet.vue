@@ -3,14 +3,14 @@
 import {useMainStore} from "~/store/index";
 import {storeToRefs} from "pinia";
 import PanelList from "~/components/dashboard/common/PanelList.vue";
-import {nextTick} from "vue";
+
 import {show_details} from "~/composables/fetch.js";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 import FilesToolbar from "~/components/dashboard/utils/FilesToolbar.vue";
 import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
-const { getGeo, saveSimple } = mainStore
+const { saveSimple } = mainStore
 
 const props = defineProps({
   full_main: {

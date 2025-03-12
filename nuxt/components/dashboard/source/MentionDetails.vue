@@ -210,28 +210,6 @@ function changeProject(project) {
             />
           </template>
         </ToolbarCommon>
-<!--        <ToolbarCommon-->
-<!--          :cols="7"-->
-<!--          :main_object="mention"-->
-<!--          main_collection_name="mention"-->
-<!--          filter_group_name="impact_types"-->
-<!--          child_relation_name="impact"-->
-<!--          field="impacts"-->
-<!--          required-->
-<!--        >-->
-<!--          <template #rows="{ item }">-->
-<!--            <v-textarea-->
-<!--              v-model="item.description"-->
-<!--              label="Descripción de la afectación"-->
-<!--              variant="outlined"-->
-<!--              density="compact"-->
-<!--              hide-details-->
-<!--              rows="1"-->
-<!--              auto-grow-->
-<!--              style="max-width: 600px;"-->
-<!--            ></v-textarea>-->
-<!--          </template>-->
-<!--        </ToolbarCommon>-->
         <ToolbarCommon
           :main_object="mention"
           main_collection_name="mention"
@@ -240,6 +218,8 @@ function changeProject(project) {
           field="impacts"
           two_columns
           required
+          :additional_fields="{'locations': [], 'displacements': []}"
+
         >
           <template #rows="{ item }">
             <v-textarea

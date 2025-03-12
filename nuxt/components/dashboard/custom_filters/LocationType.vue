@@ -1,14 +1,15 @@
 <script setup>
+import {location_types} from "~/composables/location_types.js";
 const props = defineProps({
   full_main: Object,
   is_filter: Boolean,
 })
 
-const location_types = [
-  { id: 'point', name: 'Punto', icon: 'location_on' },
-  { id: 'line', name: 'Línea', icon: 'timeline' },
-  { id: 'polygon', name: 'Polígono', icon: 'map' },
-]
+// const location_types = [
+//   { id: 'point', name: 'Punto', icon: 'location_on' },
+//   { id: 'line', name: 'Línea', icon: 'timeline' },
+//   { id: 'polygon', name: 'Polígono', icon: 'map' },
+// ]
 
 const width = computed(() => {
   return props.is_filter ? '150px' : '56px'

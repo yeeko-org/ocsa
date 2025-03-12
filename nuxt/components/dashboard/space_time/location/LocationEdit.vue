@@ -2,8 +2,10 @@
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import {nextTick} from "vue";
+import {computed, nextTick} from "vue";
 import LocationType from "~/components/dashboard/custom_filters/LocationType.vue";
+import LocationMapDialog from "~/components/dashboard/space_time/LocationMapDialog.vue";
+import {location_types} from "~/composables/location_types.js";
 const mainStore = useMainStore()
 const { full_geo, cats } = storeToRefs(mainStore)
 const { getGeo } = mainStore
@@ -21,6 +23,11 @@ const init_loaded = ref(false)
 const loading_geo = ref(false)
 const total_geo_requests = ref(0)
 const resolved_geo_requests = ref(0)
+
+const show_map = ref(false) // Control the map dialog
+
+const location_type_full = computed(() => location_types.find(
+    loc => loc.id === props.full_main.type_location))
 
 function getGeoUnities(forced = false) {
   if (loading_geo.value)
@@ -49,6 +56,19 @@ function updateGeo([level, value]) {
 }
 
 
+function handleLocationUpdate(locationData) {
+  console.log("handleLocationUpdate", locationData)
+  // Update the location data based on map editor results
+  if (props.full_main.type_location === 'point' && locationData.geometry?.coordinates) {
+    props.full_main.longitude = locationData.geometry.coordinates[0]
+    props.full_main.latitude = locationData.geometry.coordinates[1]
+  }
+  else{
+    props.full_main.geojson = locationData
+  }
+}
+
+
 onMounted(() => {
   // console.log("full_main onMounted", props.full_main)
   if (props.full_main.locations) {
@@ -72,80 +92,116 @@ nextTick(() => {
 </script>
 
 <template>
-  <v-col cols="12">
-    <div class="d-flex align-center flex-wrap">
-<!--      <SelectGroup-->
-<!--        v-if="false"-->
-<!--        :main_object="full_main"-->
-<!--        filter_group_name="states"-->
-<!--        :width="200"-->
-<!--      />-->
-      <v-autocomplete
-        v-model="full_main.state"
-        :items="cats.state || []"
-        item-title="short_name"
-        item-value="id"
-        label="Estado"
+  <v-row>
+    <v-col :cols="show_map ? 6 : 12">
+      <div class="d-flex align-center flex-wrap">
+        <v-autocomplete
+          v-model="full_main.state"
+          :items="cats.state || []"
+          item-title="short_name"
+          item-value="id"
+          label="Estado"
+          variant="outlined"
+          width="200"
+          @update:model-value="changeGeoValue('state', $event)"
+        />
+        <v-autocomplete
+          v-model="full_main.municipality"
+          :items="full_geo.state[full_main.state] || []"
+          item-title="name"
+          item-value="id"
+          label="Municipio"
+          variant="outlined"
+          class="ml-2"
+          max-width="300"
+          min-width="260"
+          @update:model-value="changeGeoValue('municipality', $event)"
+        >
+        </v-autocomplete>
+        <v-autocomplete
+          v-model="full_main.locality"
+          :items="full_geo.municipality[full_main.municipality] || []"
+          item-title="name"
+          item-value="id"
+          label="Localidad"
+          variant="outlined"
+          class="ml-2"
+          max-width="320"
+          min-width="240"
+        >
+        </v-autocomplete>
+        <LocationType
+          :full_main="full_main"
+        />
+        <template v-if="full_main.type_location === 'point'">
+          <v-text-field
+            v-model="full_main.latitude"
+            label="Latitud"
+            variant="outlined"
+            class="mx-1"
+            style="max-width: 180px;"
+          >
+          </v-text-field>
+          <v-text-field
+            v-model="full_main.longitude"
+            label="Longitud"
+            variant="outlined"
+            style="max-width: 180px;"
+          >
+          </v-text-field>
+        </template>
+        <v-btn
+          color="accent"
+          class="ml-2 mb-3"
+          :disabled="!full_main.type_location"
+          icon
+          :variant="show_map ? 'elevated' : 'outlined'"
+          @click="show_map = !show_map"
+          v-tooltip:bottom="show_map ? 'Cerrar mapa' : 'Abrir mapa'"
+        >
+          <v-icon>
+            map
+          </v-icon>
+        </v-btn>
+      </div>
+      <v-textarea
+        v-model="full_main.details"
+        label="Detalles adicionales"
         variant="outlined"
-        width="200"
-        @update:model-value="changeGeoValue('state', $event)"
-      />
-      <v-autocomplete
-        v-model="full_main.municipality"
-        :items="full_geo.state[full_main.state] || []"
-        item-title="name"
-        item-value="id"
-        label="Municipio"
-        variant="outlined"
-        class="ml-2"
-        max-width="300"
-        min-width="260"
-        @update:model-value="changeGeoValue('municipality', $event)"
+        class="mb-2"
+        density="compact"
+        hide-details
+        rows="1"
+        auto-grow
       >
-      </v-autocomplete>
-      <v-autocomplete
-        v-model="full_main.locality"
-        :items="full_geo.municipality[full_main.municipality] || []"
-        item-title="name"
-        item-value="id"
-        label="Localidad"
-        variant="outlined"
-        class="ml-2"
-        max-width="320"
-        min-width="240"
+      </v-textarea>
+      <v-alert
+        v-if="show_map"
+        type="info"
+        variant="tonal"
+        class="mt-3"
+        density="compact"
       >
-      </v-autocomplete>
-      <LocationType
-        :full_main="full_main"
-      />
-      <v-text-field
-        v-model="full_main.latitude"
-        label="Latitud"
-        variant="outlined"
-        class="mx-1"
-        style="max-width: 180px;"
-      >
-      </v-text-field>
-      <v-text-field
-        v-model="full_main.longitude"
-        label="Longitud"
-        variant="outlined"
-        style="max-width: 180px;"
-      >
-      </v-text-field>
-    </div>
-    <v-textarea
-      v-model="full_main.details"
-      label="Detalles adicionales"
-      variant="outlined"
-      class="mb-2"
-      density="compact"
-      hide-details
-      rows="1"
-      auto-grow
+        <div
+          v-for="msg in location_type_full.helps"
+          :key="msg"
+        >
+          {{msg}}
+        </div>
+      </v-alert>
+    </v-col>
+    <v-col
+      v-if="show_map"
+      cols="6"
     >
-    </v-textarea>
-  </v-col>
+      <LocationMapDialog
+        :location_type="full_main.type_location"
+        :full_main="full_main"
+        @update:location="handleLocationUpdate"
+        @close-dialog="show_map = false"
+      />
+    </v-col>
+  </v-row>
 </template>
 
 <style scoped>
