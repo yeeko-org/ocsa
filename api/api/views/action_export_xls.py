@@ -28,7 +28,7 @@ class ExportXlsMixin(ModelViewSet):
 
         data = serializer.data
 
-        name = getattr(self, 'xls_name', 'Export')
+        name = getattr(self, 'xls_name', 'Exportación')
         attrs = getattr(self, 'xls_attrs', [])
         columns_width = [row.get('width', 20) for row in attrs]
         heades = [row.get('name', '') for row in attrs]

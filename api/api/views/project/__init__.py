@@ -66,7 +66,6 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
             "name": "ID",
             "width": 8,
             "field": "id"
-
         },
         {
             "name": "Nombre",
@@ -169,7 +168,7 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
             "field": "locations__longitude"
         }
     ]
-    xls_name = "Proyectos"
+    xls_name = "Exportación de Proyectos"
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
@@ -182,8 +181,7 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
     search_fields = [
         "name",
         "alternative_name",
-        "=proyecto_id_ref",
-        # "description"
+        "=proyecto_id_ref"
     ]
     ordering_fields = [
         'id', 'name', 'status_validation__order', 'status_location__order']
@@ -198,8 +196,13 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related("others_parents")
         elif self.action == "export_xls":
-            queryset = queryset.prefetch_related(
-                "megaproject_type", "megaproject_type__extractivism_types")
+            queryset = Project.objects.all().select_related(
+                "parent_project",
+                "conflict",
+                "megaproject_type",
+            ).prefetch_related(
+                "megaproject_type__extractivism_types"
+            ).distinct()
             user = self.request.user
             if not (user.is_authenticated and user.is_staff):
                 return queryset.filter(status_validation__is_public=True)
@@ -229,7 +232,6 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
         # revisar si se puede subir a global los select_related
 
         queryset = self.get_queryset()\
-            .select_related("megaproject_type", "parent_project")\
             .annotate(
                 locations__id=Subquery(max_priority_location.values('id')[:1]),
                 locations__state__inegi_code=Subquery(

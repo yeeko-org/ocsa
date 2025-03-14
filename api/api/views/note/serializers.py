@@ -11,6 +11,7 @@ from source.models import Mention, Note, NoteFile, StatusHistory
 from event.models import Event, Involved
 from actor.models import Participant, Interest
 from impact.models import Impact
+from df.models import Displacement
 # from impact.models import Impact
 from space_time.models import Location
 
@@ -18,6 +19,12 @@ from space_time.models import Location
 class LocationSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
+        fields = '__all__'
+
+
+class DisplacementSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Displacement
         fields = '__all__'
 
 
@@ -80,10 +87,12 @@ class EventSimpleSerializer(serializers.ModelSerializer):
 class EventEmbedSerializer(EventSimpleSerializer):
     involvements = InvolvedSerializer(many=True, read_only=True)
     locations = LocationSimpleSerializer(many=True, read_only=True)
+    displacements = DisplacementSimpleSerializer(many=True, read_only=True)
 
 
 class ImpactEmbedSerializer(serializers.ModelSerializer):
     locations = LocationSimpleSerializer(many=True, read_only=True)
+    displacements = DisplacementSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Impact
