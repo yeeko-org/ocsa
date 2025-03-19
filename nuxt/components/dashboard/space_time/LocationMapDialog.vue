@@ -13,6 +13,7 @@ const props = defineProps({
     validator: (value) => ['point', 'line', 'polygon'].includes(value)
   },
   full_main: Object,
+  close_position: Object
 });
 
 const emit = defineEmits(['update:location', 'close-dialog']);
@@ -75,9 +76,18 @@ function initializeMap() {
   // Use existing coordinates if available for a point
   const has_center = existingGeometry.value
       && existingGeometry.value.geometry.type === 'Point'
-  const center = has_center
-    ? existingGeometry.value.geometry.coordinates
-    : defaultCenter;
+  let center = defaultCenter
+  let zoom = 4
+  if (has_center){
+    center = existingGeometry.value.geometry.coordinates
+    zoom = 13
+  }
+  else if (props.close_position){
+    const close_pos = props.close_position
+    // console.log("close_pos", close_pos)
+    center = [close_pos.longitude, close_pos.latitude]
+    zoom = close_pos.state ? 12 : 13
+  }
 
   map.value = new mapboxgl.Map({
     container: mapContainer.value,
@@ -85,7 +95,7 @@ function initializeMap() {
       ? 'mapbox://styles/rickrebel/cm83y5cbp004301s5861t18gi'
       : 'mapbox://styles/rickrebel/cm6ls9un800kr01qqdu1g48nq',
     center: center,
-    zoom: has_center ? 12 : 4
+    zoom: zoom
   });
 
   map.value.on('load', () => {
@@ -103,13 +113,21 @@ function initializeMap() {
 
     map.value.addLayer({
       id: 'point-layer',
-      type: 'symbol',
+      type: 'circle',
       source: 'point-source',
       paint: {
-        'circle-radius': 8,
-        'circle-color': '#9a3fce',
+        'circle-radius': [
+          'case', ['==', ['get', 'selected'], true],
+          8, // If selected
+          5 // If not selected
+        ],
+        'circle-color': [
+          'case', ['==', ['get', 'selected'], true],
+          '#9a3fce', // If selected
+          '#25d0a8' // If not selected
+        ],
         'circle-stroke-width': 2,
-        'circle-stroke-color': '#FFFFFF'
+        'circle-stroke-color': '#FFFFFF',
       }
     });
 
@@ -141,13 +159,54 @@ function setupDrawTools(skipAddingExistingGeometry = false) {
     },
     styles: [
       // Point style
+      // {
+      //   id: 'gl-draw-point',
+      //   type: 'circle',
+      //   filter: ['all', ['==', '$type', 'Point']],
+      //   paint: {
+      //     // 'circle-radius': 8,
+      //     'circle-radius': [
+      //       'case', ['==', ['get', 'selected'], true], // Check if selected
+      //       8, // If selected
+      //       5 // If not selected
+      //     ],
+      //     // 'circle-color': '#9a3fce',
+      //     'circle-color': [
+      //         'case', ['==', ['get', 'selected'], true], // Check if selected
+      //         '#9a3fce', // If selected
+      //         '#3f51b5' // If not selected
+      //     ],
+      //     'circle-stroke-width': 2,
+      //     'circle-stroke-color': '#FFFFFF'
+      //   }
+      // },
       {
-        id: 'gl-draw-point',
+        id: 'gl-draw-point-inactive',
         type: 'circle',
-        filter: ['all', ['==', '$type', 'Point']],
+        filter: ['all',
+          ['==', '$type', 'Point'],
+          ['==', 'meta', 'feature'],
+          ['!=', 'active', 'true']
+        ],
+        paint: {
+          'circle-radius': 5,
+          'circle-color': '#25d0a8', // Blue
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#FFFFFF'
+        }
+      },
+      // Point styles - active/selected
+      {
+        id: 'gl-draw-point-active',
+        type: 'circle',
+        filter: ['all',
+          ['==', '$type', 'Point'],
+          ['==', 'meta', 'feature'],
+          ['==', 'active', 'true']
+        ],
         paint: {
           'circle-radius': 8,
-          'circle-color': '#9a3fce',
+          'circle-color': '#9a3fce', // Purple
           'circle-stroke-width': 2,
           'circle-stroke-color': '#FFFFFF'
         }
@@ -236,7 +295,6 @@ function setupDrawTools(skipAddingExistingGeometry = false) {
 }
 
 function updateDrawing(e) {
-  console.log("Drawing updated:", e);
 
   const features = draw.value.getAll().features;
   console.log("Features:", features);
@@ -252,19 +310,31 @@ function updateDrawing(e) {
   const drawnFeatures = e.features || [];
   if (drawnFeatures.length > 0) {
     const feature = drawnFeatures[0];
-    console.log("Feature updated:", feature);
     if (feature.geometry.type === 'Point') {
-      map.value.getSource('point-source').setData({
-        type: 'FeatureCollection',
-        features: [feature]
-      });
+      const point_source = map.value.getSource('point-source');
+      console.log("point_source", point_source);
+      if (!point_source) {
+        map.value.addSource('point-source', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: [feature]
+          }
+        });
+      }
+      else {
+        point_source.setData({
+          type: 'FeatureCollection',
+          features: [feature]
+        });
+      }
     }
     emit('update:location', feature);
   }
 }
 // Handle deletion of drawings
 function clearDrawing() {
-  // console.log("Drawing cleared");
+  console.log("Drawing cleared", map.value)
   map.value.getSource('point-source').setData({
     type: 'FeatureCollection',
     features: []
@@ -331,6 +401,7 @@ function toggleMapStyle(val) {
       setupDrawTools(true);
       if (feature)
         draw.value.add(feature);
+
     });
   } catch (error) {
     console.error("Error toggling map style:", error);

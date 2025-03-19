@@ -59,6 +59,7 @@ const props = defineProps({
     <template #rows="{item}">
       <LocationEdit
         :full_main="item"
+        :second_level="second_level"
       />
     </template>
   </ToolbarCommon>

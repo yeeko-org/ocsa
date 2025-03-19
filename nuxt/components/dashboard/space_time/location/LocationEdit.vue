@@ -17,6 +17,7 @@ const props = defineProps({
   },
   is_massive_edit: Boolean,
   is_edit: Boolean,
+  second_level: Boolean,
 })
 
 const init_loaded = ref(false)
@@ -28,6 +29,37 @@ const show_map = ref(false) // Control the map dialog
 
 const location_type_full = computed(() => location_types.find(
     loc => loc.id === props.full_main.type_location))
+
+
+const close_position = computed(() => {
+  console.log("full_main", props.full_main)
+  console.log("full_geo", full_geo.value)
+  let close_position = false
+  if (full_geo.value.municipality && props.full_main.locality) {
+    const mun = full_geo.value.municipality[props.full_main.municipality]
+    if (mun)
+      close_position = mun.find(
+        loc => loc.id === props.full_main.locality)
+  }
+  if (close_position)
+    return close_position
+  if (full_geo.value.state && props.full_main.municipality) {
+    const state = full_geo.value.state[props.full_main.state]
+    if (state){
+      close_position = state.find(
+        mun => mun.id === props.full_main.municipality)
+    }
+  }
+  return close_position
+})
+
+
+onMounted(() => {
+  // console.log("full_main onMounted", props.full_main)
+  if (props.full_main.locations) {
+    getGeoUnities()
+  }
+})
 
 function getGeoUnities(forced = false) {
   if (loading_geo.value)
@@ -57,7 +89,7 @@ function updateGeo([level, value]) {
 
 
 function handleLocationUpdate(locationData) {
-  console.log("handleLocationUpdate", locationData)
+  // console.log("handleLocationUpdate", locationData)
   // Update the location data based on map editor results
   if (props.full_main.type_location === 'point' && locationData.geometry?.coordinates) {
     props.full_main.longitude = locationData.geometry.coordinates[0]
@@ -68,16 +100,8 @@ function handleLocationUpdate(locationData) {
   }
 }
 
-
-onMounted(() => {
-  // console.log("full_main onMounted", props.full_main)
-  if (props.full_main.locations) {
-    getGeoUnities()
-  }
-})
-
 function changeGeoValue(level, value) {
-  console.log("changeGeoValue", level, value)
+  // console.log("changeGeoValue", level, value)
   updateGeo([level, value])
 }
 
@@ -93,7 +117,7 @@ nextTick(() => {
 
 <template>
   <v-row>
-    <v-col :cols="show_map ? 6 : 12">
+    <v-col :cols="show_map && !second_level ? 6 : 12">
       <div class="d-flex align-center flex-wrap">
         <v-autocomplete
           v-model="full_main.state"
@@ -192,13 +216,14 @@ nextTick(() => {
     </v-col>
     <v-col
       v-if="show_map"
-      cols="6"
+      :cols="second_level ? 12 : 6"
     >
       <LocationMapDialog
         :location_type="full_main.type_location"
         :full_main="full_main"
         @update:location="handleLocationUpdate"
         @close-dialog="show_map = false"
+        :close_position="close_position"
       />
     </v-col>
   </v-row>
