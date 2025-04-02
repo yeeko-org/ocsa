@@ -35,12 +35,18 @@ class ParticipantSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ImpactSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Impact
+        fields = '__all__'
+        read_only_fields = ['mention']
+
+
 class ImpactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Impact
         fields = '__all__'
-        read_only_fields = ['mention']
 
 
 class NoteBasicSerializer(serializers.ModelSerializer):

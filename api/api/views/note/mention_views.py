@@ -12,8 +12,9 @@ from api.views.note.serializers import (
     ParticipantSimpleSerializer, InterestSerializer,
     InvolvedSerializer, StatusHistorySerializer, StatusHistoryFullSerializer)
 from api.views.project.list_serializers import (
-    ImpactSerializer, ParticipantSerializer)
-from api.views.note.serializers import ImpactFullSerializer, EventFullNoteSerializer
+    ImpactSerializer, ParticipantSerializer, ImpactSimpleSerializer)
+from api.views.note.serializers import (
+    ImpactFullSerializer, EventFullNoteSerializer)
 from api.views.common_views import MassiveEdit
 
 from source.models import Mention, StatusHistory
@@ -77,16 +78,17 @@ class ImpactViewSet(MassiveEdit, viewsets.ModelViewSet):
     pagination_class = CustomPagination
     queryset = Impact.objects.all()
 
-    serializer_class = ImpactSerializer
+    serializer_class = ImpactSimpleSerializer
     filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
     search_fields = ['description']
     filterset_fields = ['impact_type', 'impact_subtype']
 
     def get_serializer_class(self):
+        print("self.action", self.action)
         action_serializer = {
             'retrieve': ImpactFullSerializer,
-            # 'create': ImpactFullSerializer,
-            # 'update': ImpactFullSerializer,
+            'update': ImpactFullSerializer,
+            'create': ImpactFullSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 
