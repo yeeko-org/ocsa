@@ -38,6 +38,7 @@ const all_selected = computed(() => {
     @click="emits('select-all')"
     size="small"
     :icon="all_selected ? 'check_box' : 'check_box_outline_blank'"
+    v-tooltip:bottom="all_selected ? 'Deseleccionar todos' : 'Seleccionar todos'"
   ></v-btn>
   <v-btn
     v-if="collection_data.available_actions.includes('merge')"

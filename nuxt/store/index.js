@@ -602,6 +602,11 @@ export const useMainStore = defineStore('main', {
         return {}
       return state.cats.event_group.find(eg => eg.name === 'Violencia')
     },
+    event_group_legal(state) {
+      if (!state.cats)
+        return {}
+      return state.cats.event_group.find(eg => eg.name === 'Mecanismos legales')
+    },
     event_group_show_position(state) {
       if (!state.cats)
         return []

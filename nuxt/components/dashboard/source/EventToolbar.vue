@@ -8,7 +8,9 @@ import {storeToRefs} from "pinia";
 import {computed} from "vue";
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 const mainStore = useMainStore()
-const { event_group_violence, event_group_show_position } = storeToRefs(mainStore)
+const {
+  event_group_violence, event_group_show_position, event_group_legal
+} = storeToRefs(mainStore)
 
 
 const props = defineProps({
@@ -37,6 +39,13 @@ const all_actors = computed(() => {
     required
   >
     <template #rows="{ item }">
+      <v-select
+        v-if="event_group_legal"
+        :items="['para la defensa', 'para el despojo']"
+        label="Uso del mecanismo"
+        variant="outlined"
+      >
+      </v-select>
       <v-textarea
         v-model="item.description"
         label="Descripción del evento (opcional)"
@@ -114,39 +123,6 @@ const all_actors = computed(() => {
             label="Participante"
             variant="outlined"
           ></v-select>
-<!--          <div class="text-subtitle-1">Número de víctimas:</div>-->
-<!--          <div class="d-flex mr-8">-->
-<!--            <v-text-field-->
-<!--              v-model="item.number_women"-->
-<!--              type="number"-->
-<!--              label="Mujeres"-->
-<!--              class="mr-2"-->
-<!--              variant="outlined"-->
-<!--              density="compact"-->
-<!--              max-width="140"-->
-<!--              hide-details-->
-<!--            ></v-text-field>-->
-<!--            <v-text-field-->
-<!--              v-model="item.number_men"-->
-<!--              type="number"-->
-<!--              label="Hombres"-->
-<!--              class="mr-2"-->
-<!--              variant="outlined"-->
-<!--              density="compact"-->
-<!--              max-width="140"-->
-<!--              hide-details-->
-<!--            ></v-text-field>-->
-<!--            <v-text-field-->
-<!--              v-model="item.number_mix"-->
-<!--              type="number"-->
-<!--              label="Otros"-->
-<!--              class="mr-2"-->
-<!--              variant="outlined"-->
-<!--              density="compact"-->
-<!--              max-width="140"-->
-<!--              hide-details-->
-<!--            ></v-text-field>-->
-<!--          </div>-->
         </template>
         <template #footer>
           <v-card

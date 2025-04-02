@@ -309,15 +309,6 @@ function selectItem(item) {
             ></component>
           </template>
         </EditCommon>
-
-<!--      <component-->
-<!--        :is="edit_component"-->
-<!--        :full_main="element_to_edit"-->
-<!--        :collection_data="collection_data"-->
-<!--        :is_massive_edit="true"-->
-<!--        _select-item="selectItem($event)"-->
-<!--        @item-saved="saveNewElement"-->
-<!--      ></component>-->
         <template v-if="edit_type.key !== 'edit'">
           <v-divider></v-divider>
           <PanelList

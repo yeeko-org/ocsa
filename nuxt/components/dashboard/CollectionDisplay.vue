@@ -308,6 +308,15 @@ function selectItem(item) {
           class="mx-3"
           style="max-width: 220px; min-width: 130px;"
         ></v-select>
+        <v-select
+          :items="[40, 100, 200]"
+          v-model="final_filters.page_size"
+          label="results"
+          density="compact"
+          variant="underlined"
+          style="max-width: 70px; _min-width: 80px;"
+          hide-details
+        ></v-select>
         <v-spacer></v-spacer>
         <FiltersList
           v-if="simplified_filters"
