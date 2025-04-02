@@ -72,7 +72,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ImpactViewSet(viewsets.ModelViewSet):
+class ImpactViewSet(MassiveEdit, viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     pagination_class = CustomPagination
     queryset = Impact.objects.all()
@@ -85,6 +85,8 @@ class ImpactViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': ImpactFullSerializer,
+            # 'create': ImpactFullSerializer,
+            # 'update': ImpactFullSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 
