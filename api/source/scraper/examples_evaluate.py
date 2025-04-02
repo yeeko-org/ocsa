@@ -66,6 +66,8 @@ def scrape_full_articles(
     scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
         open_ai_engine=open_ai_engine, is_test=True)
+    if open_ai_engine == "deepseek-chat":
+        scraper.use_deepseek = True
     scraper.full_scrape_articles(
         all_articles=True, block_size=block_size,
         prompt_version=prompt_version)
@@ -75,6 +77,7 @@ scrape_full_articles(22, 1, "gpt-4o-mini", "v1")
 
 scrape_full_articles(22, 6, "gpt-4o-mini", "v2")
 scrape_full_articles(22, 6, "gpt-4o-mini", "v1")
+scrape_full_articles(22, 6, "deepseek-chat", "v1")
 
 # scrape_full_articles(1, 20, "gpt-4o-2024-11-20")
 # scrape_full_articles(17, 20, "gpt-4o-mini")
@@ -127,6 +130,37 @@ def explore_schemas_by_article(sr_id=17):
 
     all_url_notes = Note.objects.filter(
         source__name="La Jornada").values_list("link", flat=True)
+    other_url_notes = [
+        "https://www.jornada.com.mx/2022/08/01/estados/024n2est",
+        "https://www.jornada.com.mx/2022/09/01/politica/012n3pol",
+        "https://www.jornada.com.mx/2022/09/04/estados/020n1est",
+        "https://www.jornada.com.mx/2022/09/05/opinion/021o1eco",
+        "https://www.jornada.com.mx/2022/09/05/politica/011n2pol",
+        "https://www.jornada.com.mx/2022/09/06/estados/028n1est",
+        "https://www.jornada.com.mx/2022/09/06/politica/012n2pol",
+        "https://www.jornada.com.mx/2022/09/07/estados/026n1est",
+        "https://www.jornada.com.mx/2022/09/08/estados/027n1est",
+        "https://www.jornada.com.mx/2022/09/12/estados/025n1est",
+        "https://www.jornada.com.mx/2022/09/13/politica/011n1pol",
+        "https://www.jornada.com.mx/2022/09/14/politica/012n2pol",
+        "https://www.jornada.com.mx/2022/09/17/cultura/a03n1cul",
+        "https://www.jornada.com.mx/2022/09/18/estados/025n1est",
+        "https://www.jornada.com.mx/2022/09/18/estados/025n2est",
+        "https://www.jornada.com.mx/2022/09/19/capital/036n1cap",
+        "https://www.jornada.com.mx/2022/09/21/estados/028n1est",
+        "https://www.jornada.com.mx/2022/09/21/capital/032n2cap",
+        "https://www.jornada.com.mx/2022/09/24/capital/028n1cap",
+        "https://www.jornada.com.mx/2022/09/24/estados/025n1est",
+        "https://www.jornada.com.mx/2022/09/25/estados/022n1est",
+        "https://www.jornada.com.mx/2022/09/26/estados/030n1est",
+        "https://www.jornada.com.mx/2022/09/26/estados/030n1est",
+        "https://www.jornada.com.mx/2022/09/25/estados/022n1est",
+        "https://www.jornada.com.mx/2022/09/26/estados/029n1est",
+        "https://www.jornada.com.mx/2022/09/21/estados/028n1est",
+        "https://www.jornada.com.mx/2022/09/18/estados/025n1est",
+        "https://www.jornada.com.mx/2022/09/06/politica/012n2pol"
+    ]
+    all_url_notes = list(all_url_notes) + other_url_notes
 
     icons = {
         "minus": 1,  # "❌",

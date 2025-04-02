@@ -9,24 +9,8 @@ class ArticleListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = [
-            "id",
-            "detail_url",
-            "uid",
-            "title",
-            "source",
-            "section",
-            "url",
-            "imgs",
-            "basic_content",
-            "scraped_date",
-            "autor",
-            "published_date",
-            "certainty_degree",
-            "is_selected",
-            "scraped",
-            "note",
-        ]
+        fields = "__all__"
+        exclude = ['content', 'basic_content', 'metadata']
 
 
 class ArticleDetailSerializer(serializers.ModelSerializer):

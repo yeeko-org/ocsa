@@ -156,7 +156,7 @@ all_collections = {
             "all_filters": [
                 {"filter_name": "impact_types", "hidden": False},
             ],
-            "available_actions": ["merge"],
+            "available_actions": ["massive_edit"],
         },
         {
             "snake_name": "impact_group",
