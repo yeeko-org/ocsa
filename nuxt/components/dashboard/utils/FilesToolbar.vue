@@ -24,7 +24,6 @@ const pdf = ref()
 const main_file = ref(null)
 const saving = ref(false)
 const show_img = ref(false)
-const show_pdf = ref(false)
 
 // const { pdf } = usePDF(/
 
@@ -48,10 +47,6 @@ function sendFile(){
     props.full_main.files.push(res)
     main_file.value = null
   })
-}
-
-function downloadFile(file){
-  window.open(file, '_blank');
 }
 
 function trashFile(file){
@@ -132,12 +127,6 @@ function trashFile(file){
           ></v-img>
         </div>
       </template>
-      <v-btn
-        v-if="false"
-        @click="loadPDF"
-        variant="text"
-        color="accent"
-      >Ampliar</v-btn>
     </template>
   </ToolbarCommon>
 </template>

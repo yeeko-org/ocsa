@@ -11,6 +11,7 @@ import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import {nextTick} from "vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
+import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { saveSimple, getRelatedActors } = mainStore
@@ -59,12 +60,16 @@ function saveOneToMany(snake_name, main_item) {
   one_to_many.forEach(field => {
     if (['involved', "eventlocation"].includes(field.name))
       return
+    if (field.name.includes('displacement_')){
+      console.log("displacement field", field.name)
+      return
+    }
     const related_collection = schemas.value.collections_dict[
         field.related_model]
     // console.log("related_collection", related_collection)
     const snake_name2 = related_collection.snake_name
-    // console.log("main_item", main_item)
-    // console.log("field", field.name)
+    console.log("main_item", main_item)
+    console.log("field", field.name)
     main_item[field.name].forEach(item => {
       saveOneToMany(snake_name2, item)
       total_requests.value += 1
@@ -232,6 +237,13 @@ function changeProject(project) {
               auto-grow
               style="max-width: 600px;"
             ></v-textarea>
+            <DisplacementToolbar
+              v-if="item"
+              :full_main="item"
+              main_collection_name="impact"
+              second_level
+              class="px-0"
+            />
           </template>
           <template #second-column="{ item }">
             <LocationsToolbar

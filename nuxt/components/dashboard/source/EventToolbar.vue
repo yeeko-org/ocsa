@@ -7,9 +7,10 @@ import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import {computed} from "vue";
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 const mainStore = useMainStore()
 const {
-  event_group_violence, event_group_show_position, event_group_legal
+  event_group_violence, event_group_show_position,
 } = storeToRefs(mainStore)
 
 
@@ -39,13 +40,6 @@ const all_actors = computed(() => {
     required
   >
     <template #rows="{ item }">
-      <v-select
-        v-if="event_group_legal"
-        :items="['para la defensa', 'para el despojo']"
-        label="Uso del mecanismo"
-        variant="outlined"
-      >
-      </v-select>
       <v-textarea
         v-model="item.description"
         label="Descripción del evento (opcional)"
@@ -102,6 +96,17 @@ const all_actors = computed(() => {
           />
         </div>
       </template>
+      <div
+        class="mx-n2"
+      >
+        <DisplacementToolbar
+          v-if="item"
+          :full_main="item"
+          main_collection_name="event"
+          second_level
+          is_event
+        />
+      </div>
     </template>
     <template #second-column="{ item }">
       <ToolbarCommon
@@ -151,48 +156,8 @@ const all_actors = computed(() => {
         main_collection_name="event"
         second_level
       />
-      <ToolbarCommon
-        v-if="false"
-        :main_object="item"
-        main_collection_name="event"
-        filter_group_name="states"
-        child_relation_name="displacement"
-        field="displacements"
-        second_level
-        color="orange"
-        required
-      >
-        <template #rdows="{ item }">
-          <v-select
-            v-model="item.participant"
-            :items="all_actors"
-            item-title="name"
-            item-value="id"
-            label="Participante"
-            variant="outlined"
-          ></v-select>
-        </template>
-<!--        <template #footer>-->
-<!--          <v-card-->
-<!--            class="ma-2"-->
-<!--            elevation="2"-->
-<!--            variant="flat"-->
-<!--            color="white"-->
-<!--          >-->
-<!--            Sugerencias rápidas (comming soon...)-->
-<!--          </v-card>-->
-<!--        </template>-->
-        <template #rows_init="{ item }" v-if="true">
-          <v-select
-            v-model="item.participant"
-            :items="all_actors"
-            item-title="name"
-            item-value="id"
-            label="Participante"
-            variant="outlined"
-          ></v-select>
-        </template>
-      </ToolbarCommon>
+
+
     </template>
   </ToolbarCommon>
 

@@ -92,6 +92,10 @@ const calculateSchemas = (data) => {
         return arr
       }
       const filter_data = filters_dict[f.filter_name]
+      if (!filter_data){
+        console.error("No filter data", f.filter_name)
+        return arr
+      }
       const new_filter = {...filter_data, ...f}
       if (filter_data.category_group){
         const category_groups = data[filter_data.category_group] || []
@@ -606,6 +610,23 @@ export const useMainStore = defineStore('main', {
       if (!state.cats)
         return {}
       return state.cats.event_group.find(eg => eg.name === 'Mecanismos legales')
+    },
+    displacement_event_types(state) {
+      if (!state.cats)
+        return []
+      const has_dis = state.cats.event_type.filter(et => et.has_displacement)
+      return has_dis.map(et => et.id)
+    },
+    displacement_impact_types(state) {
+      if (!state.cats)
+        return []
+      const has_dis = state.cats.impact_type.filter(et => et.has_displacement)
+      return has_dis.map(et => et.id)
+    },
+    internal_displacement(state) {
+      if (!state.cats)
+        return {}
+      return state.cats.dimension.find(d => d.name.includes('nterno'))
     },
     event_group_show_position(state) {
       if (!state.cats)
