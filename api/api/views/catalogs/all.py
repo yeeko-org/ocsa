@@ -66,9 +66,9 @@ from api.views.catalogs.event_serializers import (
     PurposeSerializer,
 )
 
-from df.models import Dimension, PopulationSize
+from df.models import Dimension, PopulationSize, Temporality
 from api.views.catalogs.df_serializers import (
-    DimensionSerializer, PopulationSizeSerializer)
+    DimensionSerializer, PopulationSizeSerializer, TemporalitySerializer)
 
 from actor.models import Actor
 
@@ -128,6 +128,8 @@ class CatalogsView(APIView):
                 Dimension.objects.all(), many=True).data,
             "population_size": PopulationSizeSerializer(
                 PopulationSize.objects.all(), many=True).data,
+            "temporality": TemporalitySerializer(
+                Temporality.objects.all(), many=True).data,
 
             "impact_group": ImpactGroupSerializer(
                 ImpactGroup.objects.all(), many=True).data,

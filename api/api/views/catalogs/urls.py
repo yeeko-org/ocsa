@@ -17,7 +17,8 @@ from api.views.actor.classify_views import IndigenousGroupViewSet, SectorViewSet
     ParticipantGroupViewSet, ParticipantTypeViewSet, BelongViewSet, CountryViewSet
 from api.views.catalogs.impact_views import (
     ImpactSubtypeViewSet, ImpactTypeViewSet, ImpactGroupViewSet)
-from api.views.df.df_views import DimensionViewSet, PopulationSizeViewSet
+from api.views.df.df_views import (
+    DimensionViewSet, PopulationSizeViewSet, TemporalityViewSet)
 
 from rest_framework import routers
 
@@ -44,6 +45,7 @@ router.register(r'involved_role', InvolvedRoleViewSet, basename='catalog_involve
 
 router.register(r'dimension', DimensionViewSet, basename='catalog_dimension')
 router.register(r'population_size', PopulationSizeViewSet, basename='catalog_population_size')
+router.register(r'temporality', TemporalityViewSet, basename='catalog_temporality')
 
 router.register(r'extractivism_type', ExtractivismTypeViewSet, basename='catalog_extractivism_type')
 router.register(r'megaproject_type', MegaprojectTypeViewSet, basename='catalog_megaproject_type')

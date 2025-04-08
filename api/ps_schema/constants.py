@@ -395,6 +395,7 @@ all_collections = {
             "all_filters": [
                 {"filter_name": "dimensions", "hidden": False},
                 {"filter_name": "population_sizes", "hidden": False},
+                {"filter_name": "temporalities", "hidden": False},
                 {
                     "title": "Colección", "field": "only_by",
                     "component": "OnlyByFilter", "hidden": False,
@@ -410,6 +411,11 @@ all_collections = {
         {
             "snake_name": "population_size",
             "model_name": "PopulationSize",
+            "level": "category_subtype",
+        },
+        {
+            "snake_name": "temporality",
+            "model_name": "Temporality",
             "level": "category_subtype",
         },
     ],
@@ -572,6 +578,13 @@ filter_groups = [
         "plural_name": "Tamaños de Población",
         "main_collection": "df-displacement",
         "category_subtype": "df-population_size",
+    },
+    {
+        "key_name": "temporalities",
+        "name": "Temporalidad",
+        "plural_name": "Temporalidades",
+        "main_collection": "df-displacement",
+        "category_subtype": "df-temporality",
     },
     {
         "key_name": "countries",

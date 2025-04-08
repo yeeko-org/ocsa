@@ -2,6 +2,8 @@ from django.db import models
 from event.models import Event
 from impact.models import Impact
 from work_flux.models import StatusControl, CommentsMixin
+from classify.models import Country
+from space_time.models import State, Municipality, Location
 
 
 class Dimension(models.Model):
@@ -37,6 +39,20 @@ class PopulationSize(CommentsMixin, models.Model):
         verbose_name_plural = 'Poblaciones afectadas por desplazamiento'
 
 
+class Temporality(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Temporalidad del desplazamiento'
+        verbose_name_plural = 'Temporalidades de desplazamientos'
+
+
 class Displacement(models.Model):
     event = models.ForeignKey(
         Event, on_delete=models.CASCADE,
@@ -48,7 +64,31 @@ class Displacement(models.Model):
         Dimension, on_delete=models.CASCADE, blank=True, null=True)
     population_size = models.ForeignKey(
         PopulationSize, on_delete=models.CASCADE, blank=True, null=True)
+    temporality = models.ForeignKey(
+        Temporality, on_delete=models.CASCADE, blank=True, null=True)
     rithm = models.CharField(max_length=255)
+    origin_state = models.ForeignKey(
+        State, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacement_origin')
+    origin_municipality = models.ForeignKey(
+        Municipality, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacement_origin')
+    origin_location = models.ForeignKey(
+        Location, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacement_origin')
+    destination_country = models.ForeignKey(
+        Country, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacement_destination')
+    destination_state = models.ForeignKey(
+        State, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacement_destination')
+    destination_municipality = models.ForeignKey(
+        Municipality, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacement_destination')
+    destination_location = models.ForeignKey(
+        Location, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacement_destination')
+
 
     def __str__(self):
         return f"{self.event or self.impact}"

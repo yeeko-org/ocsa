@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from df.models import Displacement, Dimension, PopulationSize
+from df.models import (
+    Displacement, Dimension, PopulationSize, Temporality)
 
 
 class DisplacementSerializer(serializers.ModelSerializer):
@@ -27,4 +28,11 @@ class PopulationSizeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PopulationSize
+        fields = '__all__'
+
+
+class TemporalitySerializer(serializers.ModelSerializer):
+    displacement_count = serializers.ReadOnlyField()
+    class Meta:
+        model = Temporality
         fields = '__all__'
