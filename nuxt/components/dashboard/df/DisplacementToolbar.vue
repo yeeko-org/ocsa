@@ -99,16 +99,6 @@ const show_displacement = computed(() => {
         />
       </div>
     </template>
-<!--        <template #footer>-->
-<!--          <v-card-->
-<!--            class="ma-2"-->
-<!--            elevation="2"-->
-<!--            variant="flat"-->
-<!--            color="white"-->
-<!--          >-->
-<!--            Sugerencias rápidas (comming soon...)-->
-<!--          </v-card>-->
-<!--        </template>-->
     <template #rows_init="{ item }" v-if="false">
 
     </template>

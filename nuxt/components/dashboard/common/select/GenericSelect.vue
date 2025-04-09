@@ -205,7 +205,7 @@ function openDialog(is_add=true){
       <v-list-item
         @click="onClick"
         :title="title"
-        :subtitle="item.raw.description"
+        _subtitle="item.raw.description"
         :value="value"
         :lines="false"
         max-width="400"
@@ -232,6 +232,29 @@ function openDialog(is_add=true){
             />
           </div>
         </template>
+        <template
+          v-slot:subtitle
+          v-if="item.raw.description"
+        >
+          <div class="d-flex align-start">
+            {{ item.raw.description.substring(0, 120) }}
+            {{ item.raw.description.length > 120 ? '...' : '' }}
+        <v-tooltip
+          v-if="item.raw.description"
+          activator="parent"
+          :open-on-hover="true"
+          :close-delay="0"
+          :open-delay="0"
+          location="bottom"
+          :max-width="400"
+        >
+          {{ item.raw.description }}
+        </v-tooltip>
+
+          </div>
+
+        </template>
+
       </v-list-item>
     </template>
     <template #selection="{ item }" v-if="!is_multiple">

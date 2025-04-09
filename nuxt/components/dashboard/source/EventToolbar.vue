@@ -87,8 +87,8 @@ const all_actors = computed(() => {
         </div>
       </template>
       <template v-if="event_group_show_position.includes(item.event_group)">
-        <div class="text-subtitle-1 mt-4">Intencionalidad:</div>
-        <div class="d-flex mr-8">
+        <div class="text-subtitle-1 mt-4" v-if="false">Intencionalidad:</div>
+        <div class="d-flex mr-8 mt-5">
           <SelectGroup
             :main_object="item"
             filter_group_name="purposes"
