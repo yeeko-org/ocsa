@@ -22,10 +22,9 @@ const rules = ref({
       v-model="full_main.key_name"
       label="Nombre clave"
       variant="outlined"
-      hint="⚠️Nombre único (en inglés)"
+      hint="⚠️Nombre único (en inglés), no editar"
       persistent-hint
       class="mb-2 mr-3"
-      :disabled="!is_edit"
       :rules="[rules.required]"
       style="max-width: 250px;"
     />

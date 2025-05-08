@@ -138,7 +138,7 @@ function trashFile(file){
   height: 440px;
   overflow: auto;
   resize: both;
-  max-width: 1020px;
+  max-width: 1420px;
 }
 .resizable-content{
   object-fit: contain;
