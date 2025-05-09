@@ -24,9 +24,9 @@ from api.views.auth.serializers import UserProfileSerializer
 
 from project.models import (
     MegaprojectType, ExtractivismType, StatusProject)
-from api.views.catalogs import StatusProjectSerializer
 from api.views.catalogs.project_serializers import (
-    MegaprojectTypeSerializer, ExtractivismTypeSerializer)
+    MegaprojectTypeSerializer, ExtractivismTypeSerializer,
+    StatusProjectSerializer)
 
 from classify.models import (
     ParticipantType,
@@ -77,9 +77,6 @@ class CatalogsView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request):
-        sectors = Sector.objects\
-            .filter(name__isnull=False)\
-            .exclude(name__exact='')
         networks = Actor.objects\
             .filter(network_seq__isnull=False)\
             .values_list('network_seq', flat=True)\
@@ -91,6 +88,7 @@ class CatalogsView(APIView):
         catalogs = {
             "user": UserProfileSerializer(
                 User.objects.all(), many=True).data,
+
             "participant_type": ParticipantTypeSerializer(
                 ParticipantType.objects.all(), many=True).data,
             "participant_group": ParticipantGroupSerializer(
@@ -101,7 +99,8 @@ class CatalogsView(APIView):
                 IndigenousGroup.objects.all(), many=True).data,
             "sector_group": SectorGroupSerializer(
                 SectorGroup.objects.all(), many=True).data,
-            "sector": SectorSerializer(sectors, many=True).data,
+            "sector": SectorSerializer(
+                Sector.objects.all(), many=True).data,
             "country": CountrySerializer(
                 Country.objects.all(), many=True).data,
             "network": final_networks,

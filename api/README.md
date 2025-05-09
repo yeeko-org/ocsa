@@ -29,6 +29,7 @@ python manage.py migrate_project_files --source /path/ --output migrate_project_
 python manage.py migrate_note_files --source /path/ --output migrate_note_files_exit.json
 
 python manage.py datum_recovery
+python manage.py post_legal_resources
 
 ID a partir del cual son borradores: 3915
 

@@ -1,11 +1,7 @@
 from rest_framework import serializers
 from event.models import (
-    EventGroup,
-    EventType,
-    EventSubtype,
-    InvolvedRole,
-    Purpose)
-from api.views.event.serializers import EventSerializer
+    EventGroup, EventType, EventSubtype, InvolvedRole, Purpose)
+
 from api.views.common_serializers import CommonCount
 
 
