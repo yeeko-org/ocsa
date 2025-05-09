@@ -97,10 +97,10 @@ const all_actors = computed(() => {
         </div>
       </template>
       <div
+        v-if="item && item.id"
         class="mx-n2"
       >
         <DisplacementToolbar
-          v-if="item"
           :full_main="item"
           main_collection_name="event"
           second_level

@@ -93,8 +93,7 @@ function saveNewItem(item, index) {
   saveSimple([child_collection.value.snake_name, item])
     .then(res => {
       // console.log("res", res)
-      props.main_object[props.field].splice(index, 1)
-      props.main_object[props.field].unshift(res)
+      props.main_object[props.field].splice(index, 1, res)
       saving.value = false
     })
     .catch(err => {
