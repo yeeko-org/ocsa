@@ -13,7 +13,6 @@ const {
   event_group_violence, event_group_show_position,
 } = storeToRefs(mainStore)
 
-
 const props = defineProps({
   mention: Object,
 })
@@ -35,6 +34,7 @@ const all_actors = computed(() => {
     field="events"
     two_columns
     color="lime"
+    required_field="event_type"
     :additional_fields="{
       'involvements': [], 'locations': [], 'displacements': []}"
     required
@@ -156,8 +156,6 @@ const all_actors = computed(() => {
         main_collection_name="event"
         second_level
       />
-
-
     </template>
   </ToolbarCommon>
 

@@ -38,18 +38,9 @@ const actor_collection_data = computed(() => {
       <CardCommon
         :full_main="item.actor_full"
         @edited-item="emits('edited-item', item)"
-        _search-item="emits('search-item', item)"
         @selected-item="emits('selected-item', [item, $event])"
         :collection_data="actor_collection_data"
       />
-<!--      <v-btn-->
-<!--        v-else-->
-<!--        color="accent"-->
-<!--        variant="elevated"-->
-<!--        @click="emits('search-item', item)"-->
-<!--      >-->
-<!--        Agregar participante-->
-<!--      </v-btn>-->
     </template>
     <template #second-column="{ item }">
       <ToolbarCommon

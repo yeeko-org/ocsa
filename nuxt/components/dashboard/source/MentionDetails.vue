@@ -68,8 +68,8 @@ function saveOneToMany(snake_name, main_item) {
         field.related_model]
     // console.log("related_collection", related_collection)
     const snake_name2 = related_collection.snake_name
-    console.log("main_item", main_item)
-    console.log("field", field.name)
+    // console.log("main_item", main_item)
+    // console.log("field", field.name)
     main_item[field.name].forEach(item => {
       saveOneToMany(snake_name2, item)
       total_requests.value += 1
@@ -176,7 +176,21 @@ function changeProject(project) {
 <!--          />-->
 <!--        </div>-->
 <!--      </div>-->
-      <v-divider></v-divider>
+<!--      <v-divider></v-divider>-->
+<!--      <v-banner-->
+<!--        sticky-->
+<!--        lines="one"-->
+<!--      >-->
+<!--        <template v-slot:text>-->
+<!--          We can't save your edits while you are in offline mode.-->
+<!--        </template>-->
+<!--  -->
+<!--        <template v-slot:actions>-->
+<!--          <v-btn color="deep-purple-accent-4">-->
+<!--            Go Online-->
+<!--          </v-btn>-->
+<!--        </template>-->
+<!--      </v-banner>-->
       <v-row class="py-3 mx-0" v-if="mention.id">
         <v-col cols="7">
           <CardCommon
@@ -223,8 +237,8 @@ function changeProject(project) {
           field="impacts"
           two_columns
           required
+          required_field="impact_type"
           :additional_fields="{'locations': [], 'displacements': []}"
-
         >
           <template #rows="{ item }">
             <v-textarea

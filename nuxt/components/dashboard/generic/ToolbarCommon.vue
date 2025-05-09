@@ -21,6 +21,7 @@ const props = defineProps({
   second_level: Boolean,
   two_columns: Boolean,
   emit_add: Boolean,
+  required_field: String,
   cols: {
     type: Number,
     default: 12,
@@ -34,10 +35,11 @@ const props = defineProps({
 const dialog_delete = ref(false)
 const delete_text = ref('')
 const record_to_delete = ref({})
+const saving = ref(false)
 
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
-const { deleteSimple } = mainStore
+const { deleteSimple, saveSimple } = mainStore
 
 const emits = defineEmits(['add-item'])
 
@@ -82,8 +84,23 @@ const addItem = (group=null) => {
     // })
   }
   // console.log("new_child", new_child)
-  // props.collection[props.field].push(new_child)
   props.main_object[props.field].push(new_child)
+}
+
+function saveNewItem(item, index) {
+  // console.log("saveNewItem", item)
+  saving.value = true
+  saveSimple([child_collection.value.snake_name, item])
+    .then(res => {
+      // console.log("res", res)
+      props.main_object[props.field].splice(index, 1)
+      props.main_object[props.field].unshift(res)
+      saving.value = false
+    })
+    .catch(err => {
+      console.log("error", err)
+      saving.value = false
+    })
 }
 
 const wantDeleteRecord = (item, index) => {
@@ -236,7 +253,25 @@ const total_count = computed(() => {
             cols="6"
             class="my-0"
           >
-            <slot name="second-column" :item="item">
+            <v-card-actions v-if="required_field && !item.id">
+              <v-btn
+                block
+                variant="elevated"
+                color="accent"
+                :disabled="!item[required_field]"
+                :loading="saving"
+                _click="emits('save-event', item)"
+                @click="saveNewItem(item, index)"
+
+              >
+                Guardar {{child_collection.name}}
+              </v-btn>
+            </v-card-actions>
+            <slot
+              v-else
+              name="second-column"
+              :item="item"
+            >
             </slot>
           </v-col>
         </v-row>
