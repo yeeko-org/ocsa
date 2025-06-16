@@ -18,6 +18,7 @@ const props = defineProps({
     required: true,
   }, // events
   forced_level: String,
+  special_multiple: Boolean,
   second_level: Boolean,
   two_columns: Boolean,
   emit_add: Boolean,
@@ -83,7 +84,9 @@ const addItem = (group=null) => {
     //   new_child[field] = []
     // })
   }
-  // console.log("new_child", new_child)
+  console.log("main_object", props.main_object)
+  console.log("field", props.field)
+  console.log("new_child", new_child)
   props.main_object[props.field].push(new_child)
 }
 
@@ -133,6 +136,8 @@ const total_count = computed(() => {
     return props.main_object[props.field].length
   } catch (e) {
     console.log("error", e)
+    console.log("main_collection_name", props.main_collection_name)
+    console.log("filter_group_name", props.filter_group_name)
     console.log("main_object:", props.main_object)
     console.log("field:", props.field)
     return 0
@@ -235,6 +240,7 @@ const total_count = computed(() => {
                 :main_collection="child_collection"
                 :main_object="item"
                 is_toolbar
+                :special_multiple="special_multiple"
                 :forced_level="forced_level"
                 @delete-record="wantDeleteRecord(item, index)"
               >

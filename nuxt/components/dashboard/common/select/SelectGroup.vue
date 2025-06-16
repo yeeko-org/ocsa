@@ -25,6 +25,7 @@ const props = defineProps({
 
   is_filter: Boolean,
   is_toolbar: Boolean,
+  special_multiple: Boolean,
   width: Number,
   subtype_class: String,
   is_display: Boolean,
@@ -81,6 +82,8 @@ const subcategory_is_multiple = computed(() => {
     return false
   if (is_multiple.value)
     return true
+  if (props.special_multiple)
+    return true
   if (final_main_collection.value){
     const subtype_field = final_main_collection.value.fields.find(field =>
       field.related_snake_name === collections.value.subtype.snake_name)
@@ -129,6 +132,10 @@ const category_values = computed(() => {
     }
     catch (error){
       console.log("error", error)
+      console.log("level", level)
+      console.log("cat_name", cat_name)
+      console.log("main_object", props.main_object)
+      console.log("category_group_value", props.category_group_value)
       console.log("value", value)
     }
     return acc
@@ -202,8 +209,14 @@ const subtype_items = computed(() => {
 
 onMounted(() => {
   // TODO: revisar con calma esto:
-  if (!props.main_object[level_names.value.type] && nodes.value.type)
-    props.main_object[level_names.value.type] = nodes.value.type.data.id
+  const levels = level_names.value
+  if (!props.main_object[levels.type] && nodes.value.type)
+    props.main_object[levels.type] = nodes.value.type.data.id
+  // if (props.main_object[levels.subtype] && !props.main_object[levels.type]){
+  //   if (nodes.value.subtype)
+  //     props.main_object[levels.type] = nodes.value.subtype.parent.data.id
+  // }
+
 })
 
 const type_field = computed(() => {
@@ -245,24 +258,37 @@ nextTick(() => {
   setTimeout(() => {
     setInitialData()
   }, 100)
+  setTimeout(() => {
+    loaded.value = false
+    setInitialData()
+  }, 2500)
 })
 
-function setInitialData(){
+function setInitialData() {
   if (loaded.value)
     return
   loaded.value = true
   // if (props.is_filter || props.is_toolbar)
   if (props.is_filter)
     return
-  if (props.main_object[level_names.value.subtype]
-      && !props.main_object[level_names.value.type]){
-    if (nodes.value.subtype)
-      props.main_object[level_names.value.type] = nodes.value.subtype.parent.data.id
+  const levels = level_names.value
+  if (subcategory_is_multiple.value){
+    console.log("levels", levels)
+    console.log("nodes.value", nodes.value)
+    console.log("subcategory_is_multiple", subcategory_is_multiple.value)
+    console.log("props.main_object", props.main_object)
   }
-  if (props.main_object[level_names.value.type]
-      && !props.main_object[level_names.value.group]){
+  if (props.main_object[levels.subtype]
+      && !props.main_object[levels.type]){
+    if (nodes.value.subtype){
+      console.log("nodes.value.subtype", nodes.value.subtype)
+      props.main_object[levels.type] = nodes.value.subtype.parent.data.id
+    }
+  }
+  if (props.main_object[levels.type]
+      && !props.main_object[levels.group]){
     if (nodes.value.type)
-      props.main_object[level_names.value.group] = nodes.value.type.parent.data.id
+      props.main_object[levels.group] = nodes.value.type.parent.data.id
   }
 
 }

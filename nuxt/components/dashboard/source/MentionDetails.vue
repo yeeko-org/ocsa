@@ -29,6 +29,7 @@ const resolved_requests = ref(0)
 const saving = ref(false)
 const snackbar = ref(false)
 const actor_display = ref(null)
+const has_select = ref(null)
 
 const emits = defineEmits(['mention-saved'])
 
@@ -61,7 +62,7 @@ function saveOneToMany(snake_name, main_item) {
     if (['involved', "eventlocation"].includes(field.name))
       return
     if (field.name.includes('displacement_')){
-      console.log("displacement field", field.name)
+      // console.log("displacement field", field.name)
       return
     }
     const related_collection = schemas.value.collections_dict[
@@ -97,6 +98,11 @@ function allFinished() {
       emits('mention-saved', res)
       snackbar.value = true
       saving.value = false
+      // find the refs with has-select and call the method setInitialData
+      // const has_select = props.$refs['has_select']
+      // console.log("has_select", has_select.value)
+      // if (has_select.value)
+      //   has_select.value.setInitialData()
     })
   }
 }
@@ -120,7 +126,7 @@ function saveNewParticipant(actor) {
   if (actor.participant_type)
     params.participant_types = [actor.participant_type]
   saveSimple(['participant', params]).then(response => {
-    props.mention.participants.unshift(response)
+    props.mention.participants.push(response)
     dialog_search.value = false
   })
 }
@@ -209,6 +215,7 @@ function changeProject(project) {
           child_relation_name="status_history"
           field="status_history"
           color="purple"
+          ref="has_select"
 
         >
           <template #rows_init="{item}" v-if="true">

@@ -1,6 +1,5 @@
 <script setup>
 
-import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 
 const props = defineProps({
@@ -34,7 +33,6 @@ const props = defineProps({
   required: Boolean,
 })
 
-const dialog_add = ref(false)
 const emits = defineEmits(['open-dialog', 'update-value'])
 
 const final_value = computed(() => {

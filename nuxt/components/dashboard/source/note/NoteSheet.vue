@@ -45,7 +45,7 @@ const SaveMention = (project) => {
   }
   saveSimple(['mention', params]).then(response => {
     // console.log("response", response)
-    full_note.value.mentions.unshift(response)
+    full_note.value.mentions.push(response)
     dialog_search.value = false
   })
 }
@@ -79,7 +79,7 @@ function saveMention(mention) {
     color="brown-lighten-4"
   >
     <FilesToolbar
-      :full_main="full_main"
+      :full_main="full_note"
       child_relation_name="note_file"
       main_collection_name="note"
     />

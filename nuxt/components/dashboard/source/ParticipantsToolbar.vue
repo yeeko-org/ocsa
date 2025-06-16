@@ -30,6 +30,7 @@ const actor_collection_data = computed(() => {
     two_columns
     :additional_fields="{'interests': []}"
     color="blue"
+    special_multiple
     emit_add
     @add-item="emits('search-item', $event)"
     required

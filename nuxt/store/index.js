@@ -543,6 +543,37 @@ export const useMainStore = defineStore('main', {
     //       console.error(thrown)
     //   })
     // },
+    async exportData([group, params]) {
+      return new Promise((resolve, reject) => {
+        this.setHeader()
+        ApiService.get(`/${group}/export_xls/`, {
+          params: params,
+          responseType: 'blob',
+          cancelToken: request.token
+        })
+          .then(response => {
+            const blob = new Blob([response.data],
+              {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})
+            const url = window.URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.setAttribute('download', `export_${group}.xlsx`)
+            document.body.appendChild(link)
+            link.click()
+            resolve({success: true})
+          })
+          .catch(thrown => {
+            if (axios.isCancel(thrown)) {
+              request = null
+              request = axios.CancelToken.source()
+              return resolve({cancelled: true})
+            } else {
+              console.error(thrown)
+              reject(thrown)
+            }
+          })
+      })
+    },
     async saveFile([elem_id, file_data, coll_name]) {
       try {
         console.log('elem_id', elem_id)

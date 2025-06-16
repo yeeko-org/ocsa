@@ -16,7 +16,7 @@ const {
   schemas,
   current_collection_data,
 } = storeToRefs(mainStore)
-const { fetchElements, cancelFetch } = mainStore
+const { fetchElements, cancelFetch, exportData } = mainStore
 
 const props = defineProps({
   parent_collection: Object,
@@ -131,6 +131,8 @@ function realApplyFilters(page=null) {
   let collection_name = collection_data.value.snake_name
   if (collection_data.value.is_category)
     collection_name = `catalogs/${collection_name}`
+  if (props.is_mini)
+    collection_name += '_mini'
   results.value = []
   const params = {
     ...final_filters.value,
@@ -210,6 +212,24 @@ function changeInitFilters(){
   Object.entries(props.init_filters).forEach(([key, value]) => {
     temp_reset.value = true
     final_filters.value[key] = value
+  })
+}
+
+function exportRecords(all_records = false) {
+  const collection_name = collection_data.value.snake_name
+  let params = {}
+  if (!all_records) {
+    params = {
+      ...final_filters.value,
+      q: q_value.value,
+      ...props.init_filters,
+    }
+  }
+  exportData([collection_name, params]).then(res => {
+    if (res.cancelled) {
+      return
+    }
+    console.log("exported data", res)
   })
 }
 
@@ -333,6 +353,7 @@ function selectItem(item) {
         <v-col cols="auto" order="11" class="py-1">
           <ExportButton
             v-if="collection_data.level === 'primary' && !is_mini"
+            @export-records="exportRecords($event)"
           />
           <v-btn
             v-else-if="is_mini"

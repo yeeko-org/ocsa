@@ -17,7 +17,7 @@ const props = defineProps({
   }
 })
 
-const full_main = ref({})
+const full_main = ref(null)
 const edit_component = shallowRef('')
 const route_key = computed(() => props.collection_data.app_label)
 const snake_name = computed(() => props.collection_data.snake_name)

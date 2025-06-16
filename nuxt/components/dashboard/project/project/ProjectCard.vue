@@ -12,6 +12,14 @@ const props = defineProps({
 
 <template>
   <div class="py-2">
+    <div class="text-caption" v-if="full_main.parent_project_full">
+      <span class="text-grey-darken-1">
+        Agrupador:
+      </span>
+      <span class="text-blue-darken-1 ml-1">
+        {{full_main.parent_project_full.name}}
+      </span>
+    </div>
     <div class="d-flex align-center">
       <v-icon
         v-if="full_main.is_grouper"
