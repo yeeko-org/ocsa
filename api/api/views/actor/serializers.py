@@ -88,10 +88,8 @@ class ActorMiniSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "mentions_count",
-
             "indigenous_group",
             # "sector_group",
-
             "name",
             "alternative_names",
             "sector",
@@ -104,15 +102,10 @@ class ActorMiniSerializer(serializers.ModelSerializer):
         ]
 
 
-class ActorBaseSerializer(serializers.ModelSerializer):
-    participants = ParticipantBaseSerializer(many=True, read_only=True)
-    children_actors = serializers.PrimaryKeyRelatedField(
-        many=True, read_only=True
-    )
+class ActorMiniBaseSerializer(serializers.ModelSerializer):
     parent_actor_full = serializers.SerializerMethodField(read_only=True)
 
     def get_parent_actor_full(self, obj: Actor):
-        # ActorBaseSerializer produce error de recursividad. analizar
         if obj.parent_actor:
             return ActorSimpleSerializer(obj.parent_actor).data
         return None
@@ -120,6 +113,13 @@ class ActorBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
         fields = '__all__'
+
+
+class ActorBaseSerializer(ActorMiniBaseSerializer):
+    participants = ParticipantBaseSerializer(many=True, read_only=True)
+    children_actors = serializers.PrimaryKeyRelatedField(
+        many=True, read_only=True
+    )
 
 
 class ActorFullSerializer(ActorBaseSerializer):

@@ -157,7 +157,8 @@ class Interest(models.Model):
     interest_subtype = models.ForeignKey(
         InterestSubtype, on_delete=models.CASCADE, blank=True, null=True,
         related_name='interests')
-    text = models.TextField()
+    text = models.TextField(
+        blank=True, null=True, verbose_name='Texto de interés')
 
     def __str__(self):
         return self.text or str(self.pk)

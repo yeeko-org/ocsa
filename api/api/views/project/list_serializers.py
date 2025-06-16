@@ -131,6 +131,34 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
         ]
 
 
+class ProjectMiniBasicSerializer(serializers.ModelSerializer):
+    locations = LocationFullSerializer(many=True, read_only=True)
+    parent_project_full = ProjectMiniSerializer(
+        read_only=True, source='parent_project')
+
+    class Meta:
+        model = Project
+        # fields = "__all__"
+        fields = [
+            "id",
+            "proyecto_id_ref",
+            "name",
+            "alternative_name",
+            "description",
+            "comments",
+            "parent_project",
+            # "other_parents",
+            "conflict",
+            "megaproject_type",
+            "is_grouper",
+            "status_validation",
+            "status_project",
+            "status_location",
+            "locations",
+            "parent_project_full"
+        ]
+
+
 class ExtractivismTypeSerializer(serializers.RelatedField):
 
     def to_representation(self, value):

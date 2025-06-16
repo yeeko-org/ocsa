@@ -25,7 +25,7 @@ class EventTypeViewSet(MassiveEdit, BaseStatusViewSet):
         .distinct()
     serializer_class = EventTypeFullSerializer
     filterset_fields = ['status_validation', 'event_group']
-    ordering_fields = ['order']
+    ordering_fields = ['__auto__']
 
     def get_serializer_class(self):
         action_serializer = {

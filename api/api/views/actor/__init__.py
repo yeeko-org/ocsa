@@ -14,7 +14,7 @@ from api.pagination import CustomPagination
 from api.views.actor.massive_chages_serializers import MassiveChangeSerializer
 from api.views.actor.serializers import (
     ActorBaseSerializer, ActorMiniSerializer, ActorCreateSerializer,
-    ActorEditeSerializer, ActorFullSerializer
+    ActorEditeSerializer, ActorFullSerializer, ActorMiniBaseSerializer
 )
 from api.views.common_views import UnaccentSearchFilter
 
@@ -56,7 +56,7 @@ class ActorViewMixin(viewsets.GenericViewSet):
         .annotate(
             sector_group=F('sector__sector_group')
         )\
-        .select_related("parent_actor", "status_validation")\
+        .select_related("parent_actor")\
         .prefetch_related(
         "participants", "origin_references", "children_actors")
 
@@ -146,6 +146,13 @@ class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
 
 
 class ActorMiniListViewSet(ActorViewMixin, viewsets.ReadOnlyModelViewSet):
-    serializer_class = ActorMiniSerializer
+    permission_classes = [permissions.AllowAny]
+    queryset = Actor.objects.all().distinct()\
+        .annotate(
+            sector_group=F('sector__sector_group')
+        )\
+        .select_related("parent_actor")\
+        .prefetch_related()
+    serializer_class = ActorMiniBaseSerializer
 
 

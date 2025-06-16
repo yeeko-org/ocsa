@@ -18,7 +18,7 @@ from project.models import Conflict, Project, ProjectFile
 
 from .list_serializers import (
     ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
-    ProjectExportSerializer)
+    ProjectExportSerializer, ProjectMiniBasicSerializer)
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
 
@@ -47,7 +47,23 @@ class ProjectFilter(FilterSet):
         }
 
 
-class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
+class ProjectViewSetMixin(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    pagination_class = CustomPagination
+    filterset_class = ProjectFilter
+    filter_backends = [
+        UnaccentSearchFilter, OrderingFilter, DjangoFilterBackend]
+    search_fields = [
+        "name",
+        "alternative_name",
+        "=proyecto_id_ref"
+    ]
+    ordering_fields = [
+        'id', 'name', 'status_validation__order', 'status_location__order']
+    ordering = ['id']
+
+
+class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
@@ -60,7 +76,6 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
         "mentions__participants",
         "mentions__participants__actor",
     ).distinct()
-    # permission_classes = [permissions.IsAuthenticated]
     xls_attrs = [
         {
             "name": "ID",
@@ -178,14 +193,6 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, viewsets.ModelViewSet):
     # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     filter_backends = [
         UnaccentSearchFilter, OrderingFilter, DjangoFilterBackend]
-    search_fields = [
-        "name",
-        "alternative_name",
-        "=proyecto_id_ref"
-    ]
-    ordering_fields = [
-        'id', 'name', 'status_validation__order', 'status_location__order']
-    ordering = ['id']
 
     serializer_class = ProjectBasicSerializer
 
@@ -276,6 +283,15 @@ class ProjectFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, Ge
     serializer_class = ProjectFileSerializer
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, OrderingFilter]
+
+
+class ProjectMiniViewSet(ProjectViewSetMixin):
+    queryset = Project.objects.all().select_related(
+        "parent_project",
+    ).prefetch_related(
+        "locations",
+    ).distinct()
+    serializer_class = ProjectMiniBasicSerializer
 
 
 class ConflictViewSet(BaseStatusViewSet):

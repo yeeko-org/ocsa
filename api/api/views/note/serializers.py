@@ -159,9 +159,8 @@ class StatusHistoryFullSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ImpactFullSerializer(serializers.ModelSerializer):
+class ImpactFullSerializer(ImpactEmbedSerializer):
     note = NoteSerializer(source='mention.note', read_only=True)
-    locations = LocationSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Impact
