@@ -352,7 +352,7 @@ function selectItem(item) {
 <!--        ></v-btn>-->
         <v-col cols="auto" order="11" class="py-1">
           <ExportButton
-            v-if="collection_data.level === 'primary' && !is_mini"
+            v-if="collection_data.xls_export"
             @export-records="exportRecords($event)"
           />
           <v-btn

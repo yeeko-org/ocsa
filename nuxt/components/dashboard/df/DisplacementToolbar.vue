@@ -77,7 +77,7 @@ const show_displacement = computed(() => {
           :full_main="item"
           state_field="origin_state"
           municipality_field="origin_municipality"
-          location_field="origin_location"
+          locality_field="origin_locality"
         />
       </div>
       <div class="mt-2 text-subtitle-1" v-if="item.dimension">
@@ -89,7 +89,7 @@ const show_displacement = computed(() => {
           :full_main="item"
           state_field="destination_state"
           municipality_field="destination_municipality"
-          location_field="destination_location"
+          locality_field="destination_locality"
         />
         <SelectGroup
           v-else-if="item.dimension"

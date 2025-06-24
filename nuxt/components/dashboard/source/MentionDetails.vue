@@ -30,6 +30,7 @@ const saving = ref(false)
 const snackbar = ref(false)
 const actor_display = ref(null)
 const has_select = ref(null)
+const save_errors = ref([])
 
 const emits = defineEmits(['mention-saved'])
 
@@ -75,7 +76,17 @@ function saveOneToMany(snake_name, main_item) {
       saveOneToMany(snake_name2, item)
       total_requests.value += 1
       saveSimple([snake_name2, item]).then(res => {
-        // console.log(`response ${snake_name2}`, res)
+        if (res.errors) {
+          console.log(`response ${snake_name2}`, res)
+          save_errors.value.push({
+            field: field.name,
+            item: item,
+            errors: res.errors,
+          })
+          console.error(`Error saving ${snake_name2}`, res.errors)
+          console.error(`saveErrors`, save_errors.value)
+          // return
+        }
         resolved_requests.value += 1
         // const idx = main_item[field.name].findIndex(
         //   item2 => item2.id === item.id)
@@ -149,7 +160,20 @@ function changeProject(project) {
     cols="12"
     _md="is_full ? 6 : 12"
   >
+<!--    <v-fab-->
+<!--      _id="fabPosition"-->
+<!--      :key="props.mention.id"-->
+<!--      location="top right"-->
+<!--      size="large"-->
+<!--      position="sticky"-->
+<!--      icon-->
+<!--      offset-->
+<!--      style="z-index: 1000; bottom: 20px; left: 30px;"-->
+<!--    >-->
+<!--      <v-icon>save</v-icon>-->
+<!--    </v-fab>-->
     <v-card variant="outlined" color="indigo-lighten-1">
+
 <!--      <div class="px-3 py-2" v-else-if="mention.note">-->
 <!--        <div class="text-h6 d-flex">-->
 <!--          <v-icon>-->
@@ -283,6 +307,20 @@ function changeProject(project) {
         <EventToolbar
           :mention="mention"
         />
+        <v-col
+          v-if="save_errors.length > 0"
+          cols="12"
+          class="d-flex justify-end px-6"
+        >
+          <v-alert
+            v-for="(error, index) in save_errors"
+            :key="index"
+            type="error"
+            class="mb-2"
+          >
+            Error al guardar {{ error.field }}: {{ error.errors }}
+          </v-alert>
+        </v-col>
         <v-col cols="12" class="d-flex justify-end px-6">
           <v-btn
             color="accent"

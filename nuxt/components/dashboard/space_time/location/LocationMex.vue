@@ -20,9 +20,9 @@ const props = defineProps({
     type: String,
     default: 'municipality',
   },
-  location_field: {
+  locality_field: {
     type: String,
-    default: 'location',
+    default: 'locality',
   },
 })
 
@@ -110,7 +110,7 @@ nextTick(() => {
   </v-autocomplete>
   <v-autocomplete
     v-if="full_main[municipality_field]"
-    v-model="full_main[location_field]"
+    v-model="full_main[locality_field]"
     :items="full_geo.municipality[full_main[municipality_field]] || []"
     item-title="name"
     item-value="id"
