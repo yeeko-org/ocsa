@@ -118,9 +118,6 @@ class Project(CommentsMixin, models.Model):
     status_location_id: str | None
     locations: models.QuerySet["Location"]
 
-    def __str__(self):
-        return self.name or "Proyecto sin nombre"
-
     def get_last_status_project(self, save=False):
         from source.models import StatusHistory
         last_status_history = StatusHistory.objects\
@@ -131,6 +128,16 @@ class Project(CommentsMixin, models.Model):
                 self.save()
             return self.status_project
         return None
+
+    @property
+    def first_location(self):
+        if hasattr(self, 'ordered_locations'):
+            return self.ordered_locations[0] if self.ordered_locations else None
+        return self.locations.select_related('state', 'municipality', 'locality').order_by(
+            '-status_location__priority').first()
+
+    def __str__(self):
+        return self.name or "Proyecto sin nombre"
 
     class Meta:
         verbose_name = 'Proyecto'

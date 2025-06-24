@@ -132,7 +132,7 @@ class InitCollections:
                     level=levels_dict[collection['level']],
                     app_label=app_label)
                 my_model = apps.get_model(app_label, model_name)
-                meta_data = meta_data = my_model._meta
+                meta_data = my_model._meta
                 verbose_name = meta_data.verbose_name
                 verbose_name_plural = meta_data.verbose_name_plural
                 name = collection.get('name', verbose_name)
@@ -153,6 +153,8 @@ class InitCollections:
                 new_collection.available_actions = collection.get(
                     'available_actions', [])
                 new_collection.order = order_base + order
+                new_collection.xls_export = collection.get(
+                    'xls_export', False)
                 new_collection.all_filters = collection.get('all_filters', [])
                 new_collection.save()
                 # print(f"Order: {order_base + order}\n{defaults}")

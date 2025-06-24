@@ -2,9 +2,10 @@ from rest_framework import serializers
 
 from actor.models import Actor, Participant, Interest
 from impact.models import Impact
-from project.models import Project, Conflict
+from project.models import Project, Conflict, MegaprojectType
 from space_time.models import Location
 from source.models import Mention, Note
+from api.views.common_serializers import BaseExportSerializer
 from event.models import Event
 
 
@@ -159,33 +160,30 @@ class ProjectMiniBasicSerializer(serializers.ModelSerializer):
         ]
 
 
-class ExtractivismTypeSerializer(serializers.RelatedField):
+class ExtractivismTypesSerializer(serializers.RelatedField):
 
     def to_representation(self, value):
         return ", ".join(value.extractivism_types.values_list('name', flat=True))
 
-class ProjectExportSerializer(serializers.ModelSerializer):
-    conflict__id = serializers.ReadOnlyField(source='conflict.id')
-    conflict__name = serializers.ReadOnlyField(source='conflict.name')
-    conflict__description = serializers.ReadOnlyField(
-        source='conflict.description')
-    megaproject_type__name = serializers.ReadOnlyField(
-        source='megaproject_type.name')
-    megaproject_type__extractivism_types = ExtractivismTypeSerializer(
-        source='megaproject_type', read_only=True)
-    parent_project__id = serializers.ReadOnlyField(source='parent_project.id')
-    parent_project__name = serializers.ReadOnlyField(
-        source='parent_project.name')
 
-    locations__id = serializers.ReadOnlyField()
-    locations__state__inegi_code = serializers.ReadOnlyField()
-    locations__state__name = serializers.ReadOnlyField()
-    locations__municipality__inegi_code = serializers.ReadOnlyField()
-    locations__municipality__name = serializers.ReadOnlyField()
-    locations__locality__inegi_code = serializers.ReadOnlyField()
-    locations__locality__name = serializers.ReadOnlyField()
-    locations__latitude = serializers.ReadOnlyField()
-    locations__longitude = serializers.ReadOnlyField()
+class MegaprojectTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MegaprojectType
+        fields = "__all__"
+
+
+class ProjectExportSerializer(BaseExportSerializer):
+    conflict = ConflictSimpleSerializer()
+    # conflict__id = serializers.ReadOnlyField(source='conflict.id')
+    # conflict__name = serializers.ReadOnlyField(source='conflict.name')
+    # conflict__description = serializers.ReadOnlyField(
+    #     source='conflict.description')
+    # megaproject_type__name = serializers.ReadOnlyField(
+    #     source='megaproject_type.name')
+    megaproject_type = MegaprojectTypeSerializer()
+    extractivism_types = ExtractivismTypesSerializer(
+        source='megaproject_type', read_only=True)
+    parent_project = ProjectMiniSerializer()
 
     class Meta:
         model = Project
@@ -196,23 +194,20 @@ class ProjectExportSerializer(serializers.ModelSerializer):
             "description",
             "proyecto_id_ref",
 
-            "conflict__id",
-            "conflict__name",
-            "conflict__description",
-            "megaproject_type__name",
-            "megaproject_type__extractivism_types",
-            "parent_project__id",
-            "parent_project__name",
+            "conflict",
+            "megaproject_type",
+            "extractivism_types",
+            "parent_project",
 
-            "locations__id",
-            "locations__state__inegi_code",
-            "locations__state__name",
-            "locations__municipality__inegi_code",
-            "locations__municipality__name",
-            "locations__locality__inegi_code",
-            "locations__locality__name",
-            "locations__latitude",
-            "locations__longitude",
+            "location_id",
+            "state__inegi_code",
+            "state__short_name",
+            "municipality__inegi_code",
+            "municipality__name",
+            "locality__inegi_code",
+            "locality__name",
+            "latitude",
+            "longitude",
         ]
 
 
@@ -222,3 +217,8 @@ class ConflictSerializer(ConflictSimpleSerializer):
 
 class ConflictFullSerializer(ConflictSimpleSerializer):
     projects = ProjectBasicSerializer(many=True, read_only=True)
+
+
+class ImpactExportSerializer(serializers.ModelSerializer):
+    pass
+

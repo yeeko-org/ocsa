@@ -76,20 +76,26 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
         "mentions__participants",
         "mentions__participants__actor",
     ).distinct()
+    add_locations = True
     xls_attrs = [
         {
             "name": "ID",
-            "width": 8,
+            "width": 5,
             "field": "id"
         },
         {
+            "name": "ID antiguo",
+            "width": 5,
+            "field": "proyecto_id_ref"
+        },
+        {
             "name": "Nombre",
-            "width": 40,
+            "width": 35,
             "field": "name"
         },
         {
             "name": "Nombres alternativos",
-            "width": 40,
+            "width": 25,
             "field": "alternative_name"
         },
         {
@@ -98,13 +104,8 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
             "field": "description"
         },
         {
-            "name": "ID antiguo",
-            "width": 8,
-            "field": "proyecto_id_ref"
-        },
-        {
             "name": "ID de conflicto",
-            "width": 8,
+            "width": 5,
             "field": "conflict__id"
         },
         {
@@ -114,73 +115,28 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
         },
         {
             "name": "Descripción de conflicto",
-            "width": 40,
+            "width": 25,
             "field": "conflict__description"
         },
         {
             "name": "Tipo de megaproyecto",
-            "width": 40,
+            "width": 20,
             "field": "megaproject_type__name"
         },
         {
             "name": "Tipos de extractivismo",
-            "width": 40,
-            "field": "megaproject_type__extractivism_types"
+            "width": 25,
+            "field": "extractivism_types"
         },
         {
             "name": "ID de proyecto agrupador",
-            "width": 8,
+            "width": 5,
             "field": "parent_project__id"
         },
         {
             "name": "Nombre de proyecto agrupador",
-            "width": 40,
+            "width": 30,
             "field": "parent_project__name"
-        },
-        {
-            "name": "ID de ubicación principal",
-            "width": 8,
-            "field": "locations__id"
-        },
-        {
-            "name": "ID de Entidad",
-            "width": 8,
-            "field": "locations__state__inegi_code"
-        },
-        {
-            "name": "Entidad",
-            "width": 40,
-            "field": "locations__state__name"
-        },
-        {
-            "name": "ID de Municipio",
-            "width": 8,
-            "field": "locations__municipality__inegi_code"
-        },
-        {
-            "name": "Municipio",
-            "width": 40,
-            "field": "locations__municipality__name"
-        },
-        {
-            "name": "ID de Localidad",
-            "width": 8,
-            "field": "locations__locality__inegi_code"
-        },
-        {
-            "name": "Localidad",
-            "width": 40,
-            "field": "locations__locality__name"
-        },
-        {
-            "name": "Latitud",
-            "width": 20,
-            "field": "locations__latitude"
-        },
-        {
-            "name": "Longitud",
-            "width": 20,
-            "field": "locations__longitude"
         }
     ]
     xls_name = "Exportación de Proyectos"
@@ -227,37 +183,14 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
         return action_serializer.get(self.action, self.serializer_class)
 
     def get_query_for_export_xls(self):
-        from space_time.models import Location
-        from django.db.models import OuterRef, Subquery
-
-        max_priority_location = Location.objects.filter(
-            project=OuterRef('id')
-        ).order_by('-status_location__priority')
-
-        # TODO: Ricardo el annotate es para traer en una sola peticion los datos
-        # de location y sus relacionados sin sobrecargar el prefetch_related
-        # revisar si se puede subir a global los select_related
-
-        queryset = self.get_queryset()\
-            .annotate(
-                locations__id=Subquery(max_priority_location.values('id')[:1]),
-                locations__state__inegi_code=Subquery(
-                    max_priority_location.values('state__inegi_code')[:1]),
-                locations__state__name=Subquery(
-                    max_priority_location.values('state__name')[:1]),
-                locations__municipality__inegi_code=Subquery(
-                    max_priority_location.values('municipality__inegi_code')[:1]),
-                locations__municipality__name=Subquery(
-                    max_priority_location.values('municipality__name')[:1]),
-                locations__locality__inegi_code=Subquery(
-                    max_priority_location.values('locality__inegi_code')[:1]),
-                locations__locality__name=Subquery(
-                    max_priority_location.values('locality__name')[:1]),
-                locations__latitude=Subquery(
-                    max_priority_location.values('latitude')[:1]),
-                locations__longitude=Subquery(
-                    max_priority_location.values('longitude')[:1]),
-        )
+        annotations = self.get_annotations('project')
+        queryset = self.get_queryset() \
+            .annotate(**annotations)\
+            .select_related(
+                'parent_project', 'conflict', 'megaproject_type'
+            )\
+            .prefetch_related("megaproject_type__extractivism_types")\
+            .distinct()
         return self.filter_queryset(queryset)
 
     @action(detail=True, methods=['get'])

@@ -16,10 +16,87 @@ class ExportXlsMixin(ModelViewSet):
     action_add_file_param: str = ""
     xls_name: str = "Export"
     xls_attrs: list = []
+    add_locations = False
+    location_attrs: list = [
+        {
+            "name": "ID de ubicación principal",
+            "width": 5,
+            "field": "location_id",
+        },
+        {
+            "name": "ID de Entidad",
+            "width": 4,
+            "field": "state__inegi_code",
+            "subquery": "locations"
+        },
+        {
+            "name": "Entidad",
+            "width": 25,
+            "field": "state__short_name",
+            "subquery": "locations"
+        },
+        {
+            "name": "ID de Municipio",
+            "width": 4,
+            "field": "municipality__inegi_code",
+            "subquery": "locations"
+        },
+        {
+            "name": "Municipio",
+            "width": 25,
+            "field": "municipality__name",
+            "subquery": "locations"
+        },
+        {
+            "name": "ID de Localidad",
+            "width": 4,
+            "field": "locality__inegi_code",
+            "subquery": "locations"
+        },
+        {
+            "name": "Localidad",
+            "width": 25,
+            "field": "locality__name",
+            "subquery": "locations"
+        },
+        {
+            "name": "Latitud",
+            "width": 12,
+            "field": "latitude",
+            "subquery": "locations"
+        },
+        {
+            "name": "Longitud",
+            "width": 12,
+            "field": "longitude",
+            "subquery": "locations"
+        }
+    ]
     max_decimal: int = 2
 
     def get_query_for_export_xls(self):
         return self.filter_queryset(self.get_queryset())
+
+    def get_annotations(self, target):
+        from space_time.models import Location
+        from django.db.models import OuterRef, Subquery
+
+        query_loc = {target: OuterRef('id')}
+        max_priority_location = Location.objects.filter(**query_loc)\
+            .order_by('-status_location__priority')
+
+        annotations = {
+            "location_id": Subquery(max_priority_location.values('id')[:1])
+        }
+        location_fields = [
+            attr['field'] for attr in self.location_attrs
+            if attr.get('subquery') == 'locations'
+        ]
+        for field in location_fields:
+            annotations[field] = Subquery(
+                max_priority_location.values(field)[:1]
+            )
+        return annotations
 
     @action(detail=False, methods=['get'])
     def export_xls(self, request):
@@ -30,6 +107,8 @@ class ExportXlsMixin(ModelViewSet):
 
         name = getattr(self, 'xls_name', 'Exportación')
         attrs = getattr(self, 'xls_attrs', [])
+        if self.add_locations:
+            attrs = attrs + getattr(self, 'location_attrs', [])
         columns_width = [row.get('width', 20) for row in attrs]
         heades = [row.get('name', '') for row in attrs]
         # columns_width_pixel
@@ -37,9 +116,27 @@ class ExportXlsMixin(ModelViewSet):
 
         table_data = [heades]
         for row in data:
-            table_data.append([row.get(attr['field'], '') for attr in attrs])
+            row_data = []
+            # table_data.append([row.get(attr['field'], '') for attr in attrs])
+            for attr in attrs:
+                field = attr.get('field', '')
+                if field:
+                    value = row
+                    if attr.get('subquery'):
+                        value = row.get(field, '')
+                    else:
+                        for key in field.split('__'):
+                            try:
+                                value = value.get(key, '')
+                            except AttributeError as e:
+                                # print(f"Error accessing {key} in {value}\n{row}")
+                                value = ''
+                    row_data.append(value)
+                else:
+                    row_data.append('')
+            table_data.append(row_data)
 
-        # pprint(table_data)
+        # print(table_data)
 
         response = export_xlsx(
             in_memory=True, data=[{

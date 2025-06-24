@@ -3,7 +3,7 @@ from event.models import Event
 from impact.models import Impact
 from work_flux.models import StatusControl, CommentsMixin
 from classify.models import Country
-from space_time.models import State, Municipality, Location
+from space_time.models import State, Municipality, Locality
 
 
 class Dimension(models.Model):
@@ -73,8 +73,8 @@ class Displacement(models.Model):
     origin_municipality = models.ForeignKey(
         Municipality, on_delete=models.CASCADE,
         blank=True, null=True, related_name='displacement_origin')
-    origin_location = models.ForeignKey(
-        Location, on_delete=models.CASCADE,
+    origin_locality = models.ForeignKey(
+        Locality, on_delete=models.CASCADE,
         blank=True, null=True, related_name='displacement_origin')
     destination_country = models.ForeignKey(
         Country, on_delete=models.CASCADE,
@@ -85,8 +85,8 @@ class Displacement(models.Model):
     destination_municipality = models.ForeignKey(
         Municipality, on_delete=models.CASCADE,
         blank=True, null=True, related_name='displacement_destination')
-    destination_location = models.ForeignKey(
-        Location, on_delete=models.CASCADE,
+    destination_locality = models.ForeignKey(
+        Locality, on_delete=models.CASCADE,
         blank=True, null=True, related_name='displacement_destination')
 
 

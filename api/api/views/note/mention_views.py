@@ -5,6 +5,7 @@ from api.views.common_views import BaseStatusViewSet, UnaccentSearchFilter
 from api.pagination import CustomPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from api.views.action_export_xls import ExportXlsMixin
 
 from api.views.event import EventSerializer
 from api.views.note.serializers import (
@@ -15,6 +16,7 @@ from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantSerializer, ImpactSimpleSerializer)
 from api.views.note.serializers import (
     ImpactFullSerializer, EventFullNoteSerializer)
+from api.views.event.serializers import EventExportSerializer
 from api.views.common_views import MassiveEdit
 
 from source.models import Mention, StatusHistory
@@ -134,7 +136,7 @@ class EventFilter(FilterSet):
         }
 
 
-class EventViewSet(MassiveEdit, viewsets.ModelViewSet):
+class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
     queryset = Event.objects.all()\
         .select_related(
             'mention',
@@ -147,7 +149,6 @@ class EventViewSet(MassiveEdit, viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
-
     filterset_class = EventFilter
 
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
@@ -157,6 +158,89 @@ class EventViewSet(MassiveEdit, viewsets.ModelViewSet):
     ordering = ['id']
 
     serializer_class = EventSerializer
+    add_locations = True
+    xls_attrs = [
+        {
+            "name": "ID",
+            "width": 5,
+            "field": "id"
+        },
+        {
+            "name": "Descripción del evento",
+            "width": 50,
+            "field": "description"
+        },
+        {
+            "name": "Mujeres víctimas",
+            "width": 4,
+            "field": "number_women"
+        },
+        {
+            "name": "Hombres víctimas",
+            "width": 4,
+            "field": "number_men"
+        },
+        {
+            "name": "Personas víctimas",
+            "width": 4,
+            "field": "number_mix"
+        },
+        {
+            "name": "Grupo de evento",
+            "width": 15,
+            "field": "event_type__event_group"
+        },
+        {
+            "name": "Tipo de evento",
+            "width": 30,
+            "field": "event_type__name"
+        },
+        {
+            "name": "Subtipo de evento",
+            "width": 25,
+            "field": "event_subtype"
+        },
+        {
+            "name": "ID de nota",
+            "width": 5,
+            "field": "mention__note_full__id"
+        },
+        {
+            "name": "Fecha de nota",
+            "width": 10,
+            "field": "mention__note_full__date"
+        },
+        {
+            "name": "Título de nota",
+            "width": 40,
+            "field": "mention__note_full__title"
+        },
+        # {
+        #     "name": "Medio de la nota",
+        #     "width": 15,
+        #     "field": "mention__note_full__source"
+        # },
+        {
+            "name": "ID de proyecto",
+            "width": 5,
+            "field": "mention__project_full__id"
+        },
+        {
+            "name": "Nombre de proyecto",
+            "width": 40,
+            "field": "mention__project_full__name"
+        },
+        {
+            "name": "ID de conflicto",
+            "width": 5,
+            "field": "conflict__id"
+        },
+        {
+            "name": "Nombre de conflicto",
+            "width": 30,
+            "field": "conflict__name"
+        },
+    ]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -167,10 +251,26 @@ class EventViewSet(MassiveEdit, viewsets.ModelViewSet):
                 'involvements__participant__actor')
         return queryset
 
+    def get_query_for_export_xls(self):
+
+        annotations = self.get_annotations(target='event')
+
+        queryset = self.get_queryset() \
+            .annotate(**annotations)\
+            .select_related(
+                'mention', 'mention__note',
+                'mention__note__source',
+                'mention__project', 'mention__project__conflict',
+                'event_type', 'event_type__event_group', 'event_subtype'
+            )\
+            .distinct()
+        return self.filter_queryset(queryset)
+
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': EventFullNoteSerializer,
             'create': EventFullNoteSerializer,
-            'update': EventFullNoteSerializer
+            'update': EventFullNoteSerializer,
+            'export_xls': EventExportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)

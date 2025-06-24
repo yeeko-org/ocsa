@@ -88,6 +88,7 @@ all_collections = {
                     "component": "TripleBooleanFilter", "hidden": True
                 },
             ],
+            "xls_export": True,
             "available_actions": ["merge"],
         },
         {
@@ -325,6 +326,7 @@ all_collections = {
                 {"filter_name": "purposes", "hidden": True},
                 # {"name": "involved_roles", "hidden": False},
             ],
+            "xls_export": True,
             "available_actions": ["massive_edit"],
         },
         {

@@ -58,12 +58,13 @@ class Collection(models.Model):
 
     optional_category = models.BooleanField(
         default=False, verbose_name="Colección opcional")
-    # status_group = models.CharField(
-    #     max_length=20, choices=GROUP_CHOICES, blank=True, null=True)
     all_filters = models.JSONField(
         default=list, verbose_name="Grupos de filtros")
 
     open_insertion = models.BooleanField(blank=True, null=True)
+    xls_export = models.BooleanField(
+        default=False, verbose_name="Tiene exportación a excel")
+
     description = models.TextField(
         blank=True, null=True)
     cat_params = models.JSONField(
