@@ -154,6 +154,16 @@ export const useAuthStore = defineStore("auth", {
       const token = useCookie('auth_ocsa')
       return token.value
       // return true
+    },
+    is_staff(state) {
+      if (state.user_details_ocsa)
+        return state.user_details_ocsa.is_staff || false
+      return false
+    },
+    is_full_editor(state) {
+      if (state.user_details_ocsa)
+        return state.user_details_ocsa.is_full_editor || state.user_details_ocsa.is_staff || false
+      return false
     }
   }
 

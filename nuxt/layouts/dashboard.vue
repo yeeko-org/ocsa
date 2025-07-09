@@ -10,6 +10,7 @@ const router = useRouter()
 const mainStore = useMainStore()
 const authStore = useAuthStore()
 const { schemas, current_collection_data } = storeToRefs(mainStore)
+const { is_full_editor } = storeToRefs(authStore);
 // const { fetchCatalogs } = mainStore
 const { logout } = authStore
 // const route = useRoute()
@@ -153,6 +154,7 @@ watch(
                   @click="openItem($event, collection.snake_name)"
                   :class="collection.level === 'primary' ? '' : '_ml-3'"
                   :active-class="collection.level === 'primary' ? '' : 'font-weight-bold'"
+                  :disabled="!is_full_editor && (collection.snake_name !== 'location' && collection.snake_name !== 'note')"
                 >
                   <template v-slot:append="{ isActive, select }">
                     <v-icon
@@ -181,6 +183,7 @@ watch(
               _active-class="text-accent"
               :to="`/dashboard/${collection.snake_name}`"
               :prepend-icon="collection.icon"
+              :disabled="!is_full_editor"
               :title="collection.name"
             ></v-list-item>
             <v-divider></v-divider>

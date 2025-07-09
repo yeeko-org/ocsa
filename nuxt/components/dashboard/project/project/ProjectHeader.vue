@@ -9,6 +9,7 @@ import { storeToRefs } from 'pinia'
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 import LocationsChip from "~/components/dashboard/project/LocationsChip.vue";
+import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
 
 const mainStore = useMainStore()
 const { cats } = storeToRefs(mainStore)
@@ -76,13 +77,11 @@ const mention_counts = computed(() => {
             {{main.parent_project_full.name}}
           </span>
         </div>
-        <div
-          class="ml-2 text-body-1"
-          style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
-          v-tooltip:bottom="main.name"
-        >
-          {{ main.name }}
-        </div>
+          <TitleCommon
+            :title_text="main.name"
+            :title_width="300"
+            card_class="ml-2 text-body-1"
+          />
       </div>
     </template>
 

@@ -2,12 +2,15 @@
 import {defineComponent, ref, computed} from 'vue'
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'
+import {useAuthStore} from "~/store/auth.js";
+const authStore = useAuthStore()
+const mainStore = useMainStore()
 // export default defineComponent({
 //   name: "StatusDetail"
 // })
-const mainStore = useMainStore()
 // const final_filters = ref({})
 // const collection = ref("status_location")
+const { is_staff } = storeToRefs(authStore);
 
 const props = defineProps({
   final_filters: Object,
@@ -59,10 +62,17 @@ const label = computed(() => {
       : "ubicación"
   return "Status de " + txt
 })
+
 const field = computed(() => {
   if (props.collection.includes('status_'))
     return props.collection
   return `status_${props.collection}`
+})
+
+const status_selected = computed(() => {
+  const status_name = props.final_filters[field.value]
+  if (!status_name) return {open_editor: true}
+  return items_built.value.find(item => item.name === status_name)
 })
 
 </script>
@@ -80,6 +90,7 @@ const field = computed(() => {
     min-width="260"
     :hide-details="hide_details"
     density="compact"
+    :readonly="!is_staff && !status_selected.open_editor"
   >
     <template #item="{ item, props: {onClick, title, value} }">
       <v-list-item
@@ -87,6 +98,7 @@ const field = computed(() => {
         :title="title"
         :subtitle="item.raw.description"
         :value="value"
+        :disabled="!is_filter && !is_staff && !item.raw.open_editor"
       >
         <template v-slot:prepend>
           <v-icon

@@ -5,6 +5,9 @@ import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
+import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
+import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
+import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
 const mainStore = useMainStore()
 const { collections_summary, cats } = storeToRefs(mainStore)
 
@@ -56,7 +59,19 @@ const final_state = computed(() => {
         :color="dest_collection.color"
         class="mr-2"
       ></v-icon>
-      <span class="font-weight-bold">
+      <template
+        v-if="dest_collection.value === 'project'"
+      >
+        <ExtractivismIcons
+          :project="main.project_full"
+        />
+        <TitleCommon
+          :title_text="main.project_full.name"
+          :title_width="300"
+          card_class="ml-2 text-body-1"
+        />
+      </template>
+      <span v-else class="font-weight-bold">
         {{dest_collection.name}}
       </span>
 

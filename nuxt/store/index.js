@@ -523,6 +523,7 @@ export const useMainStore = defineStore('main', {
               return resolve({ cancelled: true })
             } else {
               console.error(thrown)
+              return resolve({ errors: thrown.response.data })
             }
           })
       })

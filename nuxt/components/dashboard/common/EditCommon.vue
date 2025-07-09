@@ -81,9 +81,12 @@ function deleteRecord() {
     .then((res) => {
       console.log("res", res)
       if (res.errors) {
-        const error_msg = "No se pudo eliminar el registro si tiene datos relacionados"
-        errors.value = `${error_msg}: \n${
-          JSON.stringify(res.errors.report_data)}`
+        // const error_msg = "No se pudo eliminar el registro si tiene datos relacionados"
+        // errors.value = `${error_msg}: \n${
+        //   JSON.stringify(res.errors.report_data)}`
+        let error_msg = "No se pudo eliminar el registro:\n"
+        error_msg += JSON.stringify(res.errors)
+        errors.value = error_msg
         deleting.value = false
         dialog_delete.value = false
         return

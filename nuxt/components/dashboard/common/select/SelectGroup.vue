@@ -272,16 +272,16 @@ function setInitialData() {
   if (props.is_filter)
     return
   const levels = level_names.value
-  if (subcategory_is_multiple.value){
-    console.log("levels", levels)
-    console.log("nodes.value", nodes.value)
-    console.log("subcategory_is_multiple", subcategory_is_multiple.value)
-    console.log("props.main_object", props.main_object)
-  }
+  // if (subcategory_is_multiple.value){
+  //   console.log("levels", levels)
+  //   console.log("nodes.value", nodes.value)
+  //   console.log("subcategory_is_multiple", subcategory_is_multiple.value)
+  //   console.log("props.main_object", props.main_object)
+  // }
   if (props.main_object[levels.subtype]
       && !props.main_object[levels.type]){
     if (nodes.value.subtype){
-      console.log("nodes.value.subtype", nodes.value.subtype)
+      // console.log("nodes.value.subtype", nodes.value.subtype)
       props.main_object[levels.type] = nodes.value.subtype.parent.data.id
     }
   }

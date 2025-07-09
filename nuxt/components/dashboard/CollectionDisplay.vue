@@ -55,6 +55,7 @@ const final_filters = ref({
   page_size: 40,
 })
 const reverse_fetch = ref(false)
+const error_message = ref("")
 
 const temp_reset = ref(false)
 const visible_filters = ref([])
@@ -128,6 +129,7 @@ function realApplyFilters(page=null) {
   }
   loading_fetch.value = true
   show_details.value = false
+  error_message.value = null
   let collection_name = collection_data.value.snake_name
   if (collection_data.value.is_category)
     collection_name = `catalogs/${collection_name}`
@@ -144,6 +146,15 @@ function realApplyFilters(page=null) {
     if (res.cancelled) {
       reverse_fetch.value = !reverse_fetch.value
       realApplyFilters(page)
+      return
+    }
+    if (res.errors) {
+      // console.error("Error fetching data:", res.errors)
+      if (res.errors.length > 3000) {
+        console.error("Too many errors, resetting filters")
+      }
+      error_message.value = res.errors
+      loading_fetch.value = false
       return
     }
     loading_fetch.value = false
@@ -380,6 +391,14 @@ function selectItem(item) {
       height="10"
       color="accent"
     ></v-progress-linear>
+    <v-alert
+      v-if="error_message"
+      type="error"
+      variant="outlined"
+      class="mt-2"
+    >
+      {{ error_message }}
+    </v-alert>
     <PanelsResult
       ref="childRef"
       :results="sorted_results"

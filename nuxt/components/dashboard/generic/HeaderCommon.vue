@@ -2,6 +2,7 @@
 import {computed, nextTick, watch} from "vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import CommentIcon from "~/components/dashboard/utils/CommentIcon.vue";
+import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
 
 const props = defineProps({
   main: Object,
@@ -27,6 +28,7 @@ const title_width = computed(() => {
   // return ['project', 'note'].includes(props.collection_data.name) ? 300 : 350
   return 300
 })
+
 const title_text = computed(() => {
   const name_field = props.collection_data.name_field
   return props.main[name_field] || 'SIN NOMBRE/TÍTULO'
@@ -92,25 +94,37 @@ const emits = defineEmits(['open-panel'])
     >
       <div class="d-flex align-center">
         <slot name="title" class="d-flex">
-          <div
-            class="ml-2 font-weight-bold"
-            style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
-            :style="`width: ${title_width}px;`"
-            v-tooltip:bottom="title_text"
-          >{{ title_text }}</div>
+          <TitleCommon
+            :title_text="title_text"
+            :title_width="title_width"
+          />
+<!--          <v-card-->
+<!--            class="ml-2 font-weight-bold"-->
+<!--            style="text-wrap: pretty; max-height: 54px; overflow: hidden;"-->
+<!--            :style="`width: ${title_width}px;`"-->
+<!--          >-->
+<!--            {{ title_text }}-->
+<!--            <v-tooltip-->
+<!--              activator="parent"-->
+<!--              location="bottom"-->
+<!--              :max-width="400"-->
+<!--            >-->
+<!--              {{ title_text }}-->
+<!--            </v-tooltip>-->
+<!--          </v-card>-->
         </slot>
         <v-icon
           v-if="main.description"
           color="grey-darken-1"
         >
           subject
+          <v-tooltip
+            activator="parent"
+            location="end"
+          >
+            {{ main.description }}
+          </v-tooltip>
         </v-icon>
-        <v-tooltip
-          activator="parent"
-          location="end"
-        >
-          {{ main.description }}
-        </v-tooltip>
       </div>
     </v-toolbar-title>
     <template v-if="real_show_details">
