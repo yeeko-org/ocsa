@@ -598,7 +598,8 @@ class ArticleScraper(ABC):
                 if title not in tag_text:
                     tag.decompose()
 
-        allowed_attrs = ['class', 'id', 'href', 'src', 'alt', 'title']
+        allowed_attrs = [
+            'class', 'id', 'href', 'src', 'alt', 'title']
         # new_body = BeautifulSoup('', 'html.parser')
         for tag in body.find_all():
             relevant_attrs = {

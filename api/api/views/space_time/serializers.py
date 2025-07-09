@@ -7,6 +7,7 @@ from space_time.models import (
     Location,)
 from api.views.event import EventSerializer
 from api.views.project import ProjectBasicSerializer
+from api.views.project.list_serializers import ProjectMiniSerializer
 from api.views.project.list_serializers import ImpactSerializer
 
 
@@ -46,6 +47,16 @@ class StateRetrieveSerializer(StateListSerializer):
 
 
 class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+
+class LocationSemiFullSerializer(serializers.ModelSerializer):
+    # event_full = EventSerializer(read_only=True, source='event')
+    project_full = ProjectMiniSerializer(read_only=True, source='project')
+    # impact_full = ImpactSerializer(read_only=True, source='impact')
+
     class Meta:
         model = Location
         fields = '__all__'

@@ -8,9 +8,10 @@ from api.views.project.list_serializers import (
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
+from api.views.common_serializers import ConditionalFieldsMixin
 
 
-class ConflictSerializer(serializers.ModelSerializer):
+class ConflictSerializer(ConditionalFieldsMixin):
     class Meta:
         model = Conflict
         fields = '__all__'

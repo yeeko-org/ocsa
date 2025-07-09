@@ -133,14 +133,36 @@ class JornadaArticleScraper(ArticleScraper):
         article = self.soup_content.find('article')
         self.title = article.find('div', class_='cabeza')\
             .get_text()
+
+        if sumarios := article.find('div', class_='sumarios'):
+            self.title += "\n" + sumarios.get_text()
+
         self.content = "\n".join(
             [p.get_text() for p in article.find_all('p')])
         self.images = [img['src'] for img in article.find_all('img', src=True)]
+        author_classes = ['credito-autor', 'credito-articulo']
         try:
-            self.author = article.find('div', class_='credito-autor')\
+            self.author = article.find('div', class_=author_classes)\
                 .find('span').get_text()
         except AttributeError:
             self.author = None
+        if not self.author:
+            span_author = article.find('span', itemprop='name')
+            if span_author:
+                self.author = span_author.get_text()
 
     def get_main_body(self) -> Tag:
         return self.soup_content.find('article')
+
+    def special_cleanup(self, body):
+        # Decompose <a> with id = "page_link_prev" and "page_link_next"
+        classes_to_remove = [
+            'go gui', 'credito-autor', 'hemero', 'email', 'credito-titulo',
+            'cabeza', 'credito-articulo', 'credito-autor',
+            'sumarios']
+        for a in body.find_all('div', class_=classes_to_remove):
+            a.decompose()
+
+        # Remove all after go gui
+
+

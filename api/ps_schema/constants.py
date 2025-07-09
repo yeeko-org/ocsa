@@ -195,7 +195,7 @@ all_collections = {
             "icon": 'recent_actors',
             "color": 'blue',
             "sort_fields": [
-                'status_validation__order', 'name',
+                'status_location__order', 'name',
                 {'mentions_count': 'Cantidad de menciones'},
             ],
             "all_filters": [
@@ -450,6 +450,10 @@ all_collections = {
             "model_name": "Location",
             "level": "primary",
             "available_actions": ["massive_edit"],
+            # "sort_fields": [
+            #     'id', 'status_validation__order', 'name',
+            #     'status_location__order'
+            # ],
             "all_filters": [
                 {"filter_name": "states", "hidden": False},
                 {

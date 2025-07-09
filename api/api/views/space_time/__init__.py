@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions
 from django_filters import FilterSet, CharFilter
 
 from api.pagination import CustomPagination
+from api.permissions import LocationPermission
 from space_time.models import (
     State,
     Municipality,
@@ -14,9 +15,12 @@ from api.views.space_time.serializers import (
     MunicipalityListSerializer,
     LocalitySerializer,
     LocationSerializer,
+    LocationSemiFullSerializer,
     LocationFullSerializer,
     StateRetrieveSerializer,)
-from ..common_views import BaseViewSet, BaseStatusViewSet, OnlyByFilterMixin
+from ..common_views import (
+    BaseViewSet, BaseStatusViewSet, OnlyByFilterMixin, BaseGenericViewSet)
+
 
 
 class ListSetMixin(viewsets.ReadOnlyModelViewSet):
@@ -76,12 +80,21 @@ class LocationFilter(FilterSet):
 
 
 class LocationViewSet(BaseViewSet):
+    permission_classes = [LocationPermission]
     queryset = Location.objects.all().exclude(
-        project__isnull=True, event__isnull=True, impact__isnull=True)
+        project__isnull=True, event__isnull=True, impact__isnull=True)\
+        .select_related("event", "impact", "project")
     serializer_class = LocationFullSerializer
+    search_fields = ['state__name',
+                     'municipality__name',
+                     'locality__name',
+                     'details', 'comments']
+    # filter_backends = [OrderingFilter, DjangoFilterBackend, SearchFilter]
+    ordering_fields = ['id', 'status_location__order']
     filterset_class = LocationFilter
 
     def get_serializer_class(self):
-        action_serializer = {'list': LocationSerializer}
+        # action_serializer = {'list': LocationSerializer}
+        action_serializer = {'list': LocationSemiFullSerializer}
         return action_serializer.get(self.action, self.serializer_class)
 

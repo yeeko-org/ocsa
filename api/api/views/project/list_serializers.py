@@ -7,9 +7,10 @@ from space_time.models import Location
 from source.models import Mention, Note
 from api.views.common_serializers import BaseExportSerializer
 from event.models import Event
+from api.views.common_serializers import ConditionalFieldsMixin
 
 
-class ActorBasicSerializer(serializers.ModelSerializer):
+class ActorBasicSerializer(ConditionalFieldsMixin):
     participants_count = serializers.SerializerMethodField()
 
     def get_participants_count(self, obj):

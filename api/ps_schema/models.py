@@ -54,7 +54,8 @@ class Collection(models.Model):
         blank=True, null=True, verbose_name="Texto de ayuda")
     fields = models.JSONField(default=list, verbose_name="Campos")
     sort_fields = models.JSONField(
-        default=list, verbose_name="Campos de ordenamiento")
+        default=list, verbose_name="Campos de ordenamiento",
+        blank=True)
 
     optional_category = models.BooleanField(
         default=False, verbose_name="Colección opcional")
@@ -68,7 +69,8 @@ class Collection(models.Model):
     description = models.TextField(
         blank=True, null=True)
     cat_params = models.JSONField(
-        default=dict, verbose_name="Parámetros para el catálogo")
+        default=dict, verbose_name="Parámetros para el catálogo",
+        blank=True)
     available_actions = models.JSONField(
         default=list, verbose_name="Acciones disponibles")
 
@@ -160,6 +162,4 @@ class CollectionLink(models.Model):
     class Meta:
         verbose_name = "Enlace de Colección"
         verbose_name_plural = "1.4 Enlaces de Colecciones"
-
-
 

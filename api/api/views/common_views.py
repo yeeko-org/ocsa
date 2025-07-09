@@ -8,10 +8,47 @@ from api.views.confirm_delete import CustomDeleteMixin
 from rest_framework.response import Response
 
 
+class AdvancedConditionalFieldsViewMixin(viewsets.ModelViewSet):
+    """
+    Advanced mixin that supports multiple permission levels
+    """
+
+    field_permissions = {
+        'anonymous': [
+            'status_register', 'comments', 'status_validation',
+            'status_location'],
+        'authenticated': [],  # Fields to exclude for authenticated users
+        'staff': [],  # Fields to exclude for staff users
+    }
+
+    def get_excluded_fields(self):
+        """
+        Determine which fields to exclude based on user permissions
+        """
+        if self.request.user.is_staff:
+            return self.field_permissions.get('staff', [])
+        elif self.request.user.is_authenticated:
+            return self.field_permissions.get('authenticated', [])
+        else:
+            return self.field_permissions.get('anonymous', [])
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        excluded_fields = self.get_excluded_fields()
+        # print("get_serializer, excluded_fields: ", excluded_fields)
+        if excluded_fields:
+            kwargs['exclude_fields'] = excluded_fields
+
+        kwargs.setdefault('context', self.get_serializer_context())
+        return serializer_class(*args, **kwargs)
+
+
 class UnaccentSearchFilter(SearchFilter):
 
     def construct_search(self, field_name, queryset):
         from django.db.models.constants import LOOKUP_SEP
+        if not field_name:
+            return None
         lookup = self.lookup_prefixes.get(field_name[0])
         if lookup:
             field_name = field_name[1:]
@@ -22,10 +59,10 @@ class UnaccentSearchFilter(SearchFilter):
 
 class BaseViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+    # permission_classes = [permissions.AllowAny]
     # filterset_class = FilterSet
     pagination_class = CustomPagination
-    filter_backends = [SearchFilter, DjangoFilterBackend]
+    filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
     search_fields = ['name']
     ordering_fields = ['name']
 

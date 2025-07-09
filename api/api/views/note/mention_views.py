@@ -26,7 +26,6 @@ from event.models import Involved, Event
 
 
 class MentionViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
     queryset = Mention.objects.all()
 
     serializer_class = MentionSerializer
@@ -56,7 +55,6 @@ class MentionViewSet(viewsets.ModelViewSet):
 
 
 class ParticipantViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
     queryset = Participant.objects.all()
 
     serializer_class = ParticipantSimpleSerializer
@@ -76,7 +74,6 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
 
 class ImpactViewSet(MassiveEdit, viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
     pagination_class = CustomPagination
     queryset = Impact.objects.all()
 
@@ -96,14 +93,12 @@ class ImpactViewSet(MassiveEdit, viewsets.ModelViewSet):
 
 
 class InterestViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
     queryset = Interest.objects.all()
 
     serializer_class = InterestSerializer
 
 
 class InvolvedViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
     queryset = Involved.objects.all()
 
     serializer_class = InvolvedSerializer
@@ -146,7 +141,6 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
         .prefetch_related(
             'involvements',
         )
-    permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
     filterset_class = EventFilter

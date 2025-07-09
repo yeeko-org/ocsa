@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from django_filters import FilterSet, NumberFilter
 from django.db.models import Count
+from api.permissions import IsAdminOrReadOnly, IsEditorOrCreateOrRead
 # from rest_framework.decorators import action
 # from rest_framework.response import Response
 
@@ -35,40 +36,35 @@ from api.views.catalogs.project_serializers import (
 )
 from .all import CatalogsView  # noqa
 from ..common_views import BaseViewSet, BaseStatusViewSet
+from api.views.confirm_delete import CustomDeleteMixin
 
 
-class InterestGroupViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
+class InterestGroupViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
+    permission_classes = [IsAdminOrReadOnly]
     queryset = InterestGroup.objects.all()
     serializer_class = InterestGroupSerializer
 
 
-class InterestTypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+class InterestTypeViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
+    permission_classes = [IsEditorOrCreateOrRead]
     queryset = InterestType.objects.all()
     serializer_class = InterestTypeSerializer
 
 
-class InterestSubtypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+class InterestSubtypeViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
+    permission_classes = [IsEditorOrCreateOrRead]
     queryset = InterestSubtype.objects.all()
     serializer_class = InterestSubtypeSerializer
 
 
 class InvolvedRoleViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsEditorOrCreateOrRead]
     queryset = InvolvedRole.objects.all()
-    # .annotate(
-    #     event_group=F('event_type__event_group')
-    # )
     serializer_class = InvolvedRoleSerializer
 
 
 class SourceViewSet(BaseStatusViewSet):
-
+    permission_classes = [IsAdminOrReadOnly]
     filterset_fields = []
     queryset = Source.objects.all()\
         .annotate(notes_count=Count('notes'))\
@@ -77,13 +73,13 @@ class SourceViewSet(BaseStatusViewSet):
 
 
 class StatusControlViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminOrReadOnly]
     queryset = StatusControl.objects.all()
     serializer_class = StatusControlSerializer
 
 
 class StatusProjectViewSet(BaseStatusViewSet):
+    permission_classes = [IsEditorOrCreateOrRead]
     queryset = StatusProject.objects.all()\
         .annotate(projects_count=Count('projects'))\
         .distinct()
@@ -93,6 +89,7 @@ class StatusProjectViewSet(BaseStatusViewSet):
 class ExtractivismTypeViewSet(BaseViewSet):
     queryset = ExtractivismType.objects.all()
     serializer_class = ExtractivismTypeSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
         action_serializer = {
@@ -104,6 +101,7 @@ class ExtractivismTypeViewSet(BaseViewSet):
 
 
 class MegaprojectTypeFilter(FilterSet):
+    permission_classes = [IsEditorOrCreateOrRead]
     extractivism_type = NumberFilter(
         field_name='extractivism_types', lookup_expr='exact')
 
@@ -113,6 +111,7 @@ class MegaprojectTypeFilter(FilterSet):
 
 
 class MegaprojectTypeViewSet(BaseStatusViewSet):
+    permission_classes = [IsEditorOrCreateOrRead]
 
     queryset = MegaprojectType.objects.all()\
         .annotate(count=Count('projects'))\

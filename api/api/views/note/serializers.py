@@ -14,9 +14,25 @@ from impact.models import Impact
 from df.models import Displacement
 # from impact.models import Impact
 from space_time.models import Location
+from api.views.common_serializers import ConditionalFieldsMixin
 
 
-class LocationSimpleSerializer(serializers.ModelSerializer):
+# class ConditionalFieldsSerializerMixin:
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#
+#         request = self.context.get('request')
+#         if request and not request.user.is_authenticated:
+#             restricted_fields = getattr(self.Meta, 'restricted_fields', ['status_register', 'comments'])
+#             for field_name in restricted_fields:
+#                 self.fields.pop(field_name, None)
+#
+#
+# class BaseModelSerializer(ConditionalFieldsSerializerMixin, serializers.ModelSerializer):
+#     pass
+
+
+class LocationSimpleSerializer(ConditionalFieldsMixin):
     class Meta:
         model = Location
         fields = '__all__'
@@ -28,14 +44,15 @@ class DisplacementSimpleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class LocationSmallSerializer(serializers.ModelSerializer):
+class LocationSmallSerializer(ConditionalFieldsMixin):
 
     class Meta:
         model = Location
         exclude = ['geojson', 'ubicacion_id_ref']
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializer(ConditionalFieldsMixin):
+
     class Meta:
         model = Project
         fields = '__all__'
@@ -50,7 +67,7 @@ class ProjectFileSerializer(serializers.ModelSerializer):
         fields = ['id', 'file', 'uploaded_at', 'name', 'url']
 
 
-class ProjectSemiFullSerializer(serializers.ModelSerializer):
+class ProjectSemiFullSerializer(ConditionalFieldsMixin):
     files = ProjectFileSerializer(many=True, read_only=True)
     parent_project_full = ProjectSerializer(
         read_only=True, source='parent_project')
@@ -84,7 +101,7 @@ class EventSimpleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class EventEmbedSerializer(EventSimpleSerializer):
+class EventEmbedSerializer(ConditionalFieldsMixin, EventSimpleSerializer):
     involvements = InvolvedSerializer(many=True, read_only=True)
     locations = LocationSimpleSerializer(many=True, read_only=True)
     displacements = DisplacementSimpleSerializer(many=True, read_only=True)
@@ -106,7 +123,7 @@ class MentionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MentionFullSerializer(serializers.ModelSerializer):
+class MentionFullSerializer(ConditionalFieldsMixin):
     project_full = ProjectSerializer(
         source='project', read_only=True)
     impacts = ImpactSerializer(many=True)
@@ -143,7 +160,7 @@ class NoteFileSerializer(serializers.ModelSerializer):
         fields = ['id', 'file', 'uploaded_at', 'name', 'url']
 
 
-class NoteSerializer(serializers.ModelSerializer):
+class NoteSerializer(ConditionalFieldsMixin):
     mentions = MentionFullSerializer(many=True)
 
     class Meta:
@@ -176,7 +193,7 @@ class EventFullNoteSerializer(EventEmbedSerializer, EventSerializer):
         fields = '__all__'
 
 
-class NoteFullSerializer(serializers.ModelSerializer):
+class NoteFullSerializer(ConditionalFieldsMixin):
     files = NoteFileSerializer(many=True, read_only=True)
     mentions = MentionMegaFullSerializer(many=True, read_only=True)
 

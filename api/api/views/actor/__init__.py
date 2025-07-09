@@ -3,6 +3,7 @@ from django_filters import FilterSet, NumberFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions
+from api.permissions import IsFullEditorOrReadOnly, DynamicCatalogPermission
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -60,13 +61,12 @@ class ActorViewMixin(viewsets.GenericViewSet):
         .prefetch_related(
         "participants", "origin_references", "children_actors")
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [DynamicCatalogPermission]
 
     pagination_class = CustomPagination
     filterset_class = ActorFilter
 
     filter_backends = [OrderingFilter, DjangoFilterBackend, UnaccentSearchFilter]
-    # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
 
     search_fields = ['name', 'alternative_names']
     ordering_fields = ['id', 'name', 'mentions_count', 'status_validation__order']
@@ -146,7 +146,6 @@ class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
 
 
 class ActorMiniListViewSet(ActorViewMixin, viewsets.ReadOnlyModelViewSet):
-    permission_classes = [permissions.AllowAny]
     queryset = Actor.objects.all().distinct()\
         .annotate(
             sector_group=F('sector__sector_group')

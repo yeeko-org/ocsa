@@ -7,6 +7,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from api.permissions import DynamicCatalogPermission
 from actor.models import Actor
 from api.pagination import CustomPagination
 from api.views.action_export_xls import ExportXlsMixin
@@ -48,7 +49,7 @@ class ProjectFilter(FilterSet):
 
 
 class ProjectViewSetMixin(viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [DynamicCatalogPermission]
     pagination_class = CustomPagination
     filterset_class = ProjectFilter
     filter_backends = [
@@ -140,7 +141,6 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
         }
     ]
     xls_name = "Exportación de Proyectos"
-    permission_classes = [permissions.AllowAny]
 
     pagination_class = CustomPagination
 
@@ -156,6 +156,9 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if not self.request.user.is_authenticated:
+            queryset = queryset.filter(status_validation__is_public=True)
+
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related("others_parents")
         elif self.action == "export_xls":
@@ -166,9 +169,6 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
             ).prefetch_related(
                 "megaproject_type__extractivism_types"
             ).distinct()
-            user = self.request.user
-            if not (user.is_authenticated and user.is_staff):
-                return queryset.filter(status_validation__is_public=True)
         return queryset
 
     def get_serializer_class(self):

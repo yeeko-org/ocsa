@@ -2,7 +2,8 @@ from django_filters import FilterSet, DateFilter, CharFilter, BooleanFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.viewsets import GenericViewSet
-
+from api.permissions import (
+    IsAuthenticatedOrReadOnly, ByStatusOrReadOnly)
 from api.views.action_file import ActionFileMixin
 from source.models import Note, NoteFile
 
@@ -10,7 +11,8 @@ from api.pagination import CustomPagination
 from api.views.note.serializers import (
     NoteSerializer, NoteCreateSerializer, NoteFullSerializer,
     NoteFileSerializer, MentionSerializer)
-from api.views.common_views import UnaccentSearchFilter, OrderingAutoFilter
+from api.views.common_views import (
+    UnaccentSearchFilter, OrderingAutoFilter)
 
 
 class NoteFilter(FilterSet):
@@ -31,7 +33,7 @@ class NoteFilter(FilterSet):
 
 
 class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [ByStatusOrReadOnly]
     queryset = Note.objects.all()\
         .prefetch_related(
             'mentions',
@@ -47,8 +49,6 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
 
     filterset_class = NoteFilter
 
-    # filter_backends = [
-    #     OrderingFilter, DjangoFilterBackend, UnaccentSearchFilter]
     filter_backends = [
         OrderingAutoFilter, DjangoFilterBackend, UnaccentSearchFilter]
     # SearchFilter
@@ -98,7 +98,7 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
 
 
 class NoteFileViewSet(mixins.DestroyModelMixin, GenericViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = NoteFile.objects.all()
     serializer_class = NoteFileSerializer
-
 

@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import FilterSet, NumberFilter
 from api.pagination import CustomPagination
 from api.views.common_views import UnaccentSearchFilter, OrderingAutoFilter
-
+from api.permissions import IsAdminOrReadOnly, IsEditorOrCreateOrRead
 from api.views.catalogs.serializers import (
     ImpactSubtypeSerializer, ImpactSubtypeFullSerializer,
     ImpactTypeSerializer, ImpactTypeFullSerializer,
@@ -13,8 +13,8 @@ from impact.models import ImpactSubtype, ImpactType, ImpactGroup
 
 
 class ImpactGroupViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminOrReadOnly]
     queryset = ImpactGroup.objects.all()
-
     serializer_class = ImpactGroupSerializer
 
 
@@ -29,14 +29,13 @@ class ImpactTypeFilter(FilterSet):
 
 
 class ImpactTypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsEditorOrCreateOrRead]
     from django.db.models import Count
 
     queryset = ImpactType.objects.all()\
         .annotate(impact_subtype_count=Count('impact_subtypes'),
                   mentions_count=Count('impact'))\
         .distinct()
-    permission_classes = [permissions.AllowAny]
     filterset_class = ImpactTypeFilter
     pagination_class = CustomPagination
     filter_backends = [
@@ -64,13 +63,12 @@ class ImpactSubtypeFilter(FilterSet):
 
 
 class ImpactSubtypeViewSet(viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsEditorOrCreateOrRead]
     from django.db.models import Count
     queryset = ImpactSubtype.objects.all()\
         .annotate(mentions_count=Count('impact'))\
         .distinct()
 
-    permission_classes = [permissions.AllowAny]
     # filterset_class = ImpactSubtypeFilter
     filterset_fields = ['impact_type', 'status_validation']
     pagination_class = CustomPagination

@@ -22,7 +22,8 @@ class StatusControl(models.Model):
     icon = models.CharField(max_length=40, blank=True, null=True)
     order = models.IntegerField(default=4)
     is_public = models.BooleanField(default=True)
-    open_editor = models.BooleanField(default=True)
+    open_editor = models.BooleanField(
+        default=True, verbose_name="Abierto a todxs")
     is_deleted = models.BooleanField(default=False)
     priority = models.IntegerField(default=0)
 

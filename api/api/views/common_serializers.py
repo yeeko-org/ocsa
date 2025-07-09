@@ -6,6 +6,31 @@ class CommonCount(serializers.ModelSerializer):
     count = serializers.ReadOnlyField()
 
 
+class ConditionalFieldsMixin(serializers.ModelSerializer):
+    """
+    A serializer mixin that conditionally excludes fields based on
+    user authentication.
+    """
+
+    def to_representation(self, instance):
+        """
+        Override to_representation to handle conditional fields.
+        """
+        data = super().to_representation(instance)
+        context = self.context
+        protected_fields = [
+            'status_register', 'comments', 'status_validation',
+            'status_location']
+
+        # Remove protected fields from the nested serializer
+        is_authenticated = context.get('request', {}).user.is_authenticated
+        if not is_authenticated:
+            for field in protected_fields:
+                if field in data:
+                    data.pop(field)
+        return data
+
+
 class StateSerializer(serializers.ModelSerializer):
 
     class Meta:
