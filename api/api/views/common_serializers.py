@@ -22,8 +22,8 @@ class ConditionalFieldsMixin(serializers.ModelSerializer):
             'status_register', 'comments', 'status_validation',
             'status_location']
 
-        # Remove protected fields from the nested serializer
-        is_authenticated = context.get('request', {}).user.is_authenticated
+        request = context.get('request')
+        is_authenticated = request and request.user.is_authenticated
         if not is_authenticated:
             for field in protected_fields:
                 if field in data:
