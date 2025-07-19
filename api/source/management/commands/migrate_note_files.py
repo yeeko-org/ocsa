@@ -207,6 +207,7 @@ class Command(BaseCommand):
         best_matchs.sort(key=lambda x: x[0], reverse=True)
         if best_matchs[0][0] > self.similar_ratio:
             return best_matchs[0][1]
+        return None
 
 
 class NoteDate:
@@ -227,9 +228,7 @@ class NoteDate:
             return []
 
         notes = self.notes.get(year, {}).get(month, [])
-        if notes:
-            print(f"Extrayendo notas para {year}, {month}")
-            return notes
+        return notes
 
     def extract_year_month(self, file_path: str):
         meses = {

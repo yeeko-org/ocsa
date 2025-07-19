@@ -1,63 +1,49 @@
 # Ejecucion de pruebas de scraping por pasos completos, y sus formas de ver la informacion.
 
-from pprint import pprint
-from source.scraper.jornada import JornadaManagerScraper
-from source.scraper.reforma import ReformaManagerScraper
-from source.models import (
-    ScrapedRecord, Article, QualifySchema, ArticleQualify, Note)
 
-manager_scraper = JornadaManagerScraper(
-    "2022/09/01", "2022/09/26", open_ai_engine="gpt-4o-mini")
+def examples():
+    from pprint import pprint
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.scraper.reforma import ReformaManagerScraper
+    from source.models import (
+        ScrapedRecord, Article, QualifySchema, ArticleQualify, Note)
 
-manager_reforma = ReformaManagerScraper(
-    "2022/09/01", "2022/09/26", open_ai_engine="gpt-4o-mini")
+    manager_scraper = JornadaManagerScraper(
+        "2022/09/01", "2022/09/26", open_ai_engine="gpt-4o-mini")
 
-# print(manager_scraper.scraped_record)
-manager_scraper.scrape_sections()
-manager_reforma.scrape_sections()
+    manager_reforma = ReformaManagerScraper(
+        "2022/09/01", "2022/09/26", open_ai_engine="gpt-4o-mini")
 
-manager_scraper = JornadaManagerScraper(
-    "", "", recover_record=ScrapedRecord.objects.get(pk=19),
-    open_ai_engine="gpt-4o-mini")
+    # print(manager_scraper.scraped_record)
+    manager_scraper.scrape_sections()
+    manager_reforma.scrape_sections()
 
-manager_scraper = JornadaManagerScraper(
-    "", "", recover_record=ScrapedRecord.objects.last(),
-    open_ai_engine="gpt-4o-mini")
+    manager_scraper = JornadaManagerScraper(
+        "", "", recover_record=ScrapedRecord.objects.get(pk=19),
+        open_ai_engine="gpt-4o-mini")
 
-manager_scraper.record_articles(reset=True)
-manager_reforma.record_articles(reset=True)
+    manager_scraper = JornadaManagerScraper(
+        "", "", recover_record=ScrapedRecord.objects.last(),
+        open_ai_engine="gpt-4o-mini")
 
-manager_scraper.full_scrape_articles(
-    all_articles=True, block_size=1, prompt_version="v2")
+    manager_scraper.record_articles(reset=True)
+    manager_reforma.record_articles(reset=True)
 
-manager_reforma.full_scrape_articles(
-    all_articles=True, block_size=1, prompt_version="v2", check_criteria=False)
+    manager_scraper.full_scrape_articles(
+        block_size=1, prompt_version="v2")
 
-# QualifySchema.objects.all().delete()
-Article.objects.filter(scraped__id=22).count()
+    manager_reforma.full_scrape_articles(
+        block_size=1, prompt_version="v2", check_criteria=False)
 
-########
+    # QualifySchema.objects.all().delete()
+    Article.objects.filter(scraped__id=22).count()
 
-# python manage.py articles_json "2022-03-01" "2022-03-28" 4
-# python manage.py compare_notes --settings=core.settings_prod
-########
+    ########
 
+    # python manage.py articles_json "2022-03-01" "2022-03-28" 4
+    # python manage.py compare_notes --settings=core.settings_prod
+    ########
 
-def preclassify_articles(
-        block_size=500, sr_id=17, open_ai_engine="gpt-4o-mini"):
-    scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
-        open_ai_engine=open_ai_engine, is_test=True)
-    scraper.record_articles(reset=True)
-    scraper.make_preclassify_articles(block_size=block_size)
-
-
-preclassify_articles(744, 17, "gpt-4o-mini")
-preclassify_articles(450, 17, "gpt-4o-mini")
-preclassify_articles(203, 17, "gpt-4o-mini")
-preclassify_articles(102, 17, "gpt-4o-mini")
-preclassify_articles(50, 17, "gpt-4o-mini")
-preclassify_articles(22, 17, "gpt-4o-mini")
 
 
 def scrape_full_articles(
@@ -69,7 +55,7 @@ def scrape_full_articles(
     if open_ai_engine == "deepseek-chat":
         scraper.use_deepseek = True
     scraper.full_scrape_articles(
-        all_articles=True, block_size=block_size,
+        block_size=block_size,
         prompt_version=prompt_version)
 
 

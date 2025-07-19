@@ -51,7 +51,7 @@ class Command(BaseCommand):
                     print("-----")
                 continue
             # print(f"Nota {note.link} con articulo similar")
-            print(f"Perfecto: {article['title']} ({article['preclassification']})")
+            print(f"Perfecto: {article['title']}")
             if certainty_degree := article.get("certainty_degree"):
                 print(f"grado de criterios: {certainty_degree}")
             # print(f"grado de criterios: {article['certainty_degree']}")
@@ -64,5 +64,5 @@ class Command(BaseCommand):
         print("\n=== Artículos preclasificados válidos sin notas === \n")
         print(f"Total de Artículos: {len(valid_articles)}")
         for urls, article in valid_articles.items():
-            print(f"{article['preclassification']}: {article['title']}")
+            print(f"{article['title']}")
             print(f"url: {urls}")

@@ -168,18 +168,9 @@ class ScrapedRecord(models.Model):
 
     data = models.JSONField(blank=True, null=True)
     errors = models.JSONField(blank=True, null=True)
-    preclassification = models.JSONField(blank=True, null=True)
 
 
 class Article(models.Model):
-
-    PRECLASSIFICATION_CHOICES = [
-        ('invalid', 'Invalido'),
-        ('valid', 'Valido'),
-        ('maybe', 'Podría ser'),
-        ('indirect', 'Indirecto'),
-        ('unknown', 'Desconocido'),
-    ]
 
     uid = models.CharField(max_length=255)
     title = models.CharField(max_length=255, blank=True, null=True)
@@ -192,10 +183,6 @@ class Article(models.Model):
     basic_content = models.TextField(blank=True, null=True)
     scraped_date = models.DateField(auto_now_add=True)
     metadata = models.JSONField(blank=True, null=True)
-
-    preclassification = models.CharField(
-        max_length=10, choices=PRECLASSIFICATION_CHOICES,
-        blank=True, null=True)
 
     autor = models.CharField(max_length=255, blank=True, null=True)
     html_content = models.TextField(blank=True, null=True)

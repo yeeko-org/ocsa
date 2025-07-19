@@ -27,10 +27,11 @@ class Command(BaseCommand):
         articles = data_4o["articles"]
         source = Source.objects.get(name=source_name)
 
-        valid_articles = {
-            article["url"]: article for article in articles
-            if article["preclassification"] in ["valid", "maybe", "unknown"]
-        }
+        # valid_articles = {
+        #     article["url"]: article for article in articles
+        #     if article["preclassification"] in ["valid", "maybe", "unknown"]
+        # }
+        valid_articles = articles
         articles_by_url = {article["url"]: article for article in articles}
 
         for note in notes:

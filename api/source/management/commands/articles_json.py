@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Geners un archivo json de los articulos'
+    help = 'Genera un archivo json de los artículos'
     articles = None
 
     def add_arguments(self, parser):
@@ -32,7 +32,6 @@ class Command(BaseCommand):
                 {
                     "title": article.title,
                     "url": article.url,
-                    "preclassification": article.preclassification,
                     "is_selected": article.is_selected,
                     "criteria": article.criteria,
                     # "certainty_degree": article.get_certainty_degree(),

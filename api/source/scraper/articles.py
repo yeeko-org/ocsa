@@ -75,7 +75,7 @@ def get_date_range(
 
 
 class ManagerScraper(ABC):
-    scraped_record: ScrapedRecord
+    scraped_record: ScrapedRecord | None
     main_scraper_class: Type["MainScraper"]
     article_scraper_class: Type["ArticleScraper"]
 
@@ -83,7 +83,7 @@ class ManagerScraper(ABC):
     parser = "html.parser"
     source: Source
     articles_by_date: Dict[str, dict]
-    articles_for_openAI: list
+    articles_for_ai: list
     articles_by_id: Dict[int, Article]
     overlapping_dates: list
     errors: list
@@ -195,7 +195,7 @@ class ManagerScraper(ABC):
         self.scraped_record.status = "record_articles"
         self.scraped_record.save()
 
-        self.articles_for_openAI = []
+        self.articles_for_ai = []
         self.articles_by_id = {}
         for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
             for section_name, section_data in sections_dict.items():
@@ -237,7 +237,7 @@ class ManagerScraper(ABC):
         article_obj, _ = Article.objects.get_or_create(
             uid=uid, source=self.get_source(), defaults=defaults)
 
-        if article_obj.preclassification and not reset:
+        if article_obj.certainty_degree is not None and not reset:
             return
         article_id = article_obj.id
         self.articles_by_id[article_id] = article_obj
@@ -252,104 +252,7 @@ class ManagerScraper(ABC):
         }
         if content:
             article_for_ai["content"] = content
-        self.articles_for_openAI.append(article_for_ai)
-
-    def make_preclassify_articles(
-            self, block_size: int = 0, alt_version: bool = False):
-        self.scraped_record.status = "preclassify"
-        self.scraped_record.save()
-        if block_size:
-            self.block_size = block_size
-
-        if not self.articles_for_openAI:
-            return
-        prompt_path = "source/scraper/prompt_pre_classify.txt"
-        prompt_version = "preclassify_v1"
-        if alt_version:
-            prompt_path = "source/scraper/prompt_pre_classify_v2.txt"
-            prompt_version = "preclassify_v2"
-
-        if self.is_test:
-            self.qualify_schema, _ = QualifySchema.objects.get_or_create(
-                scraped_record=self.scraped_record,
-                ia_model=self.open_ai_engine,
-                prompt_version=prompt_version,
-                batch_size=self.block_size)
-        else:
-            self.qualify_schema = None
-
-        len_articles = len(self.articles_for_openAI)
-        print(f"Preclassify articles for {len_articles} articles")
-        for i in range(0, len_articles, self.block_size):
-            print(f"Preclassifying articles {i} to {i + self.block_size}")
-            self.preclassify_articles(
-                self.articles_for_openAI[i:i + self.block_size], prompt_path)
-
-        self.scraped_record.save()
-
-    def preclassify_articles(self, articles: List[dict], prompt_path: str):
-        try:
-            # full_prompt = json.dumps(articles)
-            simple_articles = {}
-            for article in articles:
-                title = article.get("title")
-                if section := article.get("section"):
-                    title = f"{title} ({section})"
-                simple_articles[article["id"]] = title
-            full_prompt = json.dumps(simple_articles, ensure_ascii=False)
-        except TypeError as e:
-            print(f"Error converting to json art: {e}")
-            print("articles:", articles)
-            return
-
-        # TODO: Lucian, comentemos esto, pero es super difícil de encontrar
-        # algunas cosas como el engine, está en muchos lados y no sé si
-        # está declarado acá o allá o en dónde y me confundo, pasa mucho en
-        # muchos lados y me pierdo entre miles de declaraciones aisladas.
-        self.pre_classify_request = JsonRequestOpenAI(
-            prompt_path, engine=self.open_ai_engine,
-            use_deepseek=self.use_deepseek)
-
-        self.pre_classify_response, request_id = self.pre_classify_request\
-            .send_prompt(full_prompt)
-        if not self.pre_classify_response:
-            print("No response from OpenAI")
-            return
-
-        try:
-            pre_classify_response_items = self.pre_classify_response.items()  # type: ignore
-        except Exception as e:
-            self.add_error("Error getting items from response", e)
-            return
-        if not self.scraped_record.preclassification:
-            self.scraped_record.preclassification = []  # type: ignore
-        self.scraped_record.preclassification += pre_classify_response_items
-        counter = {"maybe": 0, "valid": 0, "invalid": 0, "unknown": 0}
-        for article_id, preclassification in pre_classify_response_items:
-            # print(f"Preclassification for {uid}: {preclasification}")
-            # print(f"objeto: {self.articles_by_uid.get(uid)}")
-            if preclassification not in ["valid", "invalid", "maybe", "unknown"]:
-                print(f"Invalid preclassification: {preclassification}")
-                continue
-            # article_obj = self.articles_by_uid.get(uid)
-            counter[preclassification] += 1
-            article_id = int(article_id)
-            article_obj = self.articles_by_id.get(article_id)
-            if not article_obj:
-                continue
-            is_selected = preclassification in ["valid", "maybe", "unknown"]
-            if self.is_test:
-                change_value = self.get_change_value(is_selected, article_obj)
-                _ = ArticleQualify.objects.create(
-                    article=article_obj,
-                    qualify_schema=self.qualify_schema,
-                    is_selected=is_selected,
-                    change_value=change_value,
-                    request_id=request_id)
-            else:
-                article_obj.preclassification = preclassification
-                article_obj.save()
-        print(f"counters: {counter.items()}")
+        self.articles_for_ai.append(article_for_ai)
 
     def get_change_value(self, is_selected: bool, article_obj: Article):
         if article_obj.is_selected == is_selected:
@@ -358,7 +261,7 @@ class ManagerScraper(ABC):
 
     def full_scrape_articles(
             self, update: bool = False, check_criteria: bool = True,
-            all_articles: bool = False, block_size: int = 0,
+            block_size: int = 0,
             prompt_version: str = "v1"):
 
         self.scraped_record.status = "criteria"
@@ -386,11 +289,6 @@ class ManagerScraper(ABC):
         else:
             articles_objects = list(Article.objects.filter(
                 scraped=self.scraped_record))
-        if not all_articles:
-            articles_objects = [
-                article for article in articles_objects
-                if article.preclassification in ["valid", "maybe", "unknown"]
-            ]
         if ready_articles:
             articles_objects = [
                 article for article in articles_objects
@@ -438,10 +336,10 @@ class ManagerScraper(ABC):
             else:
                 full_content = content
         if not full_content:
-            return
+            return None
 
         if not check_criteria:
-            return
+            return None
 
         prompt_criteria = (f"prompt_article{'s' if many_articles else ''}"
                            f"_criteria_{prompt_version}.txt")
@@ -454,11 +352,11 @@ class ManagerScraper(ABC):
 
         if not pre_classify_response:
             print("No response from OpenAI")
-            return
+            return None
 
         if not isinstance(pre_classify_response, dict):
             print("Invalid response")
-            return
+            return None
         if not many_articles:
             pre_classify_response = {articles[0].id: pre_classify_response}
         for article_id, criteria in pre_classify_response.items():
@@ -475,11 +373,14 @@ class ManagerScraper(ABC):
                     certainty_degree=certain_degree,
                     change_value=change_value,
                     request_id=req_id)
+                return None
             else:
                 article.criteria = criteria
                 article.certainty_degree = certain_degree
                 article.is_selected = is_selected
                 article.save()
+                return None
+        return None
 
 
 class MainScraper(ABC):
