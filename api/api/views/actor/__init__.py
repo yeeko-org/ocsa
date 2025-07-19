@@ -140,9 +140,17 @@ class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
             'create': ActorFullSerializer,
             'update': ActorFullSerializer,
             'massive_changes': MassiveChangeSerializer,
-            'merge': FromToModelSerializer
+            'merge': FromToModelSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    @action(detail=True, methods=['delete'])
+    def delete_other_parents(self, request, *args, **kwargs):
+        # serializer = self.get_serializer(data=request.data)
+        actor = self.get_object()
+        actor.others_parents.clear()
+        return Response({'message': 'Other parents deleted successfully'})
+
 
 
 class ActorMiniListViewSet(ActorViewMixin, viewsets.ReadOnlyModelViewSet):
