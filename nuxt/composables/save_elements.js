@@ -1,4 +1,5 @@
 import {useMainStore} from "~/store/index.js";
+import {storeToRefs} from "pinia";
 
 function final_snake_name(collection_data) {
   const is_category = collection_data.is_category
@@ -57,4 +58,78 @@ export async function getElement(collection_data, el_id) {
   return await getSimple([snake_name, el_id]).then((response) => {
     return response
   })
+}
+
+export function useSaveElements() {
+  const total_requests = ref(0)
+  const resolved_requests = ref(0)
+  const save_errors = ref([])
+
+  function saveComplex(collection_name, element) {
+    return new Promise((resolve, reject) => {
+      total_requests.value = 0
+      resolved_requests.value = 0
+      save_errors.value = []
+
+      const checkFinished = () => {
+        if (resolved_requests.value === total_requests.value) {
+          console.log("All requests finished", save_errors.value)
+          if (save_errors.value.length > 0) {
+            reject(save_errors.value)
+          } else {
+            resolve()
+          }
+        }
+      }
+
+      saveOneToMany(collection_name, element, checkFinished)
+    })
+  }
+
+  function saveOneToMany(snake_name, main_item, onFinished) {
+    const mainStore = useMainStore()
+    const { schemas } = storeToRefs(mainStore)
+    const { saveSimple } = mainStore
+
+    const main_schema = schemas.value.collections_dict[snake_name]
+    const one_to_many = main_schema.fields.filter(
+      field => field.relation_type === 'one_to_many')
+
+    one_to_many.forEach(field => {
+      if (['involved', "eventlocation"].includes(field.name))
+        return
+      if (field.name.includes('displacement_'))
+        return
+
+      const related_collection = schemas.value.collections_dict[field.related_model]
+      const snake_name2 = related_collection.snake_name
+
+      main_item[field.name].forEach(item => {
+        saveOneToMany(snake_name2, item, onFinished)
+        total_requests.value += 1
+
+        saveSimple([snake_name2, item]).then(res => {
+          if (res.errors) {
+            console.error(`Error saving ${snake_name2} item:`, res.errors)
+            save_errors.value.push({
+              field: field.name,
+              item: item,
+              errors: res.errors,
+            })
+          }
+          resolved_requests.value += 1
+          onFinished()
+        })
+      })
+    })
+
+    if (total_requests.value === 0) {
+      onFinished()
+    }
+  }
+
+  return {
+    saveComplex,
+    save_errors
+  }
 }

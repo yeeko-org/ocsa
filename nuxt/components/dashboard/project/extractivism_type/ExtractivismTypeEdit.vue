@@ -10,6 +10,12 @@ const props = defineProps({
 </script>
 
 <template>
+  <v-text-field
+    v-model="full_main.ai_name"
+    label="Nombre clasificado en la IA"
+    variant="outlined"
+    style="max-width: 400px;"
+  ></v-text-field>
 </template>
 
 <style scoped>

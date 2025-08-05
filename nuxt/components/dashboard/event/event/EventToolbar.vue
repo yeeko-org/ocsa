@@ -3,15 +3,9 @@
 import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 
-import {useMainStore} from "~/store/index.js";
-import {storeToRefs} from "pinia";
 import {computed} from "vue";
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
-const mainStore = useMainStore()
-const {
-  event_group_violence, event_group_show_position,
-} = storeToRefs(mainStore)
+import EventDetails from "~/components/dashboard/event/event/EventDetails.vue";
 
 const props = defineProps({
   mention: Object,
@@ -33,6 +27,7 @@ const all_actors = computed(() => {
     child_relation_name="event"
     field="events"
     two_columns
+    partial_save
     color="lime"
     required_field="event_type"
     :additional_fields="{
@@ -40,62 +35,10 @@ const all_actors = computed(() => {
     required
   >
     <template #rows="{ item }">
-      <v-textarea
-        v-model="item.description"
-        label="Descripción del evento (opcional)"
-        variant="outlined"
-        density="compact"
-        rows="1"
-        hide-details
-        auto-grow
-        style="width: 100%; max-width: 600px;"
-      >
-      </v-textarea>
-      <template v-if="item.event_group === event_group_violence.id">
-        <div class="text-subtitle-1 mt-4">Número de víctimas:</div>
-        <div class="d-flex mr-8">
-          <v-text-field
-            v-model="item.number_women"
-            type="number"
-            label="Mujeres"
-            class="mr-2"
-            variant="outlined"
-            density="compact"
-            max-width="140"
-            hide-details
-          ></v-text-field>
-          <v-text-field
-            v-model="item.number_men"
-            type="number"
-            label="Hombres"
-            class="mr-2"
-            variant="outlined"
-            density="compact"
-            max-width="140"
-            hide-details
-          ></v-text-field>
-          <v-text-field
-            v-model="item.number_mix"
-            type="number"
-            label="Otros"
-            class="mr-2"
-            variant="outlined"
-            density="compact"
-            max-width="140"
-            hide-details
-          ></v-text-field>
-        </div>
-      </template>
-      <template v-if="event_group_show_position.includes(item.event_group)">
-        <div class="text-subtitle-1 mt-4" v-if="false">Intencionalidad:</div>
-        <div class="d-flex mr-8 mt-5">
-          <SelectGroup
-            :main_object="item"
-            filter_group_name="purposes"
-            main_collection_name="event"
-          />
-        </div>
-      </template>
+      <EventDetails
+        :full_main="item"
+        :is_edit="false"
+      />
       <div
         v-if="item && item.id"
         class="mx-n2"

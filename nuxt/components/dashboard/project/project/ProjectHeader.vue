@@ -87,7 +87,7 @@ const mention_counts = computed(() => {
 
     <template #details>
       <HeaderChip
-        v-if="main.is_grouper"
+        v-if="main.is_grouper && main.children_projects"
         :count="main.children_projects.length"
         icon="account_tree"
         label="proyecto hijo"

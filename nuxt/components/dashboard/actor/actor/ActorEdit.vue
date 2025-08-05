@@ -7,6 +7,7 @@ import {storeToRefs} from "pinia";
 
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
+const { deleteOtherParents } = mainStore
 
 const props = defineProps({
   is_massive_edit: Boolean,
@@ -17,6 +18,8 @@ const props = defineProps({
   },
 })
 
+const errors = ref([])
+
 const actor_collection_data = computed(() => {
   return schemas.value.collections_dict['actor']
 })
@@ -24,6 +27,20 @@ const actor_collection_data = computed(() => {
 const changeParentActor = (parent_actor) => {
   props.full_main.parent_actor = parent_actor.id
   props.full_main.parent_actor_full = parent_actor
+}
+
+function deleteExtraParents() {
+  errors.value = []
+  deleteOtherParents(['actor', props.full_main.id])
+    .then((res) => {
+      if (res.errors) {
+        errors.value = res.errors
+        return
+      }
+      props.full_main.others_parents = []
+      props.full_main.others_parents_full = []
+    })
+
 }
 
 </script>
@@ -78,6 +95,26 @@ const changeParentActor = (parent_actor) => {
       main_collection_name="actor"
       field="countries"
     />
+  </v-col>
+  <v-col cols="12" class="d-flex pa-0">
+    <v-alert
+      v-if="errors.length > 0"
+      type="error"
+      class="mt-2"
+    >
+      {{errors.join(', ')}}
+    </v-alert>
+    <v-btn
+      v-if="full_main.others_parents.length > 0"
+      class="mt-2"
+      color="orange"
+      variant="outlined"
+      @click="deleteExtraParents"
+    >
+      Eliminar 'padres extras'
+    </v-btn>
+
+
   </v-col>
 </template>
 

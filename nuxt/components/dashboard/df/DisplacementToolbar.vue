@@ -51,6 +51,7 @@ const show_displacement = computed(() => {
         filter_group_name="population_sizes"
         main_collection_name="displacement"
         :width="400"
+        forced_clearable
       />
       <div class="d-flex">
         <SelectGroup
@@ -58,6 +59,7 @@ const show_displacement = computed(() => {
           filter_group_name="temporalities"
           main_collection_name="displacement"
           subtype_class="ml-2"
+          forced_clearable
         />
         <v-select
           v-model="item.rithm"
@@ -66,6 +68,7 @@ const show_displacement = computed(() => {
           variant="outlined"
           class="ml-2"
           style="max-width: 300px; min-width: 200px;"
+          clearable
         >
         </v-select>
       </div>
@@ -96,11 +99,9 @@ const show_displacement = computed(() => {
           :main_object="item"
           filter_group_name="countries"
           main_collection_name="displacement"
+          forced_clearable
         />
       </div>
-    </template>
-    <template #rows_init="{ item }" v-if="false">
-
     </template>
   </ToolbarCommon>
 

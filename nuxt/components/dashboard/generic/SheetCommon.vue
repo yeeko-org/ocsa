@@ -29,6 +29,8 @@ const child_collections = computed(() => {
   props.collection_data.child_relation_fields.forEach(field => {
     const snake_name = field.related_snake_name
     const child_collection = schemas.value.collections_dict[snake_name]
+    if (!child_collection)
+      return
     const is_m2m = field.relation_type === 'many_to_many'
     if (is_m2m){
       if (props.collection_data.level === 'category_subtype'

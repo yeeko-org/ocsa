@@ -58,9 +58,15 @@ const participant_type = computed(() => {
         hide_details
       />
     </div>
-    <div class="d-flex">
+    <div class="d-flex align-center">
       <span class="text-h6">
         {{ full_main.name }}
+      </span>
+      <span
+        v-if="full_main.alternative_names"
+        class="text-caption ml-2 mt-1"
+      >
+        ({{ full_main.alternative_names }})
       </span>
     </div>
     <v-card

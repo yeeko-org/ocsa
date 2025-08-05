@@ -31,6 +31,7 @@ const props = defineProps({
   is_display: Boolean,
   is_multiple: Boolean,
   required: Boolean,
+  forced_clearable: Boolean,
 })
 
 const emits = defineEmits(['open-dialog', 'update-value'])
@@ -136,7 +137,7 @@ function openDialog(is_add=true){
     :item-title="item_title"
     :item-value="item_value"
     :variant="is_filter ? 'underlined' : 'outlined'"
-    :clearable="is_filter"
+    :clearable="is_filter || forced_clearable"
     :hide-details="is_filter"
     :density="is_filter ? 'compact' : 'default'"
     :style="`max-width: ${main_width}px; min-width: ${main_width}px;`"

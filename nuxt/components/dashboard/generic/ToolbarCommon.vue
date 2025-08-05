@@ -1,10 +1,13 @@
 <script setup>
-import { computed } from 'vue'
+import {computed, watch} from 'vue'
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
 import AlertInfo from "~/components/dashboard/common/AlertInfo.vue";
+
+import { useSaveElements } from "~/composables/save_elements.js";
+const { saveComplex, save_errors } = useSaveElements()
 
 const props = defineProps({
   main_object: Object,  // Mention
@@ -22,6 +25,7 @@ const props = defineProps({
   second_level: Boolean,
   two_columns: Boolean,
   emit_add: Boolean,
+  partial_save: Boolean,
   required_field: String,
   cols: {
     type: Number,
@@ -37,6 +41,9 @@ const dialog_delete = ref(false)
 const delete_text = ref('')
 const record_to_delete = ref({})
 const saving = ref(false)
+const index_in_edit = ref(null)
+const elem_to_save = ref(null)
+const snackbar = ref(false)
 
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
@@ -90,10 +97,36 @@ const addItem = (group=null) => {
   props.main_object[props.field].push(new_child)
 }
 
-function saveNewItem(item, index) {
-  // console.log("saveNewItem", item)
+function saveItem(item, index) {
+  elem_to_save.value = item
   saving.value = true
-  saveSimple([child_collection.value.snake_name, item])
+  index_in_edit.value = index
+  saveComplex(child_collection.value.snake_name, item)
+    .then(() => {
+      allFinished()
+    })
+    .catch(errors => {
+      console.error("Errores al guardar:", errors)
+      saving.value = false
+    })
+}
+
+function allFinished() {
+  if (!elem_to_save.value) {
+    console.error("No elem_to_save")
+    saving.value = false
+    return
+  }
+  saveSimple([props.child_relation_name, elem_to_save.value]).then(res => {
+    snackbar.value = true
+    saving.value = false
+    props.main_object[props.field].splice(index_in_edit.value, 1, res)
+  })
+}
+
+function saveNewItem(item, index) {
+  saving.value = true
+  saveSimple([props.child_relation_name, item])
     .then(res => {
       // console.log("res", res)
       props.main_object[props.field].splice(index, 1, res)
@@ -164,7 +197,7 @@ const total_count = computed(() => {
           style="min-width: 300px;"
           :class="second_level ? '' : 'text-h6'"
         >
-          {{child_collection.plural_name}} ({{total_count}})
+          {{ child_collection.plural_name }} ({{ total_count }})
         </v-toolbar-title>
         <QuestionMark
           :size="second_level ? 'small' : 'default'"
@@ -192,7 +225,7 @@ const total_count = computed(() => {
                 activator="parent"
                 location="top"
               >
-                Agregar {{cat_group.name}}
+                Agregar {{ cat_group.name }}
               </v-tooltip>
             </v-btn>
           </template>
@@ -252,6 +285,19 @@ const total_count = computed(() => {
             </div>
             <slot name="rows" :item="item">
             </slot>
+            <v-card-actions class="mt-3" v-if="partial_save && item.id">
+              <v-spacer></v-spacer>
+              <v-btn
+                variant="outlined"
+                color="accent"
+                :disabled="!item[required_field]"
+                :loading="saving"
+                @click="saveItem(item, index)"
+              >
+                Guardar {{ child_collection.name }}
+              </v-btn>
+              <v-spacer></v-spacer>
+            </v-card-actions>
           </v-col>
           <v-col
             v-if="two_columns"
@@ -265,11 +311,9 @@ const total_count = computed(() => {
                 color="accent"
                 :disabled="!item[required_field]"
                 :loading="saving"
-                _click="emits('save-event', item)"
                 @click="saveNewItem(item, index)"
-
               >
-                Guardar {{child_collection.name}}
+                Guardar {{ child_collection.name }}
               </v-btn>
             </v-card-actions>
             <slot
@@ -287,7 +331,7 @@ const total_count = computed(() => {
         variant="flat"
       >
         {{ required ? 'Debes' : 'Intenta' }}
-        agregar al menos un {{child_collection.name}}
+        agregar al menos un {{ child_collection.name }}
         <v-btn
           v-if="!filter_group.category_groups && false"
           color="white"
@@ -302,6 +346,24 @@ const total_count = computed(() => {
       <slot name="footer">
       </slot>
     </v-card>
+    <v-snackbar
+      v-model="snackbar"
+      color="success"
+      location="right top"
+      location-strategy="connected"
+    >
+      {{ `${child_collection.name} guardado` }}
+      <template v-slot:actions>
+        <v-btn
+          color="accent"
+          variant="text"
+          @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
+
     <v-dialog
       v-model="dialog_delete"
       max-width="500"

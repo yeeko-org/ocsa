@@ -29,6 +29,9 @@ const props = defineProps({
         color="purple"
         class="mx-1"
       />
+      <span v-if="main.ai_name" class="text-body-2 text-grey">
+        ({{main.ai_name}})
+      </span>
     </template>
   </HeaderCommon>
 

@@ -84,6 +84,7 @@ const group_results = computed(() => {
           v-for="(collection, key) in collections"
           :key="key"
           :href="`#${key}`"
+          :value="key"
           @click="setCollection(collection.snake_name)"
         >
           {{ collection.plural_name }}

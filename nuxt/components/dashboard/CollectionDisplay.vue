@@ -340,7 +340,7 @@ function selectItem(item) {
           style="max-width: 220px; min-width: 130px;"
         ></v-select>
         <v-select
-          :items="[40, 100, 200]"
+          :items="[10, 40, 100, 200]"
           v-model="final_filters.page_size"
           label="results"
           density="compact"

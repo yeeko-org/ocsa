@@ -1,0 +1,137 @@
+<script setup>
+import PanelList from "~/components/dashboard/common/PanelList.vue";
+import {useMainStore} from "~/store/index.js";
+import {storeToRefs} from "pinia";
+import CalendarDisplay from "~/components/dashboard/source/CalendarDisplay.vue";
+import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
+const mainStore = useMainStore()
+const { schemas } = storeToRefs(mainStore)
+const { saveSimple, getRelatedActors } = mainStore
+import dayjs from 'dayjs'
+
+const props = defineProps({
+  full_main: {
+    type: Object,
+    required: true,
+  },
+  show_details: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const loading = ref(false)
+const result_articles = ref([])
+const recordForm = ref(null)
+
+const new_record = ref({
+  when: null,
+  from_date: null,
+  to_date: null,
+})
+
+const note_collection = computed(() => {
+  return schemas.value.collections_dict['note']
+})
+const scraped_record_collection = computed(() => {
+  return schemas.value.collections_dict['scraped_record']
+})
+
+async function saveScrapedRecord() {
+  const { valid } = await recordForm.value.validate()
+  if (!valid) return
+
+  loading.value = true
+  result_articles.value = []
+  const data = {
+    from_date: new_record.value.from_date,
+    to_date: new_record.value.to_date,
+    source: props.full_main.id,
+  }
+  saveSimple(['scraped_date', data]).then(response => {
+    console.log("response saveScrapedRecord", response)
+    loading.value = false
+    new_record.value.from_date = null
+    new_record.value.to_date = null
+    props.full_main.scraped_records.push(response.scraped_record)
+  })
+}
+
+function updateDate(date, field) {
+  if (field === 'from_date') {
+    new_record.value.from_date = date
+    if (!new_record.value.to_date) {
+      // add 30 days to from_date
+      let after_30_days = dayjs(date).add(30, 'day').toDate()
+      after_30_days = dayjs(after_30_days).format('YYYY-MM-DD')
+      new_record.value.to_date = after_30_days
+    }
+  } else if (field === 'to_date') {
+    new_record.value.to_date = date
+  }
+
+}
+
+
+</script>
+
+<template>
+  <v-card class="mb-4 pa-3">
+    Periodos extraídos de noticias:
+    <v-form
+      ref="recordForm"
+      class="d-flex align-center"
+    >
+      <v-col cols="12" class="d-flex">
+        <SelectDate
+          :init_date="new_record.from_date"
+          label="Desde"
+          class="mr-2"
+          @update-date="updateDate($event, 'from_date')"
+          required
+        />
+        <SelectDate
+          :init_date="new_record.to_date"
+          label="Hasta"
+          class="mr-2"
+          @update-date="new_record.to_date = $event"
+          required
+        />
+        <v-spacer></v-spacer>
+        <v-btn
+          color="accent"
+          variant="elevated"
+          @click="saveScrapedRecord()"
+          :loading="loading"
+        >
+          Traer periodo
+        </v-btn>
+      </v-col>
+    </v-form>
+    <CalendarDisplay
+      :scraped_records="full_main.scraped_records"
+      :new_record="new_record"
+    />
+    <v-card-title v-if="full_main.scraped_records?.length">
+      Consultas realizadas:
+    </v-card-title>
+    <v-card-text>
+      <PanelList
+        :results="full_main.scraped_records"
+        :collection_data="scraped_record_collection"
+        :show_details="true"
+      />
+    </v-card-text>
+
+<!--    <PanelList-->
+<!--      v-if="full_main.note"-->
+<!--      :results="[full_main.note]"-->
+<!--      :collection_data="note_collection"-->
+<!--      :show_details="true"-->
+<!--    />-->
+  </v-card>
+</template>
+
+<style scoped>
+
+</style>

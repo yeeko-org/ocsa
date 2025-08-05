@@ -606,6 +606,26 @@ export const useMainStore = defineStore('main', {
         return {errors: error.response.data}
       }
     },
+    async deleteOtherParents([collection, id]) {
+      this.setHeader()
+      try {
+        let response = await ApiService.delete(`/${collection}/${id}/delete_other_parents/`);
+        return response.data
+      } catch (error) {
+        console.error(error);
+        return {errors: error.response.data}
+      }
+    },
+    async saveSelected([id, data]) {
+      this.setHeader()
+      try {
+        let response = await ApiService.post(`article/${id}/select/`, data);
+        return response.data
+      } catch (error) {
+        console.error(error);
+        return {errors: error.response.data}
+      }
+    },
   },
   getters: {
     status_dict(state) {
@@ -675,6 +695,50 @@ export const useMainStore = defineStore('main', {
       if (!state.cats)
         return []
       return state.cats.user.filter(user => user.full_editor || user.is_superuser)
+    },
+    ai_extractivism_types(state) {
+      if (!state.cats)
+        return {}
+      let ai_types = {}
+      state.cats.extractivism_type.forEach(et => {
+        if (!et.ai_name)
+          return
+        const { id, name, icon, color, ai_name } = et;
+        ai_types[ai_name] = { id, name, icon, color };
+      })
+      return ai_types
+    },
+    criteria(state) {
+      if (!state.cats)
+        return {}
+      // opponents: list[int] = []
+      // social_impacts: list[int] = []
+      // ecological_impacts: list[int] = []
+      // acts_of_violence: list[int] = []
+      // collective_actions: list[int] = []
+      // is_foreign: bool | None = None
+      const values = {
+        opponents: state.cats.participant_group[0],
+        social_impacts: state.cats.impact_group.find(ig => ig.is_social),
+        ecological_impacts: state.cats.impact_group.find(ig => !ig.is_social),
+        acts_of_violence: state.cats.event_group.find(
+          eg => eg.model_origin === 'HechosViolencia'),
+        collective_actions: state.cats.event_group.find(
+          eg => eg.model_origin === 'FormaAC'),
+      }
+      const fields = ["id", "name", "icon", "color"]
+      return Object.entries(values).reduce((obj, [key, value]) => {
+        // console.log("criteria key", key, value)
+        // const { id, name, icon, color } = value
+        // obj[key] = { id, name, icon, color }
+        let new_value = {}
+        fields.forEach(field => {
+          if (value[field] !== undefined)
+            new_value[field] = value[field]
+        })
+        obj[key] = new_value
+        return obj
+      }, {})
     },
   },
 })

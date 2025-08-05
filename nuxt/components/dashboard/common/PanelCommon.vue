@@ -19,9 +19,11 @@ const props = defineProps({
 
 const full_main = ref(null)
 const edit_component = shallowRef('')
+const edit_simple_component = shallowRef('')
 const route_key = computed(() => props.collection_data.app_label)
 const snake_name = computed(() => props.collection_data.snake_name)
 const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
+const edit_simple_name = computed(() => `${props.collection_data.model_name}EditSimple`)
 
 const emits = defineEmits([
     'finish-open', 'item-saved', 'item-deleted', 'select-item'])
@@ -34,6 +36,14 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_nam
     import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
       edit_component.value = module.default
     })
+  })
+
+import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_simple_name.value}.vue`)
+  .then(module => {
+    edit_simple_component.value = module.default
+  })
+  .catch(e => {
+    edit_simple_component.value = null
   })
 
 
@@ -67,8 +77,8 @@ const is_group = computed(() =>
   props.collection_data.level === 'category_group')
 
 const saveOrder = (val) => {
-  console.log('saveOrder', val)
-  console.log('val', props.main.order)
+  // console.log('saveOrder', val)
+  // console.log('val', props.main.order)
 
   if (!val) return
   const params = {order: props.main.order}
@@ -158,7 +168,13 @@ const saveOrder = (val) => {
           :color="background_color"
           class="mt-n2 mb-n4 pa-3"
         >
+          <component
+            v-if="edit_simple_component"
+            :is="edit_simple_component"
+            :full_main="full_main"
+          />
           <EditCommon
+            v-else
             :full_main="full_main"
             :collection_data="collection_data"
             @item-saved="emits('item-saved', $event)"
@@ -174,7 +190,7 @@ const saveOrder = (val) => {
             </template>
           </EditCommon>
           <slot name="sheet" :full_main="full_main">
-            Contenido genérico 3
+            Sheet genérico 3
           </slot>
         </v-sheet>
       </v-expansion-panel-text>

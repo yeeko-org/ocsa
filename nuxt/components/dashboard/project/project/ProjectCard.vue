@@ -28,8 +28,16 @@ const props = defineProps({
       >
         account_tree
       </v-icon>
-      <div class="text-h6">
-        {{ full_main.name }}
+      <div>
+        <span class="text-h6">
+          {{ full_main.name }}
+        </span>
+        <span
+          v-if="full_main.alternative_name"
+          class="text-caption ml-2 mt-1"
+        >
+          ({{ full_main.alternative_name }})
+        </span>
       </div>
     </div>
     <div class="d-flex flex-wrap align-center">

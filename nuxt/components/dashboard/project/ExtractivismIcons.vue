@@ -23,6 +23,8 @@ const megaproject_type_node = computed(() => {
 })
 
 const original_types = computed(() => {
+  if (props.project.extractivism_types)
+    return props.project.extractivism_types
   if (!megaproject_type_node.value)
     return []
   const extractivism_type = megaproject_type_node.value.parent.data
@@ -34,7 +36,7 @@ const original_types = computed(() => {
 </script>
 
 <template>
-  <div class="d-flex" v-if="true">
+  <div class="d-flex">
     <v-chip
       v-if="show_name && megaproject_type_node"
       class="mr-1"

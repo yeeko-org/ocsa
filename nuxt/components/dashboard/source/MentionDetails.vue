@@ -4,17 +4,21 @@ import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
 import ParticipantsToolbar from "~/components/dashboard/source/ParticipantsToolbar.vue";
-import EventToolbar from "~/components/dashboard/source/EventToolbar.vue";
+import EventToolbar from "~/components/dashboard/event/event/EventToolbar.vue";
 import CardCommon from "~/components/dashboard/common/CardCommon.vue";
 
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
-import {nextTick} from "vue";
+import {nextTick, watch} from "vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { saveSimple, getRelatedActors } = mainStore
+import { useSaveElements } from "~/composables/save_elements.js";
+import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
+const { saveComplex, save_errors } = useSaveElements()
+
 
 const props = defineProps({
   mention: Object,
@@ -24,13 +28,10 @@ const props = defineProps({
   },
 })
 const dialog_search = ref(false)
-const total_requests = ref(0)
-const resolved_requests = ref(0)
-const saving = ref(false)
+const all_saving = ref(false)
 const snackbar = ref(false)
 const actor_display = ref(null)
 const has_select = ref(null)
-const save_errors = ref([])
 
 const emits = defineEmits(['mention-saved'])
 
@@ -54,68 +55,24 @@ function searchActor() {
   })
 }
 
-function saveOneToMany(snake_name, main_item) {
-  // console.log("save one to many", snake_name, main_item)
-  const main_schema = schemas.value.collections_dict[snake_name]
-  const one_to_many = main_schema.fields.filter(
-    field => field.relation_type === 'one_to_many')
-  one_to_many.forEach(field => {
-    if (['involved', "eventlocation"].includes(field.name))
-      return
-    if (field.name.includes('displacement_')){
-      // console.log("displacement field", field.name)
-      return
-    }
-    const related_collection = schemas.value.collections_dict[
-        field.related_model]
-    // console.log("related_collection", related_collection)
-    const snake_name2 = related_collection.snake_name
-    // console.log("main_item", main_item)
-    // console.log("field", field.name)
-    main_item[field.name].forEach(item => {
-      saveOneToMany(snake_name2, item)
-      total_requests.value += 1
-      saveSimple([snake_name2, item]).then(res => {
-        if (res.errors) {
-          console.log(`response ${snake_name2}`, res)
-          save_errors.value.push({
-            field: field.name,
-            item: item,
-            errors: res.errors,
-          })
-          console.error(`Error saving ${snake_name2}`, res.errors)
-          console.error(`saveErrors`, save_errors.value)
-          // return
-        }
-        resolved_requests.value += 1
-        // const idx = main_item[field.name].findIndex(
-        //   item2 => item2.id === item.id)
-        allFinished()
-      })
-    })
-  })
-}
-
 function saveMention() {
-  saving.value = true
-  total_requests.value = 0
-  resolved_requests.value = 0
-  saveOneToMany('mention', props.mention)
+  all_saving.value = true
+  saveComplex('mention', props.mention)
+    .then(() => {
+      allFinished()
+    })
+    .catch(errors => {
+      console.error("Errores al guardar:", errors)
+      all_saving.value = false
+    })
 }
 
 function allFinished() {
-  if (resolved_requests.value === total_requests.value){
-    saveSimple(['mention', props.mention]).then(res => {
-      emits('mention-saved', res)
-      snackbar.value = true
-      saving.value = false
-      // find the refs with has-select and call the method setInitialData
-      // const has_select = props.$refs['has_select']
-      // console.log("has_select", has_select.value)
-      // if (has_select.value)
-      //   has_select.value.setInitialData()
-    })
-  }
+  saveSimple(['mention', props.mention]).then(res => {
+    emits('mention-saved', res)
+    snackbar.value = true
+    all_saving.value = false
+  })
 }
 
 function saveParticipant([elem_in_edition, actor]) {
@@ -260,45 +217,10 @@ function changeProject(project) {
             />
           </template>
         </ToolbarCommon>
-        <ToolbarCommon
-          :main_object="mention"
-          main_collection_name="mention"
-          filter_group_name="impact_types"
-          child_relation_name="impact"
-          field="impacts"
-          two_columns
-          required
-          required_field="impact_type"
-          :additional_fields="{'locations': [], 'displacements': []}"
-        >
-          <template #rows="{ item }">
-            <v-textarea
-              v-model="item.description"
-              label="Descripción de la afectación"
-              variant="outlined"
-              density="compact"
-              hide-details
-              rows="1"
-              auto-grow
-              style="max-width: 600px;"
-            ></v-textarea>
-            <DisplacementToolbar
-              v-if="item"
-              :full_main="item"
-              main_collection_name="impact"
-              second_level
-              class="px-0"
-            />
-          </template>
-          <template #second-column="{ item }">
-            <LocationsToolbar
-              v-if="item"
-              :full_main="item"
-              main_collection_name="impact"
-              second_level
-            />
-          </template>
-        </ToolbarCommon>
+        <ImpactToolbar
+          :mention="mention"
+          class="mt-2"
+        />
         <ParticipantsToolbar
           :mention="mention"
           @search-item="searchActor"
@@ -307,25 +229,25 @@ function changeProject(project) {
         <EventToolbar
           :mention="mention"
         />
-        <v-col
-          v-if="save_errors.length > 0"
-          cols="12"
-          class="d-flex justify-end px-6"
-        >
-          <v-alert
+        <v-row v-if="save_errors.length > 0">
+          <v-col
             v-for="(error, index) in save_errors"
             :key="index"
-            type="error"
-            class="mb-2"
+            cols="12"
+            class="d-flex justify-end px-6 py-1"
           >
-            Error al guardar {{ error.field }}: {{ error.errors }}
-          </v-alert>
-        </v-col>
+            <v-alert
+              type="error"
+            >
+              Error al guardar {{ error.field }}: {{ error.errors }}
+            </v-alert>
+          </v-col>
+        </v-row>
         <v-col cols="12" class="d-flex justify-end px-6">
           <v-btn
             color="accent"
             variant="elevated"
-            :loading="saving"
+            :loading="all_saving"
             @click="saveMention"
           >
             Guardar cambios

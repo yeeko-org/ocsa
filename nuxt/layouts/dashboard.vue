@@ -91,7 +91,9 @@ watch(
       <client-only>
         <v-toolbar-title class="d-flex align-center mt-1">
           <v-icon class="mr-3" color="white">
-            {{ collection_data.icon || (collection_data.parent ? collection_data.parent.icon : 'dashboard') }}
+            {{ collection_data.icon || (collection_data.parent
+                  ? collection_data.parent.icon
+                  : 'dashboard') }}
           </v-icon>
           <span class="text-white">
             {{ collection_data.plural_name }}
@@ -150,11 +152,13 @@ watch(
                   exact
                   :title="collection.plural_name"
                   :prepend-icon="collection.icon || 'category'"
-                  :base-color="collection.color ? `${collection.color}` : 'grey-darken-1'"
+                  :base-color="collection.color || 'grey-darken-1'"
                   @click="openItem($event, collection.snake_name)"
                   :class="collection.level === 'primary' ? '' : '_ml-3'"
-                  :active-class="collection.level === 'primary' ? '' : 'font-weight-bold'"
-                  :disabled="!is_full_editor && (collection.snake_name !== 'location' && collection.snake_name !== 'note')"
+                  :active-class="collection.level === 'primary'
+                    ? '' : 'font-weight-bold'"
+                  :disabled="!is_full_editor &&
+                      !['location', 'note'].includes(collection.snake_name)"
                 >
                   <template v-slot:append="{ isActive, select }">
                     <v-icon

@@ -4,7 +4,7 @@ import { actorCounter } from "~/composables/actor_counter.js";
 
 const props = defineProps({
   main: Object,
-  mentions: Array,
+    mentions: Array,
   participants: Array,
   field: {
     type: String,

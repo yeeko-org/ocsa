@@ -30,6 +30,7 @@ const props = defineProps({
   subtype_class: String,
   is_display: Boolean,
   required: Boolean,
+  forced_clearable: Boolean,
 })
 
 const collection_display = ref(null)
@@ -123,9 +124,10 @@ const category_values = computed(() => {
     if (!value && level === 'group' && props.category_group_value)
       value = props.category_group_value
     try{
-      if (level === 'subtype' && typeof value === 'object' && subcategory_is_multiple.value)
+      const is_object = typeof value === 'object' && value !== null
+      if (level === 'subtype' && is_object && subcategory_is_multiple.value)
         acc[level] = value[0]
-      else if (level === 'type' && typeof value === 'object' && category_is_multiple.value)
+      else if (level === 'type' && is_object && category_is_multiple.value)
         acc[level] = value[0]
       else
         acc[level] = value
@@ -246,7 +248,8 @@ const type_label = computed(() => {
 })
 
 const display_type = computed(() => {
-  // v-if="level_names.type && (forced_level ? (main_object[level_names.type] || type_items) : true)"
+  // v-if="level_names.type && (forced_level ? (
+  // main_object[level_names.type] || type_items) : true)"
   if (!level_names.value.type)
     return false
   return props.forced_level
@@ -304,19 +307,20 @@ const main_width = computed(() => props.width || 250)
 function openDialog(level_name, is_add=true){
   level_dialog.value = level_name
   let done = false
-  init_filters.value = Object.entries(level_names.value).reduce((acc, [level, cat_name]) => {
-    // console.log("level", level)
-    const [is_multiple, new_cat_name] = isLevelMultiple(level, cat_name)
-    if (level === level_name)
-      done = true
-    if (!done){
-      let new_value = props.main_object[new_cat_name]
-      if (is_multiple && new_value.length)
-        new_value = new_value[0]
-      acc[cat_name] = new_value
-    }
-    return acc
-  }, {})
+  init_filters.value = Object.entries(level_names.value)
+    .reduce((acc, [level, cat_name]) => {
+      // console.log("level", level)
+      const [is_multiple, new_cat_name] = isLevelMultiple(level, cat_name)
+      if (level === level_name)
+        done = true
+      if (!done){
+        let new_value = props.main_object[new_cat_name]
+        if (is_multiple && new_value.length)
+          new_value = new_value[0]
+        acc[cat_name] = new_value
+      }
+      return acc
+    }, {})
   let real_value = null
   if (level_name === 'group')
     real_value = props.main_object[level_names.value['group']]
@@ -440,6 +444,7 @@ function changeValue(level_name, value){
     :class="{'mr-2': !is_display}"
     :is_display="is_display"
     :required="required"
+    :forced_clearable="forced_clearable"
     @update-value="changeValue('group', $event)"
   />
   <GenericSelect
@@ -456,6 +461,7 @@ function changeValue(level_name, value){
     :class="{'mr-2': !is_display}"
     :required="required"
     :collection_data="collections.type"
+    :forced_clearable="forced_clearable"
     @open-dialog="openDialog('type', $event)"
     @update-value="changeValue('type', $event)"
   />
@@ -471,8 +477,10 @@ function changeValue(level_name, value){
     :is_display="is_display"
     :class="subtype_class"
     :is_multiple="subcategory_is_multiple"
-    :label="collections.subtype[subcategory_is_multiple ? 'plural_name' : 'name']"
+    :label="collections.subtype[subcategory_is_multiple
+      ? 'plural_name' : 'name']"
     :required="required"
+    :forced_clearable="forced_clearable"
     :collection_data="collections.subtype"
     @open-dialog="openDialog('subtype', $event)"
   />

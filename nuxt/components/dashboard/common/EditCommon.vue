@@ -40,6 +40,17 @@ async function saveRecord() {
   errors.value = null
   const { valid } = await editForm.value.validate()
   if (!valid) return
+  if (!props.full_main.id && !props.full_main.comments){
+    const coll = final_collection_data.value
+    if (coll.is_category && coll.has.comments) {
+      errors.value = "Cuando creas una categoría, debes añadir un comentario " +
+        "para explicar la razón de su creación"
+      return
+    }
+    // errors.value = "Cuando creas una categoría, debes añadir un comentario " +
+    //     "para explicar la razón de su creación"
+    // return
+  }
   saving.value = true
   // const elem_id = props.full_main.id ? 'id' : 'key_name'
   const elem_id = final_collection_data.value.pk
@@ -124,7 +135,7 @@ function deleteRecord() {
       >
         <template #edit="{ full_main }">
           <slot name="edit" :full_main="full_main">
-            EDICIÓN 1 (REVISAR PORQUE NO ES NORMAL)
+            EDICIÓN 1 (REPORTAR ESTO PORQUE NO ES NORMAL)
           </slot>
         </template>
       </EditCommonFields>

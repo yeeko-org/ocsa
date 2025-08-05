@@ -113,18 +113,24 @@ const emits = defineEmits(['open-panel'])
 <!--            </v-tooltip>-->
 <!--          </v-card>-->
         </slot>
-        <v-icon
+        <v-btn
           v-if="main.description"
-          color="grey-darken-1"
+          icon
+          variant="text"
         >
-          subject
+
+          <v-icon
+            color="grey-darken-1"
+          >
+            subject
+          </v-icon>
           <v-tooltip
             activator="parent"
             location="end"
           >
             {{ main.description }}
           </v-tooltip>
-        </v-icon>
+        </v-btn>
       </div>
     </v-toolbar-title>
     <template v-if="real_show_details">
