@@ -5,7 +5,8 @@ from bs4.element import Tag
 
 from source.models import ScrapedRecord, Source
 from source.scraper.articles import (
-    ArticleScraper, MainScraper, ManagerScraper, get_content)
+    ArticleScraper, MainScraper, ManagerScraper)
+from source.scraper.scraper_base import get_content, get_clean_text
 
 
 class JornadaManagerScraper(ManagerScraper):
@@ -131,15 +132,35 @@ class JornadaArticleScraper(ArticleScraper):
     def get_article_data(self):
 
         article = self.soup_content.find('article')
-        self.title = article.find('div', class_='cabeza')\
-            .get_text()
+        title_div = article.find('div', class_='cabeza')
+        self.title = get_clean_text(title_div)
 
-        if sumarios := article.find('div', class_='sumarios'):
-            self.title += "\n" + sumarios.get_text()
-
-        self.content = "\n".join(
-            [p.get_text() for p in article.find_all('p')])
-        self.images = [img['src'] for img in article.find_all('img', src=True)]
+        subtitles = []
+        if sumarios := article.find_all('div', class_='sumarios'):
+            for sumario in sumarios:
+                sumario_text = get_clean_text(sumario)
+                if sumario_text:
+                    subtitles.append(sumario_text)
+        self.subtitle = "\n ".join(subtitles).strip()
+        # contents = [p.get_text() for p in article.find_all('p')]
+        contents = []
+        for p in article.find_all('p'):
+            text = get_clean_text(p)
+            # if text and text not in titles:
+            contents.append(text)
+        if initial := article.find('div', class_='inicial'):
+            char = get_clean_text(initial)
+            if char:
+                contents[0] = f"{char}{contents[0]}"
+        self.content = "\n\n".join(contents).strip()
+        self.images = []
+        for photo in article.find_all('div', class_='foto'):
+            img = photo.find('img', src=True)
+            if img:
+                self.images.append({
+                    "src": img['src'],
+                    "caption": photo.get_text(strip=True)
+                })
         author_classes = ['credito-autor', 'credito-articulo']
         try:
             self.author = article.find('div', class_=author_classes)\
@@ -157,12 +178,12 @@ class JornadaArticleScraper(ArticleScraper):
     def special_cleanup(self, body):
         # Decompose <a> with id = "page_link_prev" and "page_link_next"
         classes_to_remove = [
-            'go gui', 'credito-autor', 'hemero', 'email', 'credito-titulo',
+            'go gui', 'go gui top',
+            'credito-autor', 'hemero', 'email', 'credito-titulo',
             'cabeza', 'credito-articulo', 'credito-autor',
             'sumarios']
         for a in body.find_all('div', class_=classes_to_remove):
             a.decompose()
 
-        # Remove all after go gui
-
+        return body
 

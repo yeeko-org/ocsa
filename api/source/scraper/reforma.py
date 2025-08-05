@@ -8,7 +8,9 @@ from bs4.element import Tag
 
 from source.models import ScrapedRecord, Source
 from source.scraper.articles import (
-    ArticleScraper, MainScraper, ManagerScraper, get_content)
+    ArticleScraper, MainScraper, ManagerScraper)
+from source.scraper.scraper_base import get_content
+
 
 MAIN_URL = (
     "https://www.reforma.com/edicionimpresa/aplicacionei/webview/ws/"

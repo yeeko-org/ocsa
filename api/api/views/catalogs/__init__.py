@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from django_filters import FilterSet, NumberFilter
 from django.db.models import Count
 from api.permissions import IsAdminOrReadOnly, IsEditorOrCreateOrRead
@@ -12,7 +12,6 @@ from classify.models import (
 from event.models import (
     InvolvedRole,)
 
-from source.models import Source
 from work_flux.models import StatusControl
 
 from project.models import MegaprojectType, ExtractivismType, StatusProject
@@ -24,8 +23,7 @@ from api.views.catalogs.classify_serializers import (
     InterestSubtypeSerializer
 )
 from api.views.catalogs.serializers import (
-    SourceSerializer, SourceFullSerializer,
-    StatusControlSerializer,
+    SourceSerializer, StatusControlSerializer,
 )
 from api.views.catalogs.project_serializers import (
     ExtractivismTypeSerializer,
@@ -61,15 +59,6 @@ class InvolvedRoleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsEditorOrCreateOrRead]
     queryset = InvolvedRole.objects.all()
     serializer_class = InvolvedRoleSerializer
-
-
-class SourceViewSet(BaseStatusViewSet):
-    permission_classes = [IsAdminOrReadOnly]
-    filterset_fields = []
-    queryset = Source.objects.all()\
-        .annotate(notes_count=Count('notes'))\
-        .distinct()
-    serializer_class = SourceFullSerializer
 
 
 class StatusControlViewSet(viewsets.ModelViewSet):

@@ -1,7 +1,6 @@
 from django.urls import include, path
 
 from api.views.actor import ActorViewSet, ActorMiniListViewSet
-from api.views.article.views import ArticleViewSet
 from api.views.project import (
     ProjectViewSet, ProjectFileViewSet, ConflictViewSet, ProjectMiniViewSet)
 from api.views.generic_merge.views import MergeRecordsView
@@ -10,6 +9,7 @@ from api.views.note import NoteViewSet, NoteFileViewSet
 from api.views.note.mention_views import (
     MentionViewSet, ParticipantViewSet, ImpactViewSet,
     InvolvedViewSet, InterestViewSet, StatusHistoryViewSet, EventViewSet)
+from api.views.article.views import ArticleViewSet
 from api.views.auth.login_views import UserLoginAPIView
 from api.views.scraping.views import ScrapingDatesView, ScrapedRecordView
 from api.views.space_time import LocationViewSet
@@ -22,10 +22,10 @@ router = DefaultRouter()
 router.register(r'actor', ActorViewSet, basename='actor')
 router.register(r'actor_mini', ActorMiniListViewSet, basename='actor mini')
 
-router.register(r'article', ArticleViewSet, basename='article')
 
 router.register(r'note', NoteViewSet, basename='note')
 router.register(r'note_file', NoteFileViewSet, basename='note file')
+router.register(r'article', ArticleViewSet, basename='article')
 
 router.register(r'project', ProjectViewSet, basename='project')
 router.register(r'project_mini', ProjectMiniViewSet, basename='project mini')

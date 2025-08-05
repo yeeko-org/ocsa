@@ -1,6 +1,5 @@
 import os
 from core.settings.get_env import getenv_bool, getenv_int, getenv_list
-from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -113,6 +112,7 @@ SECRET_KEY = '***REMOVED***'
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 OPENAI_TOKENS_MAX_LENGTH = getenv_int("OPENAI_TOKENS_MAX_LENGTH", 128000)
 OPENAI_ENGINE = os.getenv("OPENAI_ENGINE", "gpt-4o")
 

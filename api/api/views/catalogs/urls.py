@@ -4,12 +4,12 @@ from api.views.catalogs import (
     InterestTypeViewSet,
     InterestSubtypeViewSet,
     InvolvedRoleViewSet,
-    SourceViewSet,
     StatusControlViewSet,
     StatusProjectViewSet,
     ExtractivismTypeViewSet,
     MegaprojectTypeViewSet
 )
+from api.views.article.views import SourceViewSet
 from api.views.catalogs.event_views import (
     EventGroupViewSet, EventTypeViewSet, EventSubtypeViewSet,
     PurposeViewSet)

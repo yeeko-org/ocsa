@@ -8,6 +8,8 @@ from project.models import Project, StatusProject
 from utils.open_ai import JsonRequestOpenAI
 from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
+from pydantic import BaseModel
+import enum
 
 
 class Source(models.Model):
@@ -36,6 +38,7 @@ def clean_text(text):
 class Note(CommentsMixin, models.Model):
     nota_id_ref = models.IntegerField(blank=True, null=True)
     title = models.CharField(max_length=255)
+    subtitle = models.TextField(blank=True, null=True)
     old_id = models.IntegerField(blank=True, null=True)
     author = models.CharField(max_length=255, blank=True, null=True)
     slug_title = models.CharField(max_length=255, blank=True, null=True)
@@ -169,11 +172,63 @@ class ScrapedRecord(models.Model):
     data = models.JSONField(blank=True, null=True)
     errors = models.JSONField(blank=True, null=True)
 
+    def __str__(self):
+        return f"{self.source.name} - {self.from_date} to {self.to_date} ({self.status})"
+
+    class Meta:
+        verbose_name = 'Bloque de scrapeo'
+        verbose_name_plural = 'Bloques de scrapeo'
+        ordering = ['from_date']
+
+
+class DiscardedReason(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+    order = models.SmallIntegerField(default=5)
+
+    def __str__(self):
+        return self.name
+
+
+    class Meta:
+        verbose_name = 'Razón de descarte'
+        verbose_name_plural = 'Razones de descarte'
+
+
+class ExtractivismTypes(enum.Enum):
+    agro = "agro"
+    mineria = "mineria"
+    hidricos = "hidricos"
+    energia = "energia"
+    urbano = "urbano"
+    infra = "infra"
+
+
+class ProjectBase(BaseModel):
+    name: str
+    types: list[ExtractivismTypes] = []
+    paragraphs: list[int] = []
+
+
+class ArticleBase(BaseModel):
+    projects: list[ProjectBase] = []
+    opponents: list[int] = []
+    social_impacts: list[int] = []
+    ecological_impacts: list[int] = []
+    acts_of_violence: list[int] = []
+    collective_actions: list[int] = []
+    is_foreign: bool | None = None
+
+
+class ArticlesReport(BaseModel):
+    articles: list[ArticleBase]
+
 
 class Article(models.Model):
 
     uid = models.CharField(max_length=255)
     title = models.CharField(max_length=255, blank=True, null=True)
+    subtitle = models.TextField(blank=True, null=True)
     source = models.ForeignKey(
         Source, on_delete=models.CASCADE, related_name='articles')
     section = models.CharField(max_length=120, blank=True, null=True)
@@ -187,12 +242,17 @@ class Article(models.Model):
     autor = models.CharField(max_length=255, blank=True, null=True)
     html_content = models.TextField(blank=True, null=True)
     content = models.TextField(blank=True, null=True)
+    paragraphs = models.JSONField(blank=True, null=True)
     images = models.JSONField(blank=True, null=True)
     published_date = models.DateField(blank=True, null=True)
 
     criteria = models.JSONField(blank=True, null=True)
     certainty_degree = models.IntegerField(blank=True, null=True)
     is_selected = models.BooleanField(blank=True, null=True)
+    discarded_reason = models.ForeignKey(
+        DiscardedReason, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='articles')
+    other_discarded_reason = models.TextField(blank=True, null=True)
 
     scraped = models.ForeignKey(
         ScrapedRecord, on_delete=models.CASCADE, related_name='articles')
@@ -227,8 +287,28 @@ class Article(models.Model):
             degree *= -1
         return degree
 
-    def __str__(self):
-        return f"{self.uid} - {self.title}"
+    def get_certainty_degree_v2(self, criteria: ArticleBase) -> int:
+
+        if not criteria:
+            return self.get_certainty_degree()
+
+        degree = 0
+        if bool(criteria.projects):
+            degree += 10
+        if bool(criteria.opponents):
+            degree += 1
+        if bool(criteria.social_impacts):
+            degree += 2
+        if bool(criteria.ecological_impacts):
+            degree += 2
+        if bool(criteria.acts_of_violence):
+            degree += 2
+        if bool(criteria.collective_actions):
+            degree += 2
+
+        if bool(criteria.is_foreign):
+            degree *= -1
+        return degree
 
     def get_criteria(self, engine_name: str | None = None, use_deepseek: bool = False):
         prompt_criteria = "prompt_article_criteria.txt"
@@ -258,8 +338,14 @@ class Article(models.Model):
         self.is_selected = is_selected
         self.save()
 
+    def __str__(self):
+        return f"{self.uid} - {self.title}"
+
     class Meta:
         unique_together = ['uid', 'source']
+        verbose_name = 'Artículo'
+        verbose_name_plural = 'Artículos'
+        ordering = ['-certainty_degree', '-published_date']
 
 
 class QualifySchema(models.Model):

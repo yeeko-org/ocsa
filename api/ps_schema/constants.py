@@ -63,6 +63,32 @@ all_collections = {
             "model_name": "NoteFile",
             "level": "relational",
         },
+        {
+            "snake_name": "article",
+            "name": "Artículo",
+            "plural_name": "Artículos",
+            "model_name": "Article",
+            "level": "primary",
+        },
+        {
+            "snake_name": "scraped_record",
+            "name": "Bloque de scraping",
+            "plural_name": "Bloques de scraping",
+            "model_name": "ScrapedRecord",
+            "level": "secondary",
+            "all_filters": [
+                { "filter_name": "source_types", "hidden": False },
+                {
+                    "title": "Fechas",
+                    "component": "RangeDates", "hidden": False
+                },
+                {
+                    "title": "Colección", "field": "only_by",
+                    "component": "OnlyByFilter", "hidden": False,
+                    "options": ["event", "impact"]
+                },
+            ]
+        }
     ],
     "project": [
         {
@@ -477,6 +503,13 @@ filter_groups = [
         "plural_name": "Fuentes de información",
         "main_collection": "source-note",
         "category_subtype": "source-source",
+    },
+    {
+        "key_name": "scraped_record",
+        "name": "Bloque de scraping",
+        "plural_name": "Bloques de scraping",
+        "main_collection": "source-article",
+        "category_subtype": "source-scraped_record",
     },
     {
         "key_name": "project_types",

@@ -1,43 +1,19 @@
 from abc import ABC, abstractmethod
 from datetime import date, datetime, timedelta
-import json
-import re
 from typing import Any, Dict, List, Type
-
-import requests
-from bs4 import BeautifulSoup
-from bs4.element import Tag
-
+import json
+import enum
+from tqdm import tqdm
 from django.conf import settings
 from source.models import (
-    Article, ScrapedRecord, Source, ArticleQualify, QualifySchema)
+    Article, ScrapedRecord, Source, ArticleQualify, QualifySchema,
+    ArticleBase)
 from utils.open_ai import JsonRequestOpenAI
+from utils.gemini_ai import RequestGemini
+from source.scraper.scraper_base import MainScraper, ArticleScraper
 
-REQUESTS_DEFAULT_HEADERS = {'User-Agent': 'Mozilla/4.0'}
 PRECLASSIFY_ARTICLES_BLOCK = getattr(
     settings, "PRECLASSIFY_ARTICLES_BLOCK", 500)
-
-
-def get_content(url, parser="html.parser") -> BeautifulSoup:
-
-    response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS)
-    if response.status_code == 200:
-        return BeautifulSoup(response.text, parser)
-    else:
-        raise Exception(
-            f"Error al acceder a la página: {response.status_code}")
-
-
-def date_in_str(date_: date | str) -> str:
-    if isinstance(date_, date):
-        return date_.strftime("%Y/%m/%d")
-
-    pattern = r"^\d{4}/\d{2}/\d{2}$"
-    pattern2 = r"^\d{4}\d{2}\d{2}$"
-    if not re.match(pattern, date_) and not re.match(pattern2, date_):
-        raise ValueError("Invalid date format. Must be YYYY/MM/DD or YYYYMMDD")
-
-    return date_
 
 
 def date_in_date(date_: str | date) -> date:
@@ -74,6 +50,13 @@ def get_date_range(
     return date_list
 
 
+class EnumEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, enum.Enum):
+            return obj.value
+        return super().default(obj)
+
+
 class ManagerScraper(ABC):
     scraped_record: ScrapedRecord | None
     main_scraper_class: Type["MainScraper"]
@@ -88,7 +71,8 @@ class ManagerScraper(ABC):
     overlapping_dates: list
     errors: list
     pre_classify_response: Any
-    pre_classify_request: JsonRequestOpenAI
+    # pre_classify_request: JsonRequestOpenAI
+    pre_classify_request: RequestGemini
 
     open_ai_engine: str | None
     use_deepseek: bool
@@ -121,6 +105,7 @@ class ManagerScraper(ABC):
             return
 
         if not self.check_overlapping_records(from_date, to_date):
+            print("Overlapping records found, aborting scraping.")
             return
 
         self.scraped_record = ScrapedRecord.objects.create(
@@ -259,10 +244,31 @@ class ManagerScraper(ABC):
             return "selected" if is_selected else "not_selected"
         return "plus" if is_selected else "minus"
 
-    def full_scrape_articles(
-            self, update: bool = False, check_criteria: bool = True,
-            block_size: int = 0,
-            prompt_version: str = "v1"):
+    def scrape_articles(self, update: bool = False):
+        articles_objects = self.get_articles_objects()
+        desc = f"Scraping articles ({len(articles_objects)})"
+        for article in tqdm(articles_objects, desc=desc):
+            self.full_scrape_article(article, update)
+
+    def full_scrape_article(
+            self, article: Article, update: bool = False):
+
+        if not article.content:
+            try:
+                article_scraper = self.article_scraper_class(
+                    article, update=update)
+            except Exception as e:
+                self.add_error(
+                    f"Error scraping article {article.id}", e)
+                return
+            try:
+                article_scraper.get_reduced_content_text()
+            except Exception as e:
+                self.add_error(
+                    f"Error getting criteria for article {article.id}", e)
+
+    def build_ai_criteria(
+            self, block_size: int = 0, prompt_version: str = "v1"):
 
         self.scraped_record.status = "criteria"
         self.scraped_record.save()
@@ -283,12 +289,8 @@ class ManagerScraper(ABC):
             self.qualify_schema = None
         # if self.articles_by_uid:
         # print("articles_by_id:", bool(self.articles_by_id))
-        if self.articles_by_id:
-            articles_objects = list(self.articles_by_id.values())
-            print("type of articles_objects:", type(articles_objects))
-        else:
-            articles_objects = list(Article.objects.filter(
-                scraped=self.scraped_record))
+        articles_objects = self.get_articles_objects()
+
         if ready_articles:
             articles_objects = [
                 article for article in articles_objects
@@ -297,40 +299,118 @@ class ManagerScraper(ABC):
         len_articles = len(articles_objects)
         print(f"Full scrape articles for {len_articles} articles")
 
-        for i in range(0, len_articles, self.block_full_articles):
-            init_msg = "Scraping and classifying article"
-            if self.block_full_articles > 1:
-                print(f"{init_msg}s {i} to {i + self.block_full_articles}")
-            elif i % 10 == 0:
-                print(f"{init_msg} {i}")
-            self.full_scrape_batch(
-                articles_objects[i:i + self.block_full_articles],
-                update=update, check_criteria=check_criteria,
-                prompt_version=prompt_version)
+        many_articles = self.block_full_articles > 1
+        gemini_text = "prompt_gemini"
+        prompt_criteria = (f"{gemini_text}_article{'s' if many_articles else ''}"
+                           f"_criteria_{prompt_version}.txt")
+        self.pre_classify_request = RequestGemini(engine=self.open_ai_engine)
+        cache_multiple = f"multiple_{self.block_full_articles}" \
+            if many_articles else "single"
+        cache_name = f"criteria_{prompt_version}_{cache_multiple}"
+        self.pre_classify_request.build_chat(
+            f"source/scraper/{prompt_criteria}")
+        self.pre_classify_request.create_cache(cache_name, len_articles)
 
-    def full_scrape_batch(
-            self, articles: List[Article], update: bool = False,
-            check_criteria: bool = True, prompt_version: str = "v1"):
+
+        desc = f"Classifying articles ({len_articles})"
+        for i in tqdm(range(0, len_articles, self.block_full_articles), desc=desc):
+            # init_msg = "Scraping and classifying article"
+            # if self.block_full_articles > 1:
+            #     print(f"{init_msg}s {i} to {i + self.block_full_articles}")
+            # elif i % 10 == 0:
+            #     print(f"{init_msg} {i}")
+            current_batch = articles_objects[i:i + self.block_full_articles]
+            self.get_batch_ai_criteria(
+                current_batch, prompt_version=prompt_version)
+
+    def get_articles_objects(self):
+        if self.articles_by_id:
+            return list(self.articles_by_id.values())
+            # print("type of articles_objects:", type(articles_objects))
+        else:
+            return list(Article.objects.filter(
+                scraped=self.scraped_record, criteria__isnull=True))
+
+    def get_batch_ai_criteria(
+            self, articles: List[Article], prompt_version: str = "v1"):
         many_articles = self.block_full_articles > 1
         full_content = ""
 
         for article in articles:
-            if not self.is_test or not article.content:
-                try:
-                    article_scraper = self.article_scraper_class(
-                        article, update=update)
-                except Exception as e:
-                    return self.add_error(
-                        f"Error scraping article {article.id}", e)
-                try:
-                    article_scraper.get_reduced_content_text()
-                    content = article_scraper.article.content.strip()
-                except Exception as e:
-                    return self.add_error(
-                        f"Error getting criteria for article {article.id}", e)
-            else:
-                content = article.content.strip()
+            if not article.paragraphs and not article.images:
+                print(f"Article {article.id} has no paragraphs")
+                continue
+            p_idx = 0
+            content = f"Título: {article.title.strip()}\n"
+            if subtitle := article.subtitle:
+                content += f"Subtítulo: {subtitle.strip()}\n"
+            for paragraph in article.paragraphs:
+                p_idx += 1
+                content += f"[{p_idx}]: {paragraph.strip()}\n"
+            # if p_idx >= 89:
+            #     print(f"Article {article.id} has too many paragraphs: {p_idx}")
+            # else:
+            #     p_idx = 89
+            for photo in article.images or []:
+                p_idx += 1
+                if caption := photo.get("caption"):
+                    caption = caption.replace("\n", " ")
+                    content += f"[{p_idx}]: {caption.strip()} (pie de foto)\n"
 
+            if many_articles:
+                full_content += f"-- ARTÍCULO id: {article.id} --\n\n{content}\n\n\n"
+            else:
+                full_content = content
+        if not full_content:
+            print("No content to classify")
+            return
+
+        pre_classify_response = self.pre_classify_request\
+            .send_gemini_prompt(full_content, schema_clss=ArticleBase)
+
+        if not pre_classify_response:
+            print("No response from OpenAI")
+            return
+
+        if not isinstance(pre_classify_response, ArticleBase):
+            print(f"Invalid response, received: {type(pre_classify_response)}")
+            return
+        if not many_articles:
+            pre_classify_response = [pre_classify_response]
+        for criteria in pre_classify_response:
+            if not many_articles:
+                article_id = articles[0].id
+            else:
+                article_id = criteria.id
+            article = Article.objects.get(pk=int(article_id))
+            certain_degree = article.get_certainty_degree_v2(criteria)
+            is_selected = certain_degree > 11
+            if self.is_test:
+                change_value = self.get_change_value(is_selected, article)
+                _ = ArticleQualify.objects.create(
+                    article=article,
+                    qualify_schema=self.qualify_schema,
+                    is_selected=is_selected,
+                    criteria=criteria,
+                    certainty_degree=certain_degree,
+                    change_value=change_value,
+                    request_id=None)
+            else:
+                json_criteria = json.dumps(
+                    criteria.model_dump(), ensure_ascii=False,
+                    indent=2, cls=EnumEncoder)
+                article.criteria = json.loads(json_criteria)
+                article.certainty_degree = certain_degree
+                # article.is_selected = is_selected
+                article.save()
+
+    def old_get_batch_ai_criteria(
+            self, articles: List[Article], prompt_version: str = "v1"):
+        many_articles = self.block_full_articles > 1
+        full_content = ""
+
+        for article in articles:
+            content = article.content.strip()
             if many_articles:
                 full_content += f"-- ARTÍCULO {article.id} --\n{content}\n\n"
             else:
@@ -338,16 +418,13 @@ class ManagerScraper(ABC):
         if not full_content:
             return None
 
-        if not check_criteria:
-            return None
-
         prompt_criteria = (f"prompt_article{'s' if many_articles else ''}"
                            f"_criteria_{prompt_version}.txt")
-        articles_criteria_request = JsonRequestOpenAI(
+        self.pre_classify_request = JsonRequestOpenAI(
             f"source/scraper/{prompt_criteria}",
             engine=self.open_ai_engine, use_deepseek=self.use_deepseek)
 
-        pre_classify_response, req_id = articles_criteria_request\
+        pre_classify_response, req_id = self.pre_classify_request\
             .send_prompt(full_content)
 
         if not pre_classify_response:
@@ -381,143 +458,3 @@ class ManagerScraper(ABC):
                 article.save()
                 return None
         return None
-
-
-class MainScraper(ABC):
-    """
-    diccionario esperado:
-    {
-        "section_name": {
-            "url": "url_section",
-            "articles": [
-                {
-                    "uid": "uid",
-                    "title": "title",
-                    "url": "url",
-                    "imgs": "imgs",
-                    "content": "content",
-                    "metadata": {}
-                }
-            ]
-        }
-    }
-    """
-
-    soup_content: BeautifulSoup
-    sections_dict: Dict[str, dict]
-    scraper_date: str
-    parser = "html.parser"
-
-    def __init__(self, scraper_date: date | str):
-        self.scraper_date = date_in_str(scraper_date)
-        self.soup_content = get_content(self.main_url(), self.parser)
-
-        self.get_sections()
-        self.get_articles()
-
-    @abstractmethod
-    def main_url(self) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_sections(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_articles(self):
-        raise NotImplementedError
-
-
-class ArticleScraper(ABC):
-    article: Article
-    soup_content: BeautifulSoup
-
-    title: str
-    author: str | None
-    content: str
-    images: List[str]
-    open_ai_engine: str | None
-    parser = "html.parser"
-
-    def __init__(self, article: Article, update: bool = False):
-        self.article = article
-        if article.html_content and not update:
-            self.soup_content = BeautifulSoup(
-                article.html_content, self.parser)
-            self.get_article_data()
-            return
-        self.soup_content = get_content(article.url, self.parser)
-        try:
-            self.get_article_data()
-        except Exception as e:
-            print(f"Error getting article data: {e}")
-            return
-
-        article.title = self.title or article.title
-        article.autor = self.author or article.autor
-        article.content = self.content or article.content
-        article.html_content = str(
-            self.get_main_body()) or article.html_content
-        article.images = self.images or article.images  # type: ignore
-
-    @abstractmethod
-    def get_article_data(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_main_body(self) -> Tag:
-        raise NotImplementedError
-
-    def get_reduced_content_text(self):
-        body = self.get_main_body()
-        if not body:
-            return
-        body = body
-        title = self.title
-        if title not in body.get_text():
-            title = None
-
-        excluded_tags = [
-            'script', 'style', 'noscript', 'svg', 'button', 'input',
-            'textarea', 'select', 'option', 'form', 'fieldset', 'canvas',
-            'nav', 'aside', 'address', 'map', 'area',
-            'legend', 'iframe', 'embed', 'object', 'param', 'video', 'audio']
-        for excluded_tag in excluded_tags:
-            for tag in body.find_all(excluded_tag):
-                tag.decompose()
-        main_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ul']
-        begin_title = not bool(title)
-        for tag in body.find_all():
-            tag_text = tag.get_text(strip=True)
-            if not tag_text and tag.name not in main_tags:
-                tag.decompose()
-            if not begin_title:
-                direct_text = tag.string
-                if direct_text and title in direct_text:
-                    begin_title = True
-            if not begin_title:
-                if title not in tag_text:
-                    tag.decompose()
-
-        allowed_attrs = [
-            'class', 'id', 'href', 'src', 'alt', 'title']
-        # new_body = BeautifulSoup('', 'html.parser')
-        for tag in body.find_all():
-            relevant_attrs = {
-                key: value for key, value in tag.attrs.items()
-                if key in allowed_attrs
-            }
-            tag.attrs = relevant_attrs
-        try:
-            # body_encoding = body.encode("utf-8")
-            self.article.html_content = body.prettify()\
-                .encode("utf-8", errors="ignore").decode("utf-8")
-            # print("Body4:", self.htmml_content)
-        except Exception as e:
-            print("Error body.pretty:", e)
-            print("-" * 50)
-            print("Body5:", body)
-            raise e
-        # new_html = body.prettify()
-        self.article.content = body.get_text(separator="\n")
-        self.article.save()

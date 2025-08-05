@@ -6,20 +6,13 @@ from source.models import ScrapedRecord, Article
 
 
 def examples_base():
-    # la clase requiere de las 2 fechas, si solo se realizara de un solo dia, se
-    # debe de poner la misma fecha en ambos parametros.
-    # en el endpoint, la segunda fecha es opcional y su default es la misma que
-    # la primera fecha.
-
-    # Si existe cruce de fechas ya escrapeadas producira error, excepto si se el
-    # registro tiene el estado de "failed"., lo que permitira volver a intentar
 
     # manager_scraper = JornadaManagerScraper(
     #     "2022/10/01", "2022/12/31", open_ai_engine="gpt-4o-mini")
     manager_scraper = JornadaManagerScraper(
         "2022/02/01", "2023/02/28", open_ai_engine="gpt-4o-mini")
 
-    print(manager_scraper.scraped_record)
+    # print(manager_scraper.scraped_record)
     manager_scraper.scrape_sections()
 
     # aqui podemos ver toda la estructura de la informacion que se obtuvo por
@@ -39,11 +32,12 @@ def examples_base():
 
     # record articles genera los registros de los articulos con get_or_create
     # basado en el uid y el source, tambien genera los datos de las listas
-    # articles_for_openAI y articles_by_uid, compatible con recuperacion
+    # articles_for_ai y articles_by_uid, compatible con recuperacion
     manager_scraper.record_articles()
     # manager_scraper.record_articles(reset=True)
+    manager_scraper.scrape_articles()
 
-    manager_scraper.full_scrape_articles()
+    manager_scraper.build_ai_criteria()
 
 
     # python manage.py articles_json "2022-10-01" "2022-12-31" 4

@@ -75,14 +75,7 @@ class ImpactTypeFullSerializer(serializers.ModelSerializer):
 
 
 class SourceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Source
-        fields = "__all__"
-
-
-class SourceFullSerializer(serializers.ModelSerializer):
     notes_count = serializers.ReadOnlyField()
-
     class Meta:
         model = Source
         fields = "__all__"

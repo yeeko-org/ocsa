@@ -66,6 +66,9 @@ class Municipality(models.Model):
         blank=True, null=True, verbose_name="Longitud de cabecera")
     altitude = models.IntegerField(
         blank=True, null=True, verbose_name="Altitud de cabecera")
+    # geometry = models.MultiPolygonField(
+    #     null=True, blank=True, verbose_name="Límites territoriales",
+    #     help_text="Polígonos que definen los límites del municipio")
 
     def __str__(self):
         return "%s - %s" % (self.name, self.state)

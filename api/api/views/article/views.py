@@ -1,31 +1,38 @@
 import requests
+from django.db.models import Count
 
-from django_filters import FilterSet
+from django_filters import FilterSet, NumberFilter, DateFilter
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from source.models import Article, Note, NoteFile
+from source.models import Article, Note, NoteFile, Source
 
-from api.views.common_views import BaseGenericViewSet
+from api.views.common_views import BaseGenericViewSet, BaseStatusViewSet
 from .serializers import (
     ArticleListSerializer, ArticleDetailSerializer,
-    ArticleSelectedSerializer, ArticleStatusSerializer)
+    ArticleSelectedSerializer, ArticleStatusSerializer, SourceFullSerializer)
+from ..catalogs import SourceSerializer
+from ...permissions import IsAdminOrReadOnly
 
 
 class ArticleFilter(FilterSet):
+    scraped_record = NumberFilter(
+        field_name="scraped__id", lookup_expr="exact")
+    start_date = DateFilter(field_name='scraped_date', lookup_expr='gte')
+    end_date = DateFilter(field_name='scraped_date', lookup_expr='lte')
 
     class Meta:
         model = Article
-        fields = [
-            "source",
-            "section",
-            "is_selected",
-            "scraped",
-        ]
+        fields = {
+            "source": ["exact"],
+            "is_selected": ["exact"],
+        }
 
 
 class ArticleViewSet(BaseGenericViewSet):
-    queryset = Article.objects.all()
+    queryset = Article.objects\
+        .exclude(certainty_degree=0)\
+        .exclude(certainty_degree__isnull=True)
     serializer_class = ArticleListSerializer
     filterset_class = ArticleFilter
 
@@ -78,13 +85,13 @@ class ArticleViewSet(BaseGenericViewSet):
 
         note = Note.objects.create(
             title=article.title,
+            subtitle=article.subtitle,
             author=article.autor,
             source=article.source,
             section=article.section,
             pages=pages,
             link=article.url,
             date=article.published_date,
-
         )
 
         file_url = get_url_file_reforma(article)
@@ -130,3 +137,18 @@ def get_url_file_reforma(article: Article):
             return response.json().get("d")
         except:
             pass
+
+
+class SourceViewSet(BaseStatusViewSet):
+    permission_classes = [IsAdminOrReadOnly]
+    filterset_fields = []
+    queryset = Source.objects.all()\
+        .annotate(notes_count=Count('notes'))\
+        .distinct()
+    serializer_class = SourceSerializer
+
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': SourceFullSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)

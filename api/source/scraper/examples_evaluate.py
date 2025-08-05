@@ -9,31 +9,34 @@ def examples():
         ScrapedRecord, Article, QualifySchema, ArticleQualify, Note)
 
     manager_scraper = JornadaManagerScraper(
-        "2022/09/01", "2022/09/26", open_ai_engine="gpt-4o-mini")
+        "2023/06/09", "2023/06/09", open_ai_engine="gemini-2.5-flash")
 
     manager_reforma = ReformaManagerScraper(
-        "2022/09/01", "2022/09/26", open_ai_engine="gpt-4o-mini")
+        "2023/06/01", "2023/06/02", open_ai_engine="gemini-2.5-flash")
 
     # print(manager_scraper.scraped_record)
     manager_scraper.scrape_sections()
     manager_reforma.scrape_sections()
 
     manager_scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=19),
-        open_ai_engine="gpt-4o-mini")
+        "", "", recover_record=ScrapedRecord.objects.get(pk=38),
+        open_ai_engine="gemini-2.5-flash")
 
     manager_scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.last(),
-        open_ai_engine="gpt-4o-mini")
+        open_ai_engine="gemini-2.5-flash")
 
     manager_scraper.record_articles(reset=True)
     manager_reforma.record_articles(reset=True)
 
-    manager_scraper.full_scrape_articles(
-        block_size=1, prompt_version="v2")
+    manager_scraper.scrape_articles(update=True)
+    manager_reforma.scrape_articles()
 
-    manager_reforma.full_scrape_articles(
-        block_size=1, prompt_version="v2", check_criteria=False)
+    manager_scraper.build_ai_criteria(
+        block_size=1, prompt_version="v1")
+
+    manager_reforma.build_ai_criteria(
+        block_size=1, prompt_version="v2")
 
     # QualifySchema.objects.all().delete()
     Article.objects.filter(scraped__id=22).count()
@@ -45,28 +48,42 @@ def examples():
     ########
 
 
+def test_paragraphs():
+    from source.scraper.jornada import JornadaArticleScraper
+    from source.models import Article
+    article_obj = Article.objects.get(id=32187)
+    scraper = JornadaArticleScraper(article_obj, update=True)
+    self = scraper
+
+
 
 def scrape_full_articles(
-        sr_id=17, block_size=1, open_ai_engine="gpt-4o-mini",
+        sr_id=17, block_size=1, open_ai_engine="gemini-2.5-flash",
         prompt_version="v2"):
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.scraper.reforma import ReformaManagerScraper
+    from source.models import ScrapedRecord
+
     scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
         open_ai_engine=open_ai_engine, is_test=True)
+
     if open_ai_engine == "deepseek-chat":
         scraper.use_deepseek = True
-    scraper.full_scrape_articles(
+    scraper.scrape_articles()
+    scraper.build_ai_criteria(
         block_size=block_size,
         prompt_version=prompt_version)
 
 
-scrape_full_articles(22, 1, "gpt-4o-mini", "v1")
+scrape_full_articles(22, 1, "gemini-2.5-flash", "v1")
 
-scrape_full_articles(22, 6, "gpt-4o-mini", "v2")
-scrape_full_articles(22, 6, "gpt-4o-mini", "v1")
+scrape_full_articles(22, 6, "gemini-2.5-flash", "v2")
+scrape_full_articles(22, 6, "gemini-2.5-flash", "v1")
 scrape_full_articles(22, 6, "deepseek-chat", "v1")
 
 # scrape_full_articles(1, 20, "gpt-4o-2024-11-20")
-# scrape_full_articles(17, 20, "gpt-4o-mini")
+# scrape_full_articles(17, 20, "gemini-2.5-flash")
 
 
 #######
@@ -235,6 +252,7 @@ explore_diff_articles("plus", 5)
 
 
 def update_all_articles_with_criteria():
+    from source.models import Article
     articles = Article.objects.filter(criteria__isnull=False)
     for article in articles:
         cert_degree = article.get_certainty_degree()
@@ -243,3 +261,12 @@ def update_all_articles_with_criteria():
 
 
 update_all_articles_with_criteria()
+
+
+def delete_prev_articles():
+    from source.models import Article
+    print(Article.objects.filter(criteria__isnull=True).count())
+    print(Article.objects.filter(criteria__isnull=False).count())
+    Article.objects.filter(criteria__icontains='"{').delete()
+    Article.objects.exclude(criteria__icontains='projects').delete()
+    Article.objects.filter(scraped__id=18).delete()
