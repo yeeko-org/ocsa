@@ -8,6 +8,10 @@ import SectionTitle from "~/components/login/SectionTitle.vue";
 import LoginMail from "~/components/login/LoginMail.vue";
 const { rules } = authMix;
 
+definePageMeta({
+  layout: 'login',
+})
+
 const props = defineProps({
   is_reset: {
     type: Boolean,

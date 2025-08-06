@@ -5,7 +5,7 @@ import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
 
 const mainStore = useMainStore()
-const { criteria, ai_extractivism_types, saveSelected } = mainStore
+const { criteria, ai_extractivism_types, saveSelected, valid_options } = mainStore
 
 const props = defineProps({
   full_main: {
@@ -16,8 +16,10 @@ const props = defineProps({
   is_edit: Boolean,
 })
 
+const emits = defineEmits(['item-saved'])
 const errors = ref(null)
 const sending_link = ref(false)
+const selected_fields = ref([])
 
 const rules = ref({
   required: value => !!value || "Campo requerido",
@@ -32,26 +34,12 @@ const fields = [
   'collective_actions',
 ]
 
-const valid_options = [
-  {
-    "id": 1,
-    "name": "No cumple",
-    "order": 1,
-    "icon": "close",
-    "color": "error",
-    "value": false,
-  },
-  {
-    "id": 2,
-    "name": "Sí cumple",
-    "order": 2,
-    "icon": "verified",
-    "color": "success",
-    "value": true,
-  },
-]
 
 const show_all = ref(false)
+
+const pre_valid = computed(() => {
+  return props.full_main.certainty_degree > 10
+})
 
 const pre_valid_value = computed(() => {
   const degree = props.full_main.certainty_degree
@@ -116,31 +104,33 @@ const full_paragraphs = computed(() => {
   return paragraphs
 })
 
+function showAll(value){
+  show_all.value = value
+  if (value)
+    selected_fields.value = []
+}
 
 async function changeSelected(){
   errors.value = null
   // const { valid } = await linkForm.value.validate()
   // if (!valid) return
-  sending_link.value = true
-  console.log("full_main", props.full_main)
-  // const elem_id = props.full_main.id ? 'id' : 'key_name'
-  // const is_new = !Boolean(props.full_main[elem_id])
-  const params = {
-    "is_selected": props.full_main.is_selected,
+  const is_selected = props.full_main.is_selected
+  const other_reason = props.full_main.other_discarded_reason
+  // console.log("other_reason", other_reason)
+  if (is_selected === false && !other_reason && pre_valid.value) {
+    errors.value = ["Debes escribir una razón de descarte."]
+    return
   }
+
+  const params = {is_selected, "other_discarded_reason": other_reason}
+  sending_link.value = true
   // console.log("params", params)
   saveSelected([props.full_main.id, params]).then(response => {
-    console.log("response", response)
+    // console.log("response", response)
     if (response.errors)
       errors.value = response.errors
-    // if (response.note_contents){
-    //   // props.full_main.note_contents.concat(response.note_contents)
-    //   response.note_contents.forEach(note_content => {
-    //     props.full_main.note_contents.push(note_content)
-    //   })
-    // }
 
-    // emits('item-saved', {'res': response, is_new})
+    emits('item-saved', {'res': response, is_new: false})
     sending_link.value = false
     // note_content.value = response
   })
@@ -149,13 +139,17 @@ async function changeSelected(){
 </script>
 
 <template>
-  <v-col cols="12" class="d-flex">
-    <v-text-field
+  <v-col
+    class="px-0 grow"
+  >
+    <v-textarea
       v-model="full_main.url"
       label="Enlace a la nota"
       variant="outlined"
       class="mr-2"
-      style="max-width: 600px;"
+      rows="1"
+      auto-grow
+      max-rows="3"
     >
       <template #append v-if="full_main.url">
         <v-btn
@@ -167,7 +161,25 @@ async function changeSelected(){
           v-tooltip:bottom="'Abrir enlace'"
         ></v-btn>
       </template>
-    </v-text-field>
+    </v-textarea>
+    <v-textarea
+      v-model="full_main.subtitle"
+      label="Subtítulo del artículo"
+      variant="outlined"
+      class="mr-2"
+      rows="2"
+      max-rows="3"
+      auto-grow
+      max-width="500px"
+      hide-details
+    >
+    </v-textarea>
+
+  </v-col>
+  <v-col
+    class="d-flex px-0"
+    style="min-width: 500px;"
+  >
 
     <div class="d-flex flex-column ml-6 justify-center">
       <span class="text-caption text-grey-darken-1">
@@ -195,11 +207,11 @@ async function changeSelected(){
         </v-btn>
       </v-btn-toggle>
       <v-input
-        v-if="true"
         v-model="full_main.is_selected"
         label="Válido"
         type="text"
         :rules="[rules.defined]"
+        :error-messages="errors"
       >
         <v-btn-toggle
           v-model="full_main.is_selected"
@@ -225,75 +237,118 @@ async function changeSelected(){
         </v-btn-toggle>
       </v-input>
     </div>
-  </v-col>
-  <v-card-title
-    class="text-subtitle-1 mt-4"
-  >
-    Párrafos del artículo:
-  </v-card-title>
-  <div
-    v-for="paragraph in full_paragraphs"
-    :key="paragraph.idx"
-    style="width: 100%;"
-  >
     <v-card
-      v-if="show_all || paragraph.criteria.length || paragraph.projects.length"
-      variant="outlined"
-      class="mb-1"
-      color="grey-lighten-1"
-      :loading="sending_link"
+      v-if="full_main.is_selected === false && pre_valid"
+      variant="flat"
+      class="ml-4 pt-2"
+      style="max-width: 400px; min-width: 240px;"
     >
-      <v-card-text class="pb-1 pt-2 text-black">
-        <div class="d-flex">
-
-          <CriteriaChip
-            is_simple
-            :direct_criteria="paragraph.criteria"
-          />
-          <ProjectMiniList
-            :mentions="paragraph.projects"
-          />
-        </div>
-        <b v-if="paragraph.image">[IMAGEN]</b>
-        <span v-html="paragraph.text" class="text-body-1">
-        </span>
-      </v-card-text>
+      <v-textarea
+        v-model="full_main.other_discarded_reason"
+        label="Razón de descarte"
+        variant="solo-filled"
+        color="red-darken-1"
+        bg-color="red-lighten-4"
+        rows="2"
+        auto-grow
+      >
+      </v-textarea>
+      <v-btn
+        v-if="!full_main.is_selected"
+        color="accent"
+        variant="outlined"
+        @click="changeSelected"
+        :loading="sending_link"
+      >
+        Guardar
+      </v-btn>
     </v-card>
-    <v-btn
-      v-if="!show_all && !paragraph.criteria.length"
-      class="mb-1"
-      variant="text"
-      color="accent"
-      icon
-      @click="show_all = true"
+  </v-col>
+  <v-col cols="12" class="px-0">
+
+    <v-card-title
+      class="text-subtitle-1 mt-4 d-flex align-center"
     >
-      <v-icon>horizontal_rule</v-icon>
-      <v-tooltip
-        activator="parent"
-        location="bottom"
-        :max-width="400"
+      Párrafos del artículo:
+      <CriteriaChip
+        v-if="full_main.criteria"
+        :main="full_main"
+        :selected_fields="selected_fields"
+        is_filter
+        @reset-filters="showAll(false)"
+        class="ml-3"
+      />
+    </v-card-title>
+    <v-card-text
+      class="px-0 d-flex flex-wrap"
+    >
+      <template
+        v-for="paragraph in full_paragraphs"
       >
         <v-card
-          class="mx-n4 my-n2"
+          v-if="show_all || (selected_fields.length
+            ? paragraph.criteria.some(c => selected_fields.includes(c.name))
+            : (paragraph.criteria.length || paragraph.projects.length) )"
+          :key="paragraph.idx"
+          variant="outlined"
+          class="mb-1"
+          color="grey-lighten-1"
+          :loading="sending_link"
+          style="width: 100%;"
         >
-          <v-card-title class="text-subtitle-1">
-            {{ paragraph.idx }}. Click para ver todos los párrafos
-          </v-card-title>
-          <v-card-text>
-            {{ paragraph.text }}
+          <v-card-text class="pb-1 pt-2 text-black">
+            <div class="d-flex">
+              <CriteriaChip
+                is_simple
+                :direct_criteria="paragraph.criteria"
+              />
+              <ProjectMiniList
+                :mentions="paragraph.projects"
+              />
+            </div>
+            <b v-if="paragraph.image">[IMAGEN]</b>
+            <span v-html="paragraph.text" class="text-body-1">
+            </span>
           </v-card-text>
         </v-card>
-      </v-tooltip>
-    </v-btn>
-  </div>
-  <v-btn
-    v-if="show_all"
-    variant="outlined"
-    color="accent"
-    @click="show_all = false"
-  >
-    Ocultar párrafos
-  </v-btn>
+        <v-btn
+          v-else
+          :key="paragraph.idx"
+          class="mb-1"
+          variant="text"
+          color="accent"
+          icon
+          @click="showAll(true)"
+        >
+          <v-icon>subject</v-icon>
+          <v-tooltip
+            activator="parent"
+            location="bottom"
+            :max-width="400"
+          >
+            <v-card
+              class="mx-n4 my-n2"
+            >
+              <v-card-title class="text-subtitle-1">
+                {{ paragraph.idx }}. Click para ver todos los párrafos
+              </v-card-title>
+              <v-card-text>
+                {{ paragraph.text }}
+              </v-card-text>
+            </v-card>
+          </v-tooltip>
+        </v-btn>
+      </template>
+      <v-btn
+        v-if="show_all"
+        variant="outlined"
+        color="accent"
+        @click="showAll(false)"
+      >
+        Ocultar párrafos
+      </v-btn>
+    </v-card-text>
+  </v-col>
 </template>
 
 <style scoped>

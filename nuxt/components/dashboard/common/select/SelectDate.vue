@@ -19,6 +19,11 @@ const props = defineProps({
     type: String,
     default: '180px',
   },
+  view_mode: {
+    type: String,
+    default: 'month',
+  },
+  clearable: Boolean,
 })
 
 const show_menu_date = ref(false)
@@ -75,12 +80,14 @@ function editDate(date) {
     <v-date-picker
       :modelValue="getDate"
       @update:modelValue="editDate"
+      :view-mode="view_mode"
       color="accent"
       show-adjacent-months
       cancel-text="Cancelar"
       ok-text="Guardar"
       title="Selecciona una fecha"
       :disabled="disabled"
+      :clearable="clearable || is_filter"
     >
     </v-date-picker>
   </v-menu>

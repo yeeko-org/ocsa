@@ -10,8 +10,13 @@ dayjs.locale('es')
 const props = defineProps({
   scraped_records: Array,
   new_record: Object,
+  months_ago: {
+    type: Number,
+    default: 30
+  }
 })
 
+const emits = defineEmits(['select-day'])
 const is_ready = ref(false)
 
 function getLimits() {
@@ -56,15 +61,19 @@ const recent_months_with_day_js = computed(() => {
   if (is_ready.value)
     return
   const now = dayjs()
-  const three_months_ago = now.subtract(30, 'month')
-  let current_day = three_months_ago.startOf('month')
+  const real_months_ago = now.subtract(props.months_ago, 'month')
+  let current_day = real_months_ago.startOf('month')
   current_day = current_day.subtract(1, 'day')
   let all_months = {}
   const limits = getLimits()
   let between_dates = getLimitsWithDayJS()
-  if (props.new_record && props.new_record.from_date && props.new_record.to_date){
+  if (props.new_record && props.new_record.from_date){
     const from_date = dayjs(props.new_record.from_date)
-    const to_date = dayjs(props.new_record.to_date)
+    let to_date = null
+    if (props.new_record.to_date)
+      to_date = dayjs(props.new_record.to_date)
+    else
+      to_date = from_date
     between_dates.push({
       from_date: from_date,
       to_date: to_date,
@@ -87,6 +96,7 @@ const recent_months_with_day_js = computed(() => {
       month: current_day.month() + 1,
       year: current_day.year(),
       full_day: date_str,
+      date: current_day.toDate(),
       limit: limit,
       is_between: is_between
     }
@@ -103,6 +113,17 @@ const recent_months_with_day_js = computed(() => {
   })
 
 })
+
+function indirectSelectDay(day) {
+  console.log("indirectSelectDay", day)
+  // const date = dayjs(day.full_day)
+  emits('select-day', {
+    date: day.date,
+    limit: day.limit,
+    is_between: day.is_between,
+    full_day: day.full_day,
+  })
+}
 
 </script>
 
@@ -158,7 +179,8 @@ const recent_months_with_day_js = computed(() => {
           v-else
           :color="day.is_between?.color || 'cyan-lighten-4'"
           size="x-small"
-          class="mr-1 text-caption text-grey-darken-2"
+          class="mr-1 text-caption text-grey-darken-2 cursor-pointer"
+          @click="indirectSelectDay(day)"
         >
           {{day.number}}
         </v-avatar>

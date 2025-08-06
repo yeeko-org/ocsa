@@ -8,6 +8,11 @@ const props = defineProps({
   main: Object,
   is_simple: Boolean,
   direct_criteria: Array,
+  is_filter: Boolean,
+  selected_fields: {
+    type: Array,
+    required: false,
+  },
 })
 
 // opponents: list[int] = []
@@ -24,17 +29,33 @@ const fields = [
   'collective_actions',
 ]
 
+// const selected_fields = ref([])
+const emits = defineEmits(['update:selected_fields', 'reset-filters'])
 
 const criteria_data = computed(() => {
-  if (props.direct_criteria) {
+  if (props.direct_criteria)
     return props.direct_criteria
-  }
   const criteria_values = props.main.criteria || []
   return fields.map((field) => {
+    const criteria_data = criteria[field] || {}
+    const is_selected = props.is_filter
+      ? props.selected_fields.includes(criteria_data.name)
+      : false
+    const count = criteria_values[field]?.length || 0
+    let final_color = null
+    if (!count)
+      final_color = 'grey-lighten-1'
+    else if (props.is_filter && is_selected)
+      final_color = 'white'
+    else
+      final_color = criteria_data.color
     return {
-      ...criteria[field],
-      "count": criteria_values[field]?.length || 0,
+      ...criteria_data,
+      "count": count,
       "value": criteria_values[field] || [],
+      "key": field,
+      "final_color": final_color,
+      "is_selected": is_selected,
     }
   })
 })
@@ -42,6 +63,18 @@ const criteria_data = computed(() => {
 const total_count = computed(() => {
   return criteria_data.value.reduce((acc, field) => acc + field.count, 0)
 })
+
+function addField(field) {
+  console.log('addField', field)
+  if (props.selected_fields.includes(field)){
+    const index = props.selected_fields.indexOf(field)
+    props.selected_fields.splice(index, 1)
+  }
+  else
+    props.selected_fields.push(field)
+  emits('reset-filters')
+
+}
 
 
 </script>
@@ -60,19 +93,41 @@ const total_count = computed(() => {
       class="d-flex flex-column align-center"
       :class="is_simple ? 'pl-0 pr-1' : 'px-1'"
     >
+      <v-btn
+        v-if="is_filter"
+        icon
+        size="small"
+        :color="field.count ? field.color : 'grey-ligthen-2'"
+        :variant="field.is_selected ? 'elevated' : 'plain'"
+        @click="addField(field.name)"
+        :disabled="!field.count"
+      >
+        <v-icon
+          :color="field.final_color"
+          _color="field.count
+            ? field.is_selected
+              ? 'white'
+              : field.color
+            : 'grey-lighten-2'"
+        >
+          {{ field.icon }}
+        </v-icon>
+
+      </v-btn>
       <v-icon
+        v-else
         :color="field.count ? field.color : 'grey-lighten-2'"
         :size="is_simple ? 18 : 24"
       >
         {{ field.icon }}
       </v-icon>
-      <span
-        v-if="false"
-        class="text-caption"
-        :class="`text-${field.count ? field.color: 'grey-lighten-2'}`"
-      >
-        {{ field.count }}
-      </span>
+<!--      <span-->
+<!--        v-if="false"-->
+<!--        class="text-caption"-->
+<!--        :class="`text-${field.count ? field.color: 'grey-lighten-2'}`"-->
+<!--      >-->
+<!--        {{ field.count }}-->
+<!--      </span>-->
       <v-tooltip
         activator="parent"
         location="bottom"
@@ -83,7 +138,6 @@ const total_count = computed(() => {
         >
           <v-card-title
             class="text-subtitle-1"
-            _class="`text-${position.color}`"
           >
             {{ field.name }}
           </v-card-title>

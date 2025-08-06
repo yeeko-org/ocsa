@@ -626,6 +626,16 @@ export const useMainStore = defineStore('main', {
         return {errors: error.response.data}
       }
     },
+    async getProjectLocations() {
+      this.setHeader()
+      try {
+        let response = await ApiService.get(`/project_location/`);
+        return response.data
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    }
   },
   getters: {
     status_dict(state) {
@@ -739,6 +749,26 @@ export const useMainStore = defineStore('main', {
         obj[key] = new_value
         return obj
       }, {})
+    },
+    valid_options(){
+      return [
+        {
+          "id": 1,
+          "name": "No cumple",
+          "order": 1,
+          "icon": "close",
+          "color": "red-lighten-3",
+          "value": false,
+        },
+        {
+          "id": 2,
+          "name": "Sí cumple",
+          "order": 2,
+          "icon": "verified",
+          "color": "success",
+          "value": true,
+        },
+      ]
     },
   },
 })

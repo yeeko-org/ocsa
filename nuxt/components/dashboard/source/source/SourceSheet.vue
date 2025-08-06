@@ -6,7 +6,7 @@ import CalendarDisplay from "~/components/dashboard/source/CalendarDisplay.vue";
 import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
-const { saveSimple, getRelatedActors } = mainStore
+const { saveSimple } = mainStore
 import dayjs from 'dayjs'
 
 const props = defineProps({
@@ -17,12 +17,13 @@ const props = defineProps({
   show_details: {
     type: Boolean,
     default: false,
-  },
+  }
 })
 
 const loading = ref(false)
 const result_articles = ref([])
 const recordForm = ref(null)
+const months_ago = ref(30)
 
 const new_record = ref({
   when: null,
@@ -60,16 +61,31 @@ async function saveScrapedRecord() {
 function updateDate(date, field) {
   if (field === 'from_date') {
     new_record.value.from_date = date
-    if (!new_record.value.to_date) {
-      // add 30 days to from_date
-      let after_30_days = dayjs(date).add(30, 'day').toDate()
-      after_30_days = dayjs(after_30_days).format('YYYY-MM-DD')
-      new_record.value.to_date = after_30_days
-    }
+    // if (!new_record.value.to_date) {
+    //   // add 30 days to from_date
+    //   let after_30_days = dayjs(date).add(30, 'day').toDate()
+    //   after_30_days = dayjs(after_30_days).format('YYYY-MM-DD')
+    //   new_record.value.to_date = after_30_days
+    // }
   } else if (field === 'to_date') {
     new_record.value.to_date = date
   }
+}
 
+function selectDay(day) {
+  console.log("selectDay", day)
+  if (new_record.value.from_date && new_record.value.to_date) {
+    new_record.value.from_date = day.full_day
+    new_record.value.to_date = null
+  }
+  else if (new_record.value.from_date && !new_record.value.to_date) {
+    new_record.value.to_date = day.full_day
+  } else {
+    new_record.value.from_date = day.full_day
+    new_record.value.to_date = null
+  }
+  // if (!day.limit)
+  //   return
 }
 
 
@@ -77,40 +93,71 @@ function updateDate(date, field) {
 
 <template>
   <v-card class="mb-4 pa-3">
-    Periodos extraídos de noticias:
-    <v-form
-      ref="recordForm"
-      class="d-flex align-center"
-    >
-      <v-col cols="12" class="d-flex">
-        <SelectDate
-          :init_date="new_record.from_date"
-          label="Desde"
-          class="mr-2"
-          @update-date="updateDate($event, 'from_date')"
-          required
-        />
-        <SelectDate
-          :init_date="new_record.to_date"
-          label="Hasta"
-          class="mr-2"
-          @update-date="new_record.to_date = $event"
-          required
-        />
-        <v-spacer></v-spacer>
-        <v-btn
-          color="accent"
-          variant="elevated"
-          @click="saveScrapedRecord()"
-          :loading="loading"
+    <div class="d-flex align-end justify-start mb-4">
+      <v-card
+        class="align-center pl-3 d-flex"
+        variant="flat"
+        style="width: 240px;"
+      >
+        <v-text-field
+          v-model="months_ago"
+          label="Meses atrás"
+          variant="outlined"
+          class="mt-2"
+          density="compact"
+          style="max-width: 120px;"
+          type="number"
+          hide-details
         >
-          Traer periodo
-        </v-btn>
-      </v-col>
-    </v-form>
+        </v-text-field>
+      </v-card>
+      <v-spacer></v-spacer>
+      <v-card
+        class="ml-4 pa-2"
+        style="width: 600px;"
+        color="grey-lighten-3"
+      >
+        Periodos extraídos de noticias:
+        <v-form
+          ref="recordForm"
+          class="d-flex align-center"
+        >
+          <v-col cols="12" class="d-flex">
+            <SelectDate
+              :init_date="new_record.from_date"
+              label="Desde"
+              class="mr-2"
+              @update-date="updateDate($event, 'from_date')"
+              required
+              view_mode="months"
+              clearable
+            />
+            <SelectDate
+              :init_date="new_record.to_date"
+              label="Hasta"
+              class="mr-2"
+              @update-date="new_record.to_date = $event"
+              required
+              clearable
+            />
+            <v-spacer></v-spacer>
+            <v-btn
+              color="accent"
+              variant="elevated"
+              @click="saveScrapedRecord()"
+              :loading="loading"
+            >
+              Traer periodo
+            </v-btn>
+          </v-col>
+        </v-form>
+      </v-card>
+    </div>
     <CalendarDisplay
       :scraped_records="full_main.scraped_records"
       :new_record="new_record"
+      :months_ago="months_ago"
+      @select-day="selectDay($event)"
     />
     <v-card-title v-if="full_main.scraped_records?.length">
       Consultas realizadas:

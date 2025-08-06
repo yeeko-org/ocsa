@@ -181,14 +181,14 @@ watch(
             </v-list-group>
             <v-list-item
               v-else
-              exact
               :key="collection.snake_name"
               :value="collection.snake_name"
+              exact
               _active-class="text-accent"
               :to="`/dashboard/${collection.snake_name}`"
               :prepend-icon="collection.icon"
               :disabled="!is_full_editor"
-              :title="collection.name"
+              :title="collection.plural_name"
             ></v-list-item>
             <v-divider></v-divider>
           </template>

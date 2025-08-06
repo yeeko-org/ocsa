@@ -186,6 +186,7 @@ const saveOrder = (val) => {
                 :is="edit_component"
                 :full_main="full_main"
                 is_edit
+                @item-saved="emits('item-saved', $event)"
               />
             </template>
           </EditCommon>

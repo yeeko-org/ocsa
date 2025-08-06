@@ -18,6 +18,9 @@ const items = computed(() => {
   if (!props.filter_box)
     return []
   // console.log("collections_summary", collections_summary.value)
+  if (props.filter_box.custom_options){
+    return props.filter_box.custom_options
+  }
   const options = props.filter_box.options || []
   return options.map((opt) => {
     return collections_summary.value[opt]

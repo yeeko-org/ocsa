@@ -3,39 +3,18 @@
 </script>
 
 <template>
-  <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-      flat
-      class="mt-n1"
-      clipped-left
-      height="48"
-    >
-      <v-toolbar-title class="d-flex align-center">
-        <v-icon class="mr-3" color="white">
-          dashboard
-        </v-icon>
-        <span class="text-white">
-          Inicio de sesión
-        </span>
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-    </v-app-bar>
-    <v-main>
-      <v-container
-        _style="width: 100%;"
-        class="pt-0"
-        width="600"
-      >
-        <v-layout align-center justify-center >
+  <v-responsive>
+    <v-app>
+      <v-main>
+        <v-container fluid class="pa-0">
+          <v-layout align-center justify-center fill-height>
 
-          <client-only>
-            <NuxtPage/>
-          </client-only>
-        </v-layout>
-      </v-container>
-    </v-main>
-  </v-app>
+            <client-only>
+              <NuxtPage/>
+            </client-only>
+          </v-layout>
+        </v-container>
+      </v-main>
+    </v-app>
+  </v-responsive>
 </template>
