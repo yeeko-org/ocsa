@@ -27,7 +27,7 @@ class ArticleSelectedSerializer(serializers.Serializer):
 
 
 class ArticleStatusSerializer(serializers.ModelSerializer):
-    note = NoteFullSerializer(read_only=True)
+    note_full = NoteFullSerializer(read_only=True, source='note')
     # note_url = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
 
@@ -37,12 +37,13 @@ class ArticleStatusSerializer(serializers.ModelSerializer):
     #         return request.build_absolute_uri(
     #             reverse('note-detail', args=[obj.note_id]))
 
-    def get_status(self, _):
+    def get_status(self, obj):
         return self.context.get('status')
 
     class Meta:
         model = Article
-        fields = ["status", "is_selected", "note"]
+        # fields = ["status", "is_selected", "note"]
+        fields = "__all__"
 
 
 class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):

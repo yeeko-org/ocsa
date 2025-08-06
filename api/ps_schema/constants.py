@@ -1,10 +1,4 @@
 
-all_available_actions = [
-    "massive_delete",
-    "merge",
-    "massive_edit",
-]
-
 all_collections = {
     "source": [
         {
@@ -51,8 +45,8 @@ all_collections = {
         },
         {
             "snake_name": "status_history",
-            "name": "Historial de estatus",
-            "plural_name": "Historial de estatus",
+            "name": "Historial de status",
+            "plural_name": "Historiales de status",
             "model_name": "StatusHistory",
             "level": "secondary",
         },
@@ -69,13 +63,6 @@ all_collections = {
             "plural_name": "Artículos",
             "model_name": "Article",
             "level": "primary",
-        },
-        {
-            "snake_name": "scraped_record",
-            "name": "Bloque de scraping",
-            "plural_name": "Bloques de scraping",
-            "model_name": "ScrapedRecord",
-            "level": "secondary",
             "all_filters": [
                 { "filter_name": "source_types", "hidden": False },
                 {
@@ -83,10 +70,26 @@ all_collections = {
                     "component": "RangeDates", "hidden": False
                 },
                 {
-                    "title": "Colección", "field": "only_by",
+                    "title": "Status", "field": "status",
                     "component": "OnlyByFilter", "hidden": False,
-                    "options": ["event", "impact"]
+                    "custom_options": [
+                        {"plural_name": "Requiere validar", "value": "to_validate"},
+                        {"plural_name": "Poco probables", "value": "unlikely"},
+                        {"plural_name": "Validados", "value": "validated"},
+                        {"plural_name": "Rechazados", "value": "rejected"},
+                        {"plural_name": "Descartados", "value": "discarded"},
+                    ]
                 },
+            ]
+        },
+        {
+            "snake_name": "scraped_record",
+            "name": "Bloque de scraping",
+            "plural_name": "Bloques de scraping",
+            "model_name": "ScrapedRecord",
+            "level": "relational",
+            "all_filters": [
+                { "filter_name": "source_types", "hidden": False },
             ]
         }
     ],
@@ -495,13 +498,19 @@ all_collections = {
         },
     ]
 }
+all_available_actions = [
+    "massive_delete",
+    "merge",
+    "massive_edit",
+]
+
 
 filter_groups = [
     {
         "key_name": "source_types",
         "name": "Fuente de información",
         "plural_name": "Fuentes de información",
-        "main_collection": "source-note",
+        "main_collection": "source-article",
         "category_subtype": "source-source",
     },
     {

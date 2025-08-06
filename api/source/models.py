@@ -178,7 +178,7 @@ class ScrapedRecord(models.Model):
     class Meta:
         verbose_name = 'Bloque de scrapeo'
         verbose_name_plural = 'Bloques de scrapeo'
-        ordering = ['from_date']
+        ordering = ['-from_date']
 
 
 class DiscardedReason(models.Model):

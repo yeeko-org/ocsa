@@ -129,7 +129,6 @@ class InitCollections:
                 model_name = collection['model_name']
                 new_collection, _ = Collection.objects.get_or_create(
                     snake_name=collection['snake_name'],
-                    level=levels_dict[collection['level']],
                     app_label=app_label)
                 my_model = apps.get_model(app_label, model_name)
                 meta_data = my_model._meta
@@ -141,6 +140,7 @@ class InitCollections:
                 #     print(f"Name: {name} - Verbose: {verbose_name}")
                 # if (plural_name != verbose_name_plural):
                 #     print(f"Plural: {plural_name} - Verbose: {verbose_name_plural}")
+                new_collection.level = levels_dict[collection['level']]
                 new_collection.name = name
                 new_collection.plural_name = plural_name
                 new_collection.model_name = model_name
@@ -184,8 +184,8 @@ class InitFilterGroups:
             )
             filter_group.name = group.get('name', "Sin nombre")
             filter_group.plural_name = group.get('plural_name', "Sin nombre plural")
-            # filter_group.main_collection = collections_dict.get(
-            #     group['main_collection'], None)
+            filter_group.main_collection = collections_dict.get(
+                group['main_collection'], None)
             filter_group.category_group = collections_dict.get(
                 group.get('category_group', None), None)
             filter_group.category_type = collections_dict.get(

@@ -1,7 +1,7 @@
 import requests
 from django.db.models import Count
 
-from django_filters import FilterSet, NumberFilter, DateFilter
+from django_filters import FilterSet, NumberFilter, DateFilter, CharFilter
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -20,6 +20,33 @@ class ArticleFilter(FilterSet):
         field_name="scraped__id", lookup_expr="exact")
     start_date = DateFilter(field_name='scraped_date', lookup_expr='gte')
     end_date = DateFilter(field_name='scraped_date', lookup_expr='lte')
+    status = CharFilter(method='custom_filter_status')
+
+    # { "plural_name": "Validados", "value": "validated" },
+    # { "plural_name": "Rechazados", "value": "rejected" },
+    # { "plural_name": "Requiere validar", "value": "to_validate" },
+    # { "plural_name": "Poco probables", "value": "unlikely" },
+    # { "plural_name": "Descartados", "value": "discarded" },
+
+    def custom_filter_status(self, queryset, name, value):
+        print(f"Name: {name}, Value: {value}")
+        if not value:
+            return queryset
+
+        if value == "validated":
+            return queryset.filter(is_selected=True)
+
+        if value in ["rejected", "to_validate"]:
+            queryset = queryset.filter(certainty_degree__gt=10)
+        elif value in ["unlikely", "discarded"]:
+            queryset = queryset.filter(certainty_degree__lte=10)
+
+        if value in ["rejected", "discarded"]:
+            queryset = queryset.filter(is_selected=False)
+        elif value in ["to_validate", "unlikely"]:
+            queryset = queryset.filter(is_selected__isnull=True)
+
+        return queryset
 
     class Meta:
         model = Article

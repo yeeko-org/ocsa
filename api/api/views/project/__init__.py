@@ -7,14 +7,15 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.permissions import DynamicCatalogPermission
+from api.permissions import DynamicCatalogPermission, LocationPermission
 from actor.models import Actor
+from space_time.models import Location
 from api.pagination import CustomPagination
 from api.views.action_export_xls import ExportXlsMixin
 from api.views.action_file import ActionFileMixin
 from api.views.actor.serializers import ActorFullCountSerializer
 from api.views.common_views import UnaccentSearchFilter, BaseStatusViewSet
-from api.views.note.serializers import ProjectSemiFullSerializer
+from api.views.note.serializers import LocationVizSerializer
 from project.models import Conflict, Project, ProjectFile
 
 from .list_serializers import (
@@ -225,6 +226,82 @@ class ProjectMiniViewSet(ProjectViewSetMixin):
         "locations",
     ).distinct()
     serializer_class = ProjectMiniBasicSerializer
+
+
+class ProjectLocationFilter(FilterSet):
+    extractivism_type = NumberFilter(
+        field_name='project__megaproject_type__extractivism_types',
+        lookup_expr='exact')
+
+    class Meta:
+        model = Location
+        fields = ["state", "type_location"]
+
+
+class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
+    permission_classes = [LocationPermission]
+
+    queryset = Location.objects.all()\
+        .filter(project__isnull=False)\
+        .select_related("project")
+
+    # queryset = Project.objects.all().prefetch_related("locations").distinct()
+    serializer_class = LocationVizSerializer
+    filter_backends = [
+        UnaccentSearchFilter, DjangoFilterBackend]
+    search_fields = ['state__name',
+                     'municipality__name',
+                     'locality__name',
+                     'project__name']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if not self.request.user.is_authenticated:
+            queryset = queryset.filter(status_location__is_public=True)
+        else:
+            # TODO: Algún día lo quitaremos
+            queryset = queryset.filter(status_location__is_public=True)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        features = []
+        for location in serializer.data:
+            location_data = location.copy()
+            project = location_data.get('project')
+            if not project:
+                print("No project found for location:", location)
+                continue
+            geojson = location.pop('geojson', None)
+            if geojson is not None:
+                if my_features := geojson.get('features'):
+                    geojson = my_features[0].get('geometry')
+
+            if not geojson and location.get('type_location') == 'point':
+                latitude = location.get('latitude')
+                longitude = location.get('longitude')
+                if latitude is not None and longitude is not None:
+                    geojson = {
+                        "type": "Point",
+                        "coordinates": [longitude, latitude]
+                    }
+
+            if not geojson:
+                print("No geojson found for location:", location)
+                continue
+
+            feature = {
+                "type": "Feature",
+                "geometry": geojson,
+                "properties": location_data,
+            }
+            features.append(feature)
+
+        return Response({
+            "type": "FeatureCollection",
+            "features": features
+        })
 
 
 class ConflictViewSet(BaseStatusViewSet):

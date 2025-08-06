@@ -83,6 +83,26 @@ class ProjectSemiFullSerializer(ConditionalFieldsMixin):
         fields = '__all__'
 
 
+class ProjectLocationVizSerializer(ConditionalFieldsMixin):
+
+    class Meta:
+        model = Project
+        fields = [
+            'id', 'name', 'alternative_name', 'description',
+            'megaproject_type', 'status_project']
+
+
+class LocationVizSerializer(serializers.ModelSerializer):
+    project = ProjectLocationVizSerializer(read_only=True)
+
+    class Meta:
+        model = Location
+        fields = [
+            'id', 'state', 'municipality', 'locality',
+            'latitude', 'longitude', 'type_location', 'geojson',
+            'project']
+
+
 class InvolvedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Involved

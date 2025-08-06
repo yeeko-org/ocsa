@@ -102,7 +102,7 @@ class ScrapedRecordView(BaseGenericViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        is_retrieve = self.action == 'retrieve'
+        # is_retrieve = self.action == 'retrieve'
         # if is_retrieve:
 
         if self.request.user.is_authenticated:
