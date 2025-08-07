@@ -22,6 +22,7 @@ from .list_serializers import (
     ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
     ProjectExportSerializer, ProjectMiniBasicSerializer)
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
+from api.views.note.serializers import ProjectSemiFullSerializer
 
 
 class ProjectFilter(FilterSet):
