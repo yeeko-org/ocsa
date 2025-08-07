@@ -362,12 +362,8 @@ function selectItem(item) {
 <!--          @click="changeGroupActions"-->
 <!--        ></v-btn>-->
         <v-col cols="auto" order="11" class="py-1">
-          <ExportButton
-            v-if="collection_data.xls_export"
-            @export-records="exportRecords($event)"
-          />
           <v-btn
-            v-else-if="is_mini"
+            v-if="is_mini"
             color="accent"
             @click="addItem"
             class="mr-3"
@@ -375,8 +371,12 @@ function selectItem(item) {
             <v-icon left>add</v-icon>
             Agregar {{ collection_data.name }}
           </v-btn>
+          <ExportButton
+            v-if="collection_data.xls_export"
+            @export-records="exportRecords($event)"
+          />
         </v-col>
-        <v-col cols="auto" order="12" class="pl-0 py-0 pr-1">
+        <v-col cols="auto" order="12" class="pl-0 py-0 pr-1" v-if="!is_mini">
           <QuestionMark
             size="small"
             :collection_data="collection_data"
