@@ -24,6 +24,11 @@ const props = defineProps({
   collection_data: Object,
 })
 
+const project_fields = [
+  'id', 'name', 'alternative_name', 'conflict', 'megaproject_type',
+  'status_project', 'description', 'status_validation', 'is_grouper'
+]
+
 const total_requests = ref(0)
 const resolved_requests = ref(0)
 const saving_locations = ref(false)
@@ -31,6 +36,10 @@ const snackbar = ref(false)
 
 const note_collection = computed(() => {
   return schemas.value.collections_dict['note']
+})
+
+const actor_collection = computed(() => {
+  return schemas.value.collections_dict['actor']
 })
 
 const full_project = computed(() => {
@@ -43,6 +52,43 @@ const related_notes = computed(() => {
     return {
       ...mention.note,
       mentions: [full_mention]
+    }
+  })
+})
+
+const related_actors = computed(() => {
+  const project_full = project_fields.reduce((obj, field) => {
+    obj[field] = full_project.value[field]
+    return obj
+  }, {})
+  const actors_dict = full_project.value.mentions.reduce((dict, mention) => {
+    mention.participants.forEach(participant => {
+      const participant_data = {
+        ...participant,
+        mention: {
+          id: mention.id,
+          note: mention.note.id,
+          note_full: mention.note,
+          project_full: project_full,
+          project: project_full.id,
+        }
+      }
+      if (participant.actor in dict){
+        dict[participant.actor].participants.push(participant_data)
+        return
+      }
+      dict[participant.actor] = {
+        ...participant.actor_full,
+        participants: [participant_data],
+      }
+    })
+    return dict
+  }, {})
+
+  return Object.values(actors_dict).map(actor => {
+    return {
+      ...actor,
+      mentions_count: actor.participants.length
     }
   })
 })
@@ -148,6 +194,23 @@ const children_projects = computed(() => {
     <v-card-title>
       Todos los actores:
     </v-card-title>
+    <v-card-text>
+      <PanelList
+        v-if="false"
+        :results="related_actors"
+        :collection_data="actor_collection"
+        :show_details="show_details"
+        parent="project"
+      />
+      <PanelsResult
+        :results="related_actors"
+        :collection_data="actor_collection"
+        :show_details="show_details"
+        :total_count="related_actors.length"
+        in_sheet
+      />
+
+    </v-card-text>
   </v-card>
   <v-snackbar
     v-model="snackbar"

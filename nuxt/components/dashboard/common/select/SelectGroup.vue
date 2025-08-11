@@ -98,13 +98,34 @@ const level_names = computed(() => {
   return levels.reduce((acc, level) => {
     if (props.forced_level === level)
       done = true
-    if (!done){
-      const cat_name = filter_group_data.value[`category_${level}`]
-      if (cat_name)
-        acc[level] = cat_name
-    }
+    if (done)
+      return acc
+    const cat_name = filter_group_data.value[`category_${level}`]
+    if (cat_name)
+      acc[level] = cat_name
     return acc
   }, {})
+})
+
+
+function isLevelMultiple(level, cat_name){
+  let is_multiple = false
+  if (level === 'subtype')
+    is_multiple = subcategory_is_multiple.value
+  else if (level === 'type')
+    is_multiple = category_is_multiple.value
+  if (is_multiple)
+    cat_name = `${cat_name}s`
+  return [is_multiple, cat_name]
+}
+
+const level_final_names = computed(() => {
+  let final_names = {}
+  Object.entries(level_names.value).forEach(([level, cat_name]) => {
+    const [is_multiple, new_cat_name] = isLevelMultiple(level, cat_name)
+    final_names[level] = new_cat_name
+  })
+  return final_names
 })
 
 const collections = computed(() => {
@@ -115,11 +136,7 @@ const collections = computed(() => {
 })
 
 const category_values = computed(() => {
-  return Object.entries(level_names.value).reduce((acc, [level, cat_name]) => {
-    if (level === 'subtype' && subcategory_is_multiple.value)
-      cat_name = `${cat_name}s`
-    if (level === 'type' && category_is_multiple.value)
-      cat_name = `${cat_name}s`
+  return Object.entries(level_final_names.value).reduce((acc, [level, cat_name]) => {
     let value = props.main_object[cat_name]
     if (!value && level === 'group' && props.category_group_value)
       value = props.category_group_value
@@ -224,17 +241,13 @@ onMounted(() => {
 const type_field = computed(() => {
   if (props.field)
     return props.field
-  return category_is_multiple.value
-    ? `${level_names.value.type}s`
-    : level_names.value.type
+  return level_final_names.value.type
 })
 
 const subtype_field = computed(() => {
   if (props.field)
     return props.field
-  return subcategory_is_multiple.value
-    ? `${level_names.value.subtype}s`
-    : level_names.value.subtype
+  return level_final_names.value.subtype
 })
 
 const type_label = computed(() => {
@@ -274,13 +287,7 @@ function setInitialData() {
   // if (props.is_filter || props.is_toolbar)
   if (props.is_filter)
     return
-  const levels = level_names.value
-  // if (subcategory_is_multiple.value){
-  //   console.log("levels", levels)
-  //   console.log("nodes.value", nodes.value)
-  //   console.log("subcategory_is_multiple", subcategory_is_multiple.value)
-  //   console.log("props.main_object", props.main_object)
-  // }
+  const levels = level_final_names.value
   if (props.main_object[levels.subtype]
       && !props.main_object[levels.type]){
     if (nodes.value.subtype){
@@ -342,18 +349,6 @@ function openDialog(level_name, is_add=true){
     collection_display.value.changeInitFilters()
   })
 }
-
-function isLevelMultiple(level, cat_name){
-  let is_multiple = false
-  if (level === 'subtype')
-    is_multiple = subcategory_is_multiple.value
-  else if (level === 'type')
-    is_multiple = category_is_multiple.value
-  if (is_multiple)
-    cat_name = `${cat_name}s`
-  return [is_multiple, cat_name]
-}
-
 
 function selectItem(item){
   // console.log("item", item)

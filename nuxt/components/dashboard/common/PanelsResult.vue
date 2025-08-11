@@ -27,6 +27,7 @@ const props = defineProps({
 })
 
 const group_actions_enabled = ref(true)
+const error_messages = ref([])
 const sel = ref({"selected_elems": [], "show_order": false})
 const edit_type = ref({
   key: 'edit', title: 'Agregar registro', btn: 'Guardar'})
@@ -138,6 +139,7 @@ function mergeItems(res_main) {
   const elem_id = props.collection_data.pk
   const main_id = selected_results.value[0][elem_id]
   const merge_ids = selected_results.value.slice(1).map(res => res[elem_id])
+  error_messages.value = []
   merge_ids.forEach(merge_id => {
     let params = {
       model_name,
@@ -149,6 +151,12 @@ function mergeItems(res_main) {
     const is_category = props.collection_data.is_category
     const snake_name = is_category ? props.collection_data.snake_name : null
     mergeSimple([params, snake_name]).then(res => {
+      if (res.error_data) {
+        console.error("Error merging items:", res.error_data)
+        error_messages.value.push(
+          `Error al fusionar ${merge_id}: ${res.error_data.errors}`)
+        return
+      }
       const idx = props.results.findIndex(
           result => result[elem_id] === merge_id)
       props.results.splice(idx, 1)
@@ -237,6 +245,16 @@ function selectItem(item) {
       Página {{page_number}} de {{Math.ceil(total_count / final_filters.page_size)}}
       | {{total_count}} Resultados
     </span>
+    <v-alert
+      v-if="error_messages.length"
+      type="error"
+      variant="outlined"
+      class="mt-2"
+    >
+      <div v-for="(msg, idx) in error_messages" :key="idx">
+        {{msg}}
+      </div>
+    </v-alert>
     <SummaryList
       v-if="is_mini"
       :results="results"

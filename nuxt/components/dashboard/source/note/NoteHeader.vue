@@ -12,6 +12,7 @@ import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
+import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
 const mainStore = useMainStore()
 const { cats } = storeToRefs(mainStore)
 
@@ -65,7 +66,7 @@ const events_count = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
-    :height="72"
+    :height="74"
   >
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
@@ -77,7 +78,12 @@ const events_count = computed(() => {
             {{source.name}}
           </span>
         </div>
+        <TitleCommon
+          :title_text="main.title"
+          card_class="ml-2 font-weight-normal text-body-1 mt-n1"
+        />
         <div
+          v-if="false"
           class="ml-2 text-body-1"
           style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
           v-tooltip:bottom="main.title"

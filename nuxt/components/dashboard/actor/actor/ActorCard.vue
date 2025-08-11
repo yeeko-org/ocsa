@@ -7,6 +7,10 @@ import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 const props = defineProps({
   full_main: Object,
   title: String,
+  is_simple: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const participant_type = computed(() => {
@@ -27,7 +31,7 @@ const participant_type = computed(() => {
 </script>
 
 <template>
-  <div class="py-2">
+  <div :class="{ 'py-2': !is_simple}">
     <div class="d-flex flex-wrap align-center">
       <span v-if="title" class="text-caption mr-2 text-grey-darken-2">
         ({{ title }})
@@ -59,11 +63,11 @@ const participant_type = computed(() => {
       />
     </div>
     <div class="d-flex align-center">
-      <span class="text-h6">
+      <span :class="is_simple ? 'text-subtitle-1' : 'text-h6'">
         {{ full_main.name }}
       </span>
       <span
-        v-if="full_main.alternative_names"
+        v-if="!is_simple && full_main.alternative_names"
         class="text-caption ml-2 mt-1"
       >
         ({{ full_main.alternative_names }})

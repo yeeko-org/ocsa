@@ -177,8 +177,8 @@ const saveOrder = (val) => {
             v-else
             :full_main="full_main"
             :collection_data="collection_data"
-            @item-saved="emits('item-saved', $event)"
-            @item-deleted="emits('item-deleted', $event)"
+            @itemSaved="emits('item-saved', $event)"
+            @itemDeleted="emits('item-deleted', $event)"
             can_delete
           >
             <template #edit="{ full_main }">
@@ -186,7 +186,7 @@ const saveOrder = (val) => {
                 :is="edit_component"
                 :full_main="full_main"
                 is_edit
-                @item-saved="emits('item-saved', $event)"
+                @itemSaved="emits('item-saved', $event)"
               />
             </template>
           </EditCommon>

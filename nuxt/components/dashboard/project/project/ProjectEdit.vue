@@ -1,6 +1,5 @@
 <script setup>
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
-import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import CardCommon from "~/components/dashboard/common/CardCommon.vue";
 
 import {storeToRefs} from "pinia";
@@ -16,6 +15,8 @@ const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
 })
+
+const emits = defineEmits(['item-saved'])
 
 const conflict_collection = computed(() => {
   return schemas.value.collections_dict['conflict']

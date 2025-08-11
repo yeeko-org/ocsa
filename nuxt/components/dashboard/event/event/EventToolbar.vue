@@ -6,6 +6,8 @@ import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar
 import {computed} from "vue";
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 import EventDetails from "~/components/dashboard/event/event/EventDetails.vue";
+import StatusChip from "~/components/dashboard/status/StatusChip.vue";
+import ActorCard from "~/components/dashboard/actor/actor/ActorCard.vue";
 
 const props = defineProps({
   mention: Object,
@@ -62,7 +64,7 @@ const all_actors = computed(() => {
         color="blue"
         required
       >
-        <template #rdows="{ item }">
+        <template v-if="false" #rdows="{ item }">
           <v-select
             v-model="item.participant"
             :items="all_actors"
@@ -70,7 +72,41 @@ const all_actors = computed(() => {
             item-value="id"
             label="Participante"
             variant="outlined"
-          ></v-select>
+          >
+          </v-select>
+        </template>
+        <template #rows_init="{ item }">
+          <v-select
+            v-model="item.participant"
+            :items="all_actors"
+            item-title="name"
+            item-value="id"
+            label="Participante"
+            variant="outlined"
+          >
+            <template #item="{ item, props: {onClick, title, value} }">
+              <v-list-item
+                @click="onClick"
+                :value="value"
+              >
+                <template
+                  v-slot:default
+                >
+                  <ActorCard
+                    :full_main="item.raw"
+                    :title="item.name"
+                  />
+                </template>
+              </v-list-item>
+            </template>
+            <template #selection="{ item }">
+              <ActorCard
+                :full_main="item.raw"
+                :title="item.name"
+                is_simple
+              />
+            </template>
+          </v-select>
         </template>
         <template #footer>
           <v-card
@@ -81,16 +117,6 @@ const all_actors = computed(() => {
           >
             Sugerencias rápidas (comming soon...)
           </v-card>
-        </template>
-        <template #rows_init="{ item }">
-          <v-select
-            v-model="item.participant"
-            :items="all_actors"
-            item-title="name"
-            item-value="id"
-            label="Participante"
-            variant="outlined"
-          ></v-select>
         </template>
       </ToolbarCommon>
       <LocationsToolbar

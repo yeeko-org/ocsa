@@ -118,7 +118,6 @@ const emits = defineEmits(['open-panel'])
           icon
           variant="text"
         >
-
           <v-icon
             color="grey-darken-1"
           >
@@ -127,6 +126,7 @@ const emits = defineEmits(['open-panel'])
           <v-tooltip
             activator="parent"
             location="end"
+            max-width="400"
           >
             {{ main.description }}
           </v-tooltip>

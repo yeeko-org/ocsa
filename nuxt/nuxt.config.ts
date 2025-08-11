@@ -8,6 +8,7 @@ export default defineNuxtConfig({
   build: {
     transpile: ['vuetify'],
   },
+
   // devtools: { enabled: true }
   modules: [
     '@pinia/nuxt',
@@ -18,6 +19,7 @@ export default defineNuxtConfig({
       })
     },
   ],
+
   // set .pem and .key files to be served by vite and build https
   devServer: {
     https: {
@@ -27,11 +29,14 @@ export default defineNuxtConfig({
       cert: 'localhost.pem',
     },
   },
+
   vite: {
     vue: {
       template: {
         transformAssetUrls,
       },
     },
-  }
+  },
+
+  compatibilityDate: '2025-08-06'
 })

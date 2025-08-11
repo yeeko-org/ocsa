@@ -506,6 +506,7 @@ export const useMainStore = defineStore('main', {
         return response.data
       } catch (error) {
         console.error(error);
+        return {error_data: error.response.data}
       }
     },
     async fetchElements([group, params]) {

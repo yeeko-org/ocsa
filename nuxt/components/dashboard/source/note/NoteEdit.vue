@@ -11,6 +11,8 @@ const props = defineProps({
   },
 })
 
+const emits = defineEmits(['item-saved'])
+
 // const addMention = () => {
 //   console.log("add mention")
 //   if (!props.full_main.mentions) {

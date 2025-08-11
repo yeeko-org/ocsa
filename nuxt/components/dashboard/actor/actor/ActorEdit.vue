@@ -40,7 +40,6 @@ function deleteExtraParents() {
       props.full_main.others_parents = []
       props.full_main.others_parents_full = []
     })
-
 }
 
 </script>
@@ -105,7 +104,7 @@ function deleteExtraParents() {
       {{errors.join(', ')}}
     </v-alert>
     <v-btn
-      v-if="full_main.others_parents.length > 0"
+      v-if="full_main.others_parents && full_main.others_parents.length > 0"
       class="mt-2"
       color="orange"
       variant="outlined"
