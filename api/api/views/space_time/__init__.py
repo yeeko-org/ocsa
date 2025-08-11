@@ -67,7 +67,7 @@ class LocationFilter(FilterSet):
 
     def filter_only_by(self, queryset, name, value):
         options = ["project", "event", "impact"]
-        print("filter_only_by", value)
+        # print("filter_only_by", value)
         if value not in options:
             return queryset
 

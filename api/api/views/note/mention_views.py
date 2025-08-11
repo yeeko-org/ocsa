@@ -119,8 +119,15 @@ class EventFilter(FilterSet):
 
     start_date = DateFilter(field_name='date', lookup_expr='gte')
     end_date = DateFilter(field_name='date', lookup_expr='lte')
-    # event_type = NumberFilter(
-    #     field_name='event_subtype__event_types', lookup_expr='exact')
+    sector_group = NumberFilter(
+        field_name='involvements__participant__actor__sector__sector_group',
+        lookup_expr='exact')
+    sector = NumberFilter(
+        field_name='involvements__participant__actor__sector',
+        lookup_expr='exact')
+    involved_role = NumberFilter(
+        field_name='involvements__involved_role',
+        lookup_expr='exact')
 
     class Meta:
         model = Event

@@ -5,7 +5,7 @@ from django.db import router
 
 
 def related_objects_report(
-    instance, related_objects, report: list, errors: list
+    instance, related_objects, report: list, warnings: list
 ):
     for related in related_objects:
         try:
@@ -42,7 +42,7 @@ def related_objects_report(
                     "field": related.field.name,
                 })
         except Exception as e:
-            errors.append(
+            warnings.append(
                 f"Error al generar informe para la relación "
                 f"'{related.field.name}'  con related_name: '{related.name}' - {related.__dict__}: {e}")
 
@@ -55,6 +55,7 @@ class RecordMerger:
             raise ValueError(
                 f"No se pudo encontrar el modelo con el nombre '{model_name}'")
         self.errors = []
+        self.warnings = []
         self.report = []
         self.main_instance = None
         self.merge_instance = None
@@ -100,6 +101,7 @@ class RecordMerger:
     ):
 
         self.errors = []
+        self.warnings = []
 
         if not self.model_class:
             self.errors.append("No se ha especificado una clase de modelo.")
@@ -135,6 +137,11 @@ class RecordMerger:
                     f"Error al procesar relación '{related.field.name}' "
                     f"del modelo '{related.related_model}': {e}"
                 )
+                print(f"tipo many_to_many {related.field.many_to_many}")
+                print(
+                    f"Error al procesar relación '{related.field.name}' "
+                    f"del modelo '{related.related_model}': {e}"
+                )
         if delete_merge:
             try:
                 self.delete_instance()
@@ -158,10 +165,20 @@ class RecordMerger:
         else:
             related_manager.update(**{field_name: self.main_instance})
 
-    def _merge_many_to_many(self, related):
+    def _merge_many_to_many(self, related_field):
+        related_name = related_field.field.name
+        if related_name.endswith('_rel_+'):
+            related_name = related_name[:-5]
+        try:
+            related_manager = getattr(self.merge_instance, related_name)
+        except Exception as e:
+            print(f"Error accediendo a related_manager: {e}")
+            print(f"related.name: {related_field.name}")
+            print(f"merge_instance: {self.merge_instance.__dict__}")
+            print(f"related: {related_field.__dict__}")
 
-        related_manager = getattr(self.merge_instance, related.name)
-        field_name = related.field.name
+            raise e
+        field_name = related_field.field.name
 
         for obj_whit_m2m in related_manager.all():
             obj_whit_m2m_manager = getattr(obj_whit_m2m, field_name)
@@ -171,7 +188,7 @@ class RecordMerger:
     def _generate_report(self, related_objects):
 
         related_objects_report(
-            self.merge_instance, related_objects, self.report, self.errors
+            self.merge_instance, related_objects, self.report, self.warnings
         )
 
     def delete_instance(self):
