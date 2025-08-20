@@ -62,7 +62,8 @@ const full_paragraphs = computed(() => {
     }
   })
   let image_idx = paragraphs.length + 1
-  props.full_main.images.forEach((image, idx) => {
+  const images = props.full_main.images || []
+  images.forEach((image, idx) => {
     if (image.caption) {
       paragraphs.push({
         "image": image.src,

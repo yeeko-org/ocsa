@@ -14,7 +14,7 @@ import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
-const { saveSimple, getRelatedActors } = mainStore
+const { saveSimple, getRelatedActors, deleteSimple } = mainStore
 import { useSaveElements } from "~/composables/save_elements.js";
 import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
 const { saveComplex, save_errors } = useSaveElements()
@@ -30,10 +30,12 @@ const props = defineProps({
 const dialog_search = ref(false)
 const all_saving = ref(false)
 const snackbar = ref(false)
+const snackbar_message = ref('')
 const actor_display = ref(null)
 const has_select = ref(null)
+const dialog_delete = ref(false)
 
-const emits = defineEmits(['mention-saved'])
+const emits = defineEmits(['mention-saved', 'mention-deleted'])
 
 function searchActor() {
   getRelatedActors(props.mention.project).then(actors => {
@@ -71,6 +73,7 @@ function allFinished() {
   saveSimple(['mention', props.mention]).then(res => {
     emits('mention-saved', res)
     snackbar.value = true
+    snackbar_message.value = 'Se ha guardado la mención'
     all_saving.value = false
   })
 }
@@ -108,6 +111,19 @@ function closeChangeDialog(event) {
 function changeProject(project) {
   props.mention.project = project.id
   props.mention.project_full = project
+}
+
+function deleteMention() {
+  if (!props.mention.id)
+    return
+  all_saving.value = true
+  deleteSimple(['mention', props.mention.id]).then(() => {
+    emits('mention-deleted', props.mention.id)
+    all_saving.value = false
+    dialog_delete.value = false
+    snackbar.value = true
+    snackbar_message.value = 'Se ha eliminado la mención'
+  })
 }
 
 </script>
@@ -245,6 +261,16 @@ function changeProject(project) {
         </v-row>
         <v-col cols="12" class="d-flex justify-end px-6">
           <v-btn
+            color="red"
+            variant="outlined"
+            class="mr-4"
+            :disabled="all_saving"
+            @click="dialog_delete = true"
+          >
+            Eliminar mención
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
             color="accent"
             variant="elevated"
             :loading="all_saving"
@@ -261,7 +287,7 @@ function changeProject(project) {
       location="right top"
       location-strategy="connected"
     >
-      Se ha guardado la mención
+      {{ snackbar_message || 'Cambios guardados' }}
       <template v-slot:actions>
         <v-btn
           color="accent"
@@ -285,6 +311,36 @@ function changeProject(project) {
             @select-item="closeChangeDialog"
           />
         </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="dialog_delete"
+      max-width="600"
+    >
+      <v-card class="pa-3">
+        <v-card-title>
+          ¿Confirmas la eliminación de esta mención?
+        </v-card-title>
+        <v-card-subtitle>
+          Esta acción no se puede deshacer
+        </v-card-subtitle>
+        <v-card-actions class="py-4">
+          <v-btn
+            color="accent"
+            variant="outlined"
+            @click="dialog_delete = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            variant="elevated"
+            @click="deleteMention"
+          >
+            Eliminar
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-col>

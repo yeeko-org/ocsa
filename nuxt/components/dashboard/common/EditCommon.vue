@@ -118,9 +118,9 @@ function deleteRecord() {
       dismissible
       elevation="2"
       class="mb-3"
-      v-html="errors"
       style="white-space: pre-wrap;"
     >
+      {{errors}}
     </v-alert>
     <AlertInfo
       :help_text="final_collection_data.help_text"

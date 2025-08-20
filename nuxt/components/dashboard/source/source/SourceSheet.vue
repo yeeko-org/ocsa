@@ -150,6 +150,9 @@ function selectDay(day) {
               Traer periodo
             </v-btn>
           </v-col>
+          <v-col cols="12">
+            Hola info
+          </v-col>
         </v-form>
       </v-card>
     </div>

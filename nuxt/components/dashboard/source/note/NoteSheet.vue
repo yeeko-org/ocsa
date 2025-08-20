@@ -68,6 +68,14 @@ function saveMention(mention) {
   full_note.value.mentions.splice(index, 1, mention)
 }
 
+function deleteMention(mention_id) {
+  const index = full_note.value.mentions.findIndex(
+    item => item.id === mention_id)
+  if (index > -1) {
+    full_note.value.mentions.splice(index, 1)
+  }
+}
+
 </script>
 
 <template>
@@ -106,6 +114,7 @@ function saveMention(mention) {
           :mention="mention"
           is_full
           @mention-saved="saveMention"
+          @mention-deleted="deleteMention"
         />
       </v-row>
     </v-card-text>

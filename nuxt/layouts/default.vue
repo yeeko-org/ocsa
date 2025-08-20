@@ -3,11 +3,13 @@
 </script>
 
 <template>
-  <v-responsive>
+<!--  <v-responsive>-->
     <v-app>
       <v-main>
         <v-container fluid class="pa-0">
-          <v-layout align-center justify-center fill-height>
+          <v-layout
+            align-center justify-center fill-height
+          >
 
             <client-only>
               <NuxtPage/>
@@ -16,5 +18,5 @@
         </v-container>
       </v-main>
     </v-app>
-  </v-responsive>
+<!--  </v-responsive>-->
 </template>
