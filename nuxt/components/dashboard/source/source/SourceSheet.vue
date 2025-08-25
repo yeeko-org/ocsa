@@ -162,10 +162,13 @@ function selectDay(day) {
       :months_ago="months_ago"
       @select-day="selectDay($event)"
     />
-    <v-card-title v-if="full_main.scraped_records?.length">
+    <v-card-title
+      v-if="full_main.scraped_records?.length"
+      class="px-0 mt-2"
+    >
       Consultas realizadas:
     </v-card-title>
-    <v-card-text>
+    <v-card-text class="px-0">
       <PanelList
         :results="full_main.scraped_records"
         :collection_data="scraped_record_collection"

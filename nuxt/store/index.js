@@ -636,7 +636,18 @@ export const useMainStore = defineStore('main', {
         console.error(error)
         ;
       }
-    }
+    },
+    async sendReprocessScrapedRecord(scraped_id) {
+      try {
+        let response = await ApiService.post(
+          `/scraped_record/${scraped_id}/reprocess/`);
+        return response.data
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    },
+
   },
   getters: {
     status_dict(state) {

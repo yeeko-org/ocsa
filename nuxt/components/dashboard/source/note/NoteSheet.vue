@@ -7,6 +7,9 @@ import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import FilesToolbar from "~/components/dashboard/utils/FilesToolbar.vue";
+import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
+import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
+import ParagraphsContent from "~/components/dashboard/source/ParagraphsContent.vue";
 const mainStore = useMainStore()
 const { saveSimple } = mainStore
 const { schemas } = storeToRefs(mainStore)
@@ -91,6 +94,13 @@ function deleteMention(mention_id) {
       child_relation_name="note_file"
       main_collection_name="note"
     />
+    <ParagraphsContent
+      v-if="full_note.articles.length > 0"
+      :full_main="full_note.articles[0]"
+      :sending_link="false"
+      class="ma-2 px-2"
+      :show_init="false"
+    ></ParagraphsContent>
   </v-card>
   <v-card v-if="full_note.mentions" elevation="5">
     <v-card-title>

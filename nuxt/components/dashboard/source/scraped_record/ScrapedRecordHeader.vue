@@ -1,6 +1,7 @@
 <script setup>
 import dayjs from 'dayjs'
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
+import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
 
 const props = defineProps({
   main: {
@@ -10,6 +11,8 @@ const props = defineProps({
   show_details: Boolean,
   collection_data: Object,
 })
+
+const emits = defineEmits(['item-saved'])
 
 const title = computed(() => {
   const format = 'DD/MMM/YY'
@@ -29,7 +32,7 @@ const title = computed(() => {
     </template>
     <template #details>
       <v-chip
-        v-if="main.has_errors"
+        v-if="main.errors && main.errors.length > 0"
         color="error"
         class="ml-3"
       >
@@ -42,6 +45,32 @@ const title = computed(() => {
       >
         Exitoso
       </v-chip>
+      <HeaderChip
+        :count="main.articles_count"
+        collection_name="article"
+        class="ml-2"
+        horizontal
+      />
+      <HeaderChip
+        :count="main.preclassified_count"
+        class="ml-2"
+        label="Preclasificados"
+        label_plural="Preclasificados"
+        collection_name="article"
+        color="teal"
+        icon="smart_toy"
+      />
+      <HeaderChip
+        :count="main.pending_count"
+        class="ml-2"
+        label="Pendiente"
+        label_plural="Pendientes"
+        icon="hourglass_empty"
+        color="orange"
+        is_reverse
+
+      />
+
     </template>
   </HeaderCommon>
 </template>

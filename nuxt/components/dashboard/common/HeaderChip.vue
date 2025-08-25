@@ -16,6 +16,7 @@ const props = defineProps({
   tooltip_complement: String,
   is_simple: Boolean,
   horizontal: Boolean,
+  is_reverse: Boolean,
 })
 
 const collection_data = computed(() => {
@@ -53,7 +54,14 @@ const final_icon = computed(() => {
     >
       <div class="px-1">
         <v-icon
-          v-if="!count"
+          v-if="!count && is_reverse"
+          size="18"
+          color="green"
+        >
+          check_circle
+        </v-icon>
+        <v-icon
+          v-else-if="!count"
           size="18"
           color="warning"
         >

@@ -46,14 +46,27 @@ const emits = defineEmits(['item-saved'])
       :init_date="full_main.date"
       @update-date="full_main.date = $event"
     />
+    <v-textarea
+      v-model="full_main.subtitle"
+      label="Subtítulo de la pre-nota"
+      variant="outlined"
+      class="ml-2"
+      rows="2"
+      max-rows="3"
+      auto-grow
+      max-width="500px"
+    >
+    </v-textarea>
     <v-text-field
       v-model="full_main.section"
       label="Sección"
       variant="outlined"
       class="ml-2"
-      style="width: 140px;"
+      style="max-width: 200px;"
     >
     </v-text-field>
+  </div>
+  <div class="d-flex" style="width: 100%;">
     <v-text-field
       v-model="full_main.author"
       label="Autor"
@@ -70,8 +83,6 @@ const emits = defineEmits(['item-saved'])
       style="width: 80px;"
     >
     </v-text-field>
-  </div>
-  <div class="d-flex" style="width: 100%;">
     <v-text-field
       v-model="full_main.capture_date"
       label="Fecha de captura"

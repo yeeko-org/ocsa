@@ -50,7 +50,7 @@ const pre_valid_value = computed(() => {
   const degree = props.main.certainty_degree
   if (degree === undefined || degree === null)
     return valid_undefined
-  if (degree <= 10)
+  if (degree < 100)
     return valid_options[0]
   else
     return valid_options[1]
@@ -58,7 +58,7 @@ const pre_valid_value = computed(() => {
 
 const valid_value = computed(() => {
   if (typeof props.main.is_selected !== 'boolean'){
-    const need_selection = props.main.certainty_degree > 10
+    const need_selection = props.main.certainty_degree > 100
     return {
       id: null,
       icon: need_selection ? "help_outline" : null,
@@ -172,6 +172,7 @@ const final_mentions = computed(() => {
       <CriteriaChip
         v-if="main.criteria"
         :main="main"
+        show_foreign
       />
 
       <ProjectMiniList

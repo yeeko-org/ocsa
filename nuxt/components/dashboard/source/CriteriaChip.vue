@@ -13,6 +13,7 @@ const props = defineProps({
     type: Array,
     required: false,
   },
+  show_foreign: Boolean,
 })
 
 // opponents: list[int] = []
@@ -36,7 +37,7 @@ const criteria_data = computed(() => {
   if (props.direct_criteria)
     return props.direct_criteria
   const criteria_values = props.main.criteria || []
-  return fields.map((field) => {
+  let criteria_items = fields.map((field) => {
     const criteria_data = criteria[field] || {}
     const is_selected = props.is_filter
       ? props.selected_fields.includes(criteria_data.name)
@@ -58,6 +59,20 @@ const criteria_data = computed(() => {
       "is_selected": is_selected,
     }
   })
+  if (props.show_foreign && criteria_values.is_foreign){
+    criteria_items.push({
+      name: 'Es una pre-nota extranjera',
+      public_name: 'Es una nota extranjera',
+      icon: 'public',
+      color: 'red-darken-3',
+      final_color: 'red-darken-3',
+      count: "Sin",
+      value: "identificado en el texto",
+      key: 'is_foreign',
+      is_selected: true,
+    })
+  }
+  return criteria_items
 })
 
 const total_count = computed(() => {
@@ -73,9 +88,7 @@ function addField(field) {
   else
     props.selected_fields.push(field)
   emits('reset-filters')
-
 }
-
 
 </script>
 
