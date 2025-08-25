@@ -9,12 +9,13 @@ def examples():
         ScrapedRecord, Article, QualifySchema, ArticleQualify, Note)
 
     manager_scraper = JornadaManagerScraper(
-        "2023/06/09", "2023/06/09", open_ai_engine="gemini-2.5-flash")
+        "2023/04/01", "2023/04/03", open_ai_engine="gemini-2.5-flash")
 
     manager_reforma = ReformaManagerScraper(
-        "2023/06/01", "2023/06/02", open_ai_engine="gemini-2.5-flash")
+        "2023/04/01", "2023/04/03", open_ai_engine="gemini-2.5-flash")
 
     # print(manager_scraper.scraped_record)
+    print(manager_reforma.scraped_record.id)
     manager_scraper.scrape_sections()
     manager_reforma.scrape_sections()
 
@@ -22,24 +23,28 @@ def examples():
         "", "", recover_record=ScrapedRecord.objects.get(pk=38),
         open_ai_engine="gemini-2.5-flash")
 
-    manager_scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.last(),
+    manager_reforma = ReformaManagerScraper(
+        "", "", recover_record=ScrapedRecord.objects.get(pk=46),
         open_ai_engine="gemini-2.5-flash")
 
     manager_scraper.record_articles(reset=True)
     manager_reforma.record_articles(reset=True)
 
     manager_scraper.scrape_articles(update=True)
-    manager_reforma.scrape_articles()
+
+    manager_reforma.scraped_record.articles.update(
+        html_content=None, title=None, subtitle=None, author=None,
+        content=None, images=None)
+    manager_reforma.scrape_articles(update=True)
 
     manager_scraper.build_ai_criteria(
         block_size=1, prompt_version="v1")
 
     manager_reforma.build_ai_criteria(
-        block_size=1, prompt_version="v2")
+        block_size=1, prompt_version="v1")
 
     # QualifySchema.objects.all().delete()
-    Article.objects.filter(scraped__id=22).count()
+    Article.objects.filter(scraped__id=45).count()
 
     ########
 
@@ -54,6 +59,16 @@ def test_paragraphs():
     article_obj = Article.objects.get(id=32187)
     scraper = JornadaArticleScraper(article_obj, update=True)
     self = scraper
+
+
+def test_reforma_subtitle():
+    from source.scraper.reforma import ReformaArticleScraper
+    from source.models import Article
+    article_obj = Article.objects.get(id=34637)
+    scraper = ReformaArticleScraper(article_obj, update=True)
+    scraper.get_reduced_content_text()
+    self = scraper
+
 
 
 

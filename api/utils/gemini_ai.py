@@ -4,6 +4,7 @@ import re
 from django.conf import settings
 from google import genai
 from google.genai import types
+from google.genai.errors import ClientError
 
 
 class RequestGemini:
@@ -25,6 +26,7 @@ class RequestGemini:
         self.messages: list[dict] = []
         self.base_messages: list[str] = []
         self.msgs = []
+        self.errors = []
         self.system_msg = None
         self.response = None
         self.cache = None
@@ -91,11 +93,20 @@ class RequestGemini:
         )
         # content = f"{content}\nsections: {new_prompt}\nJSON:"
         content = f"{main_name}: {new_prompt}"
-        response = self.client.models.generate_content(
-            model=self.engine,
-            contents=content,
-            config=config,
-        )
+        try:
+            response = self.client.models.generate_content(
+                model=self.engine,
+                contents=content,
+                config=config,
+            )
+        except ClientError as e:
+            self.errors.append(f"{e.message} (ClientError - status {e.status})")
+            print(f"ClientError: {e.message}")
+            return None
+        except Exception as e:
+            self.errors.append(str(e))
+            print(f"Error sending Gemini prompt: {e}")
+            return None
         self.response = response
         if not self.first_response:
             self.first_response = response

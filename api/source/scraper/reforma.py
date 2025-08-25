@@ -9,7 +9,7 @@ from bs4.element import Tag
 from source.models import ScrapedRecord, Source
 from source.scraper.articles import (
     ArticleScraper, MainScraper, ManagerScraper)
-from source.scraper.scraper_base import get_content
+from source.scraper.scraper_base import get_content, get_clean_text
 
 
 MAIN_URL = (
@@ -154,6 +154,8 @@ class ReformaSectionScraper:
                 uid = str(uid)
             else:
                 continue
+            if uid == "0":
+                continue
 
             idcolecion = seccion.get("idcoleccion")
             paginacms = seccion.get("paginacms")
@@ -188,54 +190,112 @@ class ReformaArticleScraper(ArticleScraper):
         self.images = []
         self.author = ""
 
-        self.get_article_data_script_var()
+        try:
+            self.get_article_data_script_var()
+        except Exception as e:
+            print(f"Error getting article data script var: {e}")
 
-        wrapper = self.get_main_body()
+        try:
+            wrapper = self.get_main_body()
+        except Exception as e:
+            print(f"Error getting main body: {e}")
+            raise e
 
         if not wrapper:
             return
+
+        if not self.author:
+            author_div = wrapper.find("div", class_="autor")
+            if author_div:
+                self.author = get_clean_text(author_div)
+        if not self.title:
+            title_div = wrapper.find("div", class_="titulo")
+            if title_div:
+                self.title = get_clean_text(title_div)
+        if not self.subtitle:
+            # Try to find subtitle in a div without class and with some content
+            subtitle_div = wrapper.find("div", class_=lambda x: not x and x)
+            if subtitle_div:
+                self.subtitle = get_clean_text(subtitle_div)
 
         content_div = wrapper.find("div", id="divImgPagina")
         if not content_div:
             return
 
-        self.content = "\n".join(
-            p.get_text() for p in content_div.find_all("p"))
+        try:
+            self.content = "\n\n".join(
+                p.get_text() for p in content_div.find_all("p")
+                if p.get_text(strip=True) and p.get_text(strip=True) != " "
+            ).strip()
+        except Exception as e:
+            print(f"Error getting content: {e}")
+            raise e
+        # <div id="divTituloNota" class="titulo">
+        # <div id="divTextoNota" class="texto">
+        try:
+            if not self.title:
+                title_div = content_div.find("div", id="divTituloNota")
+                if title_div:
+                    self.title = get_clean_text(title_div)
+            if not self.subtitle:
+                subtitle_div = content_div.find("div", id="divTextoNota")
+                if subtitle_div:
+                    self.subtitle = get_clean_text(subtitle_div)
 
-        self.images = [
-            img["src"]
-            for img in content_div.find_all("img")
-            if img.get("src")
-        ]
+            self.images = [
+                {"src": img["src"], "caption": img.get("alt", "")}
+                for img in content_div.find_all("img")
+                if img.get("src")
+            ]
 
-        if not self.title and self.subtitle:
-            self.title = self.subtitle[:250]
-            if len(self.subtitle) > 250:
-                self.title += "..."
-
-        self.content = "\n".join(
-            [self.title, self.subtitle, self.content]).strip()
+            if not self.title and self.subtitle:
+                self.title = self.subtitle[:250]
+                if len(self.subtitle) > 250:
+                    self.title += "..."
+        except Exception as e:
+            print(f"Error processing content: {e}")
+            raise e
 
     def get_main_body(self) -> Tag:
         return self.soup_content.find("div", id="wrapper")
 
+    def special_cleanup(self, body):
+        # Decompose <a> with id = "page_link_prev" and "page_link_next"
+        classes_to_remove = []
+        for a in body.find_all('div', class_=classes_to_remove):
+            a.decompose()
+
+        return body
+
     def get_article_data_script_var(self):
 
+        # body = self.soup_content.find("body")
         if not (body := self.soup_content.find("body")):
             return
-
+        # scripts_inside_body = body.find_all("script")
         if not (scripts_inside_body := body.find_all("script")):
             return
 
         script_contents = [
             script.string for script in scripts_inside_body if script.string]
 
-        pattern = re.compile(
-            r"var (\w+)\s*=\s*['\"]?([^;'\"]+)['\"]?;?", re.MULTILINE)
-        data = {match[1].strip(): match[2].strip()
-                for match in pattern.finditer("".join(script_contents))}
+        all_content = "".join(script_contents)
+        lines = re.findall(r'.+', all_content)
 
-        self.title = data.get("Titulo", "No encontrado")
-        self.subtitle = data.get("Resumen", "")
-        self.author = data.get("autor", "No especificado")
-        pprint(data)
+        # data = {match[1].strip(): match[2].strip()
+        #         for match in pattern.finditer(all_content)}
+        pattern = re.compile(
+            r"[\s{3,}]var (\w+)=['\"]([^;]+)['\"];?$", re.MULTILINE)
+
+        data: dict[str, str] = {}
+        for line in lines:
+            match = pattern.finditer(line)
+            for m in match:
+                key = m[1].strip()
+                value = m[2].strip()
+                data[key] = value
+
+        self.title = data.get("Titulo", None)
+        self.subtitle = data.get("Resumen", None)
+        self.author = data.get("autor", None)
+        # pprint(data)

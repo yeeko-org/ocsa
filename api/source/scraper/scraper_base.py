@@ -104,7 +104,7 @@ class ArticleScraper(ABC):
 
         article.title = self.title or article.title
         article.subtitle = self.subtitle or article.subtitle
-        article.autor = self.author or article.autor
+        article.author = self.author or article.author
         article.content = self.content or article.content
         article.paragraphs = self.get_paragraphs(article.content)
         # article.paragraps = self.content.split("\n") if self.content else []
@@ -141,8 +141,9 @@ class ArticleScraper(ABC):
         if not body:
             return
         title = self.title
-        if title not in body.get_text():
-            title = None
+        # print("Body1:", body)
+        # if title not in body.get_text():
+        #     title = None
 
         excluded_tags = [
             'script', 'style', 'noscript', 'svg', 'button', 'input',

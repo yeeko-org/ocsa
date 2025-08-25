@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import serializers
 from source.models import Article, Source, ScrapedRecord
-from api.views.note.serializers import NoteFullSerializer
+# from api.views.note.serializers import NoteFullSerializer
 
 
 class ArticleListSerializer(serializers.ModelSerializer):
@@ -24,10 +24,12 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
 
 class ArticleSelectedSerializer(serializers.Serializer):
     is_selected = serializers.BooleanField()
+    other_discarded_reason = serializers.CharField(
+        allow_blank=True, allow_null=True, required=False)
 
 
 class ArticleStatusSerializer(serializers.ModelSerializer):
-    note_full = NoteFullSerializer(read_only=True, source='note')
+    # note_full = NoteFullSerializer(read_only=True, source='note')
     # note_url = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
 
@@ -47,23 +49,44 @@ class ArticleStatusSerializer(serializers.ModelSerializer):
 
 
 class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
+    articles_count = serializers.SerializerMethodField()
+    preclassified_count = serializers.SerializerMethodField()
+    pending_count = serializers.SerializerMethodField()
+
+    def get_articles_count(self, obj):
+        return obj.articles.count()
+
+    def get_preclassified_count(self, obj):
+        return obj.articles.filter(certainty_degree__isnull=False).count()
+
+    def get_pending_count(self, obj):
+        return obj.articles\
+            .filter(is_selected__isnull=True)\
+            .filter(certainty_degree__gt=100).count()
+
     class Meta:
         model = ScrapedRecord
-        fields = ["id", "from_date", "to_date", "source"]
+        fields = [
+            "id", "from_date", "to_date", "source", "errors",
+            "articles_count", "preclassified_count", "pending_count"]
 
 
-class ScrapedRecordSerializer(serializers.ModelSerializer):
-    articles_count = serializers.IntegerField(read_only=True)
+class ScrapedRecordSerializer(ScrapedRecordSimpleSerializer):
+    pre_selected = serializers.SerializerMethodField()
+
+    def get_pre_selected(self, obj):
+        return obj.articles\
+            .filter(certainty_degree__gt=100).count()
 
     class Meta:
         model = ScrapedRecord
         fields = "__all__"
+        # exclude = ["articles"]
 
 
 class SourceFullSerializer(serializers.ModelSerializer):
     notes_count = serializers.ReadOnlyField()
-    scraped_records = ScrapedRecordSimpleSerializer(
-        many=True, read_only=True)
+    scraped_records = ScrapedRecordSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Source

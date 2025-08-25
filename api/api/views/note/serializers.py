@@ -6,6 +6,7 @@ from api.views.project.retrieve_serializers import (
     ConflictSerializer, ProjectFullSerializer)
 # from api.views.space_time.serializers import LocationSerializer
 from api.views.event.serializers import EventSerializer
+from api.views.article.serializers import ArticleDetailSerializer
 from project.models import Project, ProjectFile
 from source.models import Mention, Note, NoteFile, StatusHistory
 from event.models import Event, Involved
@@ -216,6 +217,7 @@ class EventFullNoteSerializer(EventEmbedSerializer, EventSerializer):
 class NoteFullSerializer(ConditionalFieldsMixin):
     files = NoteFileSerializer(many=True, read_only=True)
     mentions = MentionMegaFullSerializer(many=True, read_only=True)
+    articles = ArticleDetailSerializer(read_only=True, many=True)
 
     class Meta:
         model = Note

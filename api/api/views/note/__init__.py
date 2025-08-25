@@ -70,6 +70,7 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
             'mentions__events__involvements',
             'mentions__events__locations',
             'mentions__status_history',
+            'articles',
         ) if is_retrieve else queryset
         return queryset
 

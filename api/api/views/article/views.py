@@ -37,12 +37,14 @@ class ArticleFilter(FilterSet):
             return queryset.filter(is_selected=True)
 
         if value in ["rejected", "to_validate"]:
-            queryset = queryset.filter(certainty_degree__gt=10)
-        elif value in ["unlikely", "discarded"]:
-            queryset = queryset.filter(certainty_degree__lte=10)
+            queryset = queryset.filter(certainty_degree__gt=100)
+        elif value in ["unlikely", "discarded", "reincluded"]:
+            queryset = queryset.filter(certainty_degree__lte=100)
 
         if value in ["rejected", "discarded"]:
             queryset = queryset.filter(is_selected=False)
+        elif value == "reincluded":
+            queryset = queryset.filter(is_selected=True)
         elif value in ["to_validate", "unlikely"]:
             queryset = queryset.filter(is_selected__isnull=True)
 
@@ -58,10 +60,11 @@ class ArticleFilter(FilterSet):
 
 class ArticleViewSet(BaseGenericViewSet):
     queryset = Article.objects\
-        .exclude(certainty_degree=0)\
         .exclude(certainty_degree__isnull=True)
+    # .exclude(certainty_degree=0)\
     serializer_class = ArticleListSerializer
     filterset_class = ArticleFilter
+    search_fields = ["title", "subtitle", "author"]
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -75,19 +78,12 @@ class ArticleViewSet(BaseGenericViewSet):
         article = self.get_object()
         context = self.get_serializer_context()
 
-        if article.note:
-            context["status"] = "note_exists"
-            return Response(
-                ArticleStatusSerializer(article, context=context).data)
-
-        if article.is_selected != None:
-            context["status"] = "already_selected"
-            return Response(
-                ArticleStatusSerializer(article, context=context).data)
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         article.is_selected = serializer.validated_data["is_selected"]
+        if other_reason := serializer.validated_data.get(
+                "other_discarded_reason"):
+            article.other_discarded_reason = other_reason
         article.save()
 
         if not article.is_selected:
@@ -95,9 +91,11 @@ class ArticleViewSet(BaseGenericViewSet):
             return Response(
                 ArticleStatusSerializer(article, context=context).data)
 
-        exist_note = Note.objects.filter(
-            source=article.source, link=article.url
-        ).first()
+        exist_note = bool(article.note)
+        if not exist_note:
+            exist_note = Note.objects\
+                .filter(source=article.source, link=article.url)\
+                .first()
 
         if exist_note:
             context["status"] = "note_exists"
@@ -113,12 +111,13 @@ class ArticleViewSet(BaseGenericViewSet):
         note = Note.objects.create(
             title=article.title,
             subtitle=article.subtitle,
-            author=article.autor,
+            author=article.author,
             source=article.source,
             section=article.section,
             pages=pages,
             link=article.url,
             date=article.published_date,
+            status_register_id="ia_selected",
         )
 
         file_url = get_url_file_reforma(article)
@@ -179,3 +178,11 @@ class SourceViewSet(BaseStatusViewSet):
             'retrieve': SourceFullSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == "get":
+            return queryset \
+                .prefetch_related('scraped_records',
+                                  'scraped_records__articles')
+        return queryset

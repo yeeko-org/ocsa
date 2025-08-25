@@ -4,14 +4,14 @@ from django.db import connection
 from django_filters import FilterSet, DateFilter
 from django.db.models import Count
 
-from rest_framework import permissions
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from rest_framework.reverse import reverse
 from urllib.parse import urlencode
-from api.permissions import IsEditorOrCreateOrRead
+from api.permissions import IsEditorOrCreateOrRead, IsFullEditorOrReadOnly
 from api.views.article.serializers import (
     ScrapingDateSerializer, ScrapedRecordSerializer,
     ScrapedRecordSimpleSerializer)
@@ -96,7 +96,7 @@ class ScrapedRecordView(BaseGenericViewSet):
     queryset = ScrapedRecord.objects.all()\
         .annotate(articles_count=Count('articles'))
     serializer_class = ScrapedRecordSerializer
-    permission_classes = [IsEditorOrCreateOrRead]
+    permission_classes = [IsFullEditorOrReadOnly]
 
     filterset_class = ScrapedRecordFilter
 
@@ -109,6 +109,20 @@ class ScrapedRecordView(BaseGenericViewSet):
             return queryset
         # return queryset.filter(status=ScrapedRecord.STATUS_DONE)
         return queryset
+
+    @action(
+        detail=True, methods=["post"],
+        permission_classes=[IsFullEditorOrReadOnly])
+    def reprocess(self, request, pk=None):
+        scraped_record = self.get_object()
+        source = scraped_record.source.id
+        thread = threading.Thread(
+            target=full_scrape_articles, args=(source, scraped_record,))
+        thread.start()
+        return Response(
+            {"detail": "Reprocessing started."},
+            status=status.HTTP_200_OK
+        )
 
 
 def get_manager_scraper_class(source):

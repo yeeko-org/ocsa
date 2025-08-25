@@ -3,12 +3,12 @@ all_collections = {
     "source": [
         {
             "snake_name": "note",
-            "name": "Nota",
-            "plural_name": "Notas",
+            "name": "Nota Final",
+            "plural_name": "Notas Finales",
             "model_name": "Note",
             "level": "primary",
-            "color": 'deep-purple',
-            "icon": 'newspaper',
+            "color": "deep-purple",
+            "icon": "news",
             "all_filters": [
                 {"filter_name": "source_types", "hidden": False},
                 {
@@ -59,10 +59,12 @@ all_collections = {
         },
         {
             "snake_name": "article",
-            "name": "Artículo",
-            "plural_name": "Artículos",
+            "name": "Pre-Notas",
+            "plural_name": "Pre-Notas",
             "model_name": "Article",
             "level": "primary",
+            "icon": "newspaper",
+            "color": "deep-purple",
             "all_filters": [
                 { "filter_name": "source_types", "hidden": False },
                 {
@@ -78,9 +80,11 @@ all_collections = {
                         {"plural_name": "Validados", "value": "validated"},
                         {"plural_name": "Rechazados", "value": "rejected"},
                         {"plural_name": "Descartados", "value": "discarded"},
+                        {"plural_name": "Reincluidos", "value": "reincluded"}
                     ]
                 },
-            ]
+            ],
+            "cat_params": {"init_display": True},
         },
         {
             "snake_name": "scraped_record",

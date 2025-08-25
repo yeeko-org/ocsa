@@ -81,8 +81,8 @@ class Note(CommentsMixin, models.Model):
         return self.title
 
     class Meta:
-        verbose_name = 'Nota'
-        verbose_name_plural = 'Notas'
+        verbose_name = 'Nota Final'
+        verbose_name_plural = 'Notas Finales'
 
 
 def upload_to_note_file(instance, filename):
@@ -239,7 +239,7 @@ class Article(models.Model):
     scraped_date = models.DateField(auto_now_add=True)
     metadata = models.JSONField(blank=True, null=True)
 
-    autor = models.CharField(max_length=255, blank=True, null=True)
+    author = models.CharField(max_length=255, blank=True, null=True)
     html_content = models.TextField(blank=True, null=True)
     content = models.TextField(blank=True, null=True)
     paragraphs = models.JSONField(blank=True, null=True)
@@ -247,7 +247,9 @@ class Article(models.Model):
     published_date = models.DateField(blank=True, null=True)
 
     criteria = models.JSONField(blank=True, null=True)
-    certainty_degree = models.IntegerField(blank=True, null=True)
+    certainty_degree = models.IntegerField(
+        blank=True, null=True,
+        help_text='Debe superar 100 para ser considerado')
     is_selected = models.BooleanField(blank=True, null=True)
     discarded_reason = models.ForeignKey(
         DiscardedReason, on_delete=models.CASCADE, blank=True, null=True,
@@ -271,20 +273,21 @@ class Article(models.Model):
 
         degree = 0
         if bool(criteria.get("projects", [])):
-            degree += 10
+            degree += 95
         if bool(criteria.get("has_opponents")):
-            degree += 1
+            degree += 13
         if bool(criteria.get("social_impacts")):
-            degree += 2
+            degree += 18
         if bool(criteria.get("ecological_impacts")):
-            degree += 2
+            degree += 24
         if bool(criteria.get("acts_of_violence")):
-            degree += 2
+            degree += 21
         if bool(criteria.get("collective_actions")):
-            degree += 2
+            degree += 20
 
         if bool(criteria.get("is_foreign")):
-            degree *= -1
+            if degree > 100:
+                degree = 99
         return degree
 
     def get_certainty_degree_v2(self, criteria: ArticleBase) -> int:
@@ -294,20 +297,21 @@ class Article(models.Model):
 
         degree = 0
         if bool(criteria.projects):
-            degree += 10
+            degree += 95
         if bool(criteria.opponents):
-            degree += 1
+            degree += 13
         if bool(criteria.social_impacts):
-            degree += 2
+            degree += 18
         if bool(criteria.ecological_impacts):
-            degree += 2
+            degree += 24
         if bool(criteria.acts_of_violence):
-            degree += 2
+            degree += 21
         if bool(criteria.collective_actions):
-            degree += 2
+            degree += 20
 
         if bool(criteria.is_foreign):
-            degree *= -1
+            if degree > 100:
+                degree = 99
         return degree
 
     def get_criteria(self, engine_name: str | None = None, use_deepseek: bool = False):
@@ -343,8 +347,8 @@ class Article(models.Model):
 
     class Meta:
         unique_together = ['uid', 'source']
-        verbose_name = 'Artículo'
-        verbose_name_plural = 'Artículos'
+        verbose_name = 'Pre-Nota'
+        verbose_name_plural = 'Pre-Notas'
         ordering = ['-certainty_degree', '-published_date']
 
 

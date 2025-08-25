@@ -112,6 +112,15 @@ class ManagerScraper(ABC):
             source=self.get_source(), from_date=date_in_date(from_date),
             to_date=date_in_date(to_date))
 
+    def add_errors(self, errors: List[str]):
+        if not self.scraped_record:
+            self.errors.extend(errors)
+            return
+        if not self.scraped_record.errors:
+            self.scraped_record.errors = []
+        self.scraped_record.errors.extend(errors)
+        self.scraped_record.save()
+
     def add_error(self, error: str, exception: Exception | None = None):
         if exception:
             raise exception
@@ -246,8 +255,7 @@ class ManagerScraper(ABC):
 
     def scrape_articles(self, update: bool = False):
         articles_objects = self.get_articles_objects()
-        desc = f"Scraping articles ({len(articles_objects)})"
-        for article in tqdm(articles_objects, desc=desc):
+        for article in tqdm(articles_objects, desc="Scraping articles"):
             self.full_scrape_article(article, update)
 
     def full_scrape_article(
@@ -265,7 +273,7 @@ class ManagerScraper(ABC):
                 article_scraper.get_reduced_content_text()
             except Exception as e:
                 self.add_error(
-                    f"Error getting criteria for article {article.id}", e)
+                    f"Error getting content for article {article.id}", e)
 
     def build_ai_criteria(
             self, block_size: int = 0, prompt_version: str = "v1"):
@@ -309,7 +317,8 @@ class ManagerScraper(ABC):
         cache_name = f"criteria_{prompt_version}_{cache_multiple}"
         self.pre_classify_request.build_chat(
             f"source/scraper/{prompt_criteria}")
-        self.pre_classify_request.create_cache(cache_name, len_articles)
+        seconds_cache = len_articles * 2
+        self.pre_classify_request.create_cache(cache_name, seconds_cache)
 
 
         desc = f"Classifying articles ({len_articles})"
@@ -322,6 +331,8 @@ class ManagerScraper(ABC):
             current_batch = articles_objects[i:i + self.block_full_articles]
             self.get_batch_ai_criteria(
                 current_batch, prompt_version=prompt_version)
+        if self.pre_classify_request.errors:
+            self.add_errors(self.pre_classify_request.errors)
 
     def get_articles_objects(self):
         if self.articles_by_id:
@@ -384,7 +395,7 @@ class ManagerScraper(ABC):
                 article_id = criteria.id
             article = Article.objects.get(pk=int(article_id))
             certain_degree = article.get_certainty_degree_v2(criteria)
-            is_selected = certain_degree > 11
+            is_selected = certain_degree > 100
             if self.is_test:
                 change_value = self.get_change_value(is_selected, article)
                 _ = ArticleQualify.objects.create(
@@ -403,58 +414,3 @@ class ManagerScraper(ABC):
                 article.certainty_degree = certain_degree
                 # article.is_selected = is_selected
                 article.save()
-
-    def old_get_batch_ai_criteria(
-            self, articles: List[Article], prompt_version: str = "v1"):
-        many_articles = self.block_full_articles > 1
-        full_content = ""
-
-        for article in articles:
-            content = article.content.strip()
-            if many_articles:
-                full_content += f"-- ARTÍCULO {article.id} --\n{content}\n\n"
-            else:
-                full_content = content
-        if not full_content:
-            return None
-
-        prompt_criteria = (f"prompt_article{'s' if many_articles else ''}"
-                           f"_criteria_{prompt_version}.txt")
-        self.pre_classify_request = JsonRequestOpenAI(
-            f"source/scraper/{prompt_criteria}",
-            engine=self.open_ai_engine, use_deepseek=self.use_deepseek)
-
-        pre_classify_response, req_id = self.pre_classify_request\
-            .send_prompt(full_content)
-
-        if not pre_classify_response:
-            print("No response from OpenAI")
-            return None
-
-        if not isinstance(pre_classify_response, dict):
-            print("Invalid response")
-            return None
-        if not many_articles:
-            pre_classify_response = {articles[0].id: pre_classify_response}
-        for article_id, criteria in pre_classify_response.items():
-            article = Article.objects.get(pk=int(article_id))
-            certain_degree = article.get_certainty_degree(criteria)
-            is_selected = certain_degree > 11
-            if self.is_test:
-                change_value = self.get_change_value(is_selected, article)
-                _ = ArticleQualify.objects.create(
-                    article=article,
-                    qualify_schema=self.qualify_schema,
-                    is_selected=is_selected,
-                    criteria=criteria,
-                    certainty_degree=certain_degree,
-                    change_value=change_value,
-                    request_id=req_id)
-                return None
-            else:
-                article.criteria = criteria
-                article.certainty_degree = certain_degree
-                article.is_selected = is_selected
-                article.save()
-                return None
-        return None

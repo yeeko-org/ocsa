@@ -2,6 +2,7 @@ from datetime import date
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
+from typing import List
 
 from source.models import ScrapedRecord, Source
 from source.scraper.articles import (
@@ -186,4 +187,3 @@ class JornadaArticleScraper(ArticleScraper):
             a.decompose()
 
         return body
-
