@@ -91,11 +91,14 @@ class ArticleViewSet(BaseGenericViewSet):
             return Response(
                 ArticleStatusSerializer(article, context=context).data)
 
-        exist_note = bool(article.note)
+        exist_note = article.note
         if not exist_note:
             exist_note = Note.objects\
                 .filter(source=article.source, link=article.url)\
                 .first()
+            if exist_note:
+                article.note = exist_note
+                article.save()
 
         if exist_note:
             context["status"] = "note_exists"
