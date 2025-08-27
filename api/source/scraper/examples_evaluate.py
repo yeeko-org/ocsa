@@ -24,7 +24,7 @@ def examples():
         open_ai_engine="gemini-2.5-flash")
 
     manager_reforma = ReformaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=46),
+        "", "", recover_record=ScrapedRecord.objects.get(pk=13),
         open_ai_engine="gemini-2.5-flash")
 
     manager_scraper.record_articles(reset=True)
