@@ -1,8 +1,13 @@
 <script setup >
 
 import dayjs from "dayjs";
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/es'
 import {useMainStore} from "~/store/index.js";
 const mainStore = useMainStore()
+dayjs.locale('es')
+dayjs.extend(relativeTime)
+
 
 const props = defineProps({
   is_massive_edit: Boolean,
@@ -110,10 +115,21 @@ function sendReprocess() {
       </v-list-item>
     </v-list>
   </v-col>
-  <v-col cols="5" class="d-flex pa-0">
+  <v-col
+    v-if="full_main.articles_count > full_main.preclassified_count"
+    cols="5"
+    class="d-flex pa-0"
+  >
+    <div v-if="full_main.date_started">
+
+      <span class="text-caption">
+        Última actualización:
+      </span>
+      {{dayjs(full_main.date_started).fromNow()}}
+    </div>
     <v-card-actions>
       <v-btn
-        v-if="full_main.articles_count > full_main.preclassified_count"
+
         color="accent"
         variant="outlined"
         append-icon="replay"

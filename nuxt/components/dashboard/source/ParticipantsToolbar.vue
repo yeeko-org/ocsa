@@ -32,6 +32,7 @@ const actor_collection_data = computed(() => {
     color="blue"
     special_multiple
     emit_add
+    required_full_category
     @add-item="emits('search-item', $event)"
     required
   >
@@ -49,6 +50,7 @@ const actor_collection_data = computed(() => {
         main_collection_name="participant"
         filter_group_name="interest_types"
         child_relation_name="interest"
+        required_full_category
         field="interests"
         second_level
         color="cyan"

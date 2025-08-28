@@ -55,8 +55,20 @@ const show_add = computed(() => {
 
 const rules = computed(() => {
   const rules = []
-  if (props.required)
-    rules.push(value => !!value || 'Campo requerido')
+  // has_content: value => (value && value.length > 0) || "Debes seleccionar al menos una opción",
+  // has_content: (value) => {
+  //   if (Array.isArray(value)) {
+  //     return value.length > 0 || "Debes seleccionar al menos una opción"
+  //   }
+  //   return !!value || "Debes seleccionar al menos una opción"
+  // },
+  if (props.required){
+    if (props.is_multiple)
+      rules.push(
+        value => (Array.isArray(value) && value.length > 0) || 'Campo requerido')
+    else
+      rules.push(value => !!value || 'Campo requerido')
+  }
   return rules
 })
 

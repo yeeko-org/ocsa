@@ -27,6 +27,7 @@ const props = defineProps({
   emit_add: Boolean,
   partial_save: Boolean,
   required_field: String,
+  required_full_category: Boolean,
   cols: {
     type: Number,
     default: 12,
@@ -275,6 +276,7 @@ const total_count = computed(() => {
                 is_toolbar
                 :special_multiple="special_multiple"
                 :forced_level="forced_level"
+                :required="required_full_category"
                 @delete-record="wantDeleteRecord(item, index)"
               >
                 <template #chip>

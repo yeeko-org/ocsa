@@ -108,7 +108,7 @@ function handleLocationUpdate(locationData) {
       </div>
       <v-textarea
         v-model="full_main.details"
-        label="Detalles adicionales"
+        label="Detalles adicionales (incluyendo colonia)"
         variant="outlined"
         class="mb-2"
         density="compact"

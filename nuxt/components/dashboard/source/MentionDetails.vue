@@ -34,6 +34,7 @@ const snackbar_message = ref('')
 const actor_display = ref(null)
 const has_select = ref(null)
 const dialog_delete = ref(false)
+const mentionForm = ref(null)
 
 const emits = defineEmits(['mention-saved', 'mention-deleted'])
 
@@ -57,7 +58,16 @@ function searchActor() {
   })
 }
 
-function saveMention() {
+async function saveMention() {
+  const { valid } = await mentionForm.value.validate()
+  console.log("saveMention valid", valid)
+  if (!valid){
+    save_errors.value = [{
+      field: 'todo el formulario',
+      errors: 'Hay errores con algunos campos, scrolea y revísalos.'
+    }]
+    return
+  }
   all_saving.value = true
   saveComplex('mention', props.mention)
     .then(() => {
@@ -194,92 +204,93 @@ function deleteMention() {
 <!--          </v-btn>-->
 <!--        </template>-->
 <!--      </v-banner>-->
-      <v-row class="py-3 mx-0" v-if="mention.id">
-        <v-col cols="7">
-          <CardCommon
-            :full_main="mention.project_full"
-            :collection_data="schemas.collections_dict.project"
-            @selected-item="changeProject"
-            indirect_get
-            class="py-3"
-          />
-        </v-col>
-        <ToolbarCommon
-          :cols="5"
-          :main_object="mention"
-          main_collection_name="mention"
-          filter_group_name="status_projects"
-          child_relation_name="status_history"
-          field="status_history"
-          color="purple"
-          ref="has_select"
-
-        >
-          <template #rows_init="{item}" v-if="true">
-            <div
-              class="d-flex align-start align-self-start"
-            >
-              <v-chip variant="outlined" color="grey" min-width="150" label>
-                Status
-              </v-chip>
-            </div>
-            <v-spacer></v-spacer>
-            <SelectDate
-              :init_date="item.date"
-              @update-date="item.date = $event"
-              label="Fecha de cambio"
-              class="mb-n6"
-              hide_details
+      <v-form ref="mentionForm">
+        <v-row class="py-3 mx-0" v-if="mention.id">
+          <v-col cols="7">
+            <CardCommon
+              :full_main="mention.project_full"
+              :collection_data="schemas.collections_dict.project"
+              @selected-item="changeProject"
+              indirect_get
+              class="py-3"
             />
-          </template>
-        </ToolbarCommon>
-        <ImpactToolbar
-          :mention="mention"
-          class="mt-2"
-        />
-        <ParticipantsToolbar
-          :mention="mention"
-          @search-item="searchActor"
-          @selected-item="saveParticipant($event)"
-        />
-        <EventToolbar
-          :mention="mention"
-        />
-        <v-row v-if="save_errors.length > 0">
-          <v-col
-            v-for="(error, index) in save_errors"
-            :key="index"
-            cols="12"
-            class="d-flex justify-end px-6 py-1"
+          </v-col>
+          <ToolbarCommon
+            :cols="5"
+            :main_object="mention"
+            main_collection_name="mention"
+            filter_group_name="status_projects"
+            child_relation_name="status_history"
+            field="status_history"
+            color="purple"
+            ref="has_select"
           >
-            <v-alert
-              type="error"
+            <template #rows_init="{item}" v-if="true">
+              <div
+                class="d-flex align-start align-self-start"
+              >
+                <v-chip variant="outlined" color="grey" min-width="150" label>
+                  Status
+                </v-chip>
+              </div>
+              <v-spacer></v-spacer>
+              <SelectDate
+                :init_date="item.date"
+                @update-date="item.date = $event"
+                label="Fecha de cambio"
+                class="mb-n6"
+                hide_details
+              />
+            </template>
+          </ToolbarCommon>
+          <ImpactToolbar
+            :mention="mention"
+            class="mt-2"
+          />
+          <ParticipantsToolbar
+            :mention="mention"
+            @search-item="searchActor"
+            @selected-item="saveParticipant($event)"
+          />
+          <EventToolbar
+            :mention="mention"
+          />
+          <v-row v-if="save_errors.length > 0">
+            <v-col
+              v-for="(error, index) in save_errors"
+              :key="index"
+              cols="12"
+              class="d-flex justify-end px-6 py-1"
             >
-              Error al guardar {{ error.field }}: {{ error.errors }}
-            </v-alert>
+              <v-alert
+                type="error"
+              >
+                Error al guardar {{ error.field }}: {{ error.errors }}
+              </v-alert>
+            </v-col>
+          </v-row>
+          <v-col cols="12" class="d-flex justify-end px-6">
+            <v-btn
+              color="red"
+              variant="outlined"
+              class="mr-4"
+              :disabled="all_saving"
+              @click="dialog_delete = true"
+            >
+              Eliminar mención
+            </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="accent"
+              variant="elevated"
+              :loading="all_saving"
+              @click="saveMention"
+            >
+              Guardar cambios
+            </v-btn>
           </v-col>
         </v-row>
-        <v-col cols="12" class="d-flex justify-end px-6">
-          <v-btn
-            color="red"
-            variant="outlined"
-            class="mr-4"
-            :disabled="all_saving"
-            @click="dialog_delete = true"
-          >
-            Eliminar mención
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="accent"
-            variant="elevated"
-            :loading="all_saving"
-            @click="saveMention"
-          >
-            Guardar cambios
-          </v-btn>
-        </v-col>
-      </v-row>
+      </v-form>
     </v-card>
     <v-snackbar
       v-model="snackbar"
