@@ -42,6 +42,9 @@ const init_filters = ref(null)
 const init_in_edition = ref(null)
 
 const emits = defineEmits(['delete-record'])
+
+defineExpose({ externalSetInitialData })
+
 const levels = ['group', 'type', 'subtype']
 
 const filter_node = computed(() => all_nodes.value[props.filter_group_name])
@@ -270,6 +273,12 @@ const display_type = computed(() => {
     : true
 })
 
+const type_required = computed(() => {
+  if (subtype_items.value && level_names.value.subtype)
+    return false
+  return props.required
+})
+
 nextTick(() => {
   setTimeout(() => {
     setInitialData()
@@ -279,6 +288,17 @@ nextTick(() => {
     setInitialData()
   }, 2500)
 })
+
+function externalSetInitialData(){
+
+  nextTick(() => {
+    setTimeout(() => {
+      loaded.value = false
+      setInitialData()
+    }, 1500)
+  })
+
+}
 
 function setInitialData() {
   if (loaded.value)
@@ -380,8 +400,6 @@ function changeValue(level_name, value){
   }
   props.main_object[subtype_field.value] = null
   props.main_object[level_names.value[level_name]] = value
-
-
 }
 
 
@@ -454,7 +472,7 @@ function changeValue(level_name, value){
     :is_display="is_display"
     :is_multiple="category_is_multiple"
     :class="{'mr-2': !is_display}"
-    :required="required"
+    :required="type_required"
     :collection_data="collections.type"
     :forced_clearable="forced_clearable"
     @open-dialog="openDialog('type', $event)"

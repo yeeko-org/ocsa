@@ -27,6 +27,7 @@ const props = defineProps({
     default: false,
   },
 })
+
 const dialog_search = ref(false)
 const all_saving = ref(false)
 const snackbar = ref(false)
@@ -35,6 +36,7 @@ const actor_display = ref(null)
 const has_select = ref(null)
 const dialog_delete = ref(false)
 const mentionForm = ref(null)
+const participantsToolbarRef = ref(null)
 
 const emits = defineEmits(['mention-saved', 'mention-deleted'])
 
@@ -60,7 +62,7 @@ function searchActor() {
 
 async function saveMention() {
   const { valid } = await mentionForm.value.validate()
-  console.log("saveMention valid", valid)
+  // console.log("saveMention valid", valid)
   if (!valid){
     save_errors.value = [{
       field: 'todo el formulario',
@@ -85,6 +87,8 @@ function allFinished() {
     snackbar.value = true
     snackbar_message.value = 'Se ha guardado la mención'
     all_saving.value = false
+    // console.log("participantsToolbarRef", participantsToolbarRef.value)
+    participantsToolbarRef.value.resetInitialData()
   })
 }
 
@@ -248,6 +252,7 @@ function deleteMention() {
             class="mt-2"
           />
           <ParticipantsToolbar
+            ref="participantsToolbarRef"
             :mention="mention"
             @search-item="searchActor"
             @selected-item="saveParticipant($event)"

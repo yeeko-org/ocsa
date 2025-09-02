@@ -12,16 +12,29 @@ const props = defineProps({
   mention: Object,
 })
 
+const mainToolbarRef = ref(null)
+const secondToolbarRef = ref(null)
+
 const emits = defineEmits(['selected-item', 'search-item', 'edited-item'])
+defineExpose({ resetInitialData })
 
 const actor_collection_data = computed(() => {
   return schemas.value.collections_dict['actor']
 })
 
+function resetInitialData(){
+  if (mainToolbarRef.value)
+    mainToolbarRef.value.resetInitialData()
+  if (secondToolbarRef.value)
+    secondToolbarRef.value.resetInitialData()
+
+}
+
 </script>
 
 <template>
   <ToolbarCommon
+    ref="mainToolbarRef"
     :main_object="mention"
     main_collection_name="mention"
     filter_group_name="participant_types"
@@ -46,6 +59,7 @@ const actor_collection_data = computed(() => {
     </template>
     <template #second-column="{ item }">
       <ToolbarCommon
+        ref="secondToolbarRef"
         :main_object="item"
         main_collection_name="participant"
         filter_group_name="interest_types"

@@ -45,12 +45,14 @@ const saving = ref(false)
 const index_in_edit = ref(null)
 const elem_to_save = ref(null)
 const snackbar = ref(false)
+const selectGroupRef = ref(null)
 
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { deleteSimple, saveSimple } = mainStore
 
 const emits = defineEmits(['add-item'])
+defineExpose({ resetInitialData })
 
 const filter_group = computed(() =>
   schemas.value.filter_groups.find(
@@ -176,8 +178,18 @@ const total_count = computed(() => {
     console.log("field:", props.field)
     return 0
   }
-
 })
+
+function resetInitialData(){
+  // console.log("resetInitialData toolbar common", props.main_collection_name)
+  // console.log("selectGroupRef", selectGroupRef.value)
+  if (selectGroupRef.value){
+    selectGroupRef.value.forEach(ref => {
+      if (ref && ref.externalSetInitialData)
+        ref.externalSetInitialData()
+    })
+  }
+}
 
 </script>
 
@@ -270,6 +282,7 @@ const total_count = computed(() => {
           >
             <div class="d-flex flex-wrap">
               <SelectGroup
+                ref="selectGroupRef"
                 :filter_group_name="filter_group_name"
                 :main_collection="child_collection"
                 :main_object="item"
