@@ -66,7 +66,7 @@ class Displacement(models.Model):
         PopulationSize, on_delete=models.CASCADE, blank=True, null=True)
     temporality = models.ForeignKey(
         Temporality, on_delete=models.CASCADE, blank=True, null=True)
-    rithm = models.CharField(max_length=255)
+    rithm = models.CharField(max_length=255, blank=True, null=True)
     origin_state = models.ForeignKey(
         State, on_delete=models.CASCADE,
         blank=True, null=True, related_name='displacement_origin')
