@@ -17,11 +17,11 @@ all_collections = {
                 },
                 {
                     "title": "Editor", "field": "editor",
-                    "component": "UserSelect", "hidden": True
+                    "component": "UserSelect", "hidden": True,
                 },
                 {
                     "title": "Revisor", "field": "reviewer",
-                    "component": "UserSelect", "hidden": True
+                    "component": "UserSelect", "hidden": True,
                 },
                 {
                     "title": "Con archivos", "field": "has_files",

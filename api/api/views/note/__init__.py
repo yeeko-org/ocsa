@@ -23,13 +23,24 @@ class NoteFilter(FilterSet):
     status_register = CharFilter(field_name='status_register__name')
     has_files = BooleanFilter(
         field_name='files', lookup_expr='isnull', exclude=True)
+    editor = CharFilter(method='filter_by_user')
+    reviewer = CharFilter(method='filter_by_user')
+
+    def filter_by_user(self, queryset, name, value):
+        if not value:
+            return queryset
+        if name == 'editor':
+            return queryset.filter(editors__id=value)
+        elif name == 'reviewer':
+            return queryset.filter(reviewers__id=value)
+        return queryset
 
     class Meta:
         model = Note
         fields = {
             'source': ['exact'],
-            'editors': ['exact'],
-            'reviewers': ['exact'],
+            # 'editors': ['exact'],
+            # 'reviewers': ['exact'],
         }
 
 
