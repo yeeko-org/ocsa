@@ -17,6 +17,7 @@ class CustomUserAdmin(UserAdmin):
         ('Permissions', {
             'fields': ('is_superuser', 'is_staff', 'full_editor', 'is_active'),
         }),
+        ('Groups', {'fields': ('groups',)}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
     # ) + UserAdmin.fieldsets

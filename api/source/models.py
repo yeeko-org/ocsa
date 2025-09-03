@@ -54,10 +54,14 @@ class Note(CommentsMixin, models.Model):
     capture_date = models.DateField(blank=True, null=True)
     editor = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True,
-        related_name='editors')
+        related_name='editors2')
+    editors = models.ManyToManyField(
+        User, blank=True, related_name='editors')
     reviewer = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True,
-        related_name='reviewers')
+        related_name='reviewers2')
+    reviewers = models.ManyToManyField(
+        User, blank=True, related_name='reviewers')
     status_register = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)

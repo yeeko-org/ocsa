@@ -1,6 +1,7 @@
 from django_filters import FilterSet, DateFilter, CharFilter, BooleanFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, permissions
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from api.permissions import (
     IsAuthenticatedOrReadOnly, ByStatusOrReadOnly)
@@ -27,8 +28,8 @@ class NoteFilter(FilterSet):
         model = Note
         fields = {
             'source': ['exact'],
-            'editor': ['exact'],
-            'reviewer': ['exact'],
+            'editors': ['exact'],
+            'reviewers': ['exact'],
         }
 
 
@@ -88,14 +89,29 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        data['editor'] = request.user.id
+        # data['editor'] = request.user.id
+        data['editors'] = [request.user.id]
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
-        data = request.data
-        if request.user.is_full_editor:
-            data['reviewer'] = request.user.id
-        return super().update(request, *args, **kwargs)
+        serializer_class = self.get_serializer_class()
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = serializer_class(
+            instance, data=request.data, partial=partial,
+            context=self.get_serializer_context())
+        if serializer.is_valid(raise_exception=True):
+            self.perform_update(serializer)
+            note_saved = serializer.instance
+            if request.user.is_staff:
+                note_saved.reviewers.add(request.user)
+            else:
+                note_saved.editors.add(request.user)
+            new_serializer = NoteFullSerializer(
+                note_saved, context=self.get_serializer_context())
+            return Response(new_serializer.data)
+
+        return Response(serializer.errors, status=400)
 
 
 class NoteFileViewSet(mixins.DestroyModelMixin, GenericViewSet):
