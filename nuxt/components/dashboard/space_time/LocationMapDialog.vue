@@ -297,14 +297,14 @@ function setupDrawTools(skipAddingExistingGeometry = false) {
 function updateDrawing(e) {
 
   const features = draw.value.getAll().features;
-  console.log("Features:", features);
+  // console.log("Features:", features);
   // If there's more than one feature
   if (features.length > 1) {
     const updatedFeature = e.features[0];
     draw.value.deleteAll();
     // Add back only the updated feature
     draw.value.add(updatedFeature);
-    console.log("Replaced other locations with the updated one");
+    // console.log("Replaced other locations with the updated one");
   }
 
   const drawnFeatures = e.features || [];
@@ -312,7 +312,7 @@ function updateDrawing(e) {
     const feature = drawnFeatures[0];
     if (feature.geometry.type === 'Point') {
       const point_source = map.value.getSource('point-source');
-      console.log("point_source", point_source);
+      // console.log("point_source", point_source);
       if (!point_source) {
         map.value.addSource('point-source', {
           type: 'geojson',
@@ -334,7 +334,7 @@ function updateDrawing(e) {
 }
 // Handle deletion of drawings
 function clearDrawing() {
-  console.log("Drawing cleared", map.value)
+  // console.log("Drawing cleared", map.value)
   map.value.getSource('point-source').setData({
     type: 'FeatureCollection',
     features: []

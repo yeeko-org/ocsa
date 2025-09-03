@@ -90,7 +90,6 @@ function deleteRecord() {
   const id_to_delete = props.full_main[props.collection_data.pk]
   deleteElement(final_collection_data.value, id_to_delete)
     .then((res) => {
-      console.log("res", res)
       if (res.errors) {
         // const error_msg = "No se pudo eliminar el registro si tiene datos relacionados"
         // errors.value = `${error_msg}: \n${

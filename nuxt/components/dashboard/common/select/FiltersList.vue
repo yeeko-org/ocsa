@@ -16,7 +16,7 @@ const props = defineProps({
 const emits = defineEmits(['apply-filters'])
 
 const applyFilters = () => {
-  console.log("debounce apply filters")
+  // console.log("debounce apply filters")
   emits('apply-filters')
 }
 

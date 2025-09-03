@@ -15,12 +15,12 @@ const { is_full_editor } = storeToRefs(authStore);
 const { logout } = authStore
 // const route = useRoute()
 
-onBeforeMount(() => {
-  console.log("cats_ready")
-//   fetchCatalogs().then(() => {
-//     console.log("cats_ready")
-//   })
-})
+// onBeforeMount(() => {
+//   console.log("cats_ready")
+// //   fetchCatalogs().then(() => {
+// //     console.log("cats_ready")
+// //   })
+// })
 
 const disable_open = ref(false)
 const group = ref(null)

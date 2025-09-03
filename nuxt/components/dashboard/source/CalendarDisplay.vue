@@ -105,7 +105,7 @@ const recent_months_with_day_js = computed(() => {
     else
       all_months[year_month] = [day_obj]
   }
-  console.log("all_months", all_months)
+  // console.log("all_months", all_months)
   return Object.entries(all_months).map(([month, days]) => {
     const month_str = dayjs(month).format('MMM')
     const year = days[0].year % 1000
@@ -115,7 +115,6 @@ const recent_months_with_day_js = computed(() => {
 })
 
 function indirectSelectDay(day) {
-  console.log("indirectSelectDay", day)
   // const date = dayjs(day.full_day)
   emits('select-day', {
     date: day.date,

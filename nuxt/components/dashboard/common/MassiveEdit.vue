@@ -47,7 +47,7 @@ const merged_params = computed(() => {
         acc.push(filter_box[level])
       return acc
     }, [])
-    console.log("models", models)
+    // console.log("models", models)
     final_collection_data.value.fields.forEach(field => {
       if (!field.related_snake_name || field.relation_type === 'one_to_many')
         return
@@ -55,7 +55,7 @@ const merged_params = computed(() => {
         params[field.name] = props.full_main[field.name]
     })
   })
-  console.log("params", params)
+  // console.log("params", params)
   return params
 })
 
@@ -64,7 +64,7 @@ function sendMassiveEdit() {
   // console.log("merged_params", merged_params.value)
   const final_params = {...merged_params.value, elems_ids: props.ids_to_edit}
   saveElement(final_collection_data.value, final_params).then((res) => {
-    console.log("res", res)
+    // console.log("res", res)
     saving.value = false
     active_fields.value = []
     emits('massive-finish')

@@ -18,7 +18,7 @@ export const useAuthStore = defineStore("auth", {
       //ApiService.defaults.headers.common['Authorization
     },
     setAuth(user, from_mid=true) {
-      console.log("setAuth")
+      // console.log("setAuth")
       this.is_authenticated = true
       this.user_details_ocsa = user
       this.is_logged = Date.now()

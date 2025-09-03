@@ -376,7 +376,6 @@ export const useMainStore = defineStore('main', {
         this.current_collection]
     },
     fetchCatalogs() {
-      console.log("fetchCatalogs init")
       return new Promise((resolve) => {
         ApiService.get('/catalogs/all/')
           .then(({data}) => {
@@ -389,7 +388,6 @@ export const useMainStore = defineStore('main', {
             this.setCollectionData()
             this.setFilterGroupData()
             this.cats_ready = true
-            console.log("fetchCatalogs end")
             resolve(data)
           })
           .catch(error => {
@@ -502,7 +500,6 @@ export const useMainStore = defineStore('main', {
         let response = await ApiService.post(`generic_merge/`, params);
         if (category_name)
           this.cleanDelete(category_name, params.merge_id)
-        console.log("mergeSimple", response)
         return response.data
       } catch (error) {
         console.error(error);

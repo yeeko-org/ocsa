@@ -73,7 +73,7 @@ export function useSaveElements() {
 
       const checkFinished = () => {
         if (resolved_requests.value === total_requests.value) {
-          console.log("All requests finished", save_errors.value)
+          // console.log("All requests finished", save_errors.value)
           if (save_errors.value.length > 0) {
             reject(save_errors.value)
           } else {

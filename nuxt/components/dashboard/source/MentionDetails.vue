@@ -103,7 +103,6 @@ function saveParticipant([elem_in_edition, actor]) {
 }
 
 function saveNewParticipant(actor) {
-  console.log("saveNewParticipant", actor)
   const params = {
     mention: props.mention.id,
     actor: actor.id,

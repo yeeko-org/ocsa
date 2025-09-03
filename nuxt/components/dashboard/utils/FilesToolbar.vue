@@ -41,7 +41,6 @@ function sendFile(){
   const elem_id = props.full_main.id
   const params = [elem_id, formData, props.main_collection_name]
   saveFile(params).then(res=>{
-    console.log("res", res);
     // ready_files.value += 1
     saving.value = false
     props.full_main.files.push(res)

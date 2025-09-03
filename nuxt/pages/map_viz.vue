@@ -21,7 +21,7 @@ const selectedProject = ref(null);
 
 onMounted(async () => {
   getProjectLocations().then((res) => {
-    console.log("Project locations fetched", res);
+    // console.log("Project locations fetched", res);
     buildMap(res);
   });
 

@@ -63,7 +63,6 @@ function closeDialog(event) {
 }
 
 function closeChangeDialog(new_item) {
-  console.log("closeChangeDialog", new_item)
   if (new_item)
     emits('selected-item', new_item)
   dialog_search.value = false

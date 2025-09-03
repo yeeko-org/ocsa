@@ -67,7 +67,6 @@ function updateGeo([level, value]) {
 
 
 function changeGeoValue(level, value) {
-  console.log("changeGeoValue", level, value)
   updateGeo([level, value])
 }
 

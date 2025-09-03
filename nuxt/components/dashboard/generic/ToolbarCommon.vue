@@ -94,9 +94,9 @@ const addItem = (group=null) => {
     //   new_child[field] = []
     // })
   }
-  console.log("main_object", props.main_object)
-  console.log("field", props.field)
-  console.log("new_child", new_child)
+  // console.log("main_object", props.main_object)
+  // console.log("field", props.field)
+  // console.log("new_child", new_child)
   props.main_object[props.field].push(new_child)
 }
 
@@ -136,7 +136,7 @@ function saveNewItem(item, index) {
       saving.value = false
     })
     .catch(err => {
-      console.log("error", err)
+      console.error(err)
       saving.value = false
     })
 }
@@ -171,7 +171,7 @@ const total_count = computed(() => {
   try {
     return props.main_object[props.field].length
   } catch (e) {
-    console.log("error", e)
+    console.error(e)
     console.log("main_collection_name", props.main_collection_name)
     console.log("filter_group_name", props.filter_group_name)
     console.log("main_object:", props.main_object)

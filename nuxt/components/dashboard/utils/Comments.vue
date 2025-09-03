@@ -23,7 +23,6 @@ function changeWantEdit(value) {
 }
 
 function addComment() {
-  console.log("addComment")
   props.main.comments = props.main.comments
     ? `${props.main.comments}\n\n` : ''
   const today = dayjs().format('DD/MM/YYYY')

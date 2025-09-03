@@ -56,7 +56,6 @@ export function applyFilters() {
   let collection_name = current_collection_data.snake_name
   if (current_collection_data.is_category)
     collection_name = `catalogs/${collection_name}`
-  console.log("loading_fetch.value", loading_fetch.value)
   if (loading_fetch.value)
     cancelFetch()
   else{

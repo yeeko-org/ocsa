@@ -13,7 +13,7 @@ const props = defineProps({
 const emits = defineEmits(['select-item'])
 
 function selectItem(result) {
-  console.log("item selected", result)
+  // console.log("item selected", result)
   emits('select-item', result)
 }
 

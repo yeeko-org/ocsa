@@ -7,7 +7,6 @@ let authMixin = {
     required: (value) => !!value || 'Valor Requerido.',
     min: (value) => (!!value ? value.length >= 8 : false) || 'Mínimo 8 caracteres',
     min_year: (value) =>{
-      console.log("value", value)
       return (!!value ? (Number(value) >= 1900) : false) || 'El año debe ser mayor a 1900'
     },
     max_year: (value) =>

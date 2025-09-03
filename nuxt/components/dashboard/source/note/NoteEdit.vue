@@ -94,16 +94,21 @@ const emits = defineEmits(['item-saved'])
     </v-text-field>
     <UserSelect
       :final_filters="full_main"
-      field="editor"
-      label="Editor"
+      field="editors"
+      label="Editores"
       readonly
+      multiple
+      chips
     />
     <UserSelect
       :final_filters="full_main"
-      field="reviewer"
-      label="Revisor"
+      field="reviewers"
+      label="Revisores"
       class="ml-3"
+      color="secondary"
       readonly
+      multiple
+      chips
     />
   </div>
   <v-text-field

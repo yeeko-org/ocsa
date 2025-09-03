@@ -75,7 +75,6 @@ function selectAll() {
 }
 
 function wantMassiveEdit() {
-  console.log("wantMassiveEdit", sel.value.selected_elems)
   edit_type.value = {
     key: 'massive_edit', title: 'Edición masiva', btn: 'Guardar cambios'}
   selected_results.value = props.results.filter(

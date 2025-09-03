@@ -50,7 +50,7 @@ async function saveScrapedRecord() {
     source: props.full_main.id,
   }
   saveSimple(['scraped_date', data]).then(response => {
-    console.log("response saveScrapedRecord", response)
+    // console.log("response saveScrapedRecord", response)
     loading.value = false
     new_record.value.from_date = null
     new_record.value.to_date = null
@@ -73,7 +73,7 @@ function updateDate(date, field) {
 }
 
 function selectDay(day) {
-  console.log("selectDay", day)
+  // console.log("selectDay", day)
   if (new_record.value.from_date && new_record.value.to_date) {
     new_record.value.from_date = day.full_day
     new_record.value.to_date = null

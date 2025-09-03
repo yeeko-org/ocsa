@@ -180,14 +180,13 @@ function changeShowDetails() {
 
 function resetFilters() {
   const coll_data = collection_data.value
-  console.log("resetFilters", coll_data)
+  // console.log("resetFilters", coll_data)
   if (!coll_data.is_category && !coll_data.cat_params?.init_display)
     temp_reset.value = true
   if (props.direct_sheet)
     temp_reset.value = true
   if (coll_data.cat_params?.init_display)
     temp_reset.value = false
-  console.log("temp_reset", temp_reset.value)
   final_filters.value = {
     ordering: collection_data.value.has.order ? 'order' : null,
     page_size: 40,
@@ -244,7 +243,7 @@ function exportRecords(all_records = false) {
     if (res.cancelled) {
       return
     }
-    console.log("exported data", res)
+    // console.log("exported data", res)
   })
 }
 

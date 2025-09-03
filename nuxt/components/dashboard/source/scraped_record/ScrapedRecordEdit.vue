@@ -55,7 +55,7 @@ const ready_count = computed(() => {
 
 function sendReprocess() {
   sendReprocessScrapedRecord(props.full_main.id).then(response => {
-    console.log("response sendReprocess", response)
+    // console.log("response sendReprocess", response)
   })
 }
 

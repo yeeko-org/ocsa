@@ -40,7 +40,7 @@ const getDate = computed(() => {
 })
 
 function editDate(date) {
-  console.log("edit date", date)
+  // console.log("edit date", date)
   // props.full_main.date = dayjs(date).format('YYYY-MM-DD')
   let new_date = null
   if (date)

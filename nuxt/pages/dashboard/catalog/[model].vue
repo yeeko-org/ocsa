@@ -56,9 +56,9 @@ const collections = computed(() => {
 const group_results = computed(() => {
   if (!level_names.value.group)
     return []
-  console.log("group_results", filter_node.value)
-  console.log("filter_group", filter_group.value)
-  console.log("level_names", level_names.value)
+  // console.log("group_results", filter_node.value)
+  // console.log("filter_group", filter_group.value)
+  // console.log("level_names", level_names.value)
   const type_name = level_names.value.type
   return filter_node.value.children.map(child => {
     return {...child.data,
