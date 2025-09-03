@@ -117,15 +117,9 @@ function addField(field) {
       >
         <v-icon
           :color="field.final_color"
-          _color="field.count
-            ? field.is_selected
-              ? 'white'
-              : field.color
-            : 'grey-lighten-2'"
         >
           {{ field.icon }}
         </v-icon>
-
       </v-btn>
       <v-icon
         v-else
@@ -134,13 +128,6 @@ function addField(field) {
       >
         {{ field.icon }}
       </v-icon>
-<!--      <span-->
-<!--        v-if="false"-->
-<!--        class="text-caption"-->
-<!--        :class="`text-${field.count ? field.color: 'grey-lighten-2'}`"-->
-<!--      >-->
-<!--        {{ field.count }}-->
-<!--      </span>-->
       <v-tooltip
         activator="parent"
         location="bottom"

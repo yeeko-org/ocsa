@@ -148,7 +148,6 @@ const final_mentions = computed(() => {
         style="width: 140px; height: 46px;"
       >
         <v-btn
-          readonly
           variant="outlined"
           class="text-body-2"
           :color="valid_value.color"
@@ -156,6 +155,26 @@ const final_mentions = computed(() => {
           size="small"
         >
           {{ valid_value.name }}
+          <v-tooltip
+            v-if="main.is_selected === false"
+            activator="parent"
+            location="bottom"
+          >
+            <v-card
+              color="red-lighten-3"
+              class="mx-n4 my-n2"
+            >
+              <v-card-title
+                class="text-subtitle-1"
+              >
+                Razón de descarte:
+              </v-card-title>
+              <v-card-text>
+                {{ main.other_discarded_reason || 'No especificada' }}
+              </v-card-text>
+            </v-card>
+          </v-tooltip>
+
         </v-btn>
         <v-btn
           readonly
