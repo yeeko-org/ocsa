@@ -97,6 +97,7 @@ CAPITAL_TYPES = (
 
 class SectorGroup(models.Model):
     name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
     is_collective = models.BooleanField(blank=True, null=True)
     has_belongs = models.BooleanField(default=True)
     capital_type = models.CharField(
@@ -118,6 +119,7 @@ class SectorGroup(models.Model):
 
 class Sector(models.Model):
     name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
     sector_group = models.ForeignKey(
         SectorGroup, on_delete=models.CASCADE, related_name='sectors')
     common_participant_types = models.ManyToManyField(

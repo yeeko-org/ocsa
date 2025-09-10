@@ -18,6 +18,7 @@ from api.views.note.serializers import (
     ImpactFullSerializer, EventFullNoteSerializer)
 from api.views.event.serializers import EventExportSerializer
 from api.views.common_views import MassiveEdit
+from api.views.common_views import BaseGenericViewSet
 
 from source.models import Mention, StatusHistory
 from actor.models import Participant, Interest
@@ -92,8 +93,11 @@ class ImpactViewSet(MassiveEdit, viewsets.ModelViewSet):
         return action_serializer.get(self.action, self.serializer_class)
 
 
-class InterestViewSet(viewsets.ModelViewSet):
+class InterestViewSet(BaseGenericViewSet):
+
     queryset = Interest.objects.all()
+    filterset_fields = ['interest_subtype']
+    search_fields = ["text"]
 
     serializer_class = InterestSerializer
 
