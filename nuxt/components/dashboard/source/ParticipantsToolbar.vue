@@ -54,6 +54,7 @@ function resetInitialData(){
         :full_main="item.actor_full"
         @edited-item="emits('edited-item', item)"
         @selected-item="emits('selected-item', [item, $event])"
+        indirect_get
         :collection_data="actor_collection_data"
       />
     </template>

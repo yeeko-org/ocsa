@@ -17,9 +17,9 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  category_group_value: Number,
   main_collection: Object,
   main_collection_name: String,
+  category_group_value: Number,
   field: String,
   forced_level: String,
 

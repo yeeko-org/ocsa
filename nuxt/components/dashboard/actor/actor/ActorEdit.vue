@@ -18,6 +18,8 @@ const props = defineProps({
   },
 })
 
+const emits = defineEmits(['item-saved'])
+
 const errors = ref([])
 
 const actor_collection_data = computed(() => {
@@ -58,6 +60,7 @@ function deleteExtraParents() {
       :main_object="full_main"
       filter_group_name="sectors"
       main_collection_name="actor"
+      required
     />
   </v-col>
   <v-col cols="12" md="6" class="d-flex py-0 pl-0 pr-3 mb-2">
