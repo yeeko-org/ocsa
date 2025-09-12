@@ -93,7 +93,6 @@ function allFinished() {
 }
 
 function saveParticipant([elem_in_edition, actor]) {
-  console.log("saveParticipant", elem_in_edition, actor)
   const part_idx = props.mention.participants.findIndex(
     part => part.id === elem_in_edition.id)
   props.mention.participants.splice(part_idx, 1, {

@@ -164,6 +164,11 @@ export const useAuthStore = defineStore("auth", {
       if (state.user_details_ocsa)
         return state.user_details_ocsa.is_full_editor || state.user_details_ocsa.is_staff || false
       return false
+    },
+    is_mini_editor(state) {
+      if (state.user_details_ocsa)
+        return state.user_details_ocsa.is_mini_editor || false
+      return false
     }
   }
 

@@ -157,7 +157,7 @@ watch(
                   :class="collection.level === 'primary' ? '' : '_ml-3'"
                   :active-class="collection.level === 'primary'
                     ? '' : 'font-weight-bold'"
-                  :disabled="!is_full_editor &&
+                  _disabled="!is_full_editor &&
                       !['location', 'note'].includes(collection.snake_name)"
                 >
                   <template v-slot:append="{ isActive, select }">
