@@ -14,7 +14,7 @@ else:
 
 class ExportXlsMixin(ModelViewSet):
     action_add_file_param: str = ""
-    xls_name: str = "Export"
+    # xls_name: str = "Export"
     xls_attrs: list = []
     add_locations = False
     location_attrs: list = [
@@ -105,7 +105,9 @@ class ExportXlsMixin(ModelViewSet):
 
         data = serializer.data
 
-        name = getattr(self, 'xls_name', 'Exportación')
+        name = getattr(self, 'xls_name', None)
+        if not name:
+            name = self.queryset.model._meta.verbose_name_plural
         attrs = getattr(self, 'xls_attrs', [])
         if self.add_locations:
             attrs = attrs + getattr(self, 'location_attrs', [])

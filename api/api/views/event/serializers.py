@@ -37,7 +37,7 @@ class EventTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EventType
-        fields = "__all__"
+        fields = '__all__'
 
 
 class ImpactTypeSerializer(serializers.ModelSerializer):
@@ -109,7 +109,6 @@ class ImpactExportSerializer(BaseExportSerializer):
         model = Impact
         fields = [
             'id',
-            'date',
             'description',
             'impact_type',
             'impact_subtype',

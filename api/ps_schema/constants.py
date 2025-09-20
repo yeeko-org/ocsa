@@ -191,6 +191,7 @@ all_collections = {
                 {"filter_name": "impact_types", "hidden": False},
             ],
             "available_actions": ["massive_edit"],
+            "xls_export": True,
         },
         {
             "snake_name": "impact_group",

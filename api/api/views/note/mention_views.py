@@ -93,7 +93,7 @@ class ImpactViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
         {
             "name": "Grupo de afectación",
             "width": 15,
-            "field": "impact_type__impact_group__name"
+            "field": "impact_type__impact_group"
         },
         {
             "name": "Tipo de afectación",
@@ -159,7 +159,7 @@ class ImpactViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             'retrieve': ImpactFullSerializer,
             'update': ImpactFullSerializer,
             'create': ImpactFullSerializer,
-            'export_xls': EventExportSerializer,
+            'export_xls': ImpactExportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 
@@ -241,6 +241,8 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             'involvements',
         )
 
+    serializer_class = EventSerializer
+
     pagination_class = CustomPagination
     filterset_class = EventFilter
 
@@ -250,8 +252,8 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
     ordering_fields = ['id', 'date']
     ordering = ['id']
 
-    serializer_class = EventSerializer
     add_locations = True
+    # xls_name = 'Eventos'
     xls_attrs = [
         {
             "name": "ID",
@@ -345,7 +347,7 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             'retrieve': EventFullNoteSerializer,
             'create': EventFullNoteSerializer,
             'update': EventFullNoteSerializer,
-            'export_xls': ImpactExportSerializer,
+            'export_xls': EventExportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 
@@ -366,7 +368,7 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             .annotate(**annotations)\
             .select_related(
                 'mention', 'mention__note',
-                'mention__note__source',
+                'mention__note__source', 'purpose',
                 'mention__project', 'mention__project__conflict',
                 'event_type', 'event_type__event_group', 'event_subtype'
             )\
