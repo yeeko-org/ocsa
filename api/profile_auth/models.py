@@ -8,6 +8,9 @@ class User(AbstractUser):
         default=False, verbose_name='Es capturista',
         help_text='Puede agregar notas, comentarios a los registros,'
                   'pero no tiene todos los permisos')
+    # mini_editor = models.BooleanField(
+    #     default=False, verbose_name='Servicio social',
+    #     help_text='Puede modificar ubicaciones y otros detalles')
 
     def get_full_name(self):
         if self.first_name and self.last_name:

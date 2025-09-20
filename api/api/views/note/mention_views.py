@@ -16,7 +16,8 @@ from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantSerializer, ImpactSimpleSerializer)
 from api.views.note.serializers import (
     ImpactFullSerializer, EventFullNoteSerializer)
-from api.views.event.serializers import EventExportSerializer
+from api.views.event.serializers import (
+    EventExportSerializer, ImpactExportSerializer)
 from api.views.common_views import MassiveEdit
 from api.views.common_views import BaseGenericViewSet
 
@@ -74,23 +75,110 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ImpactViewSet(MassiveEdit, viewsets.ModelViewSet):
+class ImpactViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
     pagination_class = CustomPagination
     queryset = Impact.objects.all()
 
+    xls_attrs = [
+        {
+            "name": "ID",
+            "width": 5,
+            "field": "id"
+        },
+        {
+            "name": "Descripción de la afectación",
+            "width": 50,
+            "field": "description"
+        },
+        {
+            "name": "Grupo de afectación",
+            "width": 15,
+            "field": "impact_type__impact_group__name"
+        },
+        {
+            "name": "Tipo de afectación",
+            "width": 15,
+            "field": "impact_type__name"
+        },
+        {
+            "name": "Subtipo de afectación",
+            "width": 30,
+            "field": "impact_subtype__name"
+        },
+        {
+            "name": "ID de nota",
+            "width": 5,
+            "field": "mention__note_full__id"
+        },
+        {
+            "name": "Fecha de nota",
+            "width": 10,
+            "field": "mention__note_full__date"
+        },
+        {
+            "name": "Título de nota",
+            "width": 40,
+            "field": "mention__note_full__title"
+        },
+        # {
+        #     "name": "Medio de la nota",
+        #     "width": 15,
+        #     "field": "mention__note_full__source"
+        # },
+        {
+            "name": "ID de proyecto",
+            "width": 5,
+            "field": "mention__project_full__id"
+        },
+        {
+            "name": "Nombre de proyecto",
+            "width": 40,
+            "field": "mention__project_full__name"
+        },
+        {
+            "name": "ID de conflicto",
+            "width": 5,
+            "field": "conflict__id"
+        },
+        {
+            "name": "Nombre de conflicto",
+            "width": 30,
+            "field": "conflict__name"
+        },
+    ]
+
+    add_locations = True
     serializer_class = ImpactSimpleSerializer
     filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
     search_fields = ['description']
     filterset_fields = ['impact_type', 'impact_subtype']
 
     def get_serializer_class(self):
-        print("self.action", self.action)
+        # print("self.action", self.action)
         action_serializer = {
             'retrieve': ImpactFullSerializer,
             'update': ImpactFullSerializer,
             'create': ImpactFullSerializer,
+            'export_xls': EventExportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    def get_query_for_export_xls(self):
+
+        annotations = self.get_annotations(target='impact')
+
+        queryset = self.get_queryset() \
+            .annotate(**annotations)\
+            .select_related(
+                'mention', 'mention__note',
+                'mention__note__source',
+                'mention__project', 'mention__project__conflict',
+                'impact_subtype',
+                'impact_type', 'impact_type__impact_group',
+            )\
+            .distinct()
+
+        return self.filter_queryset(queryset)
 
 
 class InterestViewSet(BaseGenericViewSet):
@@ -206,6 +294,11 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             "field": "event_subtype"
         },
         {
+            "name": "Intención del mecanismo",
+            "width": 18,
+            "field": "purpose"
+        },
+        {
             "name": "ID de nota",
             "width": 5,
             "field": "mention__note_full__id"
@@ -247,6 +340,15 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
         },
     ]
 
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': EventFullNoteSerializer,
+            'create': EventFullNoteSerializer,
+            'update': EventFullNoteSerializer,
+            'export_xls': ImpactExportSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)
+
     def get_queryset(self):
         queryset = super().get_queryset()
         action_is_detail = self.action in ['retrieve', 'create', 'update']
@@ -270,12 +372,3 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             )\
             .distinct()
         return self.filter_queryset(queryset)
-
-    def get_serializer_class(self):
-        action_serializer = {
-            'retrieve': EventFullNoteSerializer,
-            'create': EventFullNoteSerializer,
-            'update': EventFullNoteSerializer,
-            'export_xls': EventExportSerializer,
-        }
-        return action_serializer.get(self.action, self.serializer_class)
