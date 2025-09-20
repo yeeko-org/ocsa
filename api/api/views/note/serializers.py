@@ -208,6 +208,8 @@ class ImpactFullSerializer(ImpactEmbedSerializer):
 class EventFullNoteSerializer(EventEmbedSerializer, EventSerializer):
     note = NoteSerializer(source='mention.note', read_only=True)
     involvements = InvolvedFullSerializer(many=True, read_only=True)
+    event_group = serializers.IntegerField(
+        source='event_type.event_group_id', read_only=True)
 
     class Meta:
         model = Event

@@ -153,9 +153,8 @@ class InitCollections:
                 new_collection.order = order_base + order
                 new_collection.all_filters = collection.get('all_filters', [])
                 new_collection.cat_params = collection.get('cat_params', {})
+                new_collection.xls_export = collection.get('xls_export', False)
                 if is_new:
-                    new_collection.xls_export = collection.get(
-                        'xls_export', False)
                     new_collection.icon = collection.get('icon', None)
                     new_collection.color = collection.get('color', None)
                 new_collection.save()
