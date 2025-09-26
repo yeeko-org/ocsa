@@ -122,7 +122,7 @@ all_collections = {
                 },
             ],
             "xls_export": True,
-            "available_actions": ["merge"],
+            "available_actions": ["merge", "massive_edit"],
         },
         {
             "snake_name": "status_project",

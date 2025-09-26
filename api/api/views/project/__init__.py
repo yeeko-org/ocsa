@@ -14,7 +14,8 @@ from api.pagination import CustomPagination
 from api.views.action_export_xls import ExportXlsMixin
 from api.views.action_file import ActionFileMixin
 from api.views.actor.serializers import ActorFullCountSerializer
-from api.views.common_views import UnaccentSearchFilter, BaseStatusViewSet
+from api.views.common_views import (
+    UnaccentSearchFilter, BaseStatusViewSet, MassiveEdit)
 from api.views.note.serializers import LocationVizSerializer
 from project.models import Conflict, Project, ProjectFile
 
@@ -67,7 +68,8 @@ class ProjectViewSetMixin(viewsets.ModelViewSet):
     ordering = ['id']
 
 
-class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
+class ProjectViewSet(
+        ActionFileMixin, MassiveEdit, ExportXlsMixin, ProjectViewSetMixin):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
