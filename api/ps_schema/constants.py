@@ -120,6 +120,10 @@ all_collections = {
                     "title": "Es agrupador", "field": "is_grouper",
                     "component": "TripleBooleanFilter", "hidden": True
                 },
+                {
+                    "title": "Tiene ubicaciones", "field": "has_locations",
+                    "component": "TripleBooleanFilter", "hidden": True
+                },
             ],
             "xls_export": True,
             "available_actions": ["merge", "massive_edit"],

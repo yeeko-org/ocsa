@@ -1,4 +1,4 @@
-from django_filters import FilterSet, NumberFilter
+from django_filters import FilterSet, NumberFilter, BooleanFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import mixins, permissions, viewsets
@@ -40,6 +40,8 @@ class ProjectFilter(FilterSet):
     extractivism_type = NumberFilter(
         field_name='megaproject_type__extractivism_types',
         lookup_expr='exact')
+    has_locations = BooleanFilter(
+        field_name='locations', lookup_expr='isnull', exclude=True)
 
     class Meta:
         model = Project

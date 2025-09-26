@@ -53,26 +53,7 @@ class LocalityListViewSet(ListSetMixin):
     serializer_class = LocalitySerializer
 
 
-# class LocationFilter(OnlyByFilterMixin):
-#     only_options = ["project", "event", "impact"]
-#
-#     class Meta:
-#         model = Location
-#         fields = ['only_by', "status_location"]
-
-
-class LocationFilter(FilterSet):
-
-    only_by = CharFilter(method='filter_only_by')
-
-    def filter_only_by(self, queryset, name, value):
-        options = ["project", "event", "impact"]
-        # print("filter_only_by", value)
-        if value not in options:
-            return queryset
-
-        filter_kwargs = {f"{value}__isnull": False}
-        return queryset.filter(**filter_kwargs)
+class LocationFilter(OnlyByFilterMixin):
 
     class Meta:
         model = Location
