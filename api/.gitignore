@@ -48,3 +48,5 @@ migrate_files_exit.json
 project_migrate_files_exit.json
 note_migrate_files_exit.json
 /source/fixtures/
+
+staticfiles/

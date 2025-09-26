@@ -44,6 +44,7 @@ class ProjectFilter(FilterSet):
         model = Project
         fields = {
             'status_validation': ['exact'],
+            'status_location': ['exact'],
             'megaproject_type': ['exact'],
             'status_project': ['exact'],
             'is_grouper': ['exact'],
@@ -80,6 +81,7 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
         "mentions__participants__actor",
     ).distinct()
     add_locations = True
+
     xls_attrs = [
         {
             "name": "ID",
@@ -145,7 +147,6 @@ class ProjectViewSet(ActionFileMixin, ExportXlsMixin, ProjectViewSetMixin):
     xls_name = "Exportación de Proyectos"
 
     pagination_class = CustomPagination
-
     filterset_class = ProjectFilter
 
     # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
