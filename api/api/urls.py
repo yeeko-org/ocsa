@@ -35,6 +35,7 @@ router.register(r'project_location', ProjectLocationViewSet,
                 basename='project_location')
 
 router.register(r'conflict', ConflictViewSet, basename='conflict')
+router.register(r'conflict_mini', ConflictViewSet, basename='conflict mini')
 router.register(r'project_file', ProjectFileViewSet, basename='project file')
 
 router.register(r'mention', MentionViewSet, basename='mention')
