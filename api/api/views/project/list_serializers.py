@@ -220,6 +220,6 @@ class ConflictFullSerializer(ConflictSimpleSerializer):
     projects = ProjectBasicSerializer(many=True, read_only=True)
 
 
-class ImpactExportSerializer(serializers.ModelSerializer):
-    pass
-
+# class ImpactExportSerializer(serializers.ModelSerializer):
+#     pass
+#
