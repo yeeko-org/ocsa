@@ -491,10 +491,10 @@ all_collections = {
             "model_name": "Location",
             "level": "primary",
             "available_actions": ["massive_edit"],
-            # "sort_fields": [
-            #     'id', 'status_validation__order', 'name',
-            #     'status_location__order'
-            # ],
+            "sort_fields": [
+                'id', 'status_location__order',
+                { 'mentions_count': 'Cantidad de menciones' },
+            ],
             "all_filters": [
                 {"filter_name": "states", "hidden": False},
                 {

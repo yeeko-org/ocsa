@@ -193,6 +193,7 @@ class ProjectExportSerializer(BaseExportSerializer):
             "name",
             "alternative_name",
             "description",
+            "is_grouper",
             "proyecto_id_ref",
 
             "conflict",

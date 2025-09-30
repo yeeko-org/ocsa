@@ -113,6 +113,11 @@ class ProjectViewSet(
             "field": "description"
         },
         {
+            "name": "Es agrupador",
+            "width": 8,
+            "field": "is_grouper"
+        },
+        {
             "name": "ID de conflicto",
             "width": 5,
             "field": "conflict__id"
