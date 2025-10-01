@@ -427,9 +427,10 @@ export const useMainStore = defineStore('main', {
     },
     async saveSimple([collection, data]) {
       // this.setHeader()
+      const { $api } = useNuxtApp()
       const { method, last_id } = getLastId(data)
       try {
-        let response = await ApiService[method](`/${collection}/${last_id}`, data);
+        let response = await $api[method](`/${collection}/${last_id}`, data);
         return response.data
       } catch (error) {
         console.error(error);
@@ -438,11 +439,12 @@ export const useMainStore = defineStore('main', {
     },
     async saveCatalog([collection_data, data]) {
       // this.setHeader()
+      const { $api } = useNuxtApp()
       const { method, last_id } = getLastId(data)
       const collection = collection_data.snake_name
       const full_url = `catalogs/${collection}/${last_id}`
       try {
-        let response = await ApiService[method](full_url, data);
+        let response = await $api[method](full_url, data);
         if (method === 'post')
           this.cats[collection].unshift(response.data)
         else {
