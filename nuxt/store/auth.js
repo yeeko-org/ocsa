@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 // import Cookie from "js-cookie";
-import ApiService from "~/store/common.js";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -32,12 +31,12 @@ export const useAuthStore = defineStore("auth", {
       }
       this.auth_ocsa = user.token
     },
-    setHeader() {
-      if (this.auth_ocsa) {
-        let token = this.auth_ocsa
-        ApiService.defaults.headers.common['Authorization'] = `Token ${token}`
-      }
-    },
+    // setHeader() {
+    //   if (this.auth_ocsa) {
+    //     let token = this.auth_ocsa
+    //     ApiService.defaults.headers.common['Authorization'] = `Token ${token}`
+    //   }
+    // },
     checkAuthSimple() {
       // const cookie_auth = Cookie.get('auth_ocsa')
       const cookie_auth = useCookie('auth_ocsa')
@@ -59,7 +58,7 @@ export const useAuthStore = defineStore("auth", {
         else if (cookie_auth.value) {
           // console.log("hay cookie", this.auth_ocsa)
           this.auth_ocsa = cookie_auth.value
-          this.setHeader()
+          // this.setHeader()
           this.getLogin()
         }
         else {
@@ -81,8 +80,9 @@ export const useAuthStore = defineStore("auth", {
     getLogin() {
       // console.log("getLogin")
       // return new Promise((resolve) => {
-      this.setHeader()
-      ApiService.get('/login/')
+      // this.setHeader()
+      const { $api } = useNuxtApp()
+      $api.get('/login/')
         .then(({data, status}) => {
           if (status !== 204)
             return this.hasLogged(data)
@@ -96,8 +96,9 @@ export const useAuthStore = defineStore("auth", {
       // })
     },
     loginMail(params) {
+      const { $api } = useNuxtApp()
       return new Promise((resolve) => {
-        ApiService.post('/login/', params)
+        $api.post('/login/', params)
           .then(({data}) => {
             this.hasLogged(data, false)
             return resolve(data)

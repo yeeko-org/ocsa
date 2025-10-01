@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
-import ApiService from "./common";
-import colorMixin from "~/mixins/colorMixin";
+// import ApiService from "./common";
 // import { mande } from 'mande'
+import { defineStore } from 'pinia'
+import colorMixin from "~/mixins/colorMixin";
 import * as d3 from 'd3';
 import axios from "axios";
 import {status_filters} from "~/composables/filters.js";
@@ -351,12 +351,12 @@ export const useMainStore = defineStore('main', {
     full_geo: {"state": {}, "municipality": {}},
   }),
   actions: {
-    setHeader() {
-      const cookie_auth = useCookie('auth_ocsa')
-      if (cookie_auth.value) {
-        ApiService.defaults.headers.common['Authorization'] = `Token ${cookie_auth.value}`
-      }
-    },
+    // setHeader() {
+    //   const cookie_auth = useCookie('auth_ocsa')
+    //   if (cookie_auth.value) {
+    //     $api.defaults.headers.common['Authorization'] = `Token ${cookie_auth.value}`
+    //   }
+    // },
     setFilterGroup(group) {
       this.current_filter_group = group
       if (this.cats_ready)
@@ -376,8 +376,9 @@ export const useMainStore = defineStore('main', {
         this.current_collection]
     },
     fetchCatalogs() {
+      const { $api } = useNuxtApp()
       return new Promise((resolve) => {
-        ApiService.get('/catalogs/all/')
+        $api.get('/catalogs/all/')
           .then(({data}) => {
             // console.log("fetchCatalogs data", data)
             this.cats = data
@@ -396,9 +397,10 @@ export const useMainStore = defineStore('main', {
       })
     },
     async getSimple([group, id]) {
-      this.setHeader()
+      // this.setHeader()
+      const { $api } = useNuxtApp()
       try {
-        let response = await ApiService.get(`/${group}/${id}/`);
+        let response = await $api.get(`/${group}/${id}/`);
         return response.data
       } catch (error) {
         console.error(error)
@@ -406,12 +408,13 @@ export const useMainStore = defineStore('main', {
       }
     },
     async getGeo([group, id]) {
+      const { $api } = useNuxtApp()
       if (this.full_geo[group][id])
         return
       this.full_geo[group][id] = []
-      this.setHeader()
+      // this.setHeader()
       try {
-        let response = await ApiService.get(`space_time/${group}/${id}/`);
+        let response = await $api.get(`space_time/${group}/${id}/`);
         // console.log("getGeo", response.data)
         // this.full_states[id] = response.data.municipalities
         const child = group === 'state' ? 'municipalities' : 'localities'
@@ -423,7 +426,7 @@ export const useMainStore = defineStore('main', {
       }
     },
     async saveSimple([collection, data]) {
-      this.setHeader()
+      // this.setHeader()
       const { method, last_id } = getLastId(data)
       try {
         let response = await ApiService[method](`/${collection}/${last_id}`, data);
@@ -434,7 +437,7 @@ export const useMainStore = defineStore('main', {
       }
     },
     async saveCatalog([collection_data, data]) {
-      this.setHeader()
+      // this.setHeader()
       const { method, last_id } = getLastId(data)
       const collection = collection_data.snake_name
       const full_url = `catalogs/${collection}/${last_id}`
@@ -456,18 +459,20 @@ export const useMainStore = defineStore('main', {
       }
     },
     async patchSimple([collection, id, data]) {
-      this.setHeader()
+      // this.setHeader()
+      const { $api } = useNuxtApp()
       try {
-        let response = await ApiService.patch(`/${collection}/${id}/`, data);
+        let response = await $api.patch(`/${collection}/${id}/`, data);
         return response.data
       } catch (error) {
         console.error(error);
       }
     },
     async deleteSimple([group, id]) {
-      this.setHeader()
+      // this.setHeader()
+      const { $api } = useNuxtApp()
       try {
-        await ApiService.delete(`/${group}/${id}/`);
+        await $api.delete(`/${group}/${id}/`);
         return {success: true}
       } catch (error) {
         console.error(error);
@@ -475,11 +480,12 @@ export const useMainStore = defineStore('main', {
       }
     },
     async deleteCatalog([collection_data, id]) {
-      this.setHeader()
+      // this.setHeader()
+      const { $api } = useNuxtApp()
       const collection = collection_data.snake_name
       const full_url = `catalogs/${collection}/${id}`
       try {
-        await ApiService.delete(full_url);
+        await $api.delete(full_url);
         this.cleanDelete(collection, id)
         // return id
         return {success: true}
@@ -495,9 +501,10 @@ export const useMainStore = defineStore('main', {
       this.all_nodes = calculateNewCats(this.cats, this.schemas)
     },
     async mergeSimple([params, category_name]) {
-      this.setHeader()
+      // this.setHeader()
+      const { $api } = useNuxtApp()
       try {
-        let response = await ApiService.post(`generic_merge/`, params);
+        let response = await $api.post(`generic_merge/`, params);
         if (category_name)
           this.cleanDelete(category_name, params.merge_id)
         return response.data
@@ -507,9 +514,10 @@ export const useMainStore = defineStore('main', {
       }
     },
     async fetchElements([group, params]) {
+      const { $api } = useNuxtApp()
       return new Promise(resolve => {
-        this.setHeader()
-        ApiService.get(`/${group}/`, {
+        // this.setHeader()
+        $api.get(`/${group}/`, {
           cancelToken: request.token, params: params })
           .then(({ data }) => {
             return resolve(data)
@@ -532,7 +540,7 @@ export const useMainStore = defineStore('main', {
     },
     // async fetchElements([group, params]) {
     //   try {
-    //     const result = await ApiService.get(`/${group}/`,
+    //     const result = await $api.get(`/${group}/`,
     //       {params: params, cancelToken: request.token})
     //     return result.data
     //   } catch ((thrown) => {
@@ -543,9 +551,10 @@ export const useMainStore = defineStore('main', {
     //   })
     // },
     async exportData([group, params]) {
+      const { $api } = useNuxtApp()
       return new Promise((resolve, reject) => {
-        this.setHeader()
-        ApiService.get(`/${group}/export_xls/`, {
+        // this.setHeader()
+        $api.get(`/${group}/export_xls/`, {
           params: params,
           responseType: 'blob',
           cancelToken: request.token
@@ -574,9 +583,10 @@ export const useMainStore = defineStore('main', {
       })
     },
     async saveFile([elem_id, file_data, coll_name]) {
+      const { $api } = useNuxtApp()
       try {
         console.log('elem_id', elem_id)
-        let response = await ApiService.post(
+        let response = await $api.post(
           `/${coll_name}/${elem_id}/add_file/`, file_data,
           {headers: {'Content-Type': 'multipart/form-data'
           }});
@@ -586,8 +596,9 @@ export const useMainStore = defineStore('main', {
       }
     },
     async getRelatedActors(proj_id) {
+      const { $api } = useNuxtApp()
       try {
-        let response = await ApiService.get(`/project/${proj_id}/related_actors/`);
+        let response = await $api.get(`/project/${proj_id}/related_actors/`);
         return response.data
       } catch (error) {
         console.error(error)
@@ -595,9 +606,10 @@ export const useMainStore = defineStore('main', {
       }
     },
     async saveCollection(data) {
-      this.setHeader()
+      const { $api } = useNuxtApp()
+      // this.setHeader()
       try {
-        let response = await ApiService.put(`collection/${data.snake_name}/`, data);
+        let response = await $api.put(`collection/${data.snake_name}/`, data);
         return response.data
       } catch (error) {
         console.error(error);
@@ -605,9 +617,10 @@ export const useMainStore = defineStore('main', {
       }
     },
     async deleteOtherParents([collection, id]) {
-      this.setHeader()
+      const { $api } = useNuxtApp()
+      // this.setHeader()
       try {
-        let response = await ApiService.delete(`/${collection}/${id}/delete_other_parents/`);
+        let response = await $api.delete(`/${collection}/${id}/delete_other_parents/`);
         return response.data
       } catch (error) {
         console.error(error);
@@ -615,9 +628,10 @@ export const useMainStore = defineStore('main', {
       }
     },
     async saveSelected([id, data]) {
-      this.setHeader()
+      const { $api } = useNuxtApp()
+      // this.setHeader()
       try {
-        let response = await ApiService.post(`article/${id}/select/`, data);
+        let response = await $api.post(`article/${id}/select/`, data);
         return response.data
       } catch (error) {
         console.error(error);
@@ -625,9 +639,10 @@ export const useMainStore = defineStore('main', {
       }
     },
     async getProjectLocations() {
-      this.setHeader()
+      const { $api } = useNuxtApp()
+      // this.setHeader()
       try {
-        let response = await ApiService.get(`/project_location/`);
+        let response = await $api.get(`/project_location/`);
         return response.data
       } catch (error) {
         console.error(error)
@@ -635,8 +650,9 @@ export const useMainStore = defineStore('main', {
       }
     },
     async sendReprocessScrapedRecord(scraped_id) {
+      const { $api } = useNuxtApp()
       try {
-        let response = await ApiService.post(
+        let response = await $api.post(
           `/scraped_record/${scraped_id}/reprocess/`);
         return response.data
       } catch (error) {

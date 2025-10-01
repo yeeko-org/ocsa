@@ -6,6 +6,7 @@ import {useMainStore} from "~/store/index.js";
 import {useAuthStore} from "~/store/auth.js";
 import {storeToRefs} from "pinia";
 const router = useRouter()
+const config = useRuntimeConfig();
 
 const mainStore = useMainStore()
 const authStore = useAuthStore()
@@ -13,6 +14,8 @@ const { schemas, current_collection_data } = storeToRefs(mainStore)
 const { is_full_editor } = storeToRefs(authStore);
 // const { fetchCatalogs } = mainStore
 const { logout } = authStore
+const admin_url = config.public.adminUrl
+console.log('ADMIN URL:', config.public.adminUrl, admin_url)
 // const route = useRoute()
 
 // onBeforeMount(() => {
@@ -195,7 +198,7 @@ watch(
         </client-only>
         <v-divider></v-divider>
         <v-list-item
-          href="https://apiocsa.yeeko.org/admin/profile_auth/user/"
+          :href="`${admin_url}/profile_auth/user/`"
           target="_blank"
           title="Gestión de usuarios"
         >
@@ -205,7 +208,7 @@ watch(
 
         </v-list-item>
         <v-list-item
-          href="https://apiocsa.yeeko.org/admin/work_flux/statuscontrol/"
+          :href="`${admin_url}/work_flux/statuscontrol/`"
           target="_blank"
           title="Gestión de status"
         >
