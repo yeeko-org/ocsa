@@ -1,5 +1,6 @@
 from django_filters import FilterSet, NumberFilter, BooleanFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from api.views.confirm_delete import CustomDeleteMixin
 
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.decorators import action
@@ -71,7 +72,8 @@ class ProjectViewSetMixin(viewsets.ModelViewSet):
 
 
 class ProjectViewSet(
-        ActionFileMixin, MassiveEdit, ExportXlsMixin, ProjectViewSetMixin):
+        CustomDeleteMixin, ActionFileMixin, MassiveEdit, ExportXlsMixin,
+        ProjectViewSetMixin):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
