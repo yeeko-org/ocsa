@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from api.views.project.list_serializers import (
-    ImpactSerializer, ParticipantSerializer)
+    ImpactSerializer, ParticipantFullSerializer)
 from api.views.project.retrieve_serializers import (
     ConflictSerializer, ProjectFullSerializer)
 # from api.views.space_time.serializers import LocationSerializer
@@ -111,7 +111,7 @@ class InvolvedSerializer(serializers.ModelSerializer):
 
 
 class InvolvedFullSerializer(InvolvedSerializer):
-    participant_full = ParticipantSerializer(
+    participant_full = ParticipantFullSerializer(
         source='participant', read_only=True)
 
 
@@ -148,7 +148,7 @@ class MentionFullSerializer(ConditionalFieldsMixin):
     project_full = ProjectSerializer(
         source='project', read_only=True)
     impacts = ImpactSerializer(many=True)
-    participants = ParticipantSerializer(many=True)
+    participants = ParticipantFullSerializer(many=True)
     events = EventSimpleSerializer(many=True)
     id = serializers.ReadOnlyField()
 

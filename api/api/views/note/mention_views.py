@@ -13,7 +13,7 @@ from api.views.note.serializers import (
     ParticipantSimpleSerializer, InterestSerializer,
     InvolvedSerializer, StatusHistorySerializer, StatusHistoryFullSerializer)
 from api.views.project.list_serializers import (
-    ImpactSerializer, ParticipantSerializer, ImpactSimpleSerializer)
+    ImpactSerializer, ParticipantFullSerializer, ImpactSimpleSerializer)
 from api.views.note.serializers import (
     ImpactFullSerializer, EventFullNoteSerializer)
 from api.views.event.serializers import (
@@ -68,7 +68,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save()
 
-            new_serializer = ParticipantSerializer(
+            new_serializer = ParticipantFullSerializer(
                 serializer.instance)
             return Response(
                 new_serializer.data, status=status.HTTP_201_CREATED)

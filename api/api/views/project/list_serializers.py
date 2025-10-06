@@ -45,7 +45,7 @@ class InterestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Interest
-        fields = ['id', 'interest_type', 'interest_subtype']
+        fields = ['id', 'interest_type', 'interest_subtype', 'participant']
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
