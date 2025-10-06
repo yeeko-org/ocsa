@@ -48,9 +48,13 @@ const full_project = computed(() => {
 
 const related_notes = computed(() => {
   return full_project.value.mentions.map(mention => {
-    const full_mention = {...mention, project: full_project.value}
+    const full_mention = {
+      ...mention,
+      project_full: full_project.value,
+      project: full_project.value.id,
+    }
     return {
-      ...mention.note,
+      ...mention.note_full,
       mentions: [full_mention]
     }
   })
@@ -67,8 +71,8 @@ const related_actors = computed(() => {
         ...participant,
         mention: {
           id: mention.id,
-          note: mention.note.id,
-          note_full: mention.note,
+          note: mention.note_full.id,
+          note_full: mention.note_full,
           project_full: project_full,
           project: project_full.id,
         }
@@ -85,12 +89,15 @@ const related_actors = computed(() => {
     return dict
   }, {})
 
-  return Object.values(actors_dict).map(actor => {
+  let actors_list = Object.values(actors_dict).map(actor => {
     return {
       ...actor,
       mentions_count: actor.participants.length
     }
   })
+  // Sort by number of mentions, descending
+  actors_list.sort((a, b) => b.mentions_count - a.mentions_count)
+  return actors_list
 })
 
 function saveLocations() {
@@ -183,16 +190,24 @@ const children_projects = computed(() => {
     </v-card-title>
     <v-card-text>
       <PanelList
+        v-if="false"
         :results="related_notes"
         :collection_data="note_collection"
         :show_details="show_details"
         parent="project"
       />
+      <PanelsResult
+        :results="related_notes"
+        :collection_data="note_collection"
+        :show_details="show_details"
+        :total_count="related_notes.length"
+        in_sheet
+      />
     </v-card-text>
   </v-card>
   <v-card class="my-3">
     <v-card-title>
-      Todos los actores:
+      Todos los actores ({{ related_actors.length }}):
     </v-card-title>
     <v-card-text>
       <PanelList

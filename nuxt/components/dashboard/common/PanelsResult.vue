@@ -37,6 +37,7 @@ const dialog_edit = ref(false)
 const element_to_edit = ref(null)
 const selected_results = ref([])
 const page_number = ref(1)
+const showing = ref(15)
 
 const edit_component = shallowRef('')
 defineExpose({ addItem, resetPage })
@@ -64,6 +65,12 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_nam
     })
     // edit_component.value = null
   })
+
+const results_showed = computed(() => {
+  if (props.in_sheet)
+    return props.results.slice(0, showing.value)
+  return props.results
+})
 
 function selectAll() {
   if (sel.value.selected_elems.length === props.results.length)
@@ -261,16 +268,31 @@ function selectItem(item) {
       :show_details="show_details"
       @select-item="selectItem"
     />
-    <PanelList
-      v-else
-      :results="results"
-      :collection_data="collection_data"
-      :show_details="show_details"
-      :sel="sel"
-      :is_simple="is_simple"
-      :main_action="final_main_action"
-      @select-item="selectItem"
-    />
+    <template v-else>
+      <PanelList
+        :results="results_showed"
+        :collection_data="collection_data"
+        :show_details="show_details"
+        :sel="sel"
+        :is_simple="is_simple"
+        :main_action="final_main_action"
+        @select-item="selectItem"
+      />
+      <v-card-actions
+        v-if="in_sheet && showing < results.length"
+      >
+        <v-spacer></v-spacer>
+        <v-btn
+          color="accent"
+          variant="outlined"
+          @click="showing += 40"
+          append-icon="expand_more"
+        >
+          Mostrar más resultados
+        </v-btn>
+        <v-spacer></v-spacer>
+      </v-card-actions>
+    </template>
     <v-card-actions v-if="!in_sheet">
       <v-pagination
         v-model="page_number"
