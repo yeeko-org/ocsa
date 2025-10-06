@@ -1,14 +1,14 @@
 from rest_framework import serializers
 
-from actor.models import Participant
 from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
-    ImpactSerializer, ActorBasicSerializer,
+    MentionSerializer, ParticipantFullSerializer,
     ProjectBasicSerializer, ProjectMiniSerializer)
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
 from api.views.common_serializers import ConditionalFieldsMixin
+from space_time.models import Location
 
 
 class ConflictSerializer(ConditionalFieldsMixin):
@@ -20,6 +20,13 @@ class ConflictSerializer(ConditionalFieldsMixin):
 class ExtractivismTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExtractivismType
+        fields = '__all__'
+
+
+class LocationFullSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Location
         fields = '__all__'
 
 
@@ -39,17 +46,8 @@ class NoteFullSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ParticipantFullSerializer(serializers.ModelSerializer):
-    actor_full = ActorBasicSerializer(source='actor', read_only=True)
-
-    class Meta:
-        model = Participant
-        exclude = ['mention']
-
-
-class MentionFullSerializer(serializers.ModelSerializer):
-    impacts = ImpactSerializer(many=True)
-    note = NoteFullSerializer()
+class MentionFullSerializer(MentionSerializer):
+    note_full = NoteFullSerializer(source='note', read_only=True)
     participants = ParticipantFullSerializer(many=True)
 
     class Meta:
@@ -69,6 +67,7 @@ class ProjectFileSerializer(serializers.ModelSerializer):
 class ProjectFullSerializer(ProjectBasicSerializer):
     files = ProjectFileSerializer(many=True, read_only=True)
     conflict_full = ConflictSerializer(read_only=True, source='conflict')
+    locations = LocationFullSerializer(many=True, read_only=True)
     extractivism_type = serializers.SerializerMethodField(
         read_only=True)
     mentions = MentionFullSerializer(many=True, read_only=True)

@@ -4,7 +4,7 @@ from actor.models import Actor, Participant, Interest
 from impact.models import Impact
 from project.models import Project, Conflict, MegaprojectType
 from space_time.models import Location
-from source.models import Mention, Note
+from source.models import Mention
 from api.views.common_serializers import BaseExportSerializer
 from event.models import Event
 from api.views.common_serializers import ConditionalFieldsMixin
@@ -18,18 +18,46 @@ class ActorBasicSerializer(ConditionalFieldsMixin):
 
     class Meta:
         model = Actor
-        exclude = ['std_name', 'capital_id_ref']
+        # exclude = ['std_name', 'capital_id_ref']
+        fields = [
+            'id',
+            'name',
+            'participants_count',
+        ]
+
+
+class ActorFullSerializer(ActorBasicSerializer):
+
+    class Meta:
+        model = Actor
+        fields = [
+            'id',
+            'name',
+            'participants_count',
+            'comments',
+            'sector',
+            'belongs',
+            'status_validation',
+        ]
 
 
 class InterestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Interest
-        fields = '__all__'
+        fields = ['id', 'interest_type', 'interest_subtype']
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
     actor_full = ActorBasicSerializer(source='actor')
+
+    class Meta:
+        model = Participant
+        fields = "__all__"
+
+
+class ParticipantFullSerializer(serializers.ModelSerializer):
+    actor_full = ActorFullSerializer(source='actor')
     interests = InterestSerializer(many=True)
 
     class Meta:
@@ -51,13 +79,6 @@ class ImpactSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class NoteBasicSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Note
-        fields = ['id', 'title', 'source', 'date']
-
-
 class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -69,7 +90,6 @@ class EventSerializer(serializers.ModelSerializer):
 class MentionSerializer(serializers.ModelSerializer):
     impacts = ImpactSerializer(many=True)
     participants = ParticipantSerializer(many=True)
-    note = NoteBasicSerializer()
     events = EventSerializer(many=True)
 
     class Meta:
@@ -77,11 +97,11 @@ class MentionSerializer(serializers.ModelSerializer):
         exclude = ['project']
 
 
-class LocationFullSerializer(serializers.ModelSerializer):
+class LocationBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = '__all__'
+        fields = ['id', 'state']
 
 
 class ProjectMiniSerializer(serializers.ModelSerializer):
@@ -100,7 +120,7 @@ class ConflictSimpleSerializer(serializers.ModelSerializer):
 
 class ProjectBasicSerializer(serializers.ModelSerializer):
     mentions = MentionSerializer(many=True, read_only=True)
-    locations = LocationFullSerializer(many=True, read_only=True)
+    locations = LocationBasicSerializer(many=True, read_only=True)
     conflict_full = ConflictSimpleSerializer(read_only=True, source='conflict')
     children_projects = serializers.PrimaryKeyRelatedField(
         many=True, read_only=True)
@@ -134,7 +154,7 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
 
 
 class ProjectMiniBasicSerializer(serializers.ModelSerializer):
-    locations = LocationFullSerializer(many=True, read_only=True)
+    locations = LocationBasicSerializer(many=True, read_only=True)
     parent_project_full = ProjectMiniSerializer(
         read_only=True, source='parent_project')
 

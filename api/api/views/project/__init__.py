@@ -19,10 +19,11 @@ from api.views.common_views import (
     UnaccentSearchFilter, BaseStatusViewSet, MassiveEdit)
 from api.views.note.serializers import LocationVizSerializer
 from project.models import Conflict, Project, ProjectFile
+from source.models import Mention
 
 from .list_serializers import (
     ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
-    ProjectExportSerializer, ProjectMiniBasicSerializer)
+    ProjectExportSerializer, ProjectMiniBasicSerializer, MentionSerializer)
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 from api.views.note.serializers import ProjectSemiFullSerializer
 
@@ -82,9 +83,12 @@ class ProjectViewSet(
         "children_projects",
         "mentions",
         "mentions__note",
+        "mentions__events",
         "mentions__impacts",
         "mentions__participants",
+        "mentions__participants__interests",
         "mentions__participants__actor",
+        "mentions__participants__actor__belongs",
     ).distinct()
     add_locations = True
 
@@ -184,6 +188,25 @@ class ProjectViewSet(
                 "megaproject_type__extractivism_types"
             ).distinct()
         return queryset
+
+    # def list(self, request, *args, **kwargs):
+    #     response = super().list(request, *args, **kwargs)
+    #     # print("ProjectViewSet.list, response: ", response.data)
+    #     projects_ids = [item['id'] for item in response.data['results']]
+    #     mentions = Mention.objects\
+    #         .filter(project_id__in=projects_ids)\
+    #         .select_related('note')\
+    #         .prefetch_related(
+    #             'events',
+    #             'impacts',
+    #             # 'participants',
+    #             # 'participants__actor',
+    #             # 'participants__interests',
+    #         )
+    #     mentions_serialized = MentionSerializer(mentions, many=True).data
+    #     # response.data["aaa"] = "bbb"
+    #     response.data["mentions"] = mentions_serialized
+    #     return response
 
     def get_serializer_class(self):
         action_serializer = {
