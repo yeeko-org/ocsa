@@ -41,6 +41,13 @@ class ActorFullSerializer(ActorBasicSerializer):
         ]
 
 
+class InterestFullSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Interest
+        fields = '__all__'
+
+
 class InterestSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -58,7 +65,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 class ParticipantFullSerializer(serializers.ModelSerializer):
     actor_full = ActorFullSerializer(source='actor')
-    interests = InterestSerializer(many=True)
+    interests = InterestFullSerializer(many=True)
 
     class Meta:
         model = Participant
