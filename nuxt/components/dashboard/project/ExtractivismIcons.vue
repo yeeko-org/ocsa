@@ -23,7 +23,7 @@ const megaproject_type_node = computed(() => {
 })
 
 const original_types = computed(() => {
-  if (props.project.extractivism_types)
+  if (props.project?.extractivism_types)
     return props.project.extractivism_types
   if (!megaproject_type_node.value)
     return []

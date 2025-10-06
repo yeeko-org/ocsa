@@ -34,7 +34,7 @@ const extractivism_types = computed(() => {
         :main_object="full_main"
         level_name="extractivism_types"
         :items="extractivism_types"
-        label="Tipos de extrativismo"
+        label="Tipos de extractivismo"
         is_multiple
       />
     </v-col>
