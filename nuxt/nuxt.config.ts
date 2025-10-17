@@ -41,7 +41,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     devServer: {
-      timeout: 600000
+      timeout: 300000
     }
   },
   vite: {

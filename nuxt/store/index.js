@@ -432,7 +432,7 @@ export const useMainStore = defineStore('main', {
       try {
         let response = await $api[method](
           `/${collection}/${last_id}`, data,
-          { timeout: 60000 }
+          { timeout: 300000 }
         );
         return response.data
       } catch (error) {
