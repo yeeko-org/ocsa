@@ -39,7 +39,11 @@ export default defineNuxtConfig({
       cert: 'localhost.pem',
     },
   },
-
+  nitro: {
+    devServer: {
+      timeout: 600000
+    }
+  },
   vite: {
     vue: {
       template: {

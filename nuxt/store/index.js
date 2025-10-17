@@ -430,7 +430,10 @@ export const useMainStore = defineStore('main', {
       const { $api } = useNuxtApp()
       const { method, last_id } = getLastId(data)
       try {
-        let response = await $api[method](`/${collection}/${last_id}`, data);
+        let response = await $api[method](
+          `/${collection}/${last_id}`, data,
+          { timeout: 60000 }
+        );
         return response.data
       } catch (error) {
         console.error(error);
