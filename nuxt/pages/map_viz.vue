@@ -40,47 +40,51 @@ function buildMap(data) {
   });
 
   map.value.on('load', () => {
-    // Aquí va toda la lógica de añadir fuentes y capas que describí arriba
-    // 1. Añadir fuente con clustering
+    // Separate points and lines from the data
+    const points = {
+      type: 'FeatureCollection',
+      features: data.features.filter(f => f.geometry.type === 'Point')
+    };
+    
+    const lines = {
+      type: 'FeatureCollection',
+      features: data.features.filter(f => f.geometry.type === 'LineString')
+    };
+
+    // 1. Add source with clustering for points only
     map.value.addSource('proyectos', {
       type: 'geojson',
-      data: data,
+      data: points,
       cluster: true,
-      clusterMaxZoom: 2,
-      clusterRadius: 50
+      clusterMaxZoom: 2, // Increased from 2 to 14 to prevent points from disappearing
+      clusterRadius: 20
     });
 
-    // 2. Añadir capas (clusters, counts, puntos, líneas)
-    // Ejemplo para puntos no clusterizados:
-    // map.value.addLayer({
-    //     id: 'unclustered-point',
-    //     type: 'symbol',
-    //     source: 'proyectos',
-    //     filter: ['!', ['has', 'point_count']],
-    //     layout: {
-    //       'icon-image': ['default-icon' ],
-    //       'icon-size': 1.2,
-    //       'icon-allow-overlap': true
-    //     }
-    // });
+    // 2. Add separate source for lines (no clustering)
+    map.value.addSource('proyectos-lineas', {
+      type: 'geojson',
+      data: lines
+    });
+
+    // 3. Add layer for unclustered points
     map.value.addLayer({
       id: 'unclustered-point',
       type: 'circle',
-        source: 'proyectos',
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': '#007cbf',
-          'circle-radius': 6,
-          'circle-stroke-width': 1,
-          'circle-stroke-color': '#ffffff'
-        }
-    })
+      source: 'proyectos',
+      filter: ['!', ['has', 'point_count']],
+      paint: {
+        'circle-color': '#007cbf',
+        'circle-radius': 6,
+        'circle-stroke-width': 1,
+        'circle-stroke-color': '#ffffff'
+      }
+    });
 
-    // Capa de ejemplo para líneas (no se clusterizan)
+    // 4. Add layer for lines
     map.value.addLayer({
       id: 'proyectos-lineas',
       type: 'line',
-      source: 'proyectos',
+      source: 'proyectos-lineas',
       filter: ['all',
         ['==', '$type', 'LineString']
       ],
@@ -88,12 +92,11 @@ function buildMap(data) {
         'line-color': '#ee0d0d',
         'line-width': 2
       }
-    })
+    });
 
-    // 3. Añadir eventos de clic
+    // 5. Add click events
     map.value.on('click', 'unclustered-point', (e) => {
       const properties = e.features[0].properties;
-      // Deserializar si viene como string JSON desde PostGIS
       const projectData = typeof properties === 'string'
           ? JSON.parse(properties)
           : properties;
@@ -107,10 +110,16 @@ function buildMap(data) {
     });
 
     // Cambiar cursor a puntero
-    map.value.on('mouseenter', ['unclustered-point', 'proyectos-lineas'], () => {
+    map.value.on('mouseenter', 'unclustered-point', () => {
       map.value.getCanvas().style.cursor = 'pointer';
     });
-    map.value.on('mouseleave', ['unclustered-point', 'proyectos-lineas'], () => {
+    map.value.on('mouseleave', 'unclustered-point', () => {
+      map.value.getCanvas().style.cursor = '';
+    });
+    map.value.on('mouseenter', 'proyectos-lineas', () => {
+      map.value.getCanvas().style.cursor = 'pointer';
+    });
+    map.value.on('mouseleave', 'proyectos-lineas', () => {
       map.value.getCanvas().style.cursor = '';
     });
   });
