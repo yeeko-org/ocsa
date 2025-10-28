@@ -26,7 +26,7 @@ const levels = ['group', 'type', 'subtype']
 const options_tab = ref('group')
 
 const need_tabs = computed(() => {
-  console.log('current_filter_group_data', current_filter_group_data.value)
+  // console.log('current_filter_group_data', current_filter_group_data.value)
   let filter_data = current_filter_group_data.value
   if (!filter_data)
     return false

@@ -3,9 +3,9 @@ import {useAuthStore} from "~/store/auth.js";
 // import Cookie from "js-cookie";
 
 export default defineNuxtRouteMiddleware((to, from, next) => {
-  console.log('TO', to)
+  // console.log('TO', to)
   if (to.path === '/') {
-    console.log('redirecting to dashboard')
+    // console.log('redirecting to dashboard')
     return navigateTo('/dashboard')
   }
 

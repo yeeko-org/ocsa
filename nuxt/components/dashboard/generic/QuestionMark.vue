@@ -17,9 +17,9 @@ const props = defineProps({
 const dialog = ref(false)
 
 function saveDefinition() {
-  console.log('props.collection_data', props.collection_data)
+  // console.log('props.collection_data', props.collection_data)
   mainStore.saveCollection(props.collection_data).then((res) => {
-    console.log('res', res)
+    // console.log('res', res)
     dialog.value = false
   })
 }

@@ -41,7 +41,7 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${sheet_na
   })
 
 function saveItem({res, is_new}) {
-  console.log('saveItem', res, is_new)
+  // console.log('saveItem', res, is_new)
   emits('close-dialog', res)
 }
 

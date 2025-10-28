@@ -590,7 +590,7 @@ export const useMainStore = defineStore('main', {
     async saveFile([elem_id, file_data, coll_name]) {
       const { $api } = useNuxtApp()
       try {
-        console.log('elem_id', elem_id)
+        // console.log('elem_id', elem_id)
         let response = await $api.post(
           `/${coll_name}/${elem_id}/add_file/`, file_data,
           {headers: {'Content-Type': 'multipart/form-data'

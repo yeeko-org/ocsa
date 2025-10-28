@@ -65,7 +65,7 @@ onMounted(() => {
 // Initialize the MapBox map
 function initializeMap() {
   if (isMapInitialized.value) return;
-  console.log("existingGeometry", existingGeometry.value);
+  // console.log("existingGeometry", existingGeometry.value);
   mapboxgl.accessToken = 'pk.eyJ1Ijoicmlja3JlYmVsIiwiYSI6ImNrZDRtM2pkaDE2Mm4ycW8zbjl4NmhqNnkifQ.fXsECn7EtVBuGs9sidf94Q';
   // console.log("process.env", process.env)
   // mapboxgl.accessToken = process.env.NUXT_MAPBOX_TOKEN;

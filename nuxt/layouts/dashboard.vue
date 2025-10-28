@@ -51,7 +51,7 @@ const main_collections = computed(() => {
 // const icon = computed(() => group.value.icon || group.parent ?
 
 function openIcon(val){
-  console.log('openIcon', val)
+  // console.log('openIcon', val)
   disable_open.value = true
 }
 
@@ -68,7 +68,7 @@ function openItem(ev, val){
 
 watch(
   group, (val) => {
-    console.log('group', val)
+    // console.log('group', val)
     menu_drawer.value = false
   }
 )

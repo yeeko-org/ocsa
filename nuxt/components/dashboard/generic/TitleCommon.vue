@@ -34,7 +34,6 @@ const props = defineProps({
       {{ title_text }}
     </v-tooltip>
   </v-card>
-
 </template>
 
 <style scoped>

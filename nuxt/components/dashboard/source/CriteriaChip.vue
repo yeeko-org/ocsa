@@ -80,7 +80,7 @@ const total_count = computed(() => {
 })
 
 function addField(field) {
-  console.log('addField', field)
+  // console.log('addField', field)
   if (props.selected_fields.includes(field)){
     const index = props.selected_fields.indexOf(field)
     props.selected_fields.splice(index, 1)

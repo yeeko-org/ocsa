@@ -24,6 +24,7 @@ const loading = ref(false)
 const result_articles = ref([])
 const recordForm = ref(null)
 const months_ago = ref(30)
+const errors = ref(null)
 
 const new_record = ref({
   when: null,
@@ -43,6 +44,7 @@ async function saveScrapedRecord() {
   if (!valid) return
 
   loading.value = true
+  errors.value = null
   result_articles.value = []
   const data = {
     from_date: new_record.value.from_date,
@@ -51,6 +53,11 @@ async function saveScrapedRecord() {
   }
   saveSimple(['scraped_date', data]).then(response => {
     // console.log("response saveScrapedRecord", response)
+    if (response.errors) {
+      loading.value = false
+      errors.value = response.errors
+      return
+    }
     loading.value = false
     new_record.value.from_date = null
     new_record.value.to_date = null
@@ -156,6 +163,15 @@ function selectDay(day) {
         </v-form>
       </v-card>
     </div>
+    <v-alert
+      v-if="errors"
+      type="error"
+      class="mb-4"
+      dense
+      outlined
+    >
+      {{errors}}
+    </v-alert>
     <CalendarDisplay
       :scraped_records="full_main.scraped_records"
       :new_record="new_record"
