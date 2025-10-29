@@ -229,23 +229,21 @@ class ProjectViewSet(
             .distinct()
         return self.filter_queryset(queryset)
 
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        data['editors'] = [request.user.id]
+        return super().create(request, *args, **kwargs)
+
     def update(self, request, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = serializer_class(
-            instance, data=request.data, partial=partial,
-            context=self.get_serializer_context())
-        if serializer.is_valid(raise_exception=True):
-            self.perform_update(serializer)
-            project_saved = serializer.instance
-            project_saved.editors.add(request.user)
-            new_serializer = ProjectFullSerializer(
-                project_saved, context=self.get_serializer_context())
-            return Response(new_serializer.data)
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
 
-        return Response(serializer.errors, status=400)
-
+        project_saved = serializer.instance
+        project_saved.editors.add(request.user)
+        new_serializer = self.get_serializer(project_saved)
+        return Response(new_serializer.data)
 
     @action(detail=True, methods=['get'])
     def related_actors(self, request, pk=None):

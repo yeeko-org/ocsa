@@ -75,6 +75,16 @@ class LocationViewSet(BaseViewSet):
     ordering_fields = ['id', 'status_location__order']
     filterset_class = LocationFilter
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        if 'project' in request.data:
+            serializer.instance.project.editors.add(request.user)
+        final_serializer = self.get_serializer(serializer.instance)
+        return Response(final_serializer.data)
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
