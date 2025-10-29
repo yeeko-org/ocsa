@@ -27,4 +27,4 @@ logs
 *.pem
 
 written
-pages/written.vue
+components/written/written.vue
