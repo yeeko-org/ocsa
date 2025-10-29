@@ -89,7 +89,6 @@ if POSTRGRESQL_DB:
         'PORT': int(os.getenv("DATABASE_PORT", 5432)),
     }
 else:
-
     default_database = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, DATABASE_NAME)
@@ -105,6 +104,36 @@ DATABASES = {
 }
 # ---------------------end Default database configuration---------------------
 
+
+# -----------------------Legacy database configuration------------------------
+DATABASE_LEGACY_NAME = os.getenv("DATABASE_LEGACY_NAME")
+if DATABASE_LEGACY_NAME:
+    POSTRGRESQL_LEGACY_DB = os.getenv('POSTRGRESQL_LEGACY_DB', False)
+    DATABASE_LEGACY_SCHEMA = os.getenv("DATABASE_LEGACY_SCHEMA")
+    if POSTRGRESQL_LEGACY_DB:
+        legacy = {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': DATABASE_LEGACY_NAME,
+            'USER': os.getenv("DATABASE_LEGACY_USER"),
+            'PASSWORD': os.getenv("DATABASE_LEGACY_PASSWORD"),
+            'HOST': os.getenv("DATABASE_LEGACY_HOST"),
+            'PORT': int(os.getenv("DATABASE_LEGACY_PORT", 5432)),
+        }
+    else:
+
+        legacy = {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, DATABASE_LEGACY_NAME)
+        }
+
+    if DATABASE_LEGACY_SCHEMA:
+        legacy['OPTIONS'] = {  # type: ignore
+            'options': f'-c search_path={DATABASE_LEGACY_SCHEMA}',
+        }
+
+    DATABASES["legacy"] = legacy
+    DATABASE_ROUTERS = ['core.routers.LegacyRouter']
+# ---------------------end Legacy database configuration----------------------
 
 # ---------------------------------SECURITY-----------------------------------
 
@@ -153,37 +182,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # -------------------------------END SECURITY---------------------------------
-
-
-# -----------------------Legacy database configuration------------------------
-DATABASE_LEGACY_NAME = os.getenv("DATABASE_LEGACY_NAME")
-if DATABASE_LEGACY_NAME:
-    POSTRGRESQL_LEGACY_DB = os.getenv('POSTRGRESQL_LEGACY_DB', False)
-    DATABASE_LEGACY_SCHEMA = os.getenv("DATABASE_LEGACY_SCHEMA")
-    if POSTRGRESQL_LEGACY_DB:
-        legacy = {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': DATABASE_LEGACY_NAME,
-            'USER': os.getenv("DATABASE_LEGACY_USER"),
-            'PASSWORD': os.getenv("DATABASE_LEGACY_PASSWORD"),
-            'HOST': os.getenv("DATABASE_LEGACY_HOST"),
-            'PORT': int(os.getenv("DATABASE_LEGACY_PORT", 5432)),
-        }
-    else:
-
-        legacy = {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, DATABASE_LEGACY_NAME)
-        }
-
-    if DATABASE_LEGACY_SCHEMA:
-        legacy['OPTIONS'] = {  # type: ignore
-            'options': f'-c search_path={DATABASE_LEGACY_SCHEMA}',
-        }
-
-    DATABASES["legacy"] = legacy
-    DATABASE_ROUTERS = ['core.routers.LegacyRouter']
-# ---------------------end Legacy database configuration----------------------
 
 
 LANGUAGE_CODE = 'es-mx'

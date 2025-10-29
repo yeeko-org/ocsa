@@ -279,7 +279,8 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
 
     queryset = Location.objects.all()\
         .filter(project__isnull=False)\
-        .select_related("project")
+        # .select_related("project")
+        # .select_related("project", "project__megaproject_type")
 
     # queryset = Project.objects.all().prefetch_related("locations").distinct()
     serializer_class = LocationVizSerializer
@@ -303,13 +304,14 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         features = []
+        no_geojson = 0
         for location in serializer.data:
             location_data = location.copy()
             project = location_data.get('project')
             if not project:
                 print("No project found for location:", location)
                 continue
-            geojson = location.pop('geojson', None)
+            geojson = location_data.pop('geojson', None)
             if geojson is not None:
                 if my_features := geojson.get('features'):
                     geojson = my_features[0].get('geometry')
@@ -324,7 +326,8 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
                     }
 
             if not geojson:
-                print("No geojson found for location:", location)
+                # print("No geojson found for location:", location)
+                no_geojson += 1
                 continue
 
             feature = {
@@ -334,6 +337,7 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
             }
             features.append(feature)
 
+        print("No geojson count:", no_geojson)
         return Response({
             "type": "FeatureCollection",
             "features": features

@@ -84,13 +84,33 @@ class ProjectSemiFullSerializer(ConditionalFieldsMixin):
         fields = '__all__'
 
 
+class ExtractivismTypesIdsSerializer(serializers.RelatedField):
+
+    def to_representation(self, value):
+        return value.extractivism_types.values_list('id', flat=True)
+
+
 class ProjectLocationVizSerializer(ConditionalFieldsMixin):
+    # extractivism_types = ExtractivismTypesIdsSerializer(
+    #     source='megaproject_type', read_only=True)
+
+    # extractivism_types2 = serializers.SerializerMethodField()
+    #
+    # def get_extractivism_types2(self, obj):
+    #     if obj.megaproject_type:
+    #         return obj.megaproject_type.extractivism_types.values_list(
+    #             'id', flat=True)
+    #     return []
+
 
     class Meta:
         model = Project
         fields = [
             'id', 'name', 'alternative_name', 'description',
-            'megaproject_type', 'status_project']
+            'megaproject_type', 'status_project',
+            # 'extractivism_types',
+            # 'extractivism_types2'
+        ]
 
 
 class LocationVizSerializer(serializers.ModelSerializer):
