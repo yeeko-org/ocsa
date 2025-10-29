@@ -16,6 +16,10 @@ const props = defineProps({
     default: 64,
   },
   width: Number,
+  is_map_viz: {
+    type: Boolean,
+    default: false,
+  },
 })
 const expansionHeader = ref(null);
 const is_active = ref(false)
@@ -133,8 +137,8 @@ const emits = defineEmits(['open-panel'])
         </v-btn>
       </div>
     </v-toolbar-title>
-    <template v-if="real_show_details">
-      <template v-if="collection_data.status_groups">
+    <template v-if="real_show_details" >
+      <template v-if="collection_data.status_groups && !is_map_viz">
         <div
           v-for="status_group in collection_data.status_groups"
           :key="status_group"
@@ -149,7 +153,7 @@ const emits = defineEmits(['open-panel'])
         </div>
       </template>
       <div
-        v-if="collection_data.has.comments"
+        v-if="collection_data.has.comments && !is_map_viz"
         style="width: 35px;"
       >
         <CommentIcon

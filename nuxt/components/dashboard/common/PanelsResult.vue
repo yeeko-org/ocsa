@@ -24,6 +24,10 @@ const props = defineProps({
   is_simple: Boolean,
   in_sheet: Boolean,
   main_action: String,
+  is_map_viz: {
+    type: Boolean,
+    default: false,
+  }
 })
 
 const group_actions_enabled = ref(true)
@@ -187,7 +191,7 @@ function selectItem(item) {
 
 <template>
   <v-card
-    v-if="group_actions_enabled && !is_mini"
+    v-if="group_actions_enabled && !is_mini && !is_map_viz"
     class="px-2 py-1 d-flex align-center justify-space-between"
     variant="tonal"
     color="secondary"
@@ -277,6 +281,7 @@ function selectItem(item) {
         :is_simple="is_simple"
         :main_action="final_main_action"
         @select-item="selectItem"
+        :is_map_viz="is_map_viz"
       />
       <v-card-actions
         v-if="in_sheet && showing < results.length"
@@ -314,6 +319,7 @@ function selectItem(item) {
     ></v-empty-state>
   </v-card>
   <v-dialog
+    v-if="!is_map_viz"
     v-model="dialog_edit"
     max-width="1200"
   >

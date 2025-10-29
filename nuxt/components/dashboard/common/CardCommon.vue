@@ -89,26 +89,6 @@ function closeChangeDialog(new_item) {
     <v-spacer></v-spacer>
     <div
       class="d-flex align-center"
-      v-if="false"
-    >
-      <v-btn
-        color="accent"
-        variant="text"
-        icon
-        class="mr-2"
-      >
-        <v-icon>visibility</v-icon>
-      </v-btn>
-      <v-btn
-        @click="emits('selected-item', full_main)"
-        color="accent"
-        variant="outlined"
-      >
-        Seleccionar
-      </v-btn>
-    </div>
-    <div
-      class="d-flex align-center"
       :class="{'flex-column': !is_simple && !is_select}"
     >
       <template v-if="full_main">

@@ -337,6 +337,7 @@ function getLastId(data) {
 export const useMainStore = defineStore('main', {
   state: () => ({
     cats: null,
+    // extractivism_types: {},
     all_nodes: {},
     schemas: {},
     cats_ready: false,
@@ -381,6 +382,7 @@ export const useMainStore = defineStore('main', {
         $api.get('/catalogs/all/')
           .then(({data}) => {
             // console.log("fetchCatalogs data", data)
+            // this.extractivism_types = data.extractivism_type
             this.cats = data
             this.schemas = calculateSchemas(data)
             // console.log("schemas", this.schemas)
@@ -679,6 +681,45 @@ export const useMainStore = defineStore('main', {
         })
       })
       return status_dict
+    },
+    extractivism_types_dict(state) {
+      if (!state.cats)
+        return {}
+      let extractivism_dict = {}
+      state.cats.extractivism_type.forEach(et => {
+        extractivism_dict[et.id] = {
+          id: et.id,
+          name: et.name,
+          short_name: et.short_name || et.name,
+          icon: et.icon,
+          color: et.color || '#5d5d5d',
+        }
+      })
+      let other_type = state.cats.extractivism_type.find(et =>
+        et.name.toLowerCase() === 'otro')
+      other_type = other_type ? {
+        id: other_type.id,
+        name: other_type.name,
+        short_name: other_type.short_name || other_type.name,
+        icon: other_type.icon,
+        color: other_type.color || '#753E08',
+      } : {
+        id: 'other',
+        name: 'Otro',
+        short_name: 'Otro',
+        icon: 'help',
+        color: '#ff0000',
+      }
+
+      let mp_types_dict = {}
+      state.cats.megaproject_type.forEach(mp_t => {
+        const first_extractivism = mp_t.extractivism_types[0]
+        if (!first_extractivism)
+          mp_types_dict[mp_t.id] = other_type
+        else
+          mp_types_dict[mp_t.id] = extractivism_dict[first_extractivism]
+      })
+      return mp_types_dict
     },
     collections_summary(state) {
       return state.schemas.collections.reduce((obj, coll) => {

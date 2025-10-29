@@ -15,6 +15,10 @@ const props = defineProps({
   parent: String,
   is_simple: Boolean,
   main_action: String,
+  is_map_viz: {
+    type: Boolean,
+    default: false,
+  }
 })
 
 const open_panels = ref([])
@@ -97,6 +101,7 @@ const elem_id = computed(() => props.collection_data.pk)
       :main="elem"
       :sel="sel"
       :main_action="main_action"
+      :is_map_viz="is_map_viz"
       @finish-open="changeShowDetails"
       @item-saved="addItem"
       @item-deleted="deleteItem"
@@ -113,7 +118,8 @@ const elem_id = computed(() => props.collection_data.pk)
           :show_details="show_details"
           @open-panel="openMain"
           :parent="parent"
-          :is_simple="is_simple"
+          :is_simple="is_simple || is_map_viz"
+          :is_map_viz="is_map_viz"
         />
       </template>
       <template

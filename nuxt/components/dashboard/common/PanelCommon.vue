@@ -14,6 +14,10 @@ const props = defineProps({
   main_action: {
     type: String,
     default: 'checkbox',
+  },
+  is_map_viz: {
+    type: Boolean,
+    default: false,
   }
 })
 
@@ -96,6 +100,7 @@ const saveOrder = (val) => {
 <template>
   <v-expansion-panel class="d-flex">
     <v-sheet
+      v-if="!is_map_viz"
       :color="background_color"
       class="d-flex align-start flex-shrink-0 justify-center"
     >
@@ -150,10 +155,13 @@ const saveOrder = (val) => {
       <div v-else style="width: 40px;">
 
       </div>
-
     </v-sheet>
 
-    <v-sheet class="flex-grow-1" :color="background_color">
+    <v-sheet
+      class="flex-grow-1"
+      :color="background_color"
+      :class="{'pl-2': is_map_viz}"
+    >
       <slot name="header" :main="main" :openMain="openMain">
         <v-expansion-panel-title>
           Cargando detalles...

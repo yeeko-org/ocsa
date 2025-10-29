@@ -6,6 +6,10 @@ import LocationsChip from "~/components/dashboard/project/LocationsChip.vue";
 
 const props = defineProps({
   full_main: Object,
+  is_map_viz: {
+    type: Boolean,
+    default: false,
+  }
 })
 
 </script>
@@ -51,7 +55,7 @@ const props = defineProps({
         class="mx-3"
       ></v-divider>
       <StatusChip
-        v-if="full_main.status_validation"
+        v-if="full_main.status_validation && !is_map_viz"
         :main="full_main"
         collection="validation"
         class="mb-1"
@@ -60,7 +64,7 @@ const props = defineProps({
         left_label
       />
       <v-divider
-        v-if="full_main.status_validation"
+        v-if="full_main.status_validation && !is_map_viz"
         vertical
         class="mx-3"
       ></v-divider>

@@ -29,6 +29,10 @@ const props = defineProps({
   },
   parent: String,
   is_simple: Boolean,
+  is_map_viz: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const note = computed(() => props.main)
@@ -67,6 +71,7 @@ const events_count = computed(() => {
     :show_details="show_details"
     :collection_data="collection_data"
     :height="74"
+    :is_map_viz="is_map_viz"
   >
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
@@ -94,7 +99,7 @@ const events_count = computed(() => {
     </template>
     <template #details>
       <ProjectMiniList
-        v-if="main && (!parent || parent !== 'project')"
+        v-if="!is_map_viz && main && (!parent || parent !== 'project')"
         :mentions="final_mentions"
       />
       <ImpactChip
@@ -117,7 +122,10 @@ const events_count = computed(() => {
         :mentions="final_mentions"
         :is_simple="is_simple"
       />
-      <div class="ml-1 d-flex flex-column align-center">
+      <div
+        v-if="!is_simple && !is_map_viz"
+        class="ml-1 d-flex flex-column align-center"
+      >
         <div class="text-grey text-caption">
           {{main.nota_id_ref}}
         </div>
