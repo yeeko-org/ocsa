@@ -19,7 +19,6 @@ from api.views.common_views import (
     UnaccentSearchFilter, BaseStatusViewSet, MassiveEdit)
 from api.views.note.serializers import LocationVizSerializer
 from project.models import Conflict, Project, ProjectFile
-from source.models import Mention
 
 from .list_serializers import (
     ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
@@ -229,6 +228,24 @@ class ProjectViewSet(
             .prefetch_related("megaproject_type__extractivism_types")\
             .distinct()
         return self.filter_queryset(queryset)
+
+    def update(self, request, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = serializer_class(
+            instance, data=request.data, partial=partial,
+            context=self.get_serializer_context())
+        if serializer.is_valid(raise_exception=True):
+            self.perform_update(serializer)
+            project_saved = serializer.instance
+            project_saved.editors.add(request.user)
+            new_serializer = ProjectFullSerializer(
+                project_saved, context=self.get_serializer_context())
+            return Response(new_serializer.data)
+
+        return Response(serializer.errors, status=400)
+
 
     @action(detail=True, methods=['get'])
     def related_actors(self, request, pk=None):

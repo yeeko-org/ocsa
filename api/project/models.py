@@ -1,6 +1,7 @@
 from django.db import models
 # from space_time.models import Location
 from work_flux.models import StatusControl, CommentsMixin
+from profile_auth.models import User
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -117,6 +118,8 @@ class Project(CommentsMixin, models.Model):
         StatusControl, on_delete=models.CASCADE, blank=True, null=True,
         related_name='project_location')
     comments = models.TextField(blank=True, null=True)
+    editors = models.ManyToManyField(
+        User, blank=True, related_name='projects')
 
     files: models.QuerySet["ProjectFile"]
     status_location_id: str | None

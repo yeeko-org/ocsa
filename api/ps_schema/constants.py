@@ -121,6 +121,10 @@ all_collections = {
                     "component": "TripleBooleanFilter", "hidden": True
                 },
                 {
+                    "title": "Editor", "field": "editor",
+                    "component": "UserSelect", "hidden": True,
+                },
+                {
                     "title": "Tiene ubicaciones", "field": "has_locations",
                     "component": "TripleBooleanFilter", "hidden": True
                 },

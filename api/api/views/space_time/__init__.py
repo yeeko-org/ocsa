@@ -3,6 +3,7 @@ from django_filters import FilterSet, CharFilter
 
 from api.pagination import CustomPagination
 from api.permissions import LocationPermission
+from rest_framework.response import Response
 from space_time.models import (
     State,
     Municipality,
@@ -73,6 +74,17 @@ class LocationViewSet(BaseViewSet):
     # filter_backends = [OrderingFilter, DjangoFilterBackend, SearchFilter]
     ordering_fields = ['id', 'status_location__order']
     filterset_class = LocationFilter
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if 'project' in request.data:
+            serializer.instance.project.editors.add(request.user)
+        final_serializer = self.get_serializer(serializer.instance)
+        return Response(final_serializer.data)
 
     def get_serializer_class(self):
         # action_serializer = {'list': LocationSerializer}
