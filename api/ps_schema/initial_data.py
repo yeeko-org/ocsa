@@ -1,5 +1,7 @@
 from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
-from ps_schema.constants import all_collections, deprecated_collection_links, filter_groups
+from ps_schema.constants import (
+    all_collections, deprecated_collection_links, filter_groups,
+    delete_collections)
 
 
 class InitLevels:
@@ -123,6 +125,9 @@ class InitCollections:
         # Collection.objects.all().delete()
         order_base = 0
         order = 0
+        for collection_snake_name in delete_collections:
+            print(f"Deleting collection: {collection_snake_name}")
+            Collection.objects.filter(snake_name=collection_snake_name).delete()
         for app_label, collections in all_collections.items():
             for collection in collections:
                 order += 1

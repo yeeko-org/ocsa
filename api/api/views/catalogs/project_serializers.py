@@ -10,6 +10,7 @@ class MegaprojectTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MegaprojectType
         fields = "__all__"
+        # exclude = ["has_many_dct"]
 
 
 class MegaprojectTypeCountSerializer(CommonCount):

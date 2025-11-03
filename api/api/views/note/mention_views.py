@@ -224,7 +224,6 @@ class EventFilter(FilterSet):
     class Meta:
         model = Event
         fields = {
-            'event_subtype': ['exact'],
             'event_type': ['exact'],
             'purpose': ['exact'],
         }
@@ -248,7 +247,7 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
 
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
 
-    search_fields = ["description", "event_subtype__name"]
+    search_fields = ["description"]
     ordering_fields = ['id', 'date']
     ordering = ['id']
 
@@ -289,11 +288,6 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             "name": "Tipo de evento",
             "width": 30,
             "field": "event_type__name"
-        },
-        {
-            "name": "Subtipo de evento",
-            "width": 25,
-            "field": "event_subtype"
         },
         {
             "name": "Intención del mecanismo",
@@ -370,7 +364,7 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
                 'mention', 'mention__note',
                 'mention__note__source', 'purpose',
                 'mention__project', 'mention__project__conflict',
-                'event_type', 'event_type__event_group', 'event_subtype'
+                'event_type', 'event_type__event_group',
             )\
             .distinct()
         return self.filter_queryset(queryset)

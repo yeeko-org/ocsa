@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from event.models import (
-    EventGroup, EventType, EventSubtype, InvolvedRole, Purpose)
+    EventGroup, EventType, InvolvedRole, Purpose)
 
 from api.views.common_serializers import CommonCount
 
@@ -11,23 +11,8 @@ class EventGroupSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EventSubtypeSerializer(CommonCount):
-
-    class Meta:
-        model = EventSubtype
-        fields = "__all__"
-
-
-class EventSubtypeFullSerializer(EventSubtypeSerializer):
-    events_count = serializers.SerializerMethodField()
-
-    def get_events_count(self, obj: EventType):
-        return obj.events.count()
-
-
 class EventTypeFullSerializer(serializers.ModelSerializer):
     events_count = serializers.SerializerMethodField()
-    event_subtypes = EventSubtypeSerializer(many=True, read_only=True)
 
     def get_events_count(self, obj: EventType):
         return obj.events.count()
@@ -38,12 +23,6 @@ class EventTypeFullSerializer(serializers.ModelSerializer):
 
 
 class EventTypeSerializer(CommonCount):
-    # impact_subtype_count = serializers.IntegerField(read_only=True)
-    # event_subtype_count = serializers.IntegerField(read_only=True)
-    event_subtype_count = serializers.SerializerMethodField()
-
-    def get_event_subtype_count(self, obj):
-        return obj.event_subtypes.count()
 
     class Meta:
         model = EventType

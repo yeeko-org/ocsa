@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from event.models import Event, Involved, EventType, EventSubtype, EventGroup
+from event.models import Event, Involved, EventType
 
 from api.views.actor.serializers import MentionBaseSerializer
 from api.views.common_serializers import BaseExportSerializer
@@ -62,8 +62,6 @@ class EventExportSerializer(BaseExportSerializer):
     conflict = ConflictSimpleSerializer(
         source='mention.project.conflict', read_only=True)
     event_type = EventTypeSerializer()
-    event_subtype = serializers.CharField(
-        source='event_subtype.name', read_only=True)
     purpose = serializers.CharField(
         source='purpose.name', read_only=True)
 
@@ -77,7 +75,6 @@ class EventExportSerializer(BaseExportSerializer):
             'number_men',
             'number_mix',
             'event_type',
-            'event_subtype',
             'purpose',
 
             'conflict',

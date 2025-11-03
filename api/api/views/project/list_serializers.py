@@ -90,8 +90,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['event_type', 'event_subtype',
-                  'date', 'duration', 'description']
+        fields = ['event_type', 'date', 'duration', 'description']
 
 
 class MentionSerializer(serializers.ModelSerializer):

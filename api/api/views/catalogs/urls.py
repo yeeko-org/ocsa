@@ -11,7 +11,7 @@ from api.views.catalogs import (
 )
 from api.views.article.views import SourceViewSet
 from api.views.catalogs.event_views import (
-    EventGroupViewSet, EventTypeViewSet, EventSubtypeViewSet,
+    EventGroupViewSet, EventTypeViewSet,
     PurposeViewSet)
 from api.views.actor.classify_views import IndigenousGroupViewSet, SectorViewSet, SectorGroupViewSet, \
     ParticipantGroupViewSet, ParticipantTypeViewSet, BelongViewSet, CountryViewSet
@@ -39,7 +39,6 @@ router.register(r'interest_subtype', InterestSubtypeViewSet, basename='catalog_i
 
 router.register(r'event_group', EventGroupViewSet, basename='catalog_event_group')
 router.register(r'event_type', EventTypeViewSet, basename='catalog_event_type')
-router.register(r'event_subtype', EventSubtypeViewSet, basename='catalog_event_subtype')
 router.register(r'purpose', PurposeViewSet, basename='catalog_purpose')
 router.register(r'involved_role', InvolvedRoleViewSet, basename='catalog_involved_role')
 

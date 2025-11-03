@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite, register
 
-from .models import EventSubtype, EventType, EventGroup
+from .models import EventType, EventGroup
 
 
-@register(EventSubtype, EventType, EventGroup)
+@register(EventType, EventGroup)
 class EventAdmin(admin.ModelAdmin):
     pass
 

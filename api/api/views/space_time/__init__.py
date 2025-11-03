@@ -80,7 +80,7 @@ class LocationViewSet(BaseViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        if 'project' in request.data:
+        if serializer.instance.project:
             serializer.instance.project.editors.add(request.user)
         final_serializer = self.get_serializer(serializer.instance)
         return Response(final_serializer.data)
@@ -91,7 +91,7 @@ class LocationViewSet(BaseViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
-        if 'project' in request.data:
+        if serializer.instance.project:
             serializer.instance.project.editors.add(request.user)
         final_serializer = self.get_serializer(serializer.instance)
         return Response(final_serializer.data)

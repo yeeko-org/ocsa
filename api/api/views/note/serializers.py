@@ -102,14 +102,11 @@ class ProjectLocationVizSerializer(ConditionalFieldsMixin):
     #             'id', flat=True)
     #     return []
 
-
     class Meta:
         model = Project
         fields = [
             'id', 'name', 'alternative_name', 'description',
-            'megaproject_type', 'status_project',
-            # 'extractivism_types',
-            # 'extractivism_types2'
+            'megaproject_type'
         ]
 
 

@@ -122,10 +122,6 @@ class Sector(models.Model):
     description = models.TextField(blank=True, null=True)
     sector_group = models.ForeignKey(
         SectorGroup, on_delete=models.CASCADE, related_name='sectors')
-    common_participant_types = models.ManyToManyField(
-        ParticipantType, blank=True, related_name='sectors')
-    common_belongs = models.ManyToManyField(
-        Belong, blank=True, related_name='sectors')
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
@@ -162,8 +158,8 @@ class InterestType(models.Model):
         InterestGroup, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    participant_types = models.ManyToManyField(
-        ParticipantType, blank=True, related_name='interest_types')
+    # participant_types = models.ManyToManyField(
+    #     ParticipantType, blank=True, related_name='interest_types')
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)

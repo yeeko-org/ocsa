@@ -380,25 +380,19 @@ all_collections = {
             "plural_name": "Grupos de Eventos",
             "model_name": "EventGroup",
             "open_insertion": False,
-            "level": "category_group",
+            # "level": "category_group",
+            "level": "category_type",
         },
         {
             "snake_name": "event_type",
             "name": "Tipo de Evento",
             "plural_name": "Tipos de Eventos",
             "model_name": "EventType",
-            "level": "category_type",
-            "open_insertion": True,
-            "available_actions": ["merge", "massive_edit"],
-        },
-        {
-            "snake_name": "event_subtype",
-            "name": "Subtipo de Evento",
-            "plural_name": "Subtipos de Eventos",
-            "model_name": "EventSubtype",
+            # "level": "category_type",
             "level": "category_subtype",
             "open_insertion": True,
-            "available_actions": ["merge"],
+            "available_actions": ["merge", "massive_edit"],
+            # "all_filters": [
         },
         {
             "snake_name": "involved_role",
@@ -514,6 +508,9 @@ all_collections = {
         },
     ]
 }
+
+delete_collections = ["event_subtype"]
+
 all_available_actions = [
     "massive_delete",
     "merge",
@@ -594,9 +591,9 @@ filter_groups = [
         "name": "Clasificación de Evento",
         "plural_name": "Clasificaciones de Eventos",
         "main_collection": "event-event",
-        "category_group": "event-event_group",
-        "category_type": "event-event_type",
-        "category_subtype": "event-event_subtype",
+        "category_type": "event-event_group",
+        "category_subtype": "event-event_type",
+        # "category_subtype": "event-event_subtype",
         "addl_config": {
             "short_prev": "Ev.",
             "prev": "Evento",

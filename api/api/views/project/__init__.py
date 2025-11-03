@@ -1,4 +1,4 @@
-from django_filters import FilterSet, NumberFilter, BooleanFilter
+from django_filters import FilterSet, NumberFilter, BooleanFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from api.views.confirm_delete import CustomDeleteMixin
 
@@ -36,13 +36,19 @@ class ProjectFilter(FilterSet):
         field_name='mentions__impacts__impact_subtype', lookup_expr='exact')
     event_type = NumberFilter(
         field_name='mentions__events__event_type', lookup_expr='exact')
-    event_subtype = NumberFilter(
-        field_name='mentions__events__event_subtype', lookup_expr='exact')
-    extractivism_type = NumberFilter(
-        field_name='megaproject_type__extractivism_types',
-        lookup_expr='exact')
+    # extractivism_type = NumberFilter(
+    #     field_name='megaproject_type__extractivism_types',
+    #     lookup_expr='exact')
+    extractivism_type = CharFilter(method='filter_extractivism_type')
     has_locations = BooleanFilter(
         field_name='locations', lookup_expr='isnull', exclude=True)
+
+    def filter_extractivism_type(self, queryset, name, value):
+        print("Filtering by extractivism_type:", value)
+        if value == 0:
+            return queryset.filter(
+                megaproject_type__extractivism_types__isnull=True)
+        return queryset.filter(megaproject_type__extractivism_types=value)
 
     class Meta:
         model = Project
@@ -292,8 +298,8 @@ class ProjectLocationFilter(FilterSet):
 class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [LocationPermission]
 
-    queryset = Location.objects.all()\
-        .filter(project__isnull=False)\
+    queryset = Location.objects.all()
+        # .filter(project__isnull=False)\
         # .select_related("project")
         # .select_related("project", "project__megaproject_type")
 
@@ -309,50 +315,129 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         if not self.request.user.is_authenticated:
-            queryset = queryset.filter(status_location__is_public=True)
+            queryset = queryset.filter(
+                status_location__is_public=True, project__isnull=False)\
+                .select_related("project")
         else:
             # TODO: Algún día lo quitaremos
-            queryset = queryset.filter(status_location__is_public=True)
+            queryset = queryset.filter(
+                status_location__is_public=True, project__isnull=False)\
+                .select_related("project")
         return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
+        location_points = queryset.filter(
+            type_location='point', latitude__isnull=False,
+            longitude__isnull=False) \
+            .select_related("project")
+        other_locations = queryset.\
+            filter(geojson__isnull=False)\
+            .exclude(type_location='point')\
+            .select_related("project")
         features = []
         no_geojson = 0
-        for location in serializer.data:
-            location_data = location.copy()
-            project = location_data.get('project')
-            if not project:
-                print("No project found for location:", location)
-                continue
-            geojson = location_data.pop('geojson', None)
-            if geojson is not None:
-                if my_features := geojson.get('features'):
-                    geojson = my_features[0].get('geometry')
 
-            if not geojson and location.get('type_location') == 'point':
-                latitude = location.get('latitude')
-                longitude = location.get('longitude')
-                if latitude is not None and longitude is not None:
-                    geojson = {
-                        "type": "Point",
-                        "coordinates": [longitude, latitude]
-                    }
+        # all_locations = location_points | other_locations
+        # serializer = self.get_serializer(all_locations, many=True)
+        # for location in serializer.data:
+        #     location_data = location.copy()
+        #     project = location_data.get('project')
+        #     if not project:
+        #         print("No project found for location:", location)
+        #         continue
+        #     geojson = location_data.pop('geojson', None)
+        #     if geojson is not None:
+        #         if my_features := geojson.get('features'):
+        #             geojson = my_features[0].get('geometry')
+        #
+        #     if not geojson and location.get('type_location') == 'point':
+        #         latitude = location.get('latitude')
+        #         longitude = location.get('longitude')
+        #         if latitude is not None and longitude is not None:
+        #             geojson = {
+        #                 "type": "Point",
+        #                 "coordinates": [longitude, latitude]
+        #             }
+        #
+        #     if not geojson:
+        #         # print("No geojson found for location:", location)
+        #         no_geojson += 1
+        #         continue
+        #
+        #     feature = {
+        #         "type": "Feature",
+        #         "geometry": geojson,
+        #         "properties": location_data,
+        #     }
+        #     features.append(feature)
 
-            if not geojson:
-                # print("No geojson found for location:", location)
-                no_geojson += 1
+        # return Response(serializer.data)
+        keep_fields = [
+            "id", "state", "municipality", "locality", "project"]
+
+        serializer_points = self.get_serializer(location_points, many=True)
+        for loc_point in serializer_points.data:
+            latitude = loc_point.get('latitude', None)
+            longitude = loc_point.get('longitude', None)
+            if latitude is None or longitude is None:
                 continue
+            latitude = int(latitude * 100000) / 100000
+            longitude = int(longitude * 100000) / 100000
+            properties = {}
+            for key in keep_fields:
+                properties[key] = loc_point.get(key)
+            geojson = {
+                "type": "Point",
+                "coordinates": [longitude, latitude]
+            }
 
             feature = {
                 "type": "Feature",
                 "geometry": geojson,
-                "properties": location_data,
+                "properties": properties,
             }
             features.append(feature)
 
-        print("No geojson count:", no_geojson)
+        serializer_other = self.get_serializer(other_locations, many=True)
+        extra_large_locations = []
+        for loc_data in serializer_other.data:
+            geojson = loc_data.get('geojson', None)
+            if my_features := geojson.get('features'):
+                new_geojson = my_features[0].get('geometry').copy()
+                coordinates = new_geojson.get('coordinates', [])
+                if len(coordinates) > 100:
+                    extra_large_locations.append(loc_data)
+                new_coordinates = []
+                for coord_set in coordinates:
+                    new_coord_set = []
+                    for coord in coord_set:
+                        if isinstance(coord, list):
+                            new_sub_coord = []
+                            for sub_coord in coord:
+                                new_sub_coord.append(
+                                    int(sub_coord * 100000) / 100000)
+                            new_coord_set.append(new_sub_coord)
+                        else:
+                            new_coord_set.append(int(coord * 100000) / 100000)
+
+                    new_coordinates.append(new_coord_set)
+                new_geojson['coordinates'] = new_coordinates
+
+            else:
+                continue
+
+            properties = {}
+            for key in keep_fields:
+                properties[key] = loc_data.get(key)
+
+            feature = {
+                "type": "Feature",
+                "geometry": new_geojson,
+                "properties": properties,
+            }
+            features.append(feature)
+
         return Response({
             "type": "FeatureCollection",
             "features": features

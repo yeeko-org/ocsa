@@ -83,9 +83,9 @@ class Event(models.Model):
     # RICK: Temporal, hasta que no existan ya conflictos
     event_type = models.ForeignKey(
         EventType, on_delete=models.CASCADE, related_name='events')
-    event_subtype = models.ForeignKey(
-        EventSubtype, on_delete=models.CASCADE, blank=True, null=True,
-        related_name='events')
+    # event_subtype = models.ForeignKey(
+    #     EventSubtype, on_delete=models.CASCADE, blank=True, null=True,
+    #     related_name='events')
     date = models.DateField(blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
     number_women = models.IntegerField(blank=True, null=True)

@@ -55,13 +55,11 @@ from api.views.catalogs.classify_serializers import (
 from event.models import (
     EventGroup,
     EventType,
-    EventSubtype,
     InvolvedRole,
     Purpose)
 from api.views.catalogs.event_serializers import (
     EventGroupSerializer,
     EventTypeSerializer,
-    EventSubtypeSerializer,
     InvolvedRoleSerializer,
     PurposeSerializer,
 )
@@ -85,10 +83,17 @@ class CatalogsView(APIView):
         network_list_sorted = sorted(list(networks))
         final_networks = [{"name": f"Red {i}", "id": i}
                           for i in network_list_sorted]
+        megaproject_types = MegaprojectType.objects.all()\
+            .prefetch_related("extractivism_types")
         catalogs = {
+            # cortos: 56 ms (183 kb)
+            # con largos: 450 ms (303 kb)
+
+            # 30 ms
             "user": UserProfileSerializer(
                 User.objects.all(), many=True).data,
 
+            # 42 ms
             "participant_type": ParticipantTypeSerializer(
                 ParticipantType.objects.all(), many=True).data,
             "participant_group": ParticipantGroupSerializer(
@@ -103,8 +108,11 @@ class CatalogsView(APIView):
                 Sector.objects.all(), many=True).data,
             "country": CountrySerializer(
                 Country.objects.all(), many=True).data,
+
+            # 28 ms
             "network": final_networks,
 
+            # 34 ms
             "interest_group": InterestGroupSerializer(
                 InterestGroup.objects.all(), many=True).data,
             "interest_type": InterestTypeSerializer(
@@ -112,17 +120,19 @@ class CatalogsView(APIView):
             "interest_subtype": InterestSubtypeSerializer(
                 InterestSubtype.objects.all(), many=True).data,
 
+            # 63 ms
             "event_group": EventGroupSerializer(
                 EventGroup.objects.all(), many=True).data,
+            # has_count
             "event_type": EventTypeSerializer(
                 EventType.objects.all(), many=True).data,
-            "event_subtype": EventSubtypeSerializer(
-                EventSubtype.objects.all(), many=True).data,
-            "involved_role": InvolvedRoleSerializer(
-                InvolvedRole.objects.all(), many=True).data,
+            # has_count
             "purpose": PurposeSerializer(
                 Purpose.objects.all(), many=True).data,
+            "involved_role": InvolvedRoleSerializer(
+                InvolvedRole.objects.all(), many=True).data,
 
+            # 28 ms
             "dimension": DimensionSerializer(
                 Dimension.objects.all(), many=True).data,
             "population_size": PopulationSizeSerializer(
@@ -130,6 +140,7 @@ class CatalogsView(APIView):
             "temporality": TemporalitySerializer(
                 Temporality.objects.all(), many=True).data,
 
+            # 32 ms
             "impact_group": ImpactGroupSerializer(
                 ImpactGroup.objects.all(), many=True).data,
             "impact_subtype": ImpactSubtypeSimpleSerializer(
@@ -137,15 +148,15 @@ class CatalogsView(APIView):
             "impact_type": ImpactTypeSimpleSerializer(
                 ImpactType.objects.all(), many=True).data,
 
+            # 54 ms
             "megaproject_type": MegaprojectTypeSerializer(
-                MegaprojectType.objects.all(), many=True).data,
+                megaproject_types, many=True).data,
             "extractivism_type": ExtractivismTypeSerializer(
                 ExtractivismType.objects.all(), many=True).data,
-            # "status_project": StatusProjectSerializer(
-            #     StatusProject.objects.all(), many=True).data,
             "status_project": StatusProjectSerializer(
                 StatusProject.objects.all(), many=True).data,
 
+            # 32 ms
             "source": SourceSerializer(
                 Source.objects.all(), many=True).data,
             "status_control": StatusControlSerializer(
@@ -153,6 +164,7 @@ class CatalogsView(APIView):
             "state": StateListSerializer(
                 State.objects.all(), many=True).data,
 
+            # 44 ms
             "levels": LevelSerializer(
                 Level.objects.all(), many=True).data,
             "collections": CollectionSerializer(
