@@ -219,8 +219,8 @@ const calculateNewCats = (data, schemas) => {
       })
       if (some_is_empty){
         let new_type ={
-          id: 'empty',
-          new_id: "type_empty",
+          id: 0,
+          new_id: "type_0",
           name: 'Desconocido ⚠️',
           original_types: null,
           color: "red",
@@ -244,7 +244,7 @@ const calculateNewCats = (data, schemas) => {
         if (all_types.length === 1)
           st.parent_id = `type_${all_types[0]}`
         else if (!all_types.length){
-          st.parent_id = "type_empty"
+          st.parent_id = "type_0"
           // console.log("No first type", st)
         }
         else{
@@ -447,7 +447,7 @@ export const useMainStore = defineStore('main', {
       const { $api } = useNuxtApp()
       const { method, last_id } = getLastId(data)
       const collection = collection_data.snake_name
-      const full_url = `catalogs/${collection}/${last_id}`
+      const full_url = `catalogs/${collection}/${last_id}/`
       try {
         let response = await $api[method](full_url, data);
         if (method === 'post')
@@ -490,7 +490,7 @@ export const useMainStore = defineStore('main', {
       // this.setHeader()
       const { $api } = useNuxtApp()
       const collection = collection_data.snake_name
-      const full_url = `catalogs/${collection}/${id}`
+      const full_url = `catalogs/${collection}/${id}/`
       try {
         await $api.delete(full_url);
         this.cleanDelete(collection, id)
@@ -645,11 +645,11 @@ export const useMainStore = defineStore('main', {
         return {errors: error.response.data}
       }
     },
-    async getProjectLocations() {
+    async getProjectLocations(subgroup_name) {
       const { $api } = useNuxtApp()
       // this.setHeader()
       try {
-        let response = await $api.get(`/project_location/`);
+        let response = await $api.get(`/project_location/?loc_type=${subgroup_name}`);
         return response.data
       } catch (error) {
         console.error(error)
@@ -682,7 +682,7 @@ export const useMainStore = defineStore('main', {
       })
       return status_dict
     },
-    extractivism_types_dict(state) {
+    megaproject_types_dict(state) {
       if (!state.cats)
         return {}
       let extractivism_dict = {}
@@ -703,22 +703,29 @@ export const useMainStore = defineStore('main', {
         short_name: other_type.short_name || other_type.name,
         icon: other_type.icon,
         color: other_type.color || '#753E08',
+        extractivism_types: [],
       } : {
         id: 'other',
         name: 'Otro',
         short_name: 'Otro',
         icon: 'help',
         color: '#ff0000',
+        extractivism_types: [],
       }
 
       let mp_types_dict = {}
+      // console.log("extractivism_dict", extractivism_dict)
+      // console.log("megaproject_type", state.cats.megaproject_type)
       state.cats.megaproject_type.forEach(mp_t => {
         const first_extractivism = mp_t.extractivism_types[0]
+        mp_types_dict[mp_t.id] = mp_t
         if (!first_extractivism)
-          mp_types_dict[mp_t.id] = other_type
-        else
-          mp_types_dict[mp_t.id] = extractivism_dict[first_extractivism]
+          mp_types_dict[mp_t.id]["first_extractivism_type"] = other_type
+        else{
+          mp_types_dict[mp_t.id]["first_extractivism_type"] = extractivism_dict[first_extractivism]
+        }
       })
+      // console.log("mp_types_dict", mp_types_dict)
       return mp_types_dict
     },
     collections_summary(state) {

@@ -89,7 +89,7 @@ const mention_counts = computed(() => {
       <HeaderChip
         v-if="main.is_grouper && main.children_projects"
         :count="main.children_projects.length"
-        icon="account_tree"
+        icon="hub"
         label="proyecto hijo"
         label_plural="proyectos hijos"
         collection_name="actor"
@@ -124,7 +124,7 @@ const mention_counts = computed(() => {
       <HeaderChip
         v-if="main.others_parents && main.others_parents.length"
         :count="main.others_parents.length"
-        icon="account_tree"
+        icon="hub"
         label="otros proyectos agrupadores"
         color="warning"
         label_plural="otros actores padres"

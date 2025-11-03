@@ -37,6 +37,7 @@ const has_select = ref(null)
 const dialog_delete = ref(false)
 const mentionForm = ref(null)
 const participantsToolbarRef = ref(null)
+const eventsToolbarRef = ref(null)
 
 const emits = defineEmits(['mention-saved', 'mention-deleted'])
 
@@ -89,6 +90,7 @@ function allFinished() {
     all_saving.value = false
     // console.log("participantsToolbarRef", participantsToolbarRef.value)
     participantsToolbarRef.value.resetInitialData()
+    eventsToolbarRef.value.resetInitialData()
   })
 }
 
@@ -257,6 +259,7 @@ function deleteMention() {
             @selected-item="saveParticipant($event)"
           />
           <EventToolbar
+            ref="eventsToolbarRef"
             :mention="mention"
           />
           <v-row v-if="save_errors.length > 0">

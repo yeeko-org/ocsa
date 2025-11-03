@@ -31,6 +31,7 @@ const props = defineProps({
   is_display: Boolean,
   required: Boolean,
   forced_clearable: Boolean,
+  show_console: Boolean,
 })
 
 const collection_display = ref(null)
@@ -497,6 +498,7 @@ function changeValue(level_name, value){
     :collection_data="collections.subtype"
     @open-dialog="openDialog('subtype', $event)"
   />
+
   <v-dialog
     v-model="dialog_add"
     max-width="1020"

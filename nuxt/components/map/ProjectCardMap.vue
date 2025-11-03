@@ -99,7 +99,7 @@ const plural_comp = computed(() => {
 
 <template>
   <v-card
-    max-width="480"
+    width="480"
     max-height="80vh"
     class="ma-3 project-card"
   >
@@ -137,45 +137,46 @@ const plural_comp = computed(() => {
         <v-icon>close</v-icon>
       </v-btn>
     </v-card>
-    <v-progress-linear
+    <template
       v-else
-      height="40"
-      indeterminate
-      :color="selectedProject.color || 'primary'"
-    ></v-progress-linear>
-    <v-card-text v-if="false">
-      <h3>Nombre: {{selectedProject.project.name}}</h3>
-      <p><strong>Tipo de Megaproyecto:</strong>
-        {{selectedProject}}
-      </p>
-    </v-card-text>
-      <v-card-text v-if="full_main">
-      <span class="text-subtitle-1 text-blue">
-        Todos los actores ({{ related_actors.length }}):
-      </span>
+    >
+      <v-card-text>
+        <h3>{{selectedProject.project.name}}</h3>
+      </v-card-text>
 
-      <PanelsResult
-        :results="related_actors"
-        :collection_data="actor_collection"
-        :show_details="show_details"
-        :total_count="related_actors.length"
-        in_sheet
-        is_map_viz
-      />
+      <v-progress-linear
+        height="40"
+        indeterminate
+        :color="selectedProject.color || 'primary'"
+      ></v-progress-linear>
+    </template>
+    <v-card-text v-if="full_main">
+    <span class="text-subtitle-1 text-blue">
+      Todos los actores ({{ related_actors.length }}):
+    </span>
 
-      <span class="text-subtitle-1 text-deep-purple mt-2">
-        {{related_notes.length}}
-        Nota{{plural_comp}} relacionada{{plural_comp}}:
-      </span>
-      <PanelsResult
-        :results="related_notes"
-        :collection_data="note_collection"
-        :show_details="true"
-        :total_count="related_notes.length"
-        in_sheet
-        is_map_viz
-      />
-    </v-card-text>
+    <PanelsResult
+      :results="related_actors"
+      :collection_data="actor_collection"
+      :show_details="show_details"
+      :total_count="related_actors.length"
+      in_sheet
+      is_map_viz
+    />
+
+    <span class="text-subtitle-1 text-deep-purple mt-2">
+      {{related_notes.length}}
+      Nota{{plural_comp}} relacionada{{plural_comp}}:
+    </span>
+    <PanelsResult
+      :results="related_notes"
+      :collection_data="note_collection"
+      :show_details="true"
+      :total_count="related_notes.length"
+      in_sheet
+      is_map_viz
+    />
+  </v-card-text>
   </v-card>
 </template>
 

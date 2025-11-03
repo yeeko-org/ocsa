@@ -27,7 +27,6 @@ function resetInitialData(){
     mainToolbarRef.value.resetInitialData()
   if (secondToolbarRef.value)
     secondToolbarRef.value.resetInitialData()
-
 }
 
 </script>

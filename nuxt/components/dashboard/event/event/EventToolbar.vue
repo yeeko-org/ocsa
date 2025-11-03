@@ -13,16 +13,27 @@ const props = defineProps({
   mention: Object,
 })
 
+const mainToolbarRef = ref(null)
+defineExpose({ resetInitialData })
+
 const all_actors = computed(() => {
   return props.mention.participants.map(participant => {
     return {...participant.actor_full, ...participant}
   })
 })
 
+
+function resetInitialData(){
+  if (mainToolbarRef.value)
+    mainToolbarRef.value.resetInitialData()
+}
+
+
 </script>
 
 <template>
   <ToolbarCommon
+    ref="mainToolbarRef"
     :main_object="mention"
     main_collection_name="mention"
     filter_group_name="event_types"
@@ -32,6 +43,7 @@ const all_actors = computed(() => {
     partial_save
     color="lime"
     required_field="event_type"
+    required_full_category
     :additional_fields="{
       'involvements': [], 'locations': [], 'displacements': []}"
     required

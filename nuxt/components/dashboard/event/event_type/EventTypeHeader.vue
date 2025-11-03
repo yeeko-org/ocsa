@@ -27,8 +27,9 @@ const props = defineProps({
         filter_group_name="event_types"
         main_collection_name="event_type"
         field="event_group"
-        forced_level="type"
+        forced_level="subtype"
         is_display
+        show_console
       />
     </template>
     <template #details>
@@ -36,12 +37,6 @@ const props = defineProps({
         class="ml-3"
         :count="main.count"
         collection_name="event"
-      />
-      <HeaderChip
-        class="ml-3"
-        color="lime-darken-2"
-        :count="main.event_subtype_count"
-        collection_name="event_subtype"
       />
       <v-icon
         v-if="main.has_displacement"

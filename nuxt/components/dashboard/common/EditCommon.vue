@@ -223,7 +223,7 @@ function deleteRecord() {
             :loading="deleting"
             @click="deleteRecord"
           >
-            Eliminar
+            Sí eliminar
           </v-btn>
         </v-card-actions>
       </v-card>

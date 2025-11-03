@@ -30,7 +30,7 @@ const props = defineProps({
         class="mr-2"
         v-tooltip="'Es un agrupador de proyectos.'"
       >
-        account_tree
+        hub
       </v-icon>
       <div>
         <span class="text-h6">

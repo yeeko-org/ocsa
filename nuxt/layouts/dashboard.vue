@@ -213,7 +213,7 @@ watch(
           title="Gestión de status"
         >
           <template v-slot:prepend>
-            <v-icon color="accent">account_tree</v-icon>
+            <v-icon color="accent">hub</v-icon>
           </template>
         </v-list-item>
       </v-list>

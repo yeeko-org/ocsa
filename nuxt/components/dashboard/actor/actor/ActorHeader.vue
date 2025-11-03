@@ -141,7 +141,7 @@ const participants = computed(() => {
       <HeaderChip
         v-if="actor.children_actors && actor.children_actors.length"
         :count="actor.children_actors.length"
-        icon="account_tree"
+        icon="hub"
         label="actor hijo"
         label_plural="actores hijos"
         collection_name="actor"
@@ -150,7 +150,7 @@ const participants = computed(() => {
       <HeaderChip
         v-if="actor.others_parents && actor.others_parents.length"
         :count="actor.others_parents.length"
-        icon="account_tree"
+        icon="hub"
         label="otro actor padre"
         color="warning"
         label_plural="otros actores padres"

@@ -1,20 +1,15 @@
 <script setup>
 
 import {computed} from "vue";
-import dayjs from "dayjs";
+
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import ImpactChip from "~/components/dashboard/impact/ImpactChip.vue";
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
-import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 
-import {storeToRefs} from "pinia";
-import {useMainStore} from "~/store/index.js";
-import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
-const mainStore = useMainStore()
-const { cats } = storeToRefs(mainStore)
+import NoteTitle from "~/components/dashboard/source/note/NoteTitle.vue";
 
 const props = defineProps({
   main: Object,
@@ -42,13 +37,6 @@ const final_mentions = computed(() => {
   return props.mentions || props.main.mentions
 })
 
-const pretty_date = computed(() => {
-  return dayjs(note.value.date).format("DD/MM/YYYY")
-})
-const source = computed(() => {
-  return cats.value.source.find(src => src.id === note.value.source)
-})
-
 const events_count = computed(() => {
   let hide_events = false
   const final_count = final_mentions.value.reduce((acc, mention) => {
@@ -74,28 +62,9 @@ const events_count = computed(() => {
     :is_map_viz="is_map_viz"
   >
     <template #title>
-      <div class="d-flex flex-column align-start justify-start">
-        <div class="ml-2 text-caption">
-          <span class="text-grey-darken-1">
-            {{pretty_date}}
-          </span>
-          <span class="text-purple-darken-1 ml-3">
-            {{source.name}}
-          </span>
-        </div>
-        <TitleCommon
-          :title_text="main.title"
-          card_class="ml-2 font-weight-normal text-body-1 mt-n1"
-        />
-        <div
-          v-if="false"
-          class="ml-2 text-body-1"
-          style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
-          v-tooltip:bottom="main.title"
-        >
-          {{ main.title }}
-        </div>
-      </div>
+      <NoteTitle
+        :main="main"
+      />
     </template>
     <template #details>
       <ProjectMiniList

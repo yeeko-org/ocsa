@@ -4,6 +4,7 @@ import CardCommon from "~/components/dashboard/common/CardCommon.vue";
 
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
+import UserSelect from "~/components/dashboard/custom_filters/UserSelect.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 
@@ -66,6 +67,7 @@ function changeConflict(conflict) {
       :main_object="full_main"
       filter_group_name="project_types"
       :width="300"
+      required
     />
   </v-col>
   <v-col cols="12" md="4" class="pa-0 d-flex">
@@ -75,21 +77,30 @@ function changeConflict(conflict) {
       :width="300"
     />
   </v-col>
-  <v-col cols="12" md="4" class="pa-0 d-flex">
+  <v-col cols="12" md="6" class="pa-0 d-flex align-center">
     <v-card
-      variant="outlined" class="mr-2 px-2 mb-5"
-      min-width="220"
+      variant="outlined"
+      class="mr-2 px-2 mb-2"
+      width="220"
     >
       <v-switch
         v-model="full_main.is_grouper"
         label="Es agrupador"
-        append-icon="account_tree"
+        append-icon="hub"
         hide-details
         color="primary"
       />
     </v-card>
+    <UserSelect
+      :final_filters="full_main"
+      field="editors"
+      label="Editores"
+      readonly
+      multiple
+      chips
+    />
   </v-col>
-  <v-col cols="12" md="8" class="pa-0 d-flex mb-2">
+  <v-col cols="12" md="6" class="pa-0 d-flex mb-2">
     <CardCommon
       :full_main="full_main.parent_project && full_main.parent_project_full"
       :collection_data="project_collection"
