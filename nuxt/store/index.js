@@ -447,7 +447,7 @@ export const useMainStore = defineStore('main', {
       const { $api } = useNuxtApp()
       const { method, last_id } = getLastId(data)
       const collection = collection_data.snake_name
-      const full_url = `catalogs/${collection}/${last_id}/`
+      const full_url = `catalogs/${collection}/${last_id}`
       try {
         let response = await $api[method](full_url, data);
         if (method === 'post')
