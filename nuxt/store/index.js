@@ -183,8 +183,8 @@ const calculateSchemas = (data) => {
 const calculateNewCats = (data, schemas) => {
   let all_nodes = {}
   schemas.filter_groups.forEach(fg => {
-    if (fg.key_name === 'geographicals')
-      return
+    // if (fg.key_name === 'geographicals')
+    //   return
 
     // console.log("filter_group:", fg.key_name, is_multiple)
     // v-else-if="!filter_box.category_group && !filter_box.category_type"

@@ -226,8 +226,11 @@ const subtype_items = computed(() => {
     else
       return null
   }
-  else
+  else{
+    console.log("all_nodes", all_nodes.value)
+    console.log("filter_node", filter_node.value)
     return filter_node.value.children.map(child => child.data)
+  }
 })
 
 onMounted(() => {
