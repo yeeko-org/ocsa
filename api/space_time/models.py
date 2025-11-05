@@ -9,9 +9,6 @@ def default_alternative_names():
     return []
 
 
-# Para todos los casos de comparación por name, estandariza con text_normalizer
-# Para estados vas a utilizar la lista de initial_data y vas a tomar las
-# alternative_names del campo other_names, separados por comas.
 class State(models.Model):
     inegi_code = models.CharField(max_length=2, verbose_name="Clave INEGI")
     name = models.CharField(max_length=50, verbose_name="Nombre")

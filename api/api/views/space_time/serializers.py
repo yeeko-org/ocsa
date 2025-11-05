@@ -42,6 +42,12 @@ class StateListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class StateReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = State
+        fields = '__all__'
+
+
 class StateRetrieveSerializer(StateListSerializer):
     municipalities = MunicipalityListSerializer(many=True, read_only=True)
 

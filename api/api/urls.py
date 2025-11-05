@@ -23,7 +23,6 @@ router = DefaultRouter()
 router.register(r'actor', ActorViewSet, basename='actor')
 router.register(r'actor_mini', ActorMiniListViewSet, basename='actor mini')
 
-
 router.register(r'note', NoteViewSet, basename='note')
 router.register(r'note_file', NoteFileViewSet, basename='note file')
 router.register(r'article', ArticleViewSet, basename='article')

@@ -19,6 +19,7 @@ from api.views.catalogs.impact_views import (
     ImpactSubtypeViewSet, ImpactTypeViewSet, ImpactGroupViewSet)
 from api.views.df.df_views import (
     DimensionViewSet, PopulationSizeViewSet, TemporalityViewSet)
+from api.views.space_time import StateListViewSet
 
 from rest_framework import routers
 
@@ -32,6 +33,7 @@ router.register(r'indigenous_group', IndigenousGroupViewSet, basename='catalog_i
 router.register(r'sector_group', SectorGroupViewSet, basename='catalog_sector_group')
 router.register(r'sector', SectorViewSet, basename='catalog_sector')
 router.register(r'country', CountryViewSet, basename='catalog_country')
+router.register(r'state', StateListViewSet, basename='state')
 
 router.register(r'interest_group', InterestGroupViewSet, basename='catalog_interest_group')
 router.register(r'interest_type', InterestTypeViewSet, basename='catalog_interest_type')
