@@ -2,6 +2,13 @@
 
 const emits = defineEmits(['export-records'])
 
+const props = defineProps({
+  loadingExport: {
+    type: Boolean,
+    default: false,
+  }
+})
+
 </script>
 
 <template>
@@ -15,6 +22,7 @@ const emits = defineEmits(['export-records'])
         variant="elevated"
         dark
         append-icon="table_chart"
+        :loading="loadingExport"
       >
         Descargar
       </v-btn>

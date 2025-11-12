@@ -56,6 +56,7 @@ const final_filters = ref({
 })
 const reverse_fetch = ref(false)
 const error_message = ref("")
+const loading_export = ref(false)
 
 const temp_reset = ref(false)
 const visible_filters = ref([])
@@ -230,6 +231,7 @@ function changeInitFilters(){
 }
 
 function exportRecords(all_records = false) {
+  loading_export.value = true
   const collection_name = collection_data.value.snake_name
   let params = {}
   if (!all_records) {
@@ -240,6 +242,7 @@ function exportRecords(all_records = false) {
     }
   }
   exportData([collection_name, params]).then(res => {
+    loading_export.value = false
     if (res.cancelled) {
       return
     }
@@ -377,6 +380,7 @@ function selectItem(item) {
           <ExportButton
             v-if="collection_data.xls_export"
             @export-records="exportRecords($event)"
+            :loading-export="loading_export"
           />
         </v-col>
         <v-col cols="auto" order="12" class="pl-0 py-0 pr-1" v-if="!is_mini">
