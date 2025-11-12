@@ -193,6 +193,12 @@ class ExtractivismTypesSerializer(serializers.RelatedField):
         return ", ".join(value.extractivism_types.values_list('name', flat=True))
 
 
+class NoteDatesSerializer(serializers.RelatedField):
+
+    def to_representation(self, value):
+        return value.note.date.strftime("%d-%m-%Y")
+
+
 class MegaprojectTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MegaprojectType
@@ -211,6 +217,8 @@ class ProjectExportSerializer(BaseExportSerializer):
     extractivism_types = ExtractivismTypesSerializer(
         source='megaproject_type', read_only=True)
     parent_project = ProjectMiniSerializer()
+    note_dates = NoteDatesSerializer(
+        source='mentions', many=True, read_only=True)
 
     class Meta:
         model = Project
@@ -236,6 +244,8 @@ class ProjectExportSerializer(BaseExportSerializer):
             "locality__name",
             "latitude",
             "longitude",
+
+            "note_dates",
         ]
 
 

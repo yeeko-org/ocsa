@@ -95,7 +95,8 @@ class ProjectViewSet(
         "mentions__participants__actor",
         "mentions__participants__actor__belongs",
     ).distinct()
-    add_locations = True
+    # add_locations = True
+    additional_groups = ["location"]
 
     xls_attrs = [
         {
@@ -129,20 +130,30 @@ class ProjectViewSet(
             "field": "is_grouper"
         },
         {
+            "name": "ID de proyecto agrupador",
+            "width": 5,
+            "field": "parent_project__id"
+        },
+        {
+            "name": "Nombre de proyecto agrupador",
+            "width": 30,
+            "field": "parent_project__name"
+        },
+        {
             "name": "ID de conflicto",
             "width": 5,
             "field": "conflict__id"
         },
         {
             "name": "Nombre de conflicto",
-            "width": 40,
+            "width": 30,
             "field": "conflict__name"
         },
-        {
-            "name": "Descripción de conflicto",
-            "width": 25,
-            "field": "conflict__description"
-        },
+        # {
+        #     "name": "Descripción de conflicto",
+        #     "width": 25,
+        #     "field": "conflict__description"
+        # },
         {
             "name": "Tipo de megaproyecto",
             "width": 20,
@@ -154,14 +165,22 @@ class ProjectViewSet(
             "field": "extractivism_types"
         },
         {
-            "name": "ID de proyecto agrupador",
-            "width": 5,
-            "field": "parent_project__id"
+            "name": "Número de notas",
+            "width": 15,
+            "field": "note_dates",
+            "operation": "count"
         },
         {
-            "name": "Nombre de proyecto agrupador",
-            "width": 30,
-            "field": "parent_project__name"
+            "name": "Fecha de primera nota",
+            "width": 15,
+            "field": "note_dates",
+            "operation": "min"
+        },
+        {
+            "name": "Fecha de última nota",
+            "width": 15,
+            "field": "note_dates",
+            "operation": "max"
         }
     ]
     xls_name = "Exportación de Proyectos"
@@ -177,6 +196,17 @@ class ProjectViewSet(
 
     action_add_file_param = "project"
 
+    def get_serializer_class(self):
+        action_serializer = {
+            'retrieve': ProjectFullSerializer,
+            'create': ProjectSemiFullSerializer,
+            # 'update': ProjectEditSerializer,
+            'update': ProjectFullSerializer,
+            'add_file': ProjectFileSerializer,
+            'export_xls': ProjectExportSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)
+
     def get_queryset(self):
         queryset = super().get_queryset()
         if not self.request.user.is_authenticated:
@@ -190,7 +220,8 @@ class ProjectViewSet(
                 "conflict",
                 "megaproject_type",
             ).prefetch_related(
-                "megaproject_type__extractivism_types"
+                "megaproject_type__extractivism_types",
+                "mentions__note",
             ).distinct()
         return queryset
 
@@ -212,17 +243,6 @@ class ProjectViewSet(
     #     # response.data["aaa"] = "bbb"
     #     response.data["mentions"] = mentions_serialized
     #     return response
-
-    def get_serializer_class(self):
-        action_serializer = {
-            'retrieve': ProjectFullSerializer,
-            'create': ProjectSemiFullSerializer,
-            # 'update': ProjectEditSerializer,
-            'update': ProjectFullSerializer,
-            'add_file': ProjectFileSerializer,
-            'export_xls': ProjectExportSerializer,
-        }
-        return action_serializer.get(self.action, self.serializer_class)
 
     def get_query_for_export_xls(self):
         annotations = self.get_annotations('project')

@@ -105,49 +105,10 @@ class ImpactViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             "width": 30,
             "field": "impact_subtype__name"
         },
-        {
-            "name": "ID de nota",
-            "width": 5,
-            "field": "mention__note_full__id"
-        },
-        {
-            "name": "Fecha de nota",
-            "width": 10,
-            "field": "mention__note_full__date"
-        },
-        {
-            "name": "Título de nota",
-            "width": 40,
-            "field": "mention__note_full__title"
-        },
-        # {
-        #     "name": "Medio de la nota",
-        #     "width": 15,
-        #     "field": "mention__note_full__source"
-        # },
-        {
-            "name": "ID de proyecto",
-            "width": 5,
-            "field": "mention__project_full__id"
-        },
-        {
-            "name": "Nombre de proyecto",
-            "width": 40,
-            "field": "mention__project_full__name"
-        },
-        {
-            "name": "ID de conflicto",
-            "width": 5,
-            "field": "conflict__id"
-        },
-        {
-            "name": "Nombre de conflicto",
-            "width": 30,
-            "field": "conflict__name"
-        },
     ]
 
-    add_locations = True
+    # add_locations = True
+    additional_groups = ["mention", "location"]
     serializer_class = ImpactSimpleSerializer
     filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
     search_fields = ['description']
@@ -251,7 +212,8 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
     ordering_fields = ['id', 'date']
     ordering = ['id']
 
-    add_locations = True
+    # add_locations = True
+    additional_groups = ["mention", "location"]
     # xls_name = 'Eventos'
     xls_attrs = [
         {
@@ -293,46 +255,6 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
             "name": "Intención del mecanismo",
             "width": 18,
             "field": "purpose"
-        },
-        {
-            "name": "ID de nota",
-            "width": 5,
-            "field": "mention__note_full__id"
-        },
-        {
-            "name": "Fecha de nota",
-            "width": 10,
-            "field": "mention__note_full__date"
-        },
-        {
-            "name": "Título de nota",
-            "width": 40,
-            "field": "mention__note_full__title"
-        },
-        # {
-        #     "name": "Medio de la nota",
-        #     "width": 15,
-        #     "field": "mention__note_full__source"
-        # },
-        {
-            "name": "ID de proyecto",
-            "width": 5,
-            "field": "mention__project_full__id"
-        },
-        {
-            "name": "Nombre de proyecto",
-            "width": 40,
-            "field": "mention__project_full__name"
-        },
-        {
-            "name": "ID de conflicto",
-            "width": 5,
-            "field": "conflict__id"
-        },
-        {
-            "name": "Nombre de conflicto",
-            "width": 30,
-            "field": "conflict__name"
         },
     ]
 
