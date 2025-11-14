@@ -165,19 +165,31 @@ class ProjectViewSet(
             "field": "extractivism_types"
         },
         {
+            "name": "Status de validación",
+            "width": 15,
+            "field": "status_validation",
+            "conditions": ["only_logged_in"]
+        },
+        {
+            "name": "Status de ubicación",
+            "width": 15,
+            "field": "status_location",
+            "conditions": ["only_logged_in"]
+        },
+        {
             "name": "Número de notas",
             "width": 15,
             "field": "note_dates",
             "operation": "count"
         },
         {
-            "name": "Fecha de primera nota",
+            "name": "Primera nota",
             "width": 15,
             "field": "note_dates",
             "operation": "min"
         },
         {
-            "name": "Fecha de última nota",
+            "name": "Última nota",
             "width": 15,
             "field": "note_dates",
             "operation": "max"
@@ -209,20 +221,22 @@ class ProjectViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if not self.request.user.is_authenticated:
+        is_logged_in = self.request.user.is_authenticated
+        if not is_logged_in:
             queryset = queryset.filter(status_validation__is_public=True)
 
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related("others_parents")
         elif self.action == "export_xls":
-            queryset = Project.objects.all().select_related(
-                "parent_project",
-                "conflict",
-                "megaproject_type",
-            ).prefetch_related(
-                "megaproject_type__extractivism_types",
-                "mentions__note",
-            ).distinct()
+            queryset = Project.objects.all()\
+                .select_related(
+                    "parent_project", "conflict", "megaproject_type",
+                    "status_project", "status_location"
+                )\
+                .prefetch_related(
+                    "megaproject_type__extractivism_types",
+                    "mentions__note")\
+                .distinct()
         return queryset
 
     # def list(self, request, *args, **kwargs):

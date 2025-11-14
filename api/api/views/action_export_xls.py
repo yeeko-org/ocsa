@@ -155,18 +155,28 @@ class ExportXlsMixin(ModelViewSet):
             self.get_query_for_export_xls(), many=True)
 
         data = serializer.data
+        is_logged_in = request.user and request.user.is_authenticated
+        print("is_logged_in", is_logged_in)
 
         name = getattr(self, 'xls_name', None)
         if not name:
             name = self.queryset.model._meta.verbose_name_plural
         xls_attrs = getattr(self, 'xls_attrs', [])
-        # if self.add_locations:
-        #     xls_attrs += getattr(self, 'location_attrs', [])
         for group in self.additional_groups:
             if group in self.extra_attrs:
                 xls_attrs += self.extra_attrs[group]['attrs']
-        columns_width = [row.get('width', 20) for row in xls_attrs]
-        headers = [row.get('name', '') for row in xls_attrs]
+        final_xls_attrs = xls_attrs.copy()
+        for xls_attr in xls_attrs:
+            conditions = xls_attr.get('conditions', [])
+            add_to_final = True
+            for condition in conditions:
+                if condition == 'only_logged_in' and not is_logged_in:
+                    add_to_final = False
+            if not add_to_final:
+                final_xls_attrs.remove(xls_attr)
+
+        columns_width = [row.get('width', 20) for row in final_xls_attrs]
+        headers = [row.get('name', '') for row in final_xls_attrs]
         # columns_width_pixel
         max_decimal = getattr(self, 'max_decimal', 2)
 
@@ -174,7 +184,7 @@ class ExportXlsMixin(ModelViewSet):
         for row in data:
             row_data = []
             # table_data.append([row.get(attr['field'], '') for attr in attrs])
-            for attr in xls_attrs:
+            for attr in final_xls_attrs:
                 field = attr.get('field', '')
                 if field:
                     value = row

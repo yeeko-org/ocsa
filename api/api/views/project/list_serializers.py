@@ -219,6 +219,10 @@ class ProjectExportSerializer(BaseExportSerializer):
     parent_project = ProjectMiniSerializer()
     note_dates = NoteDatesSerializer(
         source='mentions', many=True, read_only=True)
+    status_validation = serializers.ReadOnlyField(
+        source='status_validation.public_name')
+    status_location = serializers.ReadOnlyField(
+        source='status_location.public_name')
 
     class Meta:
         model = Project
@@ -246,6 +250,8 @@ class ProjectExportSerializer(BaseExportSerializer):
             "longitude",
 
             "note_dates",
+            "status_validation",
+            "status_location",
         ]
 
 
