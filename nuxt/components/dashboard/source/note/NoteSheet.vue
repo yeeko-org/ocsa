@@ -48,7 +48,9 @@ const SaveMention = (project) => {
   }
   saveSimple(['mention', params]).then(response => {
     // console.log("response", response)
-    full_note.value.mentions.push(response)
+    // full_note.value.mentions.push(response)
+    // add response at the beginning of the mentions array
+    full_note.value.mentions.unshift(response)
     dialog_search.value = false
   })
 }

@@ -97,7 +97,8 @@ const addItem = (group=null) => {
   // console.log("main_object", props.main_object)
   // console.log("field", props.field)
   // console.log("new_child", new_child)
-  props.main_object[props.field].push(new_child)
+  // props.main_object[props.field].push(new_child)
+  props.main_object[props.field].unshift(new_child)
 }
 
 function saveItem(item, index) {

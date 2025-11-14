@@ -112,7 +112,8 @@ function saveNewParticipant(actor) {
   if (actor.participant_type)
     params.participant_types = [actor.participant_type]
   saveSimple(['participant', params]).then(response => {
-    props.mention.participants.push(response)
+    // props.mention.participants.push(response)
+    props.mention.participants.unshift(response)
     dialog_search.value = false
   })
 }
