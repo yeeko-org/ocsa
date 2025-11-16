@@ -1,15 +1,16 @@
-
 <script setup>
 
 import mapboxgl from 'mapbox-gl';
 import * as d3 from 'd3';
 import {useMainStore} from "~/store/index.js";
-const mainStore = useMainStore()
-import {ref, onMounted, onUnmounted, watch} from 'vue';
+import {onMounted, onUnmounted, ref, watch} from 'vue';
 import {storeToRefs} from "pinia";
 import ProjectCardMap from "~/components/map/ProjectCardMap.vue";
 import {getElement} from "~/composables/save_elements.js";
-const { getProjectLocations, fetchCatalogs } = mainStore
+import MainFilterMap from "~/components/map/MainFilterMap.vue";
+
+const mainStore = useMainStore()
+const { getProjectLocations, fetchCatalogs, getSimple } = mainStore
 const { schemas, megaproject_types_dict, cats } = storeToRefs(mainStore)
 
 definePageMeta({
@@ -19,12 +20,16 @@ definePageMeta({
 const mapContainer = ref(null);
 let map = ref(null);
 const selectedProject = ref(null);
+const childProject = ref(null);
 const selectedFullProject = ref(null);
 const projectLocations = ref([]);
 const ready_gets = ref(0);
 const selectedExtractivismTypes = ref([]);
 
-onMounted(async () => {
+// onMounted(async () => {
+onMounted(() => {
+  buildPreMap();
+  // console.log("Mounted mapa.vue");
   getProjectLocations().then((res) => {
     projectLocations.value = res;
     ready_gets.value += 1;
@@ -41,14 +46,9 @@ onUnmounted(() => {
   }
 });
 
-const extractivism_types_list = computed(() => {
-  if (!cats.value) return [];
-  return cats.value.extractivism_type || [];
-});
-
-const project_collection = computed(() => {
-  return schemas.value.collections_dict['project']
-})
+// const project_collection = computed(() => {
+//   return schemas.value.collections_dict['project']
+// })
 
 const geometry_types = [
   {
@@ -73,18 +73,13 @@ const geometry_types = [
     "type": "Point",
     "collection": "points",
     "source": "proyectos",
-    "main_layer": "unclustered-point-circle"
+    "main_layer": "unclustered-point"
   },
 ]
 
 function hydrateProjectLocations() {
+  console.log("Hydrating project locations");
   const random_color = "#755f4c"
-  console.log("megaproject_types_dict", megaproject_types_dict.value);
-  Object.entries(megaproject_types_dict.value).forEach(([key, value]) => {
-    if (key === 6 || key === '6')
-      console.log(`Extractivism type: ${key}`, value);
-    // console.log(`Megaproject type: ${value.megaproject_type.id}`, value.megaproject_type);
-  });
   projectLocations.value.features.forEach(feature => {
     const props = feature.properties;
     if (props.project.megaproject_type) {
@@ -108,12 +103,12 @@ function hydrateProjectLocations() {
       props.extractivism_types = [];
     }
   });
-  buildPreMap();
   buildMap();
 }
 
 
 watch(ready_gets, (newVal) => {
+  console.log("ready_gets changed:", newVal);
   if (newVal === 2) {
     hydrateProjectLocations();
   }
@@ -130,7 +125,7 @@ function buildPreMap() {
     center: [-102.552784, 23.634501], // Centro de México
     zoom: 4.5
   });
-  map.value.addControl(new mapboxgl.NavigationControl());
+  map.value.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 }
 
 function updateMapData() {
@@ -175,33 +170,6 @@ function initializeMapLayers() {
   // Separate points, lines, multilinestrings, and polygons from the data
   const selected_et = selectedExtractivismTypes.value;
   const select_all = selected_et.length === 0;
-
-  // let data = {}
-  // const selected_et = selectedExtractivismTypes.value;
-  // const select_all = selected_et.length === 0;
-  // let ready_prints = 0
-  // console.log("selected_et", selected_et);
-  // const features_filtered = project_locations.features.filter(f => {
-  //   if (select_all) return true;
-  //   const extractivism_types = f.properties.extractivism_types;
-  //   const some_filtered = selected_et.some(set =>
-  //     (extractivism_types.includes(set))
-  //   );
-  //   // if (some_filtered && ready_prints < 10) {
-  //   //   console.log("extractivism_types", extractivism_types);
-  //   //   console.log("Feature:", f);
-  //   //   ready_prints += 1;
-  //   // }
-  //   return some_filtered;
-  // });
-
-  // geometry_types.forEach(dt => {
-  //   data[dt.collection] = {
-  //     type: 'FeatureCollection',
-  //     features: features_filtered.filter(f =>
-  //       f.geometry.type === dt.type)
-  //   }
-  // });
 
   let cluster_properties = {};
   cats.value.extractivism_type.forEach(et => {
@@ -283,31 +251,6 @@ function initializeMapLayers() {
   //     }
   // });
 
-  // map.value.addLayer({
-  //     id: 'cluster-count',
-  //     type: 'symbol',
-  //     source: 'proyectos',
-  //     filter: ['has', 'point_count'],
-  //     layout: {
-  //         'text-field': ['get', 'point_count_abbreviated'],
-  //         // 'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-  //         'text-size': 12
-  //     }
-  // });
-
-  map.value.addLayer({
-    id: 'unclustered-point-circle',
-    type: 'circle',
-    source: 'proyectos',
-    filter: ['!', ['has', 'point_count']],
-    paint: {
-      'circle-color': ['get', 'color'],
-      'circle-radius': 6,
-      'circle-stroke-width': 1,
-      'circle-stroke-color': '#ffffff'
-    }
-  });
-
   map.value.addLayer({
     id: 'unclustered-point',
     type: 'symbol',
@@ -327,8 +270,17 @@ function initializeMapLayers() {
         5, 0.7,
         11, 1,
         15, 1.4
-      ]
+      ],
+      'icon-offset': [0, -15],
+      'visibility': 'visible',
+      'icon-allow-overlap': true
     },
+  });
+
+  const popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+    anchor: 'top'
   });
 
   geometry_types.forEach(gt => {
@@ -336,12 +288,85 @@ function initializeMapLayers() {
       console.log('Feature clicked:', e.features[0]);
       buildFullProjectData(e.features[0].properties);
     });
+    if (gt.type === "Point") return;
     map.value.on('mouseenter', gt.main_layer, () => {
       map.value.getCanvas().style.cursor = 'pointer';
     });
     map.value.on('mouseleave', gt.main_layer, () => {
       map.value.getCanvas().style.cursor = '';
     });
+  });
+
+  map.value.on('mouseenter', 'unclustered-point', (e) => {
+    map.value.getCanvas().style.cursor = 'pointer';
+    console.log('Feature hovered:', e);
+    const props = e.features[0].properties;
+    console.log("props:", props);
+    const projectData = JSON.parse(props.project);
+    const extractivism_types = JSON.parse(props.extractivism_types);
+    const megaproject_type = megaproject_types_dict.value[
+      projectData.megaproject_type];
+    // console.log('Project data:', projectData);
+    // console.log('cats.extractivism_type', cats.value.extractivism_type);
+    // console.log("extractivism_types:", extractivism_types);
+    const coordinates = e.features[0].geometry.coordinates.slice();
+    let description = `
+      <div class="font-weight-bold mb-2">
+        ${projectData.name || 'Proyecto sin nombre'}
+      </div>
+      <div class="mb-1">
+        <div class="text-caption text-grey-darken-1">
+          Tipo de megaproyecto:
+        </div>
+        <span class="font-weight-bold">
+          ${megaproject_type ? megaproject_type.name : 'N/A'}
+        </span>
+      </div>
+    `;
+    extractivism_types.forEach(et_id => {
+      const et_obj = cats.value.extractivism_type.find(
+        et => et.id === et_id);
+      if (et_obj) {
+        description += `
+          <div
+            style="
+              display: inline-block;
+              background-color: ${et_obj.color}C9;
+              color: #FFFFFF;
+              padding: 2px 10px;
+              border-radius: 20px;
+              font-size: 12px;
+              margin-right: 4px;
+              margin-bottom: 4px;
+            "
+          >
+            <i
+              class="material-icons notranslate"
+              style="font-size: 14px;
+              vertical-align: middle;"
+            >
+              ${et_obj.icon}
+            </i>
+            <span style="vertical-align: middle;">
+
+              ${et_obj.short_name || et_obj.name}
+            </span>
+          </div>
+        `;
+      }
+    });
+    description += `
+      <div class="mt-2 font-caption text-grey">
+        (Dale click para ver más detalles)
+      </div>
+    `;
+
+    popup.setLngLat(coordinates).setHTML(description).addTo(map.value);
+  });
+
+  map.value.on('mouseleave', 'unclustered-point', () => {
+    map.value.getCanvas().style.cursor = '';
+    popup.remove();
   });
 
   const markers = {};
@@ -443,10 +468,10 @@ function createDonutChart(props) {
   const w = r * 2;
 
   // Create container element
-  const el = document.createElement('div');
+  const donutDiv = document.createElement('div');
 
   // Create SVG using D3
-  const svg = d3.select(el)
+  const svg = d3.select(donutDiv)
     .append('svg')
     .attr('width', w)
     .attr('height', w)
@@ -498,69 +523,49 @@ function createDonutChart(props) {
     .attr('style', only_one && unique_et_full ? 'text-shadow: 1px 1px 3px #000000;' : '');
     // .style('text-shadow', only_one && unique_et_full ? '1px 1px 3px #000000;' : '');
 
-  return el;
-
-
+  return donutDiv;
 }
 
 function buildFullProjectData(properties) {
   const projectData = typeof properties.project === 'string'
       ? JSON.parse(properties.project)
       : properties.project;
-  console.log('Building full project data for:', projectData);
+  // console.log('Building full project data for:', projectData);
   selectedProject.value = { ...properties, project: projectData };
-  console.log("selectedProject", selectedProject.value);
+  // console.log("selectedProject", selectedProject.value);
   selectedFullProject.value = null;
-  getElement(project_collection.value, projectData.id).then(response => {
+  // getElement(project_collection.value, projectData.id).then(response => {
+  //   selectedFullProject.value = response;
+  // })
+  getSimple(['project_map', projectData.id]).then(response => {
     selectedFullProject.value = response;
   })
-
 }
 
+function openChildProject(project) {
+  childProject.value = {color: '#03fcd7', project: project};
+}
 
 </script>
 
 <template>
-  <v-sheet
-    color="#FFFFFF60"
-    class="sheet-filters px-3 pt-2"
-  >
-    <div v-if="false" class="text-h6 pt-2">
-      Filtros
-    </div>
-
-    <v-chip-group
-      v-model="selectedExtractivismTypes"
-      column
-      multiple
-      @update:modelValue="updateMapData()"
-    >
-      <div class="text-subtitle-1 pt-1 pr-3 font-weight-medium">
-        Tipos de extractivismo:
-      </div>
-      <v-chip
-        v-for="e_type in extractivism_types_list"
-        :key="e_type.id"
-        :value="e_type.id"
-        :color="e_type.color"
-        :base-color="`${e_type.color}C9`"
-        class="mt-0 mb-2"
-        variant="flat"
-        filter
-      >
-        {{ e_type.short_name || e_type.name }}
-        <template v-slot:prepend>
-          <v-icon color="white" class="mr-1">{{ e_type.icon }}</v-icon>
-        </template>
-      </v-chip>
-
-    </v-chip-group>
-  </v-sheet>
+  <MainFilterMap
+    v-model:selectedExtractivismTypes="selectedExtractivismTypes"
+    @update:selectedExtractivismTypes="updateMapData"
+  />
   <ProjectCardMap
     v-if="selectedProject"
     :selectedProject="selectedProject"
+    :childProject="childProject?.project"
     :full_main="selectedFullProject"
     @update:selectedProject="selectedProject = $event"
+    @open-child-project="openChildProject($event)"
+  />
+  <ProjectCardMap
+    v-if="childProject"
+    :selectedProject="childProject"
+    :full_main="childProject.project"
+    @update:selectedProject="childProject = $event"
   />
 
   <div class="map-container" ref="mapContainer">
@@ -570,18 +575,13 @@ function buildFullProjectData(properties) {
 
 <style>
 @import 'mapbox-gl/dist/mapbox-gl.css';
+.mapboxgl-popup {
+  width: 220px;
+}
 
 .map-container {
   width: 100%;
   height: 100vh;
-}
-
-.sheet-filters {
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  margin-right: 40px;
 }
 
 
