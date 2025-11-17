@@ -10,6 +10,7 @@ const { cats } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,
+  forced_title: Boolean,
 })
 
 const source = computed(() => {
@@ -31,7 +32,14 @@ const pretty_date = computed(() => {
         {{source.name}}
       </span>
     </div>
+    <div
+      v-if="forced_title"
+      class="ml-2 text-body-1 text-purple-darken-3"
+    >
+      {{ main.title }}
+    </div>
     <TitleCommon
+      v-else
       :title_text="main.title"
       card_class="ml-2 font-weight-normal text-body-1 mt-n1"
     />

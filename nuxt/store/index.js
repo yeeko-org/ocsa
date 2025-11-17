@@ -350,6 +350,33 @@ export const useMainStore = defineStore('main', {
     current_collection_data: null,
     // groups: menu_content,
     full_geo: {"state": {}, "municipality": {}},
+    geometry_types: [
+      {
+        "type": "Polygon",
+        "collection": "polygons",
+        "source": "proyectos-poligonos",
+        "main_layer": "proyectos-poligonos-fill"
+      },
+      {
+        "type": "LineString",
+        "collection": "lines",
+        "source": "proyectos-lineas",
+        "main_layer": "proyectos-lineas"
+      },
+      {
+        "type": "MultiLineString",
+        "collection": "multiLineStrings",
+        "source": "proyectos-multilineas",
+        "main_layer": "proyectos-multilineas"
+      },
+      {
+        "type": "Point",
+        "collection": "points",
+        "source": "proyectos",
+        "main_layer": "unclustered-point"
+      },
+    ],
+
   }),
   actions: {
     // setHeader() {

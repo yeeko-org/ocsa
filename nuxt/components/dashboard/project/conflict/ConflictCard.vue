@@ -1,12 +1,8 @@
 <script setup>
 
-import {storeToRefs} from "pinia";
-import {useMainStore} from "~/store/index.js";
-const mainStore = useMainStore()
-const { schemas } = storeToRefs(mainStore)
-
 const props = defineProps({
   full_main: Object,
+  in_map: Boolean,
 })
 
 
