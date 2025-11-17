@@ -90,7 +90,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['event_type', 'date', 'duration', 'description']
+        fields = ['event_type', 'date', 'description']
 
 
 class MentionSerializer(serializers.ModelSerializer):
@@ -261,6 +261,9 @@ class ConflictSerializer(ConflictSimpleSerializer):
 
 class ConflictFullSerializer(ConflictSimpleSerializer):
     projects = ProjectBasicSerializer(many=True, read_only=True)
+    parent_project_full = ProjectMiniSerializer(
+        read_only=True, source='parent_project')
+
 
 
 # class ImpactExportSerializer(serializers.ModelSerializer):

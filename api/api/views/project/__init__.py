@@ -262,9 +262,7 @@ class ProjectViewSet(
         annotations = self.get_annotations('project')
         queryset = self.get_queryset() \
             .annotate(**annotations)\
-            .select_related(
-                'parent_project', 'conflict', 'megaproject_type'
-            )\
+            .select_related('parent_project', 'conflict', 'megaproject_type')\
             .prefetch_related("megaproject_type__extractivism_types")\
             .distinct()
         return self.filter_queryset(queryset)

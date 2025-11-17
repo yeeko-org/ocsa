@@ -57,7 +57,7 @@ class EventBase(ActorBase):
         )
 
         event.date = fecha if not event.date else event.date
-        event.duration = intervalo if not event.duration else event.duration
+        # event.duration = intervalo if not event.duration else event.duration
         event.save()
         return event
 

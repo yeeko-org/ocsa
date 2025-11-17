@@ -4,6 +4,7 @@ from api.views.actor import ActorViewSet, ActorMiniListViewSet
 from api.views.project import (
     ProjectViewSet, ProjectFileViewSet, ConflictViewSet, ProjectMiniViewSet,
     ProjectLocationViewSet)
+from api.views.project.map_views import ProjectMapViewSet
 from api.views.generic_merge.views import MergeRecordsView
 from api.views.df.df_views import DisplacementViewSet
 from api.views.note import NoteViewSet, NoteFileViewSet
@@ -29,6 +30,7 @@ router.register(r'article', ArticleViewSet, basename='article')
 
 router.register(r'project', ProjectViewSet, basename='project')
 router.register(r'project_mini', ProjectMiniViewSet, basename='project mini')
+router.register(r'project_map', ProjectMapViewSet, basename='project map')
 
 router.register(r'project_location', ProjectLocationViewSet,
                 basename='project_location')

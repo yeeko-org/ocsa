@@ -87,7 +87,7 @@ class Event(models.Model):
     #     EventSubtype, on_delete=models.CASCADE, blank=True, null=True,
     #     related_name='events')
     date = models.DateField(blank=True, null=True)
-    duration = models.DurationField(blank=True, null=True)
+    # duration = models.DurationField(blank=True, null=True)
     number_women = models.IntegerField(blank=True, null=True)
     number_men = models.IntegerField(blank=True, null=True)
     number_mix = models.IntegerField(blank=True, null=True)

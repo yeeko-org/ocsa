@@ -82,4 +82,3 @@ class ProjectFullSerializer(ProjectBasicSerializer):
     class Meta:
         model = Project
         fields = '__all__'
-

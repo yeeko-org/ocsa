@@ -106,7 +106,7 @@ class ProjectLocationVizSerializer(ConditionalFieldsMixin):
         model = Project
         fields = [
             'id', 'name', 'alternative_name', 'description',
-            'megaproject_type'
+            'megaproject_type', 'is_grouper', 'parent_project'
         ]
 
 
