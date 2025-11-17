@@ -370,39 +370,6 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
         features = []
         no_geojson = 0
 
-        # all_locations = location_points | other_locations
-        # serializer = self.get_serializer(all_locations, many=True)
-        # for location in serializer.data:
-        #     location_data = location.copy()
-        #     project = location_data.get('project')
-        #     if not project:
-        #         print("No project found for location:", location)
-        #         continue
-        #     geojson = location_data.pop('geojson', None)
-        #     if geojson is not None:
-        #         if my_features := geojson.get('features'):
-        #             geojson = my_features[0].get('geometry')
-        #
-        #     if not geojson and location.get('type_location') == 'point':
-        #         latitude = location.get('latitude')
-        #         longitude = location.get('longitude')
-        #         if latitude is not None and longitude is not None:
-        #             geojson = {
-        #                 "type": "Point",
-        #                 "coordinates": [longitude, latitude]
-        #             }
-        #
-        #     if not geojson:
-        #         # print("No geojson found for location:", location)
-        #         no_geojson += 1
-        #         continue
-        #
-        #     feature = {
-        #         "type": "Feature",
-        #         "geometry": geojson,
-        #         "properties": location_data,
-        #     }
-        #     features.append(feature)
 
         # return Response(serializer.data)
         keep_fields = [
@@ -434,10 +401,20 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
         serializer_other = self.get_serializer(other_locations, many=True)
         extra_large_locations = []
         for loc_data in serializer_other.data:
+            # if loc_data["id"] == 2513 or loc_data["id"] == 12306:
+            #     print(f"\n\nDebugging location id {loc_data['id']}:")
+            #     print(loc_data)
             geojson = loc_data.get('geojson', None)
+            new_geometry = None
             if my_features := geojson.get('features'):
-                new_geojson = my_features[0].get('geometry').copy()
-                coordinates = new_geojson.get('coordinates', [])
+                new_geometry = my_features[0].get('geometry').copy()
+
+            if not new_geometry and geojson is not None:
+                geometry = geojson.get('geometry', None)
+                new_geometry = geometry.copy()
+
+            if new_geometry:
+                coordinates = new_geometry.get('coordinates', [])
                 if len(coordinates) > 100:
                     extra_large_locations.append(loc_data)
                 new_coordinates = []
@@ -454,7 +431,7 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
                             new_coord_set.append(int(coord * 100000) / 100000)
 
                     new_coordinates.append(new_coord_set)
-                new_geojson['coordinates'] = new_coordinates
+                new_geometry['coordinates'] = new_coordinates
 
             else:
                 continue
@@ -465,7 +442,7 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
 
             feature = {
                 "type": "Feature",
-                "geometry": new_geojson,
+                "geometry": new_geometry,
                 "properties": properties,
             }
             features.append(feature)
