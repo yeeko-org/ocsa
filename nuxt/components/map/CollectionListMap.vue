@@ -77,7 +77,7 @@ const hierarchical_objects = computed(() => {
     }
 
   })
-  console.log('groups', groups)
+  // console.log('groups', groups)
   return groups
 })
 

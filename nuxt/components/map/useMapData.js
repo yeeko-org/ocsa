@@ -39,14 +39,26 @@ export function useMapData() {
     });
   }
 
-  async function loadData() {
-    const locations = await getProjectLocations();
-    projectLocations.value = locations;
-    // projectLocations.value = await getProjectLocations();
-    ready_gets.value += 1;
+  function loadData() {
+    // const locations = await getProjectLocations();
+    // projectLocations.value = locations;
+    // // projectLocations.value = await getProjectLocations();
+    // ready_gets.value += 1;
+    getProjectLocations().then(locations => {
+      projectLocations.value = locations;
+      // locations.features.forEach(loc => {
+      //   if (loc.properties.id === 2513 || loc.properties.id === 12306) {
+      //     console.log("\n\nProject location:", loc);
+      //   }
+      // });
+      ready_gets.value += 1;
+    });
 
-    await fetchCatalogs();
-    ready_gets.value += 1;
+    // fetchCatalogs();
+    // ready_gets.value += 1;
+    fetchCatalogs().then(() => {
+      ready_gets.value += 1;
+    });
   }
 
   const extractivism_type_props = computed(() => {

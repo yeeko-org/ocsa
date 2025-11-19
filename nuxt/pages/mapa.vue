@@ -125,7 +125,7 @@ function buildFullProjectData(properties) {
         project: res.parent_project_full
       };
       parentProject.value = res.parent_project_full;
-      const new_project = separateCollections(res.parent_project_full, res);
+      const new_project = separateCollections(res, selectedChildProject.value.project);
       childProject.value = {color: '', project: new_project};
     }
     else{
@@ -135,6 +135,8 @@ function buildFullProjectData(properties) {
 }
 
 function separateCollections(all_project_data, current_project) {
+  // console.log('Separating collections for project:', current_project.id);
+  // console.log('All project data:', all_project_data);
   const mentions = all_project_data.mentions.filter(mention => {
     return mention.project === current_project.id;
   });

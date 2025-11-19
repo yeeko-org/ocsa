@@ -48,7 +48,7 @@ const props = defineProps({
       </div>
       <div class="d-flex align-center">
         <div
-          :class="from_parent_project ? 'text-body-1' : 'text-h6'"
+          :class="from_parent_project ? 'text-body-1' : 'text-h6 font-weight-bold'"
           class="mt-1"
         >
             {{ full_main.name }}

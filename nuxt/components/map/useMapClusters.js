@@ -7,6 +7,16 @@ import {useMainStore} from "~/store/index.js";
 export function useMapClusters(map) {
   const mainStore = useMainStore();
   const { cats } = storeToRefs(mainStore);
+
+  // Create a specific popup instance for clusters
+  const clusterPopup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+    anchor: 'top',
+    maxWidth: '300px',
+    offset: 15 // Offset to avoid covering the cluster
+  });
+
   const r_scale = d3.scalePow().exponent(1 / 3)
     .domain([2,300])
     .range([15,32]);
@@ -20,10 +30,8 @@ export function useMapClusters(map) {
     // Prepare data
 
     const et_props = extractivism_type_props;
-
     let counts = et_props.ids.map(et_id => props[`sum_${et_id}`] || 0);
 
-    // Calculate total using D3 (or simple reduce)
     const total = d3.sum(counts);
     const max = d3.max(counts);
     const only_one = total === max;
@@ -42,14 +50,13 @@ export function useMapClusters(map) {
     }
     const fontSize = font_scale(props.point_count);
 
-
     const r0 = Math.round(only_one ? r : r  * 0.6);
     const w = r * 2;
 
-    // Create container element
     const donutDiv = document.createElement('div');
+    // Add a class for easier CSS targeting if needed
+    donutDiv.className = 'cluster-marker';
 
-    // Create SVG using D3
     const svg = d3.select(donutDiv)
       .append('svg')
       .attr('width', w)
@@ -59,28 +66,25 @@ export function useMapClusters(map) {
       .style('font', `${fontSize}px sans-serif`)
       .style('display', 'block');
 
-    // Create D3 pie layout
     const pie = d3.pie()
       .sort(null)
       .value(d => d);
 
-    // Create a group for the donut, centered
     const g = svg.append('g')
       .attr('transform', `translate(${r}, ${r})`);
 
     if (!only_one) {
-      // Create D3 arc generator for donut
       const arc = d3.arc()
         .innerRadius(r0)
         .outerRadius(r);
 
-      // Draw donut segments
       g.selectAll('path')
         .data(pie(counts))
         .enter()
         .append('path')
         .attr('d', arc)
         .attr('fill', (d, i) => et_props.colors[i])
+        // Optional: internal hover effect on segments
         .on('mouseenter', function(event, d) {
             d3.select(this).attr('opacity', 0.7);
         })
@@ -89,18 +93,15 @@ export function useMapClusters(map) {
         });
     }
 
-    // Add white center circle
     g.append('circle')
       .attr('r', r0)
       .attr('fill', only_one && unique_et_full ? unique_et_full.color : '#ffffff');
 
-    // Add center text
     g.append('text')
       .attr('dominant-baseline', 'central')
       .text(props.point_count)
       .attr('fill', only_one && unique_et_full ? '#ffffff' : '#000000')
       .attr('style', only_one && unique_et_full ? 'text-shadow: 1px 1px 3px #000000;' : '');
-      // .style('text-shadow', only_one && unique_et_full ? '1px 1px 3px #000000;' : '');
 
     return donutDiv;
   }
@@ -113,17 +114,11 @@ export function useMapClusters(map) {
       if (!map.value.isSourceLoaded('proyectos'))
         return;
       updateMarkers();
-      // const select_all = selectedExtractivismTypes.value.length === 0;
-      // if (select_all)
-      // else{
-      //   console.log("no hay markers por filtro");
-      // }
     });
 
     function updateMarkers() {
       const newMarkers = {};
       const features = map.value.querySourceFeatures('proyectos');
-      // console.log("Cluster features on screen:", features);
 
       for (const feature of features) {
         const coords = feature.geometry.coordinates;
@@ -133,8 +128,93 @@ export function useMapClusters(map) {
 
         let marker = markers[id];
         if (!marker) {
-          // createDonutChart(props);
           const el = createDonutChart(props, extractivism_type_props.value);
+
+          // ---------------------------------------------------------
+          // 1. INTERACTION: CLICK TO ZOOM
+          // ---------------------------------------------------------
+          el.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent clicking through to the map
+
+            const source = map.value.getSource('proyectos');
+
+            source.getClusterExpansionZoom(id, (err, zoom) => {
+              if (err) return;
+              console.log("Zooming to cluster:", id, "at zoom level:", zoom);
+              const final_zoom = Math.max(zoom + 1, 8);
+
+              clusterPopup.remove();
+              map.value.easeTo({
+                center: coords,
+                // zoom: zoom,
+                zoom: final_zoom,
+                duration: 500 // Smooth animation
+              });
+            });
+          });
+
+          // ---------------------------------------------------------
+          // 2. INTERACTION: HOVER POPUP
+          // ---------------------------------------------------------
+          el.addEventListener('mouseenter', () => {
+             el.style.cursor = 'pointer';
+
+             // Fetch the "leaves" (individual points) inside this cluster
+             // We limit to 10 items to keep the popup manageable
+             const source = map.value.getSource('proyectos');
+
+             source.getClusterLeaves(id, 10, 0, (err, leaves) => {
+               if (err) return;
+
+               // Build HTML for the list of projects
+               let description = `
+                 <div class="font-weight-bold mb-2 border-b pb-1">
+                   Cluster: ${props.point_count} Proyectos
+                 </div>
+                 <div style="max-height: 200px; overflow-y: auto;">
+               `;
+
+               leaves.forEach(leaf => {
+                 // Parse JSON just like in useMapInteractions
+                 const projectData = typeof leaf.properties.project === 'string'
+                    ? JSON.parse(leaf.properties.project)
+                    : leaf.properties.project;
+
+                 description += `
+                   <div class="mb-1 text-caption d-flex align-center">
+                     <span class="mr-1">•</span>
+                     <span>${projectData.name}</span>
+                   </div>
+                 `;
+               });
+
+               if (props.point_count > 10) {
+                 description += `
+                   <div class="text-caption text-grey mt-2 font-italic">
+                     ... y ${props.point_count - 10} más.
+                   </div>
+                   <div class="text-caption text-blue font-weight-bold mt-1">
+                     (Haz clic para acercar)
+                   </div>
+                 `;
+               } else {
+                 description += `</div>`;
+               }
+
+               // Show the popup
+               clusterPopup
+                 .setLngLat(coords)
+                 .setHTML(description)
+                 .addTo(map.value);
+             });
+          });
+
+          el.addEventListener('mouseleave', () => {
+            el.style.cursor = '';
+            clusterPopup.remove();
+          });
+
+          // Create the marker with the element
           marker = markers[id] = new mapboxgl.Marker({
               element: el
           }).setLngLat(coords);

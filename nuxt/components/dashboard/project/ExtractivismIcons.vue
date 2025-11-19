@@ -42,6 +42,7 @@ const original_types = computed(() => {
       class="mr-1"
       :color="megaproject_type_node.parent.data.color"
       size="small"
+      variant="flat"
     >
       {{ megaproject_type_node.data.name }}
     </v-chip>

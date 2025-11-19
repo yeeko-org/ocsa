@@ -137,15 +137,14 @@ function openChildProjectCard(child_project){
     <v-card
       v-if="full_main"
       class="d-flex align-center px-3"
-      :color="final_color"
+      zcolor="final_color"
+      color="deep-purple"
       variant="tonal"
       style="width: 100%;"
     >
-
       <ProjectMiniCard
         :full_main="full_main"
         title="Detalles del Proyecto"
-        is_map_viz
       />
       <v-btn
         v-if="!childProject"
@@ -220,7 +219,6 @@ function openChildProjectCard(child_project){
             <ProjectMiniCard
               :full_main="child_project"
               title="Detalles del Proyecto"
-              is_map_viz
               from_parent_project
             />
             <v-tooltip
