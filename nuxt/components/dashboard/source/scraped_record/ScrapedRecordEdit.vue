@@ -18,6 +18,8 @@ const props = defineProps({
   },
 })
 
+const emits = defineEmits(['item-saved'])
+
 const { sendReprocessScrapedRecord } = mainStore
 
 const total_days = computed(() => {

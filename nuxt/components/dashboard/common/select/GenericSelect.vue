@@ -1,6 +1,9 @@
 <script setup>
 
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
+import { VSelect, VAutocomplete } from "vuetify/components"
+import {shallowRef} from "vue";
+
 
 const props = defineProps({
   main_object: {
@@ -32,9 +35,57 @@ const props = defineProps({
   is_multiple: Boolean,
   required: Boolean,
   forced_clearable: Boolean,
+  is_autocomplete: Boolean,
 })
 
 const emits = defineEmits(['open-dialog', 'update-value'])
+
+const searchQuery = ref('')
+
+const customFilter = (value, query, item) => {
+  if (!query) return true
+
+  const searchText = query.toLowerCase()
+  const name = (item.raw[props.item_title] || '').toLowerCase()
+  const description = (item.raw.description || '').toLowerCase()
+
+  return name.includes(searchText) || description.includes(searchText)
+}
+
+// Sort items: name matches first, then description matches
+const sortedItems = computed(() => {
+  if (!searchQuery.value || !props.is_autocomplete) {
+    return props.items
+  }
+
+  const query = searchQuery.value.toLowerCase()
+
+  return [...props.items].sort((a, b) => {
+    const aName = (a[props.item_title] || '').toLowerCase()
+    const bName = (b[props.item_title] || '').toLowerCase()
+    const aDesc = (a.description || '').toLowerCase()
+    const bDesc = (b.description || '').toLowerCase()
+
+    const aMatchesName = aName.includes(query)
+    const bMatchesName = bName.includes(query)
+
+    // Both match in name - keep order
+    if (aMatchesName && bMatchesName) return 0
+
+    // Only one matches in name - prioritize it
+    if (aMatchesName) return -1
+    if (bMatchesName) return 1
+
+    // Neither matches in name, check description
+    const aMatchesDesc = aDesc.includes(query)
+    const bMatchesDesc = bDesc.includes(query)
+
+    if (aMatchesDesc && !bMatchesDesc) return -1
+    if (!aMatchesDesc && bMatchesDesc) return 1
+
+    return 0
+  })
+})
 
 const final_value = computed(() => {
   if (props.is_multiple){
@@ -72,7 +123,15 @@ const rules = computed(() => {
   return rules
 })
 
+const selectComponent = computed(() => {
+  // if (props.is_filter)
+  //   return VSelect
+  return props.is_autocomplete ? VAutocomplete : VSelect
+})
+
 function changeValue(val){
+  console.log('changeValue', val)
+  console.log('collection_data', props.collection_data)
   props.main_object[`${props.level_name}_null`] = null
   emits('update-value', val)
 }
@@ -130,24 +189,26 @@ function openDialog(is_add=true){
         :prepend-icon="final_value.icon"
         size="small"
       >
-        {{final_value[item_title]}}
+        {{ final_value[item_title] }}
       </v-chip>
       <span
         v-else
       >
-        {{final_value[item_title]}}
+        {{ final_value[item_title] }}
       </span>
     </template>
     <span v-else>
       !?
     </span>
   </div>
-  <v-select
+  <component
     v-else
+    :is="selectComponent"
     v-model="main_object[level_name]"
-    :items="items"
+    :items="sortedItems"
     :item-title="item_title"
     :item-value="item_value"
+    :custom-filter="customFilter"
     :variant="is_filter ? 'underlined' : 'outlined'"
     :clearable="is_filter || forced_clearable"
     :hide-details="is_filter"
@@ -156,6 +217,7 @@ function openDialog(is_add=true){
     :multiple="is_multiple || filter_multiple"
     :rules="rules"
     @update:model-value="changeValue"
+    @update:search="searchQuery = $event"
   >
     <template #append-item v-if="!is_filter">
       <div class="px-2 d-flex align-center">
@@ -221,6 +283,8 @@ function openDialog(is_add=true){
         :lines="false"
         max-width="400"
         min-height="52"
+        xdisabled="item.raw.status_validation === 'expired'"
+        :disabled="['expired', 'rejected'].includes(item.raw.status_validation)"
       >
         <template v-slot:prepend v-if="item.raw.icon">
           <v-icon
@@ -284,33 +348,7 @@ function openDialog(is_add=true){
         hide_details
       />
     </template>
-
-<!--    <template #item="{ item, props: {onClick, title, value} }">-->
-<!--      <v-list-item-->
-<!--        @click="onClick"-->
-<!--        :title="title"-->
-<!--        :subtitle="item.raw.description"-->
-<!--      >-->
-<!--      </v-list-item>-->
-<!--    </template>-->
-<!--    <template #item="{ item, props: {onClick, title, value} }" v-if="true">-->
-<!--      <v-list-item-->
-<!--        @click="onClick"-->
-<!--      >-->
-<!--        <v-list-item-title>-->
-<!--          <b class="mr-1"> {{ item.title }} </b>-->
-<!--          <span v-if="item.raw.has_subtype">-->
-<!--            (tiene subtipos)-->
-<!--          </span>-->
-<!--        </v-list-item-title>-->
-<!--        <v-list-item-subtitle>-->
-<!--          {{ item.raw.description }}-->
-<!--        </v-list-item-subtitle>-->
-<!--      </v-list-item>-->
-<!--    </template>-->
-<!--    </v-select>-->
-<!--  </template>-->
-  </v-select>
+  </component>
 </template>
 
 <style scoped>

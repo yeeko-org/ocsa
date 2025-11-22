@@ -2,6 +2,7 @@
 
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 import Comments from "~/components/dashboard/utils/Comments.vue";
+import { patchElement } from "~/composables/save_elements.js";
 
 const props = defineProps({
   full_main: Object,
@@ -19,6 +20,26 @@ function openLink(type) {
     // window.open('https://material.io/resources/icons/?style=baseline', '_blank')
   else if (type === 'color')
     window.open('https://vuetifyjs.com/en/styles/colors/#material-colors', '_blank')
+}
+
+const loading_edition = ref(false)
+
+const emits = defineEmits(['update-status', 'update-comments'])
+
+function saveStatus(new_status, status_group) {
+  if (!props.full_main.id)
+    return
+
+  loading_edition.value = true
+  let params = {[status_group]: new_status}
+  patchElement(props.final_collection_data, props.full_main.id, params)
+    .then((res)=>{
+      emits('update-status', {status_group, new_status, res})
+      setTimeout(() => {
+        loading_edition.value = false
+      }, 800)
+    })
+
 }
 
 </script>
@@ -56,12 +77,15 @@ function openLink(type) {
           style="max-width: 300px;"
           density="default"
           class="mr-1"
+          :loading="loading_edition"
+          @change-status="saveStatus($event, status_group)"
         />
       </template>
       <Comments
         v-if="final_collection_data.has.comments"
         :main="full_main"
         :final_collection_data="final_collection_data"
+        @update-comments="emits('update-comments', $event)"
       />
     </v-col>
     <v-col

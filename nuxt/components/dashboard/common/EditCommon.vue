@@ -6,7 +6,8 @@ import { saveElement, deleteElement } from "~/composables/save_elements.js";
 import EditCommonFields from "~/components/dashboard/common/EditCommonFields.vue";
 import AlertInfo from "~/components/dashboard/common/AlertInfo.vue";
 const mainStore = useMainStore()
-const { schemas } = storeToRefs(mainStore)
+const { schemas, status_dict } = storeToRefs(mainStore)
+import {status_filters} from "~/composables/filters.js";
 
 const props = defineProps({
   full_main: Object,
@@ -21,7 +22,6 @@ const props = defineProps({
 
 const saving = ref(false)
 const deleting = ref(false)
-const snackbar = ref(false)
 const editForm = ref(null)
 const dialog_delete = ref(false)
 const errors = ref(null)
@@ -79,9 +79,28 @@ async function saveRecord() {
   })
 }
 
-function finishSave(){
+const snackbar = ref(false)
+const snackbar_text = ref('Se ha guardado el registro')
+function finishSave(snackbar_msg='Se ha guardado el registro'){
   saving.value = false
   snackbar.value = true
+  snackbar_text.value = snackbar_msg
+}
+
+function updateStatus({status_group, new_status, res}){
+  const status_key = status_group.replace('status_', '')
+  const new_status_obj = status_dict.value[status_key][new_status]
+  const status_info = status_filters[status_group]
+  // console.log('status_info', status_info)
+  const msg = `Status ${status_info.name} actualizado
+    a "${new_status_obj.public_name}"`
+  finishSave(msg)
+  emits('item-saved', {res, is_new: false})
+}
+
+function updateComments(res){
+  finishSave('Comentarios guardados correctamente')
+  emits('item-saved', {res, is_new: false})
 }
 
 function deleteRecord() {
@@ -107,6 +126,7 @@ function deleteRecord() {
     })
 }
 
+
 </script>
 
 <template>
@@ -131,10 +151,12 @@ function deleteRecord() {
       <EditCommonFields
         :full_main="full_main"
         :final_collection_data="final_collection_data"
+        @update-status="updateStatus($event)"
+        @update-comments="updateComments($event)"
       >
         <template #edit="{ full_main }">
           <slot name="edit" :full_main="full_main">
-            EDICIÓN 1 (REPORTAR ESTO PORQUE NO ES NORMAL)
+            EDICIÓN 1 (REPORTAR SI APARECE PORQUE PORQUE NO ES NORMAL)
           </slot>
         </template>
       </EditCommonFields>
@@ -182,10 +204,10 @@ function deleteRecord() {
     <v-snackbar
       v-model="snackbar"
       color="success"
-      location="right top"
+      location="right bottom"
       location-strategy="connected"
     >
-      Se ha guardado el registro
+      {{ snackbar_text }}
       <template v-slot:actions>
         <v-btn
           color="accent"

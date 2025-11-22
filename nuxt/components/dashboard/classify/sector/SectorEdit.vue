@@ -11,6 +11,8 @@ const props = defineProps({
   is_edit: Boolean,
 })
 
+const emits = defineEmits(['item-saved'])
+
 </script>
 
 <template>

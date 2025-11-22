@@ -10,6 +10,9 @@ const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
 })
+
+const emits = defineEmits(['item-saved'])
+
 </script>
 
 <template>

@@ -3,9 +3,12 @@
 import {useMainStore} from "~/store/index.js";
 import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
 import ParagraphsContent from "~/components/dashboard/source/ParagraphsContent.vue";
+import PanelList from "~/components/dashboard/common/PanelList.vue";
+import { storeToRefs } from "pinia";
 
 const mainStore = useMainStore()
 const { saveSelected, valid_options } = mainStore
+const { schemas } = storeToRefs(mainStore)
 
 const props = defineProps({
   full_main: {
@@ -20,6 +23,9 @@ const emits = defineEmits(['item-saved'])
 const errors = ref(null)
 const sending_link = ref(false)
 
+const note_collection = computed(() => {
+  return schemas.value.collections_dict['note']
+})
 
 const rules = ref({
   required: value => !!value || "Campo requerido",
@@ -41,6 +47,8 @@ const pre_valid_value = computed(() => {
     return 2
 })
 
+const note_full = ref(null)
+
 async function changeSelected(){
   errors.value = null
   // const { valid } = await linkForm.value.validate()
@@ -61,7 +69,11 @@ async function changeSelected(){
     if (response.errors)
       errors.value = response.errors
 
+    if (response.note_full)
+      note_full.value = response.note_full
+
     emits('item-saved', {'res': response, is_new: false})
+    // props.full_main = {...props.full_main, ...response}
     sending_link.value = false
     // note_content.value = response
   })
@@ -194,8 +206,18 @@ async function changeSelected(){
       </v-btn>
     </v-card>
   </v-col>
-  <v-col cols="12" class="px-0">
+  <v-col v-if="full_main.note_full || note_full" cols="12" class="px-0">
+    <span class="text-subtitle-1 font-weight-bold">
+      Nota en la que se menciona:
+    </span>
+    <PanelList
+      :results="[full_main.note_full || note_full]"
+      :collection_data="note_collection"
+      :show_details="true"
+    />
+  </v-col>
 
+  <v-col cols="12" class="px-0">
     <ParagraphsContent
       :full_main="full_main"
       :sending_link="sending_link"

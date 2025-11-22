@@ -26,7 +26,6 @@ const props = defineProps({
   },
   collection_data: Object,
 })
-const dialog_search = ref(false)
 
 const full_note = computed(() => {
   return props.full_main
@@ -35,6 +34,9 @@ const full_note = computed(() => {
 const project_collection = computed(() => {
   return schemas.value.collections_dict['project']
 })
+
+
+const dialog_search = ref(false)
 const addMention = () => {
   // console.log("add mention 2")
   dialog_search.value = true
@@ -46,26 +48,29 @@ const SaveMention = (project) => {
     project: project.id,
     note: props.full_main.id,
   }
+  const mentions_count = full_note.value.mentions.length
   saveSimple(['mention', params]).then(response => {
     // console.log("response", response)
     // full_note.value.mentions.push(response)
     // add response at the beginning of the mentions array
     full_note.value.mentions.unshift(response)
     dialog_search.value = false
+    if (mentions_count > 0) {
+      dialog_copy.value = true
+    }
   })
 }
 
 function closeDialog(event) {
-  // dialog_search.value = false
-  // console.log("close dialog", event)
   if (event) {
-    // project_in_edition.value = event
     SaveMention(event)
   }
   else {
     dialog_search.value = false
   }
 }
+
+const dialog_copy = ref(false)
 
 function saveMention(mention) {
   const index = full_note.value.mentions.findIndex(
@@ -79,6 +84,18 @@ function deleteMention(mention_id) {
   if (index > -1) {
     full_note.value.mentions.splice(index, 1)
   }
+}
+
+function copyFirstMention() {
+  const first_mention = full_note.value.mentions[0]
+  const params = {
+    id: first_mention.id,
+    copy_data: true,
+  }
+  // saveSimple(['mention', params]).then(response => {
+  //   full_note.value.mentions.unshift(response)
+  //   dialog_copy.value = false
+  // })
 }
 
 </script>
@@ -152,6 +169,33 @@ function deleteMention(mention_id) {
             @select-item="closeDialog($event)"
           />
         </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="dialog_copy"
+      max-width="600"
+    >
+      <v-card height="800">
+        <v-card-title class="text-no-wrap no-wrap">
+          ¿Te gustaría copiar la información de la primer mención?
+        </v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="accent"
+            @click="dialog_copy = false"
+            variant="text"
+          >
+            No copiar
+          </v-btn>
+          <v-btn
+            color="accent"
+            variant="elevated"
+            @click="copyFirstMention"
+          >
+            Sí copiar
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-card>

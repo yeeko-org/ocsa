@@ -60,8 +60,9 @@ function addItem({res, is_new}) {
   if (is_new)
     props.results.unshift(res)
   else {
-    const index = props.results.findIndex(result => result[elem_id] === res[elem_id])
-    props.results[index] = res
+    const index = props.results.findIndex(
+      result => result[elem_id] === res[elem_id])
+    props.results[index] = {...props.results[index], ...res}
   }
 }
 

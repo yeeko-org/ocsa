@@ -180,14 +180,7 @@ const calculateSchemas = (data) => {
   }
 }
 
-const calculateNewCats = (data, schemas) => {
-  let all_nodes = {}
-  schemas.filter_groups.forEach(fg => {
-    // if (fg.key_name === 'geographicals')
-    //   return
-
-    // console.log("filter_group:", fg.key_name, is_multiple)
-    // v-else-if="!filter_box.category_group && !filter_box.category_type"
+const hydrateFilterGroup = (fg, data, collections_dict) => {
     const group_key = fg.category_group
     const type_key = fg.category_type
     const subtype_key = fg.category_subtype
@@ -195,7 +188,7 @@ const calculateNewCats = (data, schemas) => {
     let types = data[type_key] || []
     let groups = data[group_key] || []
 
-    const subtype_collection = schemas.collections_dict[subtype_key]
+    const subtype_collection = collections_dict[subtype_key]
     let type_field = subtype_collection.fields.find(field =>
       field.related_snake_name === fg.category_type)
     if (type_field)
@@ -300,7 +293,7 @@ const calculateNewCats = (data, schemas) => {
     const all_data = [...subtypes, ...types, ...groups, root]
 
     try{
-      all_nodes[fg.key_name] = d3.stratify()
+      return d3.stratify()
         .id(d => d.new_id)
         .parentId(d => d.parent_id)
         (all_data)
@@ -315,9 +308,18 @@ const calculateNewCats = (data, schemas) => {
       console.log("subtypes", subtypes)
       console.log("types", types)
       console.log("groups", groups)
+      return null
     }
+}
+
+const calculateNewCats = (data, schemas) => {
+  let all_nodes = {}
+  schemas.filter_groups.forEach(fg => {
+    const hydrated_filter_group = hydrateFilterGroup(
+      fg, data, schemas.collections_dict)
+    if (hydrated_filter_group)
+      all_nodes[fg.key_name] = hydrated_filter_group
   })
-  // console.log("new_cats", all_nodes)
   return all_nodes
 }
 
@@ -328,9 +330,9 @@ function getLastId(data) {
     // return { method: 'post', last_id: 'massive_edit/' }
   const id = data.id || data.key_name
   // const id = data.id
-  const is_old = data.id && !data.is_new
-  const method = is_old ? 'put' : 'post'
-  const last_id = is_old ? `${id}/` : ''
+  const is_edit = data.id && !data.is_new
+  const method = is_edit ? 'put' : 'post'
+  const last_id = is_edit ? `${id}/` : ''
   return { method, last_id }
 }
 
@@ -376,7 +378,6 @@ export const useMainStore = defineStore('main', {
         "main_layer": "unclustered-point"
       },
     ],
-
   }),
   actions: {
     // setHeader() {
@@ -497,6 +498,29 @@ export const useMainStore = defineStore('main', {
       const { $api } = useNuxtApp()
       try {
         let response = await $api.patch(`/${collection}/${id}/`, data);
+        return response.data
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async patchCatalog([collection_data, id, data]) {
+      // this.setHeader()
+      const { $api } = useNuxtApp()
+      const collection = collection_data.snake_name
+      const full_url = `catalogs/${collection}/${id}/`
+      try {
+        let response = await $api.patch(`${full_url}`, data);
+        const index = this.cats[collection].findIndex(
+          el => el.id === response.data.id)
+        Object.keys(data).forEach(key => {
+          this.cats[collection][index][key] = response.data[key]
+        })
+        const filter_group = collection_data.filter_group
+        if (filter_group){
+          this.all_nodes[filter_group.key_name] = hydrateFilterGroup(
+            filter_group, this.cats, this.schemas.collections_dict)
+        }
+        // this.cats[collection][index] = response.data
         return response.data
       } catch (error) {
         console.error(error);

@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import {useAuthStore} from "~/store/auth.js";
 const authStore = useAuthStore()
 const mainStore = useMainStore()
+import {status_filters} from "~/composables/filters.js";
 // export default defineComponent({
 //   name: "StatusDetail"
 // })
@@ -16,15 +17,15 @@ const props = defineProps({
   final_filters: Object,
   collection: String,
   is_filter: Boolean,
-  collection_group: {
-    type: String,
-    default: "status",
-  },
   density: {
     type: String,
     default: "default",
   },
   hide_details: {
+    type: Boolean,
+    default: false,
+  },
+  loading: {
     type: Boolean,
     default: false,
   },
@@ -47,20 +48,13 @@ const { status, cats } = storeToRefs(mainStore)
 const simple_name = computed(() => {
   return props.collection.replace('status_', '');
 })
+
 const items_built = computed(() => {
-  // const status_collection = props.collection.split('_')[1]
-  return props.collection_group === "status"
-      ? status.value[simple_name.value]
-      : cats.value[simple_name.value]
+  return status.value[simple_name.value]
 })
 
 const label = computed(() => {
-  const txt = simple_name.value === 'register'
-    ? "registro"
-    : simple_name.value === 'validation'
-      ? "validación"
-      : "ubicación"
-  return "Status de " + txt
+  return "Status " + status_filters[`${field.value}`].name
 })
 
 const field = computed(() => {
@@ -74,6 +68,8 @@ const status_selected = computed(() => {
   if (!status_name) return {open_editor: true}
   return items_built.value.find(item => item.name === status_name)
 })
+
+const emits = defineEmits(['change-status'])
 
 </script>
 
@@ -91,6 +87,8 @@ const status_selected = computed(() => {
     :hide-details="hide_details"
     density="compact"
     :readonly="!is_staff && !status_selected.open_editor"
+    :loading="loading"
+    @update:modelValue="emits('change-status', $event)"
   >
     <template #item="{ item, props: {onClick, title, value} }">
       <v-list-item

@@ -47,7 +47,7 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_sim
     edit_simple_component.value = module.default
   })
   .catch(e => {
-    edit_simple_component.value = null
+    edit_simple_component.value = ''
   })
 
 
@@ -86,8 +86,7 @@ const saveOrder = (val) => {
 
   if (!val) return
   const params = {order: props.main.order}
-  const collection = props.collection_data.snake_name
-  // const collection = props.final_collection_data.snake_name
+
   patchElement(props.collection_data, props.main.id, params).then((res) => {
     // want_edit_comment.value = false
     console.log('order saved', res)
@@ -185,9 +184,9 @@ const saveOrder = (val) => {
             v-else
             :full_main="full_main"
             :collection_data="collection_data"
+            can_delete
             @itemSaved="emits('item-saved', $event)"
             @itemDeleted="emits('item-deleted', $event)"
-            can_delete
           >
             <template #edit="{ full_main }">
               <component

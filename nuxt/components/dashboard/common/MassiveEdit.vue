@@ -5,6 +5,11 @@ import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import {ref} from "vue";
 import { saveElement } from "~/composables/save_elements.js";
 
+import {useMainStore} from "~/store/index.js";
+import {storeToRefs} from 'pinia'
+const mainStore = useMainStore()
+const { schemas } = storeToRefs(mainStore)
+
 const props = defineProps({
   full_main: Object,
   collection_data: Object,
@@ -112,7 +117,6 @@ function sendMassiveEdit() {
             v-if="field.collection"
             :final_filters="full_main"
             :collection="field.key_name"
-            collection_group="status"
             clearable
             hide-details
             style="max-width: 320px; min-width: 200px;"

@@ -100,9 +100,11 @@ const full_paragraphs = computed(() => {
 <template>
   <v-card variant="flat">
     <v-card-title
-      class="text-subtitle-1 mt-4 d-flex align-center"
+      class="text-subtitle-1 mt-4 d-flex align-center px-2"
     >
-      Párrafos de la pre-nota:
+      <span class="font-weight-bold">
+        Párrafos de la pre-nota:
+      </span>
       <CriteriaChip
         v-if="full_main.criteria"
         :main="full_main"

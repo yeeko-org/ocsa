@@ -5,6 +5,7 @@ import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import GenericSelect from "~/components/dashboard/common/select/GenericSelect.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
+import {all} from "axios";
 const mainStore = useMainStore()
 const { schemas, all_nodes } = storeToRefs(mainStore)
 
@@ -216,6 +217,14 @@ const type_items = computed(() => {
   return []
 })
 
+const is_open_search = computed(() => {
+  return filter_group_data.value?.open_search || false
+})
+
+const is_autocomplete = computed(() => {
+  return filter_group_data.value?.subtype_is_autocomplete || false
+})
+
 const subtype_items = computed(() => {
   if (level_names.value.type) {
     if (nodes.value.type && nodes.value.type.children) {
@@ -223,12 +232,17 @@ const subtype_items = computed(() => {
         return nodes.value.type.data.all_childs
       return nodes.value.type.children.map(child => child.data)
     }
+    else if (is_open_search.value){
+      const all_subtypes = filter_node.value.leaves().filter(
+        leaf => leaf.id.startsWith(`subtype_`))
+      return all_subtypes.map(leaf => leaf.data)
+    }
     else
       return null
   }
   else{
-    console.log("all_nodes", all_nodes.value)
-    console.log("filter_node", filter_node.value)
+    // console.log("all_nodes", all_nodes.value)
+    // console.log("filter_node", filter_node.value)
     return filter_node.value.children.map(child => child.data)
   }
 })
@@ -324,7 +338,6 @@ function setInitialData() {
     if (nodes.value.type)
       props.main_object[levels.group] = nodes.value.type.parent.data.id
   }
-
 }
 
 const subtype_key = computed(() => {
@@ -406,6 +419,15 @@ function changeValue(level_name, value){
   props.main_object[level_names.value[level_name]] = value
 }
 
+function changeSubtypeValue(value){
+  console.log("changeSubtypeValue", value)
+  if (filter_group_data.value?.open_search){
+    console.log("loaded.value", loaded.value)
+    loaded.value = false
+    setInitialData()
+  }
+}
+
 
 </script>
 
@@ -478,7 +500,7 @@ function changeValue(level_name, value){
     :class="{'mr-2': !is_display}"
     :required="type_required"
     :collection_data="collections.type"
-    :forced_clearable="forced_clearable"
+    :forced_clearable="forced_clearable || is_open_search"
     @open-dialog="openDialog('type', $event)"
     @update-value="changeValue('type', $event)"
   />
@@ -499,7 +521,9 @@ function changeValue(level_name, value){
     :required="required"
     :forced_clearable="forced_clearable"
     :collection_data="collections.subtype"
+    :is_autocomplete="is_autocomplete"
     @open-dialog="openDialog('subtype', $event)"
+    @update-value="changeSubtypeValue($event)"
   />
 
   <v-dialog

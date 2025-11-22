@@ -38,7 +38,6 @@ const applyFilters = () => {
       v-if="filter_box.collection"
       :final_filters="final_filters"
       :collection="filter_box.key_name"
-      collection_group="status"
       clearable
       hide-details
       style="max-width: 300px; min-width: 200px;"

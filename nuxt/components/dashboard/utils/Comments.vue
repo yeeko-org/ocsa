@@ -1,6 +1,16 @@
 <script setup>
 import dayjs from 'dayjs'
 
+import {useAuthStore} from '~/store/auth.js'
+import {useMainStore} from '~/store/index.js'
+import { patchElement } from "~/composables/save_elements.js";
+import {storeToRefs} from 'pinia'
+const mainStore = useMainStore()
+const authStore = useAuthStore()
+
+const {schemas} = storeToRefs(mainStore)
+const { user_details_ocsa } = authStore
+
 const props = defineProps({
   main: Object,
   final_collection_data: Object,
@@ -12,12 +22,6 @@ const props = defineProps({
 })
 
 const want_edit_comment = ref(false)
-import {useAuthStore} from '~/store/auth.js'
-import {useMainStore} from '~/store/index.js'
-const mainStore = useMainStore()
-const authStore = useAuthStore()
-const { user_details_ocsa } = authStore
-
 function changeWantEdit(value) {
   want_edit_comment.value = value
 }
@@ -28,17 +32,18 @@ function addComment() {
   const today = dayjs().format('DD/MM/YYYY')
   const user = user_details_ocsa.first_name
   props.main.comments += `${today} - ${user}: `
-
 }
+
+const emits = defineEmits(['update-comments'])
 function saveComment() {
   if (props.main.id){
     const params = {comments: props.main.comments}
-    const collection = props.final_collection_data
-      ? props.final_collection_data.snake_name
-      : props.collection_name
-    // const collection = props.final_collection_data.snake_name
-    mainStore.patchSimple([collection, props.main.id, params]).then(() => {
+    const collection_data = props.final_collection_data
+      ? props.final_collection_data
+      : schemas.value.collections_dict[props.collection_name]
+    patchElement(collection_data, props.main.id, params).then((res) => {
       want_edit_comment.value = false
+      emits('update-comments', res)
     })
   }
   else

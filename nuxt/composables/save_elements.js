@@ -24,13 +24,20 @@ export async function saveElement(collection_data, element) {
 
 export async function patchElement(collection_data, elem_id, params) {
   const mainStore = useMainStore()
-  const { patchSimple } = mainStore
+  const { patchSimple, patchCatalog } = mainStore
   // console.log("collection_data", collection_data)
   const { snake_name, is_category } = final_snake_name(collection_data)
-  const path = is_category ? `catalogs/${snake_name}` : snake_name
-  return await patchSimple([path, elem_id, params]).then((response) => {
-    return response
-  })
+  // const path = is_category ? `catalogs/${snake_name}` : snake_name
+  if (is_category) {
+    return await patchCatalog([collection_data, elem_id, params]).then((response) => {
+      return response
+    })
+  }
+  else {
+    return await patchSimple([snake_name, elem_id, params]).then((response) => {
+      return response
+    })
+  }
 }
 
 export async function deleteElement(collection_data, obj_id) {
@@ -64,8 +71,10 @@ export function useSaveElements() {
   const total_requests = ref(0)
   const resolved_requests = ref(0)
   const save_errors = ref([])
+  const normal_save = ref(true)
 
-  function saveComplex(collection_name, element) {
+  function saveComplex(collection_name, element, copy_id=null) {
+    normal_save.value = !copy_id
     return new Promise((resolve, reject) => {
       total_requests.value = 0
       resolved_requests.value = 0
@@ -82,31 +91,32 @@ export function useSaveElements() {
         }
       }
 
-      saveOneToMany(collection_name, element, checkFinished)
+      saveOneToMany(collection_name, element, checkFinished, copy_id)
     })
   }
 
-  function saveOneToMany(snake_name, main_item, onFinished) {
+  function saveOneToMany(snake_name, main_item, onFinished, parent_id=null) {
     const mainStore = useMainStore()
     const { schemas } = storeToRefs(mainStore)
     const { saveSimple } = mainStore
 
     const main_schema = schemas.value.collections_dict[snake_name]
-    const one_to_many = main_schema.fields.filter(
+    const one_to_many_fields = main_schema.fields.filter(
       field => field.relation_type === 'one_to_many')
 
-    one_to_many.forEach(field => {
+    one_to_many_fields.forEach(field => {
       if (['involved', "eventlocation"].includes(field.name))
         return
       if (field.name.includes('displacement_'))
         return
 
-      const related_collection = schemas.value.collections_dict[field.related_model]
+      const related_collection = schemas.value.collections_dict[
+        field.related_model]
       const snake_name2 = related_collection.snake_name
 
       main_item[field.name].forEach(item => {
-        saveOneToMany(snake_name2, item, onFinished)
-        total_requests.value += 1
+
+        total_requests.value += 2
 
         saveSimple([snake_name2, item]).then(res => {
           if (res.errors) {
@@ -117,9 +127,17 @@ export function useSaveElements() {
               errors: res.errors,
             })
           }
+          if (!normal_save.value){
+            saveOneToMany(snake_name2, item, onFinished, res.data.id)
+          }
           resolved_requests.value += 1
           onFinished()
         })
+        if (normal_save.value){
+          saveOneToMany(snake_name2, item, onFinished)
+        }
+        resolved_requests.value += 1
+        onFinished()
       })
     })
 
