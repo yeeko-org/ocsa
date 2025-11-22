@@ -2,13 +2,12 @@ from rest_framework import serializers
 
 from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantFullSerializer)
-from api.views.project.retrieve_serializers import (
-    ConflictSerializer, ProjectFullSerializer)
+from api.views.project.retrieve_serializers import ConflictSerializer
 # from api.views.space_time.serializers import LocationSerializer
 from api.views.event.serializers import EventSerializer
-from api.views.article.serializers import ArticleDetailSerializer
+# from api.views.article.serializers import ArticleDetailSerializer
 from project.models import Project, ProjectFile
-from source.models import Mention, Note, NoteFile, StatusHistory
+from source.models import Mention, Note, NoteFile, StatusHistory, Article
 from event.models import Event, Involved
 from actor.models import Participant, Interest
 from impact.models import Impact
@@ -233,10 +232,17 @@ class EventFullNoteSerializer(EventEmbedSerializer, EventSerializer):
         fields = '__all__'
 
 
+class ArticleSimpleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Article
+        fields = '__all__'
+
+
 class NoteFullSerializer(ConditionalFieldsMixin):
     files = NoteFileSerializer(many=True, read_only=True)
     mentions = MentionMegaFullSerializer(many=True, read_only=True)
-    articles = ArticleDetailSerializer(read_only=True, many=True)
+    articles = ArticleSimpleSerializer(read_only=True, many=True)
 
     class Meta:
         model = Note

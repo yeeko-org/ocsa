@@ -541,6 +541,7 @@ filter_groups = [
         "main_collection": "project-project",
         "category_type": "project-extractivism_type",
         "category_subtype": "project-megaproject_type",
+        "addl_config": {"subtype_is_autocomplete": True, "open_search": True},
     },
     {
         "key_name": "participant_types",
@@ -556,7 +557,6 @@ filter_groups = [
         "plural_name": "Grupos de Pertenencia",
         "main_collection": "actor-actor",
         "category_subtype": "classify-belong",
-        "addl_config": {"item_id": "key_name"},
     },
     {
         "key_name": "indigenous_groups",
@@ -564,6 +564,7 @@ filter_groups = [
         "plural_name": "Grupos Indígenas",
         "main_collection": "actor-actor",
         "category_subtype": "classify-indigenous_group",
+        "addl_config": {"subtype_is_autocomplete": True},
     },
     {
         "key_name": "sectors",
@@ -572,6 +573,7 @@ filter_groups = [
         "main_collection": "actor-actor",
         "category_type": "classify-sector_group",
         "category_subtype": "classify-sector",
+        "addl_config": {"subtype_is_autocomplete": True, "open_search": True},
     },
     {
         "key_name": "interest_types",
@@ -597,6 +599,7 @@ filter_groups = [
         "addl_config": {
             "short_prev": "Ev.",
             "prev": "Evento",
+            "subtype_is_autocomplete": True
         },
     },
     {
@@ -605,6 +608,7 @@ filter_groups = [
         "plural_name": "Roles en Actividades",
         "main_collection": "event-event",
         "category_subtype": "event-involved_role",
+        "addl_config": {"subtype_is_autocomplete": True},
     },
     {
         "key_name": "purposes",
@@ -653,6 +657,7 @@ filter_groups = [
         "plural_name": "Paises",
         "main_collection": "actor-actor",
         "category_subtype": "classify-country",
+        "addl_config": {"subtype_is_autocomplete": True},
     },
     {
         "key_name": "states",
@@ -676,6 +681,7 @@ filter_groups = [
         "plural_name": "Status de Proyectos",
         "main_collection": "project-project",
         "category_subtype": "project-status_project",
+        "addl_config": {"subtype_is_autocomplete": True},
     },
 ]
 

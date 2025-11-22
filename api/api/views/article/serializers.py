@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import serializers
 from source.models import Article, Source, ScrapedRecord
-# from api.views.note.serializers import NoteFullSerializer
+from api.views.note.serializers import NoteFullSerializer
 
 
 class ArticleListSerializer(serializers.ModelSerializer):
@@ -17,6 +17,8 @@ class ArticleListSerializer(serializers.ModelSerializer):
 
 
 class ArticleDetailSerializer(serializers.ModelSerializer):
+    note_full = NoteFullSerializer(read_only=True, source='note')
+
     class Meta:
         model = Article
         fields = '__all__'
@@ -29,8 +31,7 @@ class ArticleSelectedSerializer(serializers.Serializer):
 
 
 class ArticleStatusSerializer(serializers.ModelSerializer):
-    # note_full = NoteFullSerializer(read_only=True, source='note')
-    # note_url = serializers.SerializerMethodField()
+    note_full = NoteFullSerializer(read_only=True, source='note')
     status = serializers.SerializerMethodField()
 
     # def get_note_url(self, obj):
