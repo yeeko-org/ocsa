@@ -49,8 +49,9 @@ const calculateSchemas = (data) => {
     coll.catalog_groups = filter_groups.reduce((arr, new_fg) => {
       if (new_fg.main_collection !== coll.snake_name)
         return arr
-      if (new_fg.category_group)
-        new_fg.category_groups = data[new_fg.category_group] || []
+      const cat_group = new_fg.category_group || new_fg.special_group
+      if (cat_group)
+        new_fg.category_groups = data[cat_group] || []
       return [...arr, new_fg]
     }, [])
     const valid_relations = ['one_to_many', 'many_to_many']
@@ -86,33 +87,37 @@ const calculateSchemas = (data) => {
       },
     ]
 
-    let collection_filters = all_filters.reduce((arr, f) => {
-      if (!f.filter_name){
-        arr.push({...f, order: 12, is_custom: true})
+    let collection_filters = all_filters.reduce((arr, filter) => {
+      if (!filter.filter_name){
+        arr.push({...filter, order: 12, is_custom: true})
         return arr
       }
-      const filter_data = filters_dict[f.filter_name]
+      const filter_data = filters_dict[filter.filter_name]
       if (!filter_data){
-        console.error("No filter data", f.filter_name)
+        console.error("No filter data", filter.filter_name)
         return arr
       }
-      const new_filter = {...filter_data, ...f}
-      if (filter_data.category_group){
-        const category_groups = data[filter_data.category_group] || []
-        category_groups.forEach(cg => {
-          const short_name = `${new_filter.short_prev} ${cg.name}`
-          const name = `${new_filter.prev} ${cg.name}`
-          let current_filter = {
-            name,
-            short_name,
-            category_group_value: cg.id,
-            original_name: new_filter.name
-          }
-          arr.push({...new_filter, ...cg, ...current_filter})
-        })
-        return arr
-      }
+      const new_filter = {...filter_data, ...filter}
+      // if (filter_data.category_group){
+      //   const category_groups = data[filter_data.category_group] || []
+      //   category_groups.forEach(cat_group => {
+      //     const short_name = `${new_filter.short_prev} ${cat_group.name}`
+      //     const name = `${new_filter.prev} ${cat_group.name}`
+      //     let current_filter = {
+      //       name,
+      //       short_name,
+      //       category_group_value: cat_group.id,
+      //       original_name: new_filter.name
+      //     }
+      //     arr.push({...new_filter, ...cat_group, ...current_filter})
+      //   })
+      //   return arr
+      // }
       arr.push(new_filter)
+      if (filter_data.category_group){
+        console.log("collection", coll.snake_name)
+        console.log("new_filter with category_group", new_filter)
+      }
       return arr
     }, [])
     coll.is_category = coll.level.includes('category_')
@@ -206,7 +211,7 @@ const hydrateFilterGroup = (fg, data, collections_dict) => {
     if (type_key){
       const some_is_empty = subtypes.some(st => {
         const type_value = st[type_field.name]
-        if (typeof Array.isArray(type_value))
+        if (Array.isArray(type_value))
           return !type_value.length
         return !type_value
       })
@@ -653,10 +658,12 @@ export const useMainStore = defineStore('main', {
         console.error(error);
       }
     },
-    async getRelatedActors(proj_id) {
+    async getRelatedActors(proj_id, group_id) {
       const { $api } = useNuxtApp()
+      const params = group_id ? {participant_group: group_id} : {}
       try {
-        let response = await $api.get(`/project/${proj_id}/related_actors/`);
+        let response = await $api.get(`/project/${proj_id}/related_actors/`,
+          {params});
         return response.data
       } catch (error) {
         console.error(error)

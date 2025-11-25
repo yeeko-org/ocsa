@@ -11,9 +11,10 @@ import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue"
 import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
 import ParagraphsContent from "~/components/dashboard/source/ParagraphsContent.vue";
 const mainStore = useMainStore()
-const { saveSimple } = mainStore
+const { saveSimple, getSimple } = mainStore
 const { schemas } = storeToRefs(mainStore)
-
+import { useSaveElements } from "~/composables/save_elements.js";
+const { saveComplex } = useSaveElements()
 
 const props = defineProps({
   full_main: {
@@ -27,6 +28,8 @@ const props = defineProps({
   collection_data: Object,
 })
 
+const mentionDetailsRef = ref([])
+
 const full_note = computed(() => {
   return props.full_main
 })
@@ -35,6 +38,8 @@ const project_collection = computed(() => {
   return schemas.value.collections_dict['project']
 })
 
+const snackbar_message = ref('')
+const snackbar = ref(false)
 
 const dialog_search = ref(false)
 const addMention = () => {
@@ -42,7 +47,9 @@ const addMention = () => {
   dialog_search.value = true
 }
 
-const SaveMention = (project) => {
+const mention_created = ref(null)
+
+const addNewMention = (project) => {
   // console.log("save mention", project)
   const params = {
     project: project.id,
@@ -53,6 +60,7 @@ const SaveMention = (project) => {
     // console.log("response", response)
     // full_note.value.mentions.push(response)
     // add response at the beginning of the mentions array
+    mention_created.value = response.id
     full_note.value.mentions.unshift(response)
     dialog_search.value = false
     if (mentions_count > 0) {
@@ -63,7 +71,7 @@ const SaveMention = (project) => {
 
 function closeDialog(event) {
   if (event) {
-    SaveMention(event)
+    addNewMention(event)
   }
   else {
     dialog_search.value = false
@@ -76,6 +84,9 @@ function saveMention(mention) {
   const index = full_note.value.mentions.findIndex(
     item => item.id === mention.id)
   full_note.value.mentions.splice(index, 1, mention)
+  snackbar.value = true
+  snackbar_message.value = 'Se ha guardado la mención'
+
 }
 
 function deleteMention(mention_id) {
@@ -84,18 +95,35 @@ function deleteMention(mention_id) {
   if (index > -1) {
     full_note.value.mentions.splice(index, 1)
   }
+  snackbar.value = true
+  snackbar_message.value = 'Se ha eliminado la mención'
 }
 
-function copyFirstMention() {
-  const first_mention = full_note.value.mentions[0]
-  const params = {
-    id: first_mention.id,
-    copy_data: true,
-  }
-  // saveSimple(['mention', params]).then(response => {
-  //   full_note.value.mentions.unshift(response)
-  //   dialog_copy.value = false
+function allCopyFinished(mention_id=null) {
+  console.log("mentionDetailsRef", mentionDetailsRef.value)
+  // mentionDetailsRef.value[0].allFinished()
+  mentionDetailsRef.value.forEach(mentionComp => {
+    mentionComp.allFinished(mention_id)
+  })
+  // getSimple(['mention', mention_created.value]).then(res => {
+  //   snackbar.value = true
+  //   snackbar_message.value = 'Se ha copiado la mención'
+  //   console.log("mentionDetailsRef", mentionDetailsRef.value)
+  //   // console.log("participantsToolbarRef", participantsToolbarRef.value)
+  //   // participantsToolbarRef.value.resetInitialData()
+  //   // eventsToolbarRef.value.resetInitialData()
   // })
+}
+
+function copyMention(mention_to_copy) {
+
+  // console.log("mention_to_copy", mention_to_copy)
+  const new_mention = {...mention_to_copy}
+  saveComplex('mention', new_mention, mention_created.value)
+    .then(() => {
+      dialog_copy.value = false
+      allCopyFinished(mention_created.value)
+    })
 }
 
 </script>
@@ -141,6 +169,7 @@ function copyFirstMention() {
           v-for="mention in full_note.mentions"
           :key="mention.id"
           :mention="mention"
+          ref="mentionDetailsRef"
           is_full
           @mention-saved="saveMention"
           @mention-deleted="deleteMention"
@@ -179,6 +208,35 @@ function copyFirstMention() {
         <v-card-title class="text-no-wrap no-wrap">
           ¿Te gustaría copiar la información de la primer mención?
         </v-card-title>
+        <v-card-text>
+          <template
+            v-for="mention in full_note.mentions"
+            :key="mention.id"
+          >
+            <v-card
+              v-if="mention.id !== mention_created"
+              class="my-2 pa-3 d-flex align-center"
+              variant="tonal"
+              color="purple"
+            >
+              <div class="text-h6">
+
+                {{mention.project_full.name}}
+              </div>
+              <v-spacer></v-spacer>
+              <v-btn
+                class="ml-3"
+                color="accent "
+                variant="outlined"
+                @click="copyMention(mention)"
+              >
+                Seleccionar
+              </v-btn>
+            </v-card>
+
+          </template>
+
+        </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -188,16 +246,27 @@ function copyFirstMention() {
           >
             No copiar
           </v-btn>
-          <v-btn
-            color="accent"
-            variant="elevated"
-            @click="copyFirstMention"
-          >
-            Sí copiar
-          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar
+      v-model="snackbar"
+      color="success"
+      location="right top"
+      location-strategy="connected"
+    >
+      {{ snackbar_message || 'Cambios guardados' }}
+      <template v-slot:actions>
+        <v-btn
+          color="accent"
+          variant="text"
+          @click="snackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
+
   </v-card>
 <!--  <v-card class="my-3" elevation="3">-->
 <!--    <v-card-title>-->

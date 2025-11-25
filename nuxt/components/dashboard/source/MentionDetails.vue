@@ -28,39 +28,32 @@ const props = defineProps({
   },
 })
 
-const dialog_search = ref(false)
-const all_saving = ref(false)
-const snackbar = ref(false)
-const snackbar_message = ref('')
-const actor_display = ref(null)
 const has_select = ref(null)
-const dialog_delete = ref(false)
-const mentionForm = ref(null)
-const participantsToolbarRef = ref(null)
-const eventsToolbarRef = ref(null)
-
 const emits = defineEmits(['mention-saved', 'mention-deleted'])
+defineExpose({ allFinished })
 
-function searchActor() {
-  getRelatedActors(props.mention.project).then(actors => {
-    actors = actors.filter(actor => {
-      return !props.mention.participants.some(
-        part => part.actor === actor.id)
-    })
-    actors = actors.map(actor => {
-      const part_types = actor.participant_types.filter(p_type => p_type)
-      const unique_part_types = [...new Set(part_types)]
-      if (unique_part_types.length === 1)
-        actor.participant_type = unique_part_types[0]
-      return actor
-    })
-    dialog_search.value = true
-    nextTick(() => {
-      actor_display.value.setInitResults(actors)
-    })
+// const mention_id = computed(() => props.mention.id)
+
+const all_saving = ref(false)
+
+const participantsToolbarRef = ref(null)
+// const snackbar_message = ref('')
+// const snackbar = ref(false)
+
+function allFinished(mention_id=null) {
+  if (mention_id && mention_id !== props.mention.id)
+    return
+
+  saveSimple(['mention', props.mention]).then(res => {
+    emits('mention-saved', res)
+    all_saving.value = false
+    // console.log("participantsToolbarRef", participantsToolbarRef.value)
+    participantsToolbarRef.value.resetInitialData()
+    eventsToolbarRef.value.resetInitialData()
   })
 }
 
+const mentionForm = ref(null)
 async function saveMention() {
   const { valid } = await mentionForm.value.validate()
   // console.log("saveMention valid", valid)
@@ -82,17 +75,34 @@ async function saveMention() {
     })
 }
 
-function allFinished() {
-  saveSimple(['mention', props.mention]).then(res => {
-    emits('mention-saved', res)
-    snackbar.value = true
-    snackbar_message.value = 'Se ha guardado la mención'
-    all_saving.value = false
-    // console.log("participantsToolbarRef", participantsToolbarRef.value)
-    participantsToolbarRef.value.resetInitialData()
-    eventsToolbarRef.value.resetInitialData()
+const dialog_search = ref(false)
+const actor_display = ref(null)
+const eventsToolbarRef = ref(null)
+const participant_group_selected = ref(null)
+
+function searchActor(group) {
+  // console.log("group to search", group)
+  getRelatedActors(props.mention.project, group.id).then(actors => {
+    actors = actors.filter(actor => {
+      return !props.mention.participants.some(
+        part => part.actor === actor.id)
+    })
+    actors = actors.map(actor => {
+      const part_types = actor.participant_types.filter(p_type => p_type)
+      const unique_part_types = [...new Set(part_types)]
+      if (unique_part_types.length === 1)
+        actor.participant_type = unique_part_types[0]
+      return actor
+    })
+    if (group)
+      participant_group_selected.value = group.id
+    dialog_search.value = true
+    nextTick(() => {
+      actor_display.value.setInitResults(actors)
+    })
   })
 }
+
 
 function saveParticipant([elem_in_edition, actor]) {
   const part_idx = props.mention.participants.findIndex(
@@ -109,10 +119,16 @@ function saveNewParticipant(actor) {
     mention: props.mention.id,
     actor: actor.id,
   }
+  console.log("actor to save", actor)
   if (actor.participant_type)
     params.participant_types = [actor.participant_type]
   saveSimple(['participant', params]).then(response => {
     // props.mention.participants.push(response)
+    // response.participant_group = participant_group_selected.value,
+    if (!actor.participant_type && participant_group_selected.value)
+      response.participant_group = participant_group_selected.value
+    else if (actor.participant_group)
+      response.participant_group = actor.participant_group
     props.mention.participants.unshift(response)
     dialog_search.value = false
   })
@@ -129,6 +145,7 @@ function changeProject(project) {
   props.mention.project_full = project
 }
 
+const dialog_delete = ref(false)
 function deleteMention() {
   if (!props.mention.id)
     return
@@ -137,8 +154,8 @@ function deleteMention() {
     emits('mention-deleted', props.mention.id)
     all_saving.value = false
     dialog_delete.value = false
-    snackbar.value = true
-    snackbar_message.value = 'Se ha eliminado la mención'
+    // snackbar.value = true
+    // snackbar_message.value = 'Se ha eliminado la mención'
   })
 }
 
@@ -256,7 +273,7 @@ function deleteMention() {
           <ParticipantsToolbar
             ref="participantsToolbarRef"
             :mention="mention"
-            @search-item="searchActor"
+            @search-item="searchActor($event)"
             @selected-item="saveParticipant($event)"
           />
           <EventToolbar
@@ -300,23 +317,23 @@ function deleteMention() {
         </v-row>
       </v-form>
     </v-card>
-    <v-snackbar
-      v-model="snackbar"
-      color="success"
-      location="right top"
-      location-strategy="connected"
-    >
-      {{ snackbar_message || 'Cambios guardados' }}
-      <template v-slot:actions>
-        <v-btn
-          color="accent"
-          variant="text"
-          @click="snackbar = false"
-        >
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
+<!--    <v-snackbar-->
+<!--      v-model="snackbar"-->
+<!--      color="success"-->
+<!--      location="right top"-->
+<!--      location-strategy="connected"-->
+<!--    >-->
+<!--      {{ snackbar_message || 'Cambios guardados' }}-->
+<!--      <template v-slot:actions>-->
+<!--        <v-btn-->
+<!--          color="accent"-->
+<!--          variant="text"-->
+<!--          @click="snackbar = false"-->
+<!--        >-->
+<!--          Close-->
+<!--        </v-btn>-->
+<!--      </template>-->
+<!--    </v-snackbar>-->
     <v-dialog
       v-model="dialog_search"
       max-width="920"

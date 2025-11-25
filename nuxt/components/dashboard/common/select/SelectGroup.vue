@@ -5,7 +5,6 @@ import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import GenericSelect from "~/components/dashboard/common/select/GenericSelect.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
-import {all} from "axios";
 const mainStore = useMainStore()
 const { schemas, all_nodes } = storeToRefs(mainStore)
 
@@ -200,6 +199,11 @@ const nodes = computed(() => {
 })
 
 const group_object = computed(() => {
+  // console.log("nodes.value", nodes.value)
+  // console.log("level_names", level_names.value)
+  // console.log("category_values", category_values.value)
+  // console.log("category_group_value", props.category_group_value)
+  // console.log("collections", collections.value)
   return nodes.value.group
     ? nodes.value.group.data
     : {name: "Todos", color: "primary", icon: "category"}
@@ -420,9 +424,9 @@ function changeValue(level_name, value){
 }
 
 function changeSubtypeValue(value){
-  console.log("changeSubtypeValue", value)
+  // console.log("changeSubtypeValue", value)
   if (filter_group_data.value?.open_search){
-    console.log("loaded.value", loaded.value)
+    // console.log("loaded.value", loaded.value)
     loaded.value = false
     setInitialData()
   }
@@ -472,7 +476,7 @@ function changeSubtypeValue(value){
     </v-col>
   </template>
   <GenericSelect
-    v-else-if="collections.group && forced_level"
+    v-else-if="collections.group && (forced_level || true)"
     :main_object="main_object"
     level="group"
     :level_name="level_names.group"

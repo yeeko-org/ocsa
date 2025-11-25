@@ -190,6 +190,7 @@ watch(
               _active-class="text-accent"
               :to="`/dashboard/${collection.snake_name}`"
               :prepend-icon="collection.icon"
+              :base-color="collection.color || 'grey-darken-1'"
               :disabled="!is_full_editor"
               :title="collection.plural_name"
             ></v-list-item>

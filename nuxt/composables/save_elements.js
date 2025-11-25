@@ -71,6 +71,7 @@ export function useSaveElements() {
   const total_requests = ref(0)
   const resolved_requests = ref(0)
   const save_errors = ref([])
+  const participants_dict = ref({})
   const normal_save = ref(true)
 
   function saveComplex(collection_name, element, copy_id=null) {
@@ -103,6 +104,7 @@ export function useSaveElements() {
     const main_schema = schemas.value.collections_dict[snake_name]
     const one_to_many_fields = main_schema.fields.filter(
       field => field.relation_type === 'one_to_many')
+    // console.log("one_to_many_fields", one_to_many_fields)
 
     one_to_many_fields.forEach(field => {
       if (['involved', "eventlocation"].includes(field.name))
@@ -115,20 +117,31 @@ export function useSaveElements() {
       const snake_name2 = related_collection.snake_name
 
       main_item[field.name].forEach(item => {
+        const new_item = {...item}
+
+        if (!normal_save.value) {
+          new_item[snake_name] = parent_id
+          new_item.id = null
+          if (snake_name2 === 'involved')
+            new_item['participant'] = participants_dict.value[item.participant]
+        }
 
         total_requests.value += 2
+        // console.log(`snake_name2', ${snake_name2}, 'new_item`, new_item)
 
-        saveSimple([snake_name2, item]).then(res => {
+        saveSimple([snake_name2, new_item]).then(res => {
           if (res.errors) {
             console.error(`Error saving ${snake_name2} item:`, res.errors)
             save_errors.value.push({
               field: field.name,
-              item: item,
+              item: new_item,
               errors: res.errors,
             })
           }
           if (!normal_save.value){
-            saveOneToMany(snake_name2, item, onFinished, res.data.id)
+            if (snake_name2 === 'participant')
+              participants_dict.value[item.id] = res.id
+            saveOneToMany(snake_name2, new_item, onFinished, res.id)
           }
           resolved_requests.value += 1
           onFinished()

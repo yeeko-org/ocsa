@@ -69,12 +69,15 @@ const child_collection = computed(() =>
 const addItem = (group=null) => {
   // console.log("child_collection", child_collection.value)
   if (props.emit_add){
-    emits('add-item')
+    emits('add-item', group)
     return
   }
   let new_child = {}
-  if (group)
-    new_child[filter_group.value.category_group] = group.id
+  if (group){
+    // const cat_group = filter_group.value.category_group || filter_group.value.special_group
+    const f_group = filter_group.value
+    new_child[f_group.category_group || f_group.special_group] = group.id
+  }
   new_child[props.main_collection_name] = props.main_object.id
   const fields = child_collection.value?.fields || []
   fields.forEach(field => {

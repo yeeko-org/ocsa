@@ -80,10 +80,11 @@ const events_count = computed(() => {
       <HeaderChip
         v-if="!is_simple && events_count !== null"
         :count="events_count"
+        collection_name="event"
         icon="notifications_active"
         label="evento"
         label_plural="eventos"
-        color="blue"
+        color="lime-darken-2"
         class="mr-2 ml-1"
       />
       <ActorsChip
