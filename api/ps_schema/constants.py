@@ -550,6 +550,7 @@ filter_groups = [
         "main_collection": "actor-actor",
         "category_type": "classify-participant_group",
         "category_subtype": "classify-participant_type",
+        "addl_config": {"special_group": "participant_group"},
     },
     {
         "key_name": "belongs",
@@ -599,7 +600,8 @@ filter_groups = [
         "addl_config": {
             "short_prev": "Ev.",
             "prev": "Evento",
-            "subtype_is_autocomplete": True
+            "subtype_is_autocomplete": True,
+            "special_group": "event_group",
         },
     },
     {

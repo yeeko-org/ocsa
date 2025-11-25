@@ -30,6 +30,9 @@ from api.views.note.serializers import ProjectSemiFullSerializer
 class ProjectFilter(FilterSet):
     state = NumberFilter(
         field_name='locations__state', lookup_expr='exact')
+    impact_group = NumberFilter(
+        field_name='mentions__impacts__impact_type__impact_group',
+        lookup_expr='exact')
     impact_type = NumberFilter(
         field_name='mentions__impacts__impact_type', lookup_expr='exact')
     impact_subtype = NumberFilter(
@@ -291,6 +294,12 @@ class ProjectViewSet(
             .filter(participants__mention__project=project)\
             .annotate(participant_count=Count('participants'))\
             .distinct()
+
+        query_params = request.query_params
+        if participant_group := query_params.get('participant_group', None):
+            actors = actors.filter(
+                participants__participant_types__participant_group=participant_group
+            )
 
         actor_full = ActorFullCountSerializer(
             actors, many=True, context={'project': project}).data

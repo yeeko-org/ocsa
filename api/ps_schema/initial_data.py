@@ -173,10 +173,16 @@ class InitCollections:
 class InitFilterGroups:
     def __init__(self):
         # FilterGroup.objects.all().delete()
-        collections_dict = {
-            f"{collection.app_label}-{collection.snake_name}": collection
-            for collection in Collection.objects.all()}
-        print("collections_dict", collections_dict)
+        # collections_dict = {
+        #     f"{collection.app_label}-{collection.snake_name}": collection
+        #     for collection in Collection.objects.all()}
+        collections_dict = {}
+        for collection in Collection.objects.all():
+            key = f"{collection.app_label}-{collection.snake_name}"
+            collections_dict[key] = collection
+            collections_dict[collection.snake_name] = collection
+
+        # print("collections_dict", collections_dict)
         for group in filter_groups:
             # category_group = group.get('category_group', None)
             # print("category_group", category_group)
@@ -201,26 +207,3 @@ class InitFilterGroups:
             filter_group.addl_config = group.get('addl_config', {})
             filter_group.save()
             # print("-" * 50)
-
-
-class InitCollectionLinks:
-    def __init__(self):
-        # CollectionLink.objects.all().delete()
-        collections_dict = {
-            f"{collection.app_label}-{collection.snake_name}": collection
-            for collection in Collection.objects.all()}
-        for link in deprecated_collection_links:
-            filter_group_obj = None
-            if filter_group := link.get('filter_group', None):
-                filter_group_obj = FilterGroup.objects.get(
-                    key_name=filter_group)
-                print("filter_group_obj", filter_group_obj)
-            cl, created = CollectionLink.objects.get_or_create(
-                parent=collections_dict[link['parent']],
-                child=collections_dict[link['child']],
-            )
-            cl.link_type = link['link_type']
-            cl.is_provisional = link.get('is_provisional', False)
-            cl.is_multiple = link.get('is_multiple', False)
-            cl.filter_group = filter_group_obj
-            cl.save()

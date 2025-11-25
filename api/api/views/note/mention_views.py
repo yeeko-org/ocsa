@@ -32,6 +32,14 @@ class MentionViewSet(viewsets.ModelViewSet):
 
     serializer_class = MentionSerializer
 
+
+    def get_serializer_class(self):
+        # print("self.action", self.action)
+        action_serializer = {
+            'retrieve': MentionMegaFullSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)
+
     def common(self, request, serializer):
 
         if serializer.is_valid():
