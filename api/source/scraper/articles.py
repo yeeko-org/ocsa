@@ -277,6 +277,7 @@ class ManagerScraper(ABC):
 
     def build_ai_criteria(
             self, block_size: int = 0, prompt_version: str = "v1"):
+        from django.utils import timezone
 
         self.scraped_record.status = "criteria"
         self.scraped_record.save()
@@ -305,7 +306,7 @@ class ManagerScraper(ABC):
                 if article.id not in ready_articles
             ]
         len_articles = len(articles_objects)
-        print(f"Full scrape articles for {len_articles} articles")
+        # print(f"Full scrape articles for {len_articles} articles")
 
         many_articles = self.block_full_articles > 1
         gemini_text = "prompt_gemini"
@@ -322,7 +323,8 @@ class ManagerScraper(ABC):
 
 
         desc = f"Classifying articles ({len_articles})"
-        for i in tqdm(range(0, len_articles, self.block_full_articles), desc=desc):
+        article_range = range(0, len_articles, self.block_full_articles)
+        for i in tqdm(article_range, desc=desc):
             # init_msg = "Scraping and classifying article"
             # if self.block_full_articles > 1:
             #     print(f"{init_msg}s {i} to {i + self.block_full_articles}")
@@ -333,6 +335,9 @@ class ManagerScraper(ABC):
                 current_batch, prompt_version=prompt_version)
         if self.pre_classify_request.errors:
             self.add_errors(self.pre_classify_request.errors)
+        if not self.scraped_record.date_ended:
+            self.scraped_record.date_ended = timezone.now()
+            self.scraped_record.save()
 
     def get_articles_objects(self):
         if self.articles_by_id:

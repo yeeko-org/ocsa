@@ -21,7 +21,7 @@ from api.views.space_time.serializers import (
     LocationFullSerializer,
     StateRetrieveSerializer,)
 from api.views.common_views import (
-    BaseViewSet, BaseStatusViewSet, OnlyByFilterMixin, BaseGenericViewSet)
+    BaseViewSet, BaseStatusViewSet, OnlyByFilterMixin, ClickHistoryMixin)
 
 
 
@@ -90,7 +90,7 @@ class LocationFilter(OnlyByFilterMixin):
         fields = ['only_by', "status_location", "state", "type_location"]
 
 
-class LocationViewSet(BaseViewSet):
+class LocationViewSet(ClickHistoryMixin, BaseViewSet):
     permission_classes = [LocationPermission]
     queryset = Location.objects.all().exclude(
         project__isnull=True, event__isnull=True, impact__isnull=True)\
@@ -109,8 +109,10 @@ class LocationViewSet(BaseViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        if serializer.instance.project:
-            serializer.instance.project.editors.add(request.user)
+        location = serializer.instance
+        if location.project:
+            location.project.editors.add(request.user)
+            self.save_click_action(request, location, 'created', force=True)
         final_serializer = self.get_serializer(serializer.instance)
         return Response(final_serializer.data)
 
@@ -122,6 +124,7 @@ class LocationViewSet(BaseViewSet):
 
         if serializer.instance.project:
             serializer.instance.project.editors.add(request.user)
+            self.save_click_action(request, instance, 'updated', force=True)
         final_serializer = self.get_serializer(serializer.instance)
         return Response(final_serializer.data)
 

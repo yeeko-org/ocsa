@@ -1,4 +1,5 @@
 from django.db import models
+from typing import Callable
 # from django.db.models import JSONField
 
 
@@ -40,7 +41,7 @@ class StatusControl(models.Model):
 
 class CommentsMixin:
     comments = models.TextField(blank=True, null=True)
-    save: callable
+    save: Callable
 
     def add_comment(self, comment: str):
         if not comment:

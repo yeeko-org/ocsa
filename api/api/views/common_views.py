@@ -1,11 +1,11 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from django_filters import FilterSet, CharFilter
-from rest_framework import viewsets, permissions
-from api.pagination import CustomPagination
+from rest_framework import viewsets, permissions, status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import action
-from api.views.confirm_delete import CustomDeleteMixin
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from django_filters import FilterSet, CharFilter
+from api.pagination import CustomPagination
+from api.views.confirm_delete import CustomDeleteMixin
 
 
 class AdvancedConditionalFieldsViewMixin(viewsets.ModelViewSet):
@@ -57,10 +57,54 @@ class UnaccentSearchFilter(SearchFilter):
             return LOOKUP_SEP.join([field_name, 'unaccent', 'icontains'])
 
 
+class ClickHistoryMixin(viewsets.ModelViewSet):
+    click_actions = []
+    is_mention_child = False
+
+    def save_click_action(
+            self, request, instance, action_name="updated", force=False):
+
+        from task.models import ClickHistory
+        if self.is_mention_child and action_name == 'created':
+            action_name = 'mention_child'
+            force = True
+        has_action = force or action_name in self.click_actions
+        if has_action and request.user.is_authenticated:
+            if self.is_mention_child:
+                model_name = 'note'
+                final_instance = instance.mention.note
+            else:
+                # model_name = self.queryset.model.__name__.lower()
+                model_name = instance._meta.model_name
+                final_instance = instance
+            ClickHistory.objects.create(
+                user=request.user,
+                action=action_name,
+                **{model_name: final_instance},
+            )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.save_click_action(request, instance, 'opened')
+        return super().retrieve(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        self.save_click_action(request, serializer.instance, 'created')
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.save_click_action(request, instance, 'updated')
+        return super().update(request, *args, **kwargs)
+
+
 class BaseViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
-    # permission_classes = [permissions.AllowAny]
-    # filterset_class = FilterSet
+
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend, OrderingFilter]
     search_fields = ['name']

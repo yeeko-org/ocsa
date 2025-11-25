@@ -16,7 +16,7 @@ from api.views.action_export_xls import ExportXlsMixin
 from api.views.action_file import ActionFileMixin
 from api.views.actor.serializers import ActorFullCountSerializer
 from api.views.common_views import (
-    UnaccentSearchFilter, BaseStatusViewSet, MassiveEdit)
+    UnaccentSearchFilter, BaseStatusViewSet, MassiveEdit, ClickHistoryMixin)
 from api.views.note.serializers import LocationVizSerializer
 from project.models import Conflict, Project, ProjectFile
 
@@ -81,8 +81,8 @@ class ProjectViewSetMixin(viewsets.ModelViewSet):
 
 
 class ProjectViewSet(
-        CustomDeleteMixin, ActionFileMixin, MassiveEdit, ExportXlsMixin,
-        ProjectViewSetMixin):
+        ClickHistoryMixin, CustomDeleteMixin, ActionFileMixin, MassiveEdit,
+        ExportXlsMixin, ProjectViewSetMixin):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
@@ -99,6 +99,7 @@ class ProjectViewSet(
         "mentions__participants__actor__belongs",
     ).distinct()
     # add_locations = True
+    click_actions = ['opened', 'created', 'saved']
     additional_groups = ["location"]
 
     xls_attrs = [

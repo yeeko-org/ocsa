@@ -18,7 +18,7 @@ from api.views.note.serializers import (
     ImpactFullSerializer, EventFullNoteSerializer)
 from api.views.event.serializers import (
     EventExportSerializer, ImpactExportSerializer)
-from api.views.common_views import MassiveEdit
+from api.views.common_views import MassiveEdit, ClickHistoryMixin
 from api.views.common_views import BaseGenericViewSet
 
 from source.models import Mention, StatusHistory
@@ -27,7 +27,7 @@ from impact.models import Impact
 from event.models import Involved, Event
 
 
-class MentionViewSet(viewsets.ModelViewSet):
+class MentionViewSet(ClickHistoryMixin, viewsets.ModelViewSet):
     queryset = Mention.objects.all()
 
     serializer_class = MentionSerializer
@@ -60,14 +60,16 @@ class MentionViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
 
         mention = self.get_object()
+        self.save_click_action(request, mention.note, 'updated', force=True)
         serializer = self.get_serializer(mention, data=request.data)
         return self.common(request, serializer)
 
 
-class ParticipantViewSet(viewsets.ModelViewSet):
+class ParticipantViewSet(ClickHistoryMixin, viewsets.ModelViewSet):
     queryset = Participant.objects.all()
 
     serializer_class = ParticipantSimpleSerializer
+    is_mention_child = True
 
     def create(self, request, *args, **kwargs):
 
@@ -83,9 +85,12 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ImpactViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
+class ImpactViewSet(
+    ClickHistoryMixin, MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet
+):
     pagination_class = CustomPagination
     queryset = Impact.objects.all()
+    is_mention_child = True
 
     xls_attrs = [
         {
@@ -198,7 +203,8 @@ class EventFilter(FilterSet):
         }
 
 
-class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
+class EventViewSet(
+    ClickHistoryMixin, MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
     queryset = Event.objects.all()\
         .select_related(
             'mention',
@@ -210,6 +216,7 @@ class EventViewSet(MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
         )
 
     serializer_class = EventSerializer
+    is_mention_child = True
 
     pagination_class = CustomPagination
     filterset_class = EventFilter

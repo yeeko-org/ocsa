@@ -33,7 +33,7 @@ from api.views.catalogs.project_serializers import (
     StatusProjectFullSerializer,
 )
 from .all import CatalogsView  # noqa
-from ..common_views import BaseViewSet, BaseStatusViewSet
+from ..common_views import BaseViewSet, BaseStatusViewSet, ClickHistoryMixin
 from api.views.confirm_delete import CustomDeleteMixin
 
 
@@ -67,8 +67,9 @@ class StatusControlViewSet(viewsets.ModelViewSet):
     serializer_class = StatusControlSerializer
 
 
-class StatusProjectViewSet(BaseStatusViewSet):
+class StatusProjectViewSet(ClickHistoryMixin, BaseStatusViewSet):
     permission_classes = [IsEditorOrCreateOrRead]
+    is_mention_child = True
     queryset = StatusProject.objects.all()\
         .annotate(projects_count=Count('projects'))\
         .distinct()

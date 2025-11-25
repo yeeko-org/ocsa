@@ -10,9 +10,10 @@ def related_objects_report(
     for related in related_objects:
         try:
             related_name = related.get_accessor_name()
+            if related_name == 'clicks':
+                continue
             if related.field.many_to_one or related.field.one_to_one:
-                related_manager = getattr(
-                    instance, related_name)
+                related_manager = getattr(instance, related_name)
                 related_items = list(related_manager.all()) if not related.one_to_one else [
                     related_manager]
                 related_ids = [item.id for item in related_items if item]

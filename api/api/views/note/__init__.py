@@ -13,7 +13,7 @@ from api.views.note.serializers import (
     NoteSerializer, NoteCreateSerializer, NoteFullSerializer,
     NoteFileSerializer, MentionSerializer)
 from api.views.common_views import (
-    UnaccentSearchFilter, OrderingAutoFilter)
+    UnaccentSearchFilter, OrderingAutoFilter, ClickHistoryMixin)
 
 
 class NoteFilter(FilterSet):
@@ -44,7 +44,7 @@ class NoteFilter(FilterSet):
         }
 
 
-class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
+class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
     permission_classes = [ByStatusOrReadOnly]
     queryset = Note.objects.all()\
         .prefetch_related(
@@ -68,6 +68,7 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
     # ordering_fields = ['id', 'date', 'status_register__order']
     ordering_fields = ['__auto__']
     ordering = ['id']
+    click_actions = ['opened', 'updated']
     serializer_class = NoteSerializer
     action_add_file_param = 'note'
 
@@ -108,6 +109,7 @@ class NoteViewSet(ActionFileMixin, viewsets.ModelViewSet):
         serializer_class = self.get_serializer_class()
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        self.save_click_action(request, instance, 'updated')
         serializer = serializer_class(
             instance, data=request.data, partial=partial,
             context=self.get_serializer_context())

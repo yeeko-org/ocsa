@@ -177,6 +177,10 @@ class ScrapedRecord(models.Model):
     errors = models.JSONField(blank=True, null=True)
     date_started = models.DateTimeField(
         blank=True, null=True, auto_now_add=True)
+    date_ended = models.DateTimeField(blank=True, null=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='scraped_records')
 
     def __str__(self):
         return f"{self.source.name} - {self.from_date} to {self.to_date} ({self.status})"

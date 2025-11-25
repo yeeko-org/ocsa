@@ -7,7 +7,8 @@ from rest_framework.response import Response
 
 from source.models import Article, Note, NoteFile, Source
 
-from api.views.common_views import BaseGenericViewSet, BaseStatusViewSet
+from api.views.common_views import (
+    BaseGenericViewSet, BaseStatusViewSet, ClickHistoryMixin)
 from .serializers import (
     ArticleListSerializer, ArticleDetailSerializer,
     ArticleSelectedSerializer, ArticleStatusSerializer, SourceFullSerializer)
@@ -58,13 +59,14 @@ class ArticleFilter(FilterSet):
         }
 
 
-class ArticleViewSet(BaseGenericViewSet):
+class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
     queryset = Article.objects\
         .exclude(certainty_degree__isnull=True)
     # .exclude(certainty_degree=0)\
     serializer_class = ArticleListSerializer
     filterset_class = ArticleFilter
     search_fields = ["title", "subtitle", "author"]
+    click_actions = ["opened"]
 
     def get_serializer_class(self):
         if self.action == "retrieve":
@@ -85,6 +87,8 @@ class ArticleViewSet(BaseGenericViewSet):
                 "other_discarded_reason"):
             article.other_discarded_reason = other_reason
         article.save()
+
+        self.save_click_action(request, article, force=True)
 
         if not article.is_selected:
             context["status"] = "unselected"
