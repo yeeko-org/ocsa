@@ -18,6 +18,7 @@ const props = defineProps({
     @update-date="final_filters.start_date = $event"
     is_filter
     max_width="130px"
+    min-width="100px"
   />
   <SelectDate
     :init_date="final_filters.end_date"
@@ -26,6 +27,7 @@ const props = defineProps({
     @update-date="final_filters.end_date = $event"
     is_filter
     max_width="130px"
+    min-width="100px"
   />
 
 </template>

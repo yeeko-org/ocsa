@@ -4,7 +4,6 @@ import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import ProjectMiniCard from "~/components/map/ProjectMiniCard.vue";
 
-import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
 import ConflictCard from "~/components/dashboard/project/conflict/ConflictCard.vue";
 import NoteTitle from "~/components/dashboard/source/note/NoteTitle.vue";
 import CollectionListMap from "~/components/map/CollectionListMap.vue";
@@ -81,11 +80,6 @@ const related_notes = computed(() => {
 const filtered_notes = computed(() => {
   return related_notes.value.direct.slice(0, showing.value)
 })
-
-const project_fields = [
-  'id', 'name', 'alternative_name', 'conflict', 'megaproject_type',
-  'status_project', 'description', 'status_validation', 'is_grouper'
-]
 
 const plural_comp = computed(() => {
   return related_notes.value.direct.length !== 1 ? 's' : ''

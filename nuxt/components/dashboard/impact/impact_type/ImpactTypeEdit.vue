@@ -21,29 +21,29 @@ const merge_fields = ref([])
 </script>
 
 <template>
-  <v-row v-if="is_massive_edit">
-    <v-col cols="12" class="d-flex align-center">
-      <span
-        class="mr-2 text-subtitle-1"
-      >Campos a editar:</span>
-      <v-chip-group
-        v-model="merge_fields"
-        class="mr-2"
-        multiple
-        color="accent"
-      >
-        <v-chip
-          v-for="field in massive_edit_fields"
-          :key="field"
-          :value="field"
-          filter
-          variant="tonal"
-        >
-          {{ field }}
-        </v-chip>
-      </v-chip-group>
-    </v-col>
-  </v-row>
+<!--  <v-row v-if="is_massive_edit">-->
+<!--    <v-col cols="12" class="d-flex align-center">-->
+<!--      <span-->
+<!--        class="mr-2 text-subtitle-1"-->
+<!--      >Campos a editar:</span>-->
+<!--      <v-chip-group-->
+<!--        v-model="merge_fields"-->
+<!--        class="mr-2"-->
+<!--        multiple-->
+<!--        color="accent"-->
+<!--      >-->
+<!--        <v-chip-->
+<!--          v-for="field in massive_edit_fields"-->
+<!--          :key="field"-->
+<!--          :value="field"-->
+<!--          filter-->
+<!--          variant="tonal"-->
+<!--        >-->
+<!--          {{ field }}-->
+<!--        </v-chip>-->
+<!--      </v-chip-group>-->
+<!--    </v-col>-->
+<!--  </v-row>-->
   <v-row>
     <v-col cols="12" class="d-flex">
       <v-text-field

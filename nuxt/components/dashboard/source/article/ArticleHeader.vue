@@ -159,6 +159,7 @@ const final_mentions = computed(() => {
             v-if="main.is_selected === false"
             activator="parent"
             location="bottom"
+            max-width="400"
           >
             <v-card
               color="red-lighten-3"

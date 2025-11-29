@@ -144,6 +144,7 @@ const emits = defineEmits(['open-panel'])
           :key="status_group"
         >
           <StatusChip
+            v-if="status_group !== 'status_retro' || main[status_group]"
             :main="main"
             :collection="status_group"
             small

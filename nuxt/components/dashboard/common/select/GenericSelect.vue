@@ -283,7 +283,6 @@ function openDialog(is_add=true){
         :lines="false"
         max-width="400"
         min-height="52"
-        xdisabled="item.raw.status_validation === 'expired'"
         :disabled="['expired', 'rejected'].includes(item.raw.status_validation)"
       >
         <template v-slot:prepend v-if="item.raw.icon">

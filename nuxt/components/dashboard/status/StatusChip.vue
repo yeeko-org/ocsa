@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'
+import {status_filters} from "~/composables/filters.js";
 
 const props = defineProps({
   main: {
@@ -69,18 +70,10 @@ const item_built = computed(() => {
 });
 
 const label = computed(() => {
-  switch (simple_name.value) {
-    case 'register':
-      return 'Registro:';
-    case 'validation':
-      return 'Validación:';
-    case 'location':
-      return 'Ubicación:';
-    default:
-      return 'Status:';
-  }
-  // return props.collection === 'register'
-  //   ? 'Registro:' : 'Validación:';
+  if (status_filters[props.collection] === undefined)
+    return 'Status:';
+
+  return `${status_filters[props.collection].short_name}:`;
 })
 
 </script>

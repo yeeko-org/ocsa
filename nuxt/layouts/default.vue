@@ -56,7 +56,7 @@ const q_value = ref('')
         </v-btn>
       </v-app-bar>
       <v-main>
-        <v-container fluid class="px-0 pb-0 pt-12">
+        <v-container fluid class="px-0 pb-0">
           <v-layout
             align-center justify-center fill-height
           >

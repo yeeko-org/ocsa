@@ -19,6 +19,7 @@ export const location_types = [
       'Haz clic para empezar a dibujar una línea.',
       'Haz clic de nuevo para agregar cada punto.',
       'Haz doble clic para finalizar la línea.',
+      // 'Puedes dibujar múltiples líneas.', // Added
     ],
   },
   {
@@ -32,6 +33,7 @@ export const location_types = [
       'Haz clic para empezar a dibujar un polígono.',
       'Haz clic de nuevo para agregar cada punto.',
       'Haz doble clic para finalizar el polígono.',
+      // 'Puedes dibujar múltiples polígonos.', // Added
     ],
   },
 ]
