@@ -3,9 +3,9 @@ from .models import ClickHistory
 
 
 class ClickHistoryAdmin(admin.ModelAdmin):
-    list_display = ["user", "date", "action", "get_related_object"]
+    list_display = ["user", "date_start", "action", "get_related_object"]
     raw_id_fields = ["user", "note", "article", "project", "location"]
-    list_filter = ["action", "user", "date"]
+    list_filter = ["action", "user", "date_start"]
 
     def get_related_object(self, obj):
         """Retorna el objeto relacionado con su tipo como prefijo."""

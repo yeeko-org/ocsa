@@ -16,19 +16,11 @@ class PreClassify(ManagerScraper):
         if not self.articles_for_openAI:
             return
         prompt_path = "source/scraper/prompt_pre_classify.txt.back"
-        prompt_version = "preclassify_v1"
+
         if alt_version:
             prompt_path = "source/scraper/prompt_pre_classify_v2.txt.back"
-            prompt_version = "preclassify_v2"
 
-        if self.is_test:
-            self.qualify_schema, _ = QualifySchema.objects.get_or_create(
-                scraped_record=self.scraped_record,
-                ia_model=self.open_ai_engine,
-                prompt_version=prompt_version,
-                batch_size=self.block_size)
-        else:
-            self.qualify_schema = None
+        self.qualify_schema = None
 
         len_articles = len(self.articles_for_openAI)
         print(f"Preclassify articles for {len_articles} articles")
@@ -89,16 +81,7 @@ class PreClassify(ManagerScraper):
             article_obj = self.articles_by_id.get(article_id)
             if not article_obj:
                 continue
-            is_selected = preclassification in ["valid", "maybe", "unknown"]
-            if self.is_test:
-                change_value = self.get_change_value(is_selected, article_obj)
-                _ = ArticleQualify.objects.create(
-                    article=article_obj,
-                    qualify_schema=self.qualify_schema,
-                    is_selected=is_selected,
-                    change_value=change_value,
-                    request_id=request_id)
-            else:
-                article_obj.preclassification = preclassification
-                article_obj.save()
+            # is_selected = preclassification in ["valid", "maybe", "unknown"]
+            article_obj.preclassification = preclassification
+            article_obj.save()
         print(f"counters: {counter.items()}")

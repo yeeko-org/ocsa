@@ -84,11 +84,10 @@ class ManagerScraper(ABC):
             article_scraper_class: Type["ArticleScraper"],
             recover_record: ScrapedRecord | None = None,
             open_ai_engine: str | None = None,
-            is_test: bool = False, use_deepseek: bool = False
+            use_deepseek: bool = False
 
     ) -> None:
         self.block_size = PRECLASSIFY_ARTICLES_BLOCK
-        self.block_full_articles = 1
         self.main_scraper_class = main_scraper_class
         self.article_scraper_class = article_scraper_class
         self.overlapping_dates = []
@@ -97,7 +96,6 @@ class ManagerScraper(ABC):
         self.open_ai_engine = open_ai_engine
         self.use_deepseek = use_deepseek
         self.scraped_record = None
-        self.is_test = is_test
 
         if recover_record:
             self.scraped_record = recover_record
@@ -276,29 +274,16 @@ class ManagerScraper(ABC):
                     f"Error getting content for article {article.id}", e)
 
     def build_ai_criteria(
-            self, block_size: int = 0, prompt_version: str = "v1"):
+            self, prompt_version: str = "v1"):
         from django.utils import timezone
 
         self.scraped_record.status = "criteria"
         self.scraped_record.save()
-        if block_size:
-            self.block_full_articles = block_size
         ready_articles = []
-        if self.is_test:
-            self.qualify_schema, _ = QualifySchema.objects.get_or_create(
-                scraped_record=self.scraped_record,
-                ia_model=self.open_ai_engine,
-                prompt_version=prompt_version,
-                batch_size=self.block_full_articles)
-            ready_articles = Article.objects.filter(
-                scraped=self.scraped_record,
-                qualifications__qualify_schema=self.qualify_schema)\
-                .distinct().values_list("id", flat=True)
-        else:
-            self.qualify_schema = None
-        # if self.articles_by_uid:
-        # print("articles_by_id:", bool(self.articles_by_id))
-        articles_objects = self.get_articles_objects()
+
+        self.qualify_schema = None
+
+        articles_objects: List[Article] = self.get_articles_objects()
 
         if ready_articles:
             articles_objects = [
@@ -306,40 +291,27 @@ class ManagerScraper(ABC):
                 if article.id not in ready_articles
             ]
         len_articles = len(articles_objects)
-        # print(f"Full scrape articles for {len_articles} articles")
 
-        many_articles = self.block_full_articles > 1
         gemini_text = "prompt_gemini"
-        prompt_criteria = (f"{gemini_text}_article{'s' if many_articles else ''}"
+        prompt_criteria = (f"{gemini_text}_article"
                            f"_criteria_{prompt_version}.txt")
         self.pre_classify_request = RequestGemini(engine=self.open_ai_engine)
-        cache_multiple = f"multiple_{self.block_full_articles}" \
-            if many_articles else "single"
-        cache_name = f"criteria_{prompt_version}_{cache_multiple}"
+        cache_name = f"criteria_{prompt_version}_single"
         self.pre_classify_request.build_chat(
             f"source/scraper/{prompt_criteria}")
         seconds_cache = len_articles * 2
         self.pre_classify_request.create_cache(cache_name, seconds_cache)
 
-
         desc = f"Classifying articles ({len_articles})"
-        article_range = range(0, len_articles, self.block_full_articles)
-        for i in tqdm(article_range, desc=desc):
-            # init_msg = "Scraping and classifying article"
-            # if self.block_full_articles > 1:
-            #     print(f"{init_msg}s {i} to {i + self.block_full_articles}")
-            # elif i % 10 == 0:
-            #     print(f"{init_msg} {i}")
-            current_batch = articles_objects[i:i + self.block_full_articles]
-            self.get_batch_ai_criteria(
-                current_batch, prompt_version=prompt_version)
+        for article in tqdm(articles_objects, desc=desc):
+            self.get_ai_criteria(article)
         if self.pre_classify_request.errors:
             self.add_errors(self.pre_classify_request.errors)
-        if not self.scraped_record.date_ended:
-            self.scraped_record.date_ended = timezone.now()
+        if not self.scraped_record.date_end:
+            self.scraped_record.date_end = timezone.now()
             self.scraped_record.save()
 
-    def get_articles_objects(self):
+    def get_articles_objects(self) -> List[Article]:
         if self.articles_by_id:
             return list(self.articles_by_id.values())
             # print("type of articles_objects:", type(articles_objects))
@@ -347,75 +319,60 @@ class ManagerScraper(ABC):
             return list(Article.objects.filter(
                 scraped=self.scraped_record, criteria__isnull=True))
 
-    def get_batch_ai_criteria(
-            self, articles: List[Article], prompt_version: str = "v1"):
-        many_articles = self.block_full_articles > 1
-        full_content = ""
+    def get_ai_criteria(self, article: Article):
 
-        for article in articles:
-            if not article.paragraphs and not article.images:
-                print(f"Article {article.id} has no paragraphs")
-                continue
-            p_idx = 0
-            content = f"Título: {article.title.strip()}\n"
-            if subtitle := article.subtitle:
-                content += f"Subtítulo: {subtitle.strip()}\n"
-            for paragraph in article.paragraphs:
-                p_idx += 1
-                content += f"[{p_idx}]: {paragraph.strip()}\n"
-            # if p_idx >= 89:
-            #     print(f"Article {article.id} has too many paragraphs: {p_idx}")
-            # else:
-            #     p_idx = 89
-            for photo in article.images or []:
-                p_idx += 1
-                if caption := photo.get("caption"):
-                    caption = caption.replace("\n", " ")
-                    content += f"[{p_idx}]: {caption.strip()} (pie de foto)\n"
+        if not article.paragraphs and not article.images:
+            print(f"Article {article.id} has no paragraphs")
+            return
+        p_idx = 0
+        content = f"Título: {article.title.strip()}\n"
+        if subtitle := article.subtitle:
+            content += f"Subtítulo: {subtitle.strip()}\n"
 
-            if many_articles:
-                full_content += f"-- ARTÍCULO id: {article.id} --\n\n{content}\n\n\n"
-            else:
-                full_content = content
+        for paragraph in article.paragraphs:
+            p_idx += 1
+            content += f"[{p_idx}]: {paragraph.strip()}\n"
+
+        for photo in article.images or []:
+            p_idx += 1
+            if caption := photo.get("caption"):
+                caption = caption.replace("\n", " ")
+                content += f"[{p_idx}]: {caption.strip()} (pie de foto)\n"
+
+        full_content = content
+
         if not full_content:
             print("No content to classify")
             return
 
-        pre_classify_response = self.pre_classify_request\
+        criteria = self.pre_classify_request\
             .send_gemini_prompt(full_content, schema_clss=ArticleBase)
 
-        if not pre_classify_response:
+        if not criteria:
             print("No response from OpenAI")
             return
 
-        if not isinstance(pre_classify_response, ArticleBase):
-            print(f"Invalid response, received: {type(pre_classify_response)}")
+        if not isinstance(criteria, ArticleBase):
+            print(f"Invalid response, received: {type(criteria)}")
             return
-        if not many_articles:
-            pre_classify_response = [pre_classify_response]
-        for criteria in pre_classify_response:
-            if not many_articles:
-                article_id = articles[0].id
-            else:
-                article_id = criteria.id
-            article = Article.objects.get(pk=int(article_id))
-            certain_degree = article.get_certainty_degree_v2(criteria)
-            is_selected = certain_degree > 100
-            if self.is_test:
-                change_value = self.get_change_value(is_selected, article)
-                _ = ArticleQualify.objects.create(
-                    article=article,
-                    qualify_schema=self.qualify_schema,
-                    is_selected=is_selected,
-                    criteria=criteria,
-                    certainty_degree=certain_degree,
-                    change_value=change_value,
-                    request_id=None)
-            else:
-                json_criteria = json.dumps(
-                    criteria.model_dump(), ensure_ascii=False,
-                    indent=2, cls=EnumEncoder)
-                article.criteria = json.loads(json_criteria)
-                article.certainty_degree = certain_degree
-                # article.is_selected = is_selected
-                article.save()
+
+        is_selected = self.save_criteria_results(criteria, article.id)
+        if is_selected:
+            # print(f"Article {criteria.id} selected by criteria")
+            self.send_second_criteria()
+
+    def save_criteria_results(self, criteria:ArticleBase, article_id: int):
+        article = Article.objects.get(pk=int(article_id))
+        certain_degree = article.get_certainty_degree_v2(criteria)
+        json_criteria = json.dumps(
+            criteria.model_dump(), ensure_ascii=False,
+            indent=2, cls=EnumEncoder)
+        article.criteria = json.loads(json_criteria)
+        article.certainty_degree = certain_degree
+        article.save()
+        is_selected = certain_degree > 100
+        return is_selected
+
+    def send_second_criteria(self):
+        pass
+

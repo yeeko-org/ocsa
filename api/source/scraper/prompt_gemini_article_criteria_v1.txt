@@ -36,7 +36,7 @@ Analiza el artículo que se te proporcionará, el cual tiene un título y párra
   - `social_impacts`: Impactos negativos en la población: desplazamiento, afectación a la salud, pérdida de medios de vida, violación de derechos humanos.
   - `ecological_impacts`: Impactos negativos en el medio ambiente: contaminación de agua/suelo/aire, deforestación, pérdida de biodiversidad.
   - `acts_of_violence`: Acciones para reprimir la oposición: amenazas, intimidación, agresiones físicas, criminalización, demandas legales contra opositores, asesinatos.
-  - `collective_actions`: Acciones de la comunidad para oponerse: protestas, bloqueos, marchas, denuncias públicas, demandas legales, amparos, foros, reuniones.
+  - `collective_actions`: Acciones de la comunidad para organizarse y oponerse a la implementación del proyecto: protestas, bloqueos, marchas, denuncias públicas, demandas legales, amparos, foros, asambleas.
 
 **3. Campo Booleano `is_foreign`:**
 

@@ -9,8 +9,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
-from rest_framework.reverse import reverse
-from urllib.parse import urlencode
 from api.permissions import IsEditorOrCreateOrRead, IsFullEditorOrReadOnly
 from api.views.article.serializers import (
     ScrapingDateSerializer, ScrapedRecordSerializer,
@@ -21,15 +19,18 @@ from source.scraper.reforma import ReformaManagerScraper
 
 
 def full_scrape_articles(source, scraped_record: ScrapedRecord):
-    connection.close()  # TODO: revisar funcionamiento
+    from django.utils import timezone
+    # connection.close()  # TODO: revisar funcionamiento
 
     manager_scraper_class = get_manager_scraper_class(source)
     manager_scraper = manager_scraper_class(
         "", "", recover_record=scraped_record,
         open_ai_engine="gemini-2.5-flash")
+    scraped_record.last_updated = timezone.now()
+    scraped_record.save()
 
     manager_scraper.scrape_articles(update=True)
-    manager_scraper.build_ai_criteria(block_size=1)
+    manager_scraper.build_ai_criteria()
 
 
 class ScrapingDatesView(APIView):
@@ -110,12 +111,49 @@ class ScrapedRecordView(BaseGenericViewSet):
         # return queryset.filter(status=ScrapedRecord.STATUS_DONE)
         return queryset
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        serializer.instance.user = request.user
+        serializer.instance.save()
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     @action(
         detail=True, methods=["post"],
         permission_classes=[IsFullEditorOrReadOnly])
     def reprocess(self, request, pk=None):
+        from django.utils import timezone
+        from datetime import timedelta
+
         scraped_record = self.get_object()
         source = scraped_record.source.id
+        dates = []
+        fields = ['date_start', 'last_updated']
+        for field in fields:
+            date_value = getattr(scraped_record, field)
+            if date_value:
+                dates.append(date_value)
+        max_date = max(dates)
+
+        time_now = timezone.now()
+        # articles_count = scraped_record.articles.count()
+
+        total_minutes = scraped_record.total_days * 3
+        if max_date + timedelta(minutes=total_minutes) > time_now:
+            return Response(
+                {"detail": "Cannot reprocess a recently updated scraped record."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # last_update = min(scraped_record.date_end, scraped_record.last_update)
+        if not scraped_record.date_end:
+            return Response(
+                {"detail": "Cannot reprocess an ongoing scraped record."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         thread = threading.Thread(
             target=full_scrape_articles, args=(source, scraped_record,))
         thread.start()

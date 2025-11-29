@@ -7,6 +7,7 @@ GROUP_CHOICES = [
     ("register", "Registro"),
     ("validation", "Validación"),
     ("location", "Ubicación"),
+    ("retro", "Retroalimentación"),
 ]
 
 

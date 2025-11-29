@@ -16,12 +16,10 @@ class JornadaManagerScraper(ManagerScraper):
             self, from_date: str | date, to_date: str | date,
             recover_record: ScrapedRecord | None = None,
             open_ai_engine: str | None = None,
-            is_test: bool = False
     ) -> None:
         super().__init__(
             from_date, to_date, JornadaMainScraper, JornadaArticleScraper,
             recover_record=recover_record, open_ai_engine=open_ai_engine,
-            is_test=is_test
         )
 
     def get_source(self) -> Source:

@@ -16,7 +16,7 @@ class ClickHistory(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
         verbose_name="Usuario", related_name="clicks")
-    date = models.DateTimeField(verbose_name="Fecha", auto_now_add=True)
+    date_start = models.DateTimeField(verbose_name="Fecha", auto_now_add=True)
     action = models.CharField(
         max_length=20, choices=CLICK_ACTIONS, verbose_name="Acción",
         default='open')
@@ -35,10 +35,38 @@ class ClickHistory(models.Model):
         verbose_name="Ubicación", related_name="clicks")
 
     def __str__(self):
-        return "%s - %s" % (self.user, self.date)
+        return "%s - %s" % (self.user, self.date_start)
 
     class Meta:
         verbose_name = "Historial"
         verbose_name_plural = "Historial"
-        ordering = ["-date"]
+        ordering = ["-date_start"]
 
+
+class OfflineTask(models.Model):
+
+    OFFLINE_TYPES = (
+        ('weekly_meeting', 'Reunión semanal'),
+        ('meeting', 'Reunión'),
+        ('training', 'Capacitación'),
+        ('other', 'Otro'),
+    )
+
+    users = models.ManyToManyField(User, related_name="offline_tasks")
+    date_start = models.DateTimeField(verbose_name="Inicio")
+    date_end = models.DateTimeField(verbose_name="Fin")
+    activity_type = models.CharField(
+        max_length=100, choices=OFFLINE_TYPES, verbose_name="Tipo")
+    name = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Actividad")
+    user_added = models.ForeignKey(
+        User, blank=True, null=True,
+        on_delete=models.DO_NOTHING, related_name="offline_tasks_added")
+
+    def __str__(self):
+        return "%s - %s" % (self.date_start, self.date_end)
+
+    class Meta:
+        verbose_name = "Tarea offline"
+        verbose_name_plural = "Tareas offline"
+        ordering = ["-date_start"]

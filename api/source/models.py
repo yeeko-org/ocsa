@@ -175,12 +175,17 @@ class ScrapedRecord(models.Model):
 
     data = models.JSONField(blank=True, null=True)
     errors = models.JSONField(blank=True, null=True)
-    date_started = models.DateTimeField(
+    date_start = models.DateTimeField(
         blank=True, null=True, auto_now_add=True)
-    date_ended = models.DateTimeField(blank=True, null=True)
+    date_end = models.DateTimeField(blank=True, null=True)
+    last_updated = models.DateTimeField(blank=True, null=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, null=True,
         related_name='scraped_records')
+
+    @property
+    def total_days(self):
+        return (self.to_date - self.from_date).days + 1
 
     def __str__(self):
         return f"{self.source.name} - {self.from_date} to {self.to_date} ({self.status})"
@@ -194,6 +199,7 @@ class ScrapedRecord(models.Model):
 class DiscardedReason(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
+    is_other = models.BooleanField(default=False)
     order = models.SmallIntegerField(default=5)
 
     def __str__(self):
@@ -201,6 +207,7 @@ class DiscardedReason(models.Model):
 
 
     class Meta:
+        ordering = ['order', 'name']
         verbose_name = 'Razón de descarte'
         verbose_name_plural = 'Razones de descarte'
 
@@ -258,13 +265,21 @@ class Article(models.Model):
 
     criteria = models.JSONField(blank=True, null=True)
     certainty_degree = models.IntegerField(
-        blank=True, null=True,
+        blank=True, null=True, verbose_name='Grado de certeza',
         help_text='Debe superar 100 para ser considerado')
+    second_criteria = models.JSONField(blank=True, null=True)
+    second_certainty_degree = models.IntegerField(
+        blank=True, null=True, verbose_name='Grado de certeza (deep)',
+        help_text='Debe superar 100 para ser considerado')
+
     is_selected = models.BooleanField(blank=True, null=True)
     discarded_reason = models.ForeignKey(
         DiscardedReason, on_delete=models.CASCADE, blank=True, null=True,
         related_name='articles')
     other_discarded_reason = models.TextField(blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+    status_retro = models.ForeignKey(
+        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
 
     scraped = models.ForeignKey(
         ScrapedRecord, on_delete=models.CASCADE, related_name='articles')
@@ -324,33 +339,33 @@ class Article(models.Model):
                 degree = 99
         return degree
 
-    def get_criteria(self, engine_name: str | None = None, use_deepseek: bool = False):
-        prompt_criteria = "prompt_article_criteria.txt"
-        articles_criteria_request = JsonRequestOpenAI(
-            f"source/scraper/{prompt_criteria}",
-            engine=engine_name, use_deepseek=use_deepseek)
-
-        if not (self.content or self.basic_content):
-            return
-
-        pre_classify_response, _ = articles_criteria_request\
-            .send_prompt(self.content or self.basic_content)
-
-        if not pre_classify_response:
-            print("No response from OpenAI")
-            return
-
-        if not isinstance(pre_classify_response, dict):
-            print("Invalid response")
-            return
-
-        certain_degree = self.get_certainty_degree(pre_classify_response)
-        is_selected = certain_degree > 10
-
-        self.criteria = pre_classify_response
-        self.certainty_degree = certain_degree
-        self.is_selected = is_selected
-        self.save()
+    # def get_criteria(self, engine_name: str | None = None, use_deepseek: bool = False):
+    #     prompt_criteria = "prompt_article_criteria.txt"
+    #     articles_criteria_request = JsonRequestOpenAI(
+    #         f"source/scraper/{prompt_criteria}",
+    #         engine=engine_name, use_deepseek=use_deepseek)
+    #
+    #     if not (self.content or self.basic_content):
+    #         return
+    #
+    #     pre_classify_response, _ = articles_criteria_request\
+    #         .send_prompt(self.content or self.basic_content)
+    #
+    #     if not pre_classify_response:
+    #         print("No response from OpenAI")
+    #         return
+    #
+    #     if not isinstance(pre_classify_response, dict):
+    #         print("Invalid response")
+    #         return
+    #
+    #     certain_degree = self.get_certainty_degree(pre_classify_response)
+    #     is_selected = certain_degree > 10
+    #
+    #     self.criteria = pre_classify_response
+    #     self.certainty_degree = certain_degree
+    #     self.is_selected = is_selected
+    #     self.save()
 
     def __str__(self):
         return f"{self.uid} - {self.title}"

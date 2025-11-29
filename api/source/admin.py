@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import Note, NoteFile, ScrapedRecord, Article, Source
+from .models import (
+    Note, NoteFile, ScrapedRecord, Article, Source, DiscardedReason)
 
 
 @admin.register(Source)
@@ -36,3 +37,11 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ['title']
     list_filter = ['source', "scraped"]
     ordering = ['scraped_date']
+
+
+@admin.register(DiscardedReason)
+class DiscardedReasonAdmin(admin.ModelAdmin):
+    list_display = ['name', 'is_other', 'order']
+    list_editable = ['order']
+
+

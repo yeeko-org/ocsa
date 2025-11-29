@@ -37,11 +37,9 @@ def examples():
         content=None, images=None)
     manager_reforma.scrape_articles(update=True)
 
-    manager_scraper.build_ai_criteria(
-        block_size=1, prompt_version="v1")
+    manager_scraper.build_ai_criteria(prompt_version="v1")
 
-    manager_reforma.build_ai_criteria(
-        block_size=1, prompt_version="v1")
+    manager_reforma.build_ai_criteria(prompt_version="v1")
 
     # QualifySchema.objects.all().delete()
     Article.objects.filter(scraped__id=45).count()
@@ -73,7 +71,7 @@ def test_reforma_subtitle():
 
 
 def scrape_full_articles(
-        sr_id=17, block_size=1, open_ai_engine="gemini-2.5-flash",
+        sr_id=17, open_ai_engine="gemini-2.5-flash",
         prompt_version="v2"):
     from source.scraper.jornada import JornadaManagerScraper
     from source.scraper.reforma import ReformaManagerScraper
@@ -81,21 +79,20 @@ def scrape_full_articles(
 
     scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
-        open_ai_engine=open_ai_engine, is_test=True)
+        open_ai_engine=open_ai_engine)
 
     if open_ai_engine == "deepseek-chat":
         scraper.use_deepseek = True
     scraper.scrape_articles()
     scraper.build_ai_criteria(
-        block_size=block_size,
         prompt_version=prompt_version)
 
 
 scrape_full_articles(22, 1, "gemini-2.5-flash", "v1")
 
-scrape_full_articles(22, 6, "gemini-2.5-flash", "v2")
-scrape_full_articles(22, 6, "gemini-2.5-flash", "v1")
-scrape_full_articles(22, 6, "deepseek-chat", "v1")
+# scrape_full_articles(22, 6, "gemini-2.5-flash", "v2")
+# scrape_full_articles(22, 6, "gemini-2.5-flash", "v1")
+# scrape_full_articles(22, 6, "deepseek-chat", "v1")
 
 # scrape_full_articles(1, 20, "gpt-4o-2024-11-20")
 # scrape_full_articles(17, 20, "gemini-2.5-flash")
