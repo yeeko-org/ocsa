@@ -66,6 +66,13 @@ class ArticleStatusSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class SourceSimpleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Source
+        fields = ["id", "name"]
+
+
 class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
     articles_count = serializers.SerializerMethodField()
     preclassified_count = serializers.SerializerMethodField()
@@ -90,6 +97,7 @@ class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
 
 
 class ScrapedRecordSerializer(ScrapedRecordSimpleSerializer):
+    source_full = SourceSimpleSerializer(read_only=True, source='source')
     pre_selected = serializers.SerializerMethodField()
 
     def get_pre_selected(self, obj):
@@ -98,8 +106,7 @@ class ScrapedRecordSerializer(ScrapedRecordSimpleSerializer):
 
     class Meta:
         model = ScrapedRecord
-        fields = "__all__"
-        # exclude = ["articles"]
+        exclude = ["data"]
 
 
 class SourceFullSerializer(serializers.ModelSerializer):
@@ -109,6 +116,7 @@ class SourceFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = Source
         fields = "__all__"
+
 
 
 class ScrapingDateSerializer(serializers.Serializer):

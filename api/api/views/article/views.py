@@ -59,6 +59,7 @@ class ArticleFilter(FilterSet):
         model = Article
         fields = {
             "source": ["exact"],
+            "discarded_reason": ["exact"],
             "is_selected": ["exact"],
         }
 

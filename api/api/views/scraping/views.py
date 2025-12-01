@@ -95,9 +95,11 @@ class ScrapedRecordFilter(FilterSet):
 class ScrapedRecordView(BaseGenericViewSet):
 
     queryset = ScrapedRecord.objects.all()\
+        .select_related('source')\
         .annotate(articles_count=Count('articles'))
     serializer_class = ScrapedRecordSerializer
     permission_classes = [IsFullEditorOrReadOnly]
+    ordering = ['-from_date']
 
     filterset_class = ScrapedRecordFilter
 
@@ -121,9 +123,8 @@ class ScrapedRecordView(BaseGenericViewSet):
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(
-        detail=True, methods=["post"],
-        permission_classes=[IsFullEditorOrReadOnly])
+    @action(detail=True, methods=["post"],
+            permission_classes=[IsFullEditorOrReadOnly])
     def reprocess(self, request, pk=None):
         from django.utils import timezone
         from datetime import timedelta

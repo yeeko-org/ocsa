@@ -15,24 +15,24 @@ En primer lugar, existe una lista de proyectos que fueron identificados como pro
     - `urbano`: Grandes desarrollos inmobiliarios/turísticos, parques industriales, centros comerciales, basureros/rellenos sanitarios.
     - `infra`: Proyectos de infraestructura y vías de comunicación, como carreteras, puertos, aeropuertos, vías férreas, gasoductos.
 
-
 Para cada uno de los proyectos identificados originalmente, ayúdame a identificar si cumplen con cada uno de los siguientes criterios:
 
 is_specific_project:
 Debe ser un proyecto localizable o identificable y no tratarse de algo ambiguo como: "los proyectos de un estado", "la extracción minera en la región", "los proyectos de infraestructura en el país", "refinerías de Veracruz", "construcciones ilegales en Córdoba", "comercio ambulante".
 Para considerarse, debería mencionarse una localidad específica y tratarse un tipo de proyecto que pueda ser aislable por un humano, por ejemplo: "la mina de oro en la sierra de Guerrero", "el parque eólico en La Ventosa", "la presa El Zapotillo en Jalisco". Si se menciona una localidad específica, pero pueden existir muchos proyectos no aislables, el proyecto debería descartarse, por ejemplo: "las granjas solares en Sonora", "los hoteles de la playa de Cancún", "los gasoductos en el norte del país".
 
-is_not_campaign_plan:
-No debe trararse de un un plan, campaña, programa gubernamental o promesa de campaña en el contexto electoral, por ejemplo, excluye los siguientes: "Programa Nacional de Reforestación", "Plan de Desarrollo Turístico del Estado de Yucatán", "Campaña de Limpieza de Playas en Acapulco", "Plan privatizador del agua".
+is_not_public_policy:
+No deben incluirse los proyectos que en realidad son políticas públicas (planes, campañas) o programas de mantenimiento gubernamentales: "Programa Nacional de Reforestación", "Plan de Desarrollo Turístico del Estado de Yucatán", "Campaña de Limpieza de Playas en Acapulco", "Plan privatizador del agua", "poda de árboles", "repavimentación". Tampoco deberán incluirse las instalaciones de servicio público de salud y educación: construcción de un hospital, escuela, etc.
 
-is_not_small_scale:
-No deben considerarse los proyectos de pequeña escala, es decir, los que implican remodelaciones menores, reparaciones, mantenimiento, instalación de cámaras, equipamiento, etc. Tampoco deben considerarse establecimientos comerciales pequeños como bares, restaurantes, tiendas, etc.
+is_extractivist_or_big_scale:
+Deben considerarse solo los proyectos extractivistas o que involucren algún tipo de acumulación de capital a gran escala. También deben implicar alguna intervención hacia el territorio. Deberán excluirse las investigaciones y el desarrollo de tecnologías y productos que no tengan repercusión territorial o ambiental. No deben incluirse los proyectos de pequeña escala, es decir, los que implican remodelaciones menores, reparaciones, mantenimiento, instalación de cámaras, equipamiento, "remodelación de un mercado", etc. Tampoco deben considerarse establecimientos comerciales pequeños como bares, restaurantes, tiendas, etc.
 
-is_not_gov_program:
-Indica si el proyecto detectado se trata en realidad de un programa gubernamental o alguna instalación de servicio público (solo salud y educación): poda de árboles, repavimentaciones, remodelación de un mercado, construcción de un hospital, escuela, etc.
+is_political_opinion:
+No se deben incluir los proyectos mencionados como opiniones de políticos en el contexto de campañas electorales que dan detalles de los proyectos de forma superficial. Tampoco deben considerarse los proyectos mencionados en los editoriales políticos o columnas de opinión que no aporten datos o hechos relevantes de los proyectos, más allá de los datos normalmente conocidos.
 
 is_not_labor_conflict_only:
 Excluye los proyectos que, aunque cumplan los criterios anteriores, en realidad se mencionen en el contexto de conflictos laborales o sindicales, por lo que las consecuencias sociales son en realidad laborales y a causa del conflicto entre trabajadores y patrones.
+
 
 
 Además de los criterios propios de los proyectos, la nota, para ser considerada, deberá cumplir al menos uno de los siguientes 4 criterios adicionales:
@@ -53,6 +53,8 @@ environmental_impact_as_consequence:
 En la nota, si hay afectaciones ambientales identificadas (`social_impacts`), ayúdame a detectar si, al menos alguna afectación ambiental sucedió como consecuencia directa o de la existencia del proyecto o proyectos mencionados. No consideres cuando la construcción del proyecto sea la solución a la afectación ambiental mencionada o cuando algún desastre ambiental como un incendio, un huracán o una sequía está afectando al proyecto.
 
 
+
+
 Respóndeme en dos párrafos.
 
 En el primer párrafo, evalúa rigurosamente cada uno de los proyectos mencionados en la nota con base en los criterios de is_specific_project, is_not_campaign_plan, is_not_small_scale, is_public_program, is_not_labor_conflict_only. Menciona cada proyecto y si cumple o no con cada criterio, y justifica brevemente tu evaluación.
@@ -61,9 +63,4 @@ En el segundo párrafo, evalúa si la nota cumple con al menos uno de los criter
 
 
 
-
-
-
-Es un proyecto extractivista o de gran escala:
-Qué tanta certeza existe de que sea un proyecto extractivista o que sea de gran escala, o bien, que implique algún tipo de acumulación de capital, para ello, los
 
