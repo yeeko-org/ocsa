@@ -111,9 +111,9 @@ const discarded_reason = computed(() => {
       reason => reason.id === props.main.discarded_reason
     ) || {
       id: null,
-      name: 'Otra razón',
-      description: props.main.other_discarded_reason || 'No especificada',
-
+      name: '',
+      // description: props.main.other_discarded_reason || 'No especificada',
+      description: '',
     }
   return null
 })
@@ -176,20 +176,34 @@ const discarded_reason = computed(() => {
             max-width="400"
           >
             <v-card
-              color="red-lighten-3"
+              color="red-lighten-4"
               class="mx-n4 my-n2"
             >
               <v-card-title
-                class="text-subtitle-1"
+                class="text-subtitle-1 text-uppercase"
               >
-                Razón de descarte:
+                Motivo de descarte:
               </v-card-title>
               <v-card-text>
-                <div class="font-weight-bold mb-2">
-                  {{ discarded_reason.name }}:
+                <div
+                  v-if="discarded_reason.name"
+                  class="mb-2"
+                >
+                  <span class="font-weight-bold">
+                    {{ discarded_reason.name }}:
+                  </span>
+                  <span
+                    v-if="discarded_reason.description"
+                    class="text-grey-darken-3 mb-2"
+                  >
+                    {{ discarded_reason.description }}
+                  </span>
                 </div>
-                <div>
-                  {{ discarded_reason.description }}
+                <div
+                  v-if="main.other_discarded_reason"
+                  class="text-subtitle-1"
+                >
+                  {{ main.other_discarded_reason }}
                 </div>
               </v-card-text>
             </v-card>

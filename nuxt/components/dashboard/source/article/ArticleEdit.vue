@@ -104,6 +104,12 @@ const need_manual_discard = computed(() => {
   return props.full_main.discarded_reason === other_discarded_reason.value.id
 })
 
+const label_other_reason = computed(() => {
+  return need_manual_discard.value
+    ? "Explica por qué se descartó"
+    : "Si gustas, explica la razón"
+})
+
 </script>
 
 <template>
@@ -203,7 +209,13 @@ const need_manual_discard = computed(() => {
           </v-btn>
         </v-btn-toggle>
       </v-input>
-
+      <SelectGroup
+        v-if="full_main.is_selected === false && pre_valid"
+        :main_object="full_main"
+        filter_group_name="discarded_reasons"
+        main_collection_name="article"
+        :width="220"
+      />
     </div>
     <v-card
       v-if="full_main.is_selected === false && pre_valid"
@@ -211,15 +223,9 @@ const need_manual_discard = computed(() => {
       class="ml-4 pt-2"
       style="max-width: 400px; min-width: 240px;"
     >
-      <SelectGroup
-        :main_object="full_main"
-        filter_group_name="discarded_reasons"
-        main_collection_name="article"
-      />
       <v-textarea
-        v-if="need_manual_discard"
         v-model="full_main.other_discarded_reason"
-        label="Razón de descarte"
+        :label="label_other_reason"
         variant="solo-filled"
         color="red-darken-1"
         bg-color="red-lighten-4"
