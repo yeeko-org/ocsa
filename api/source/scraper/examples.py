@@ -8,9 +8,9 @@ from source.models import ScrapedRecord, Article
 def examples_base():
 
     # manager_scraper = JornadaManagerScraper(
-    #     "2022/10/01", "2022/12/31", open_ai_engine="gpt-4o-mini")
+    #     "2022/10/01", "2022/12/31", ai_engine="gpt-4o-mini")
     manager_scraper = JornadaManagerScraper(
-        "2022/02/01", "2023/02/28", open_ai_engine="gpt-4o-mini")
+        "2022/02/01", "2023/02/28", ai_engine="gpt-4o-mini")
 
     # print(manager_scraper.scraped_record)
     manager_scraper.scrape_sections()
@@ -25,10 +25,10 @@ def examples_base():
 
     manager_scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.last(),
-        open_ai_engine="gpt-4o-mini")
+        ai_engine="gpt-4o-mini")
     manager_scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=10),
-        open_ai_engine="gpt-4o-mini")
+        ai_engine="gpt-4o-mini")
 
     # record articles genera los registros de los articulos con get_or_create
     # basado en el uid y el source, tambien genera los datos de las listas

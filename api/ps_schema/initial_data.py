@@ -132,9 +132,11 @@ class InitCollections:
             for collection in collections:
                 order += 1
                 model_name = collection['model_name']
+                # new_collection.level = levels_dict[collection['level']]
+                level = levels_dict.get(collection.get('level', None), None)
                 new_collection, is_new = Collection.objects.get_or_create(
                     snake_name=collection['snake_name'],
-                    app_label=app_label)
+                    app_label=app_label, level=level)
                 my_model = apps.get_model(app_label, model_name)
                 meta_data = my_model._meta
                 verbose_name = meta_data.verbose_name
@@ -145,7 +147,7 @@ class InitCollections:
                 #     print(f"Name: {name} - Verbose: {verbose_name}")
                 # if (plural_name != verbose_name_plural):
                 #     print(f"Plural: {plural_name} - Verbose: {verbose_name_plural}")
-                new_collection.level = levels_dict[collection['level']]
+
                 new_collection.name = name
                 new_collection.plural_name = plural_name
                 new_collection.model_name = model_name

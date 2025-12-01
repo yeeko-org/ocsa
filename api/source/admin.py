@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from .models import (
-    Note, NoteFile, ScrapedRecord, Article, Source, DiscardedReason)
+    Note, NoteFile, ScrapedRecord, Article, Source, DiscardedReason,
+    QualifySchema)
 
 
 @admin.register(Source)
@@ -44,4 +45,7 @@ class DiscardedReasonAdmin(admin.ModelAdmin):
     list_display = ['name', 'is_other', 'order']
     list_editable = ['order']
 
+@admin.register(QualifySchema)
+class QualifySchemaAdmin(admin.ModelAdmin):
+    list_display = ['scraped_record', 'ia_model', 'prompt_version']
 

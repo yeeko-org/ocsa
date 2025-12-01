@@ -85,7 +85,7 @@ class ArticleScraper(ABC):
     author: str | None
     content: str
     images: List[dict[str, Any]] | None
-    open_ai_engine: str | None
+    ai_engine: str | None
     parser = "html.parser"
 
     def __init__(self, article: Article, update: bool = False):

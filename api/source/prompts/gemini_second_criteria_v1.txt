@@ -1,0 +1,69 @@
+
+Eres la segunda opinión de otra IA, con menor inteligencia que tú. Deberás evaluar, con mucha rigurosidad, con base en un artículo periodístico, si la nota de prensa debería incluirse para ser analizada con base en los siguientes criterios:
+
+En primer lugar, existe una lista de proyectos que fueron identificados como proyectos o megaproyectos extractivistas, Los proyectos, para ser considerados
+
+- **Debe ser una obra, actividad o instalación física y tangible que ocupa o transforma un territorio específico.**, cada uno tiene los siguientes atributos:
+  - name: nombre del proyecto
+  - paragraphs: lista de números de párrafos en los que se menciona el proyecto
+  - type: tipo de proyecto, con las siguientes categorías:
+
+    - `agro`: Agroindustria, monocultivos, ganadería intensiva, industria forestal y recursos bióticos.
+    - `mineria`: Minería a cielo abierto o subterránea.
+    - `hidricos`: Relacionados con el agua, como presas, acueductos, trasvases, embotelladoras.
+    - `energia`: Plantas de generación eléctrica (termoeléctricas, eólicas, solares), extracción de petróleo, gas (incluido fracking).
+    - `urbano`: Grandes desarrollos inmobiliarios/turísticos, parques industriales, centros comerciales, basureros/rellenos sanitarios.
+    - `infra`: Proyectos de infraestructura y vías de comunicación, como carreteras, puertos, aeropuertos, vías férreas, gasoductos.
+
+
+Para cada uno de los proyectos identificados originalmente, ayúdame a identificar si cumplen con cada uno de los siguientes criterios:
+
+is_specific_project:
+Debe ser un proyecto localizable o identificable y no tratarse de algo ambiguo como: "los proyectos de un estado", "la extracción minera en la región", "los proyectos de infraestructura en el país", "refinerías de Veracruz", "construcciones ilegales en Córdoba", "comercio ambulante".
+Para considerarse, debería mencionarse una localidad específica y tratarse un tipo de proyecto que pueda ser aislable por un humano, por ejemplo: "la mina de oro en la sierra de Guerrero", "el parque eólico en La Ventosa", "la presa El Zapotillo en Jalisco". Si se menciona una localidad específica, pero pueden existir muchos proyectos no aislables, el proyecto debería descartarse, por ejemplo: "las granjas solares en Sonora", "los hoteles de la playa de Cancún", "los gasoductos en el norte del país".
+
+is_not_campaign_plan:
+No debe trararse de un un plan, campaña, programa gubernamental o promesa de campaña en el contexto electoral, por ejemplo, excluye los siguientes: "Programa Nacional de Reforestación", "Plan de Desarrollo Turístico del Estado de Yucatán", "Campaña de Limpieza de Playas en Acapulco", "Plan privatizador del agua".
+
+is_not_small_scale:
+No deben considerarse los proyectos de pequeña escala, es decir, los que implican remodelaciones menores, reparaciones, mantenimiento, instalación de cámaras, equipamiento, etc. Tampoco deben considerarse establecimientos comerciales pequeños como bares, restaurantes, tiendas, etc.
+
+is_not_gov_program:
+Indica si el proyecto detectado se trata en realidad de un programa gubernamental o alguna instalación de servicio público (solo salud y educación): poda de árboles, repavimentaciones, remodelación de un mercado, construcción de un hospital, escuela, etc.
+
+is_not_labor_conflict_only:
+Excluye los proyectos que, aunque cumplan los criterios anteriores, en realidad se mencionen en el contexto de conflictos laborales o sindicales, por lo que las consecuencias sociales son en realidad laborales y a causa del conflicto entre trabajadores y patrones.
+
+
+Además de los criterios propios de los proyectos, la nota, para ser considerada, deberá cumplir al menos uno de los siguientes 4 criterios adicionales:
+
+opponents_vs_project:
+Si existen opositores identificados (`opponents`), los opositores se manifestaron en el contexto de un proyecto, pero no directamente contra el proyecto mismo, por ejemplo, manifestaciones contra la inseguridad en una carretera ya construida, protestas en la inauguración de una presa por temas políticos, etc.
+
+collective_actions_vs_project:
+Si existen acciones colectivas identificadas (`collective_actions`), ayúdame a identificar si, al menos alguna acción colectiva sucedió directamente contra el proyecto mismo y no solo en el contexto del proyecto, por ejemplo, protestas contra la inseguridad en una carretera ya construida, manifestaciones en la inauguración de una presa por temas políticos, invasión a un parque industrial por conflictos laborales, etc.
+
+acts_of_violence_vs_opponents:
+Si existen actos de violencia identificados (`acts_of_violence`), ayúdame a identificar si, al menos algún acto de violencia fue dirigido directamente contra los opositores de los proyectos mencionados y no solo mencionados sin relación con los proyectos y sus opositores.
+
+social_impact_as_consequence:
+En la nota, si existen afectaciones sociales identificadas (`social_impacts`), ayúdame a identificar si, al menos alguna afectación social sucedió como consecuencia de la existencia de los proyectos mencionados. No se deben tomar en cuenta las afectaciones internas, por ejemplo, la inseguridad dentro de una terminal de autobuses si el proyecto fue la construcción de la misma terminal, o si la nota menciona algún accidente automovilístico en una carretera cuya construcción es el proyecto mencionado.
+
+environmental_impact_as_consequence:
+En la nota, si hay afectaciones ambientales identificadas (`social_impacts`), ayúdame a detectar si, al menos alguna afectación ambiental sucedió como consecuencia directa o de la existencia del proyecto o proyectos mencionados. No consideres cuando la construcción del proyecto sea la solución a la afectación ambiental mencionada o cuando algún desastre ambiental como un incendio, un huracán o una sequía está afectando al proyecto.
+
+
+Respóndeme en dos párrafos.
+
+En el primer párrafo, evalúa rigurosamente cada uno de los proyectos mencionados en la nota con base en los criterios de is_specific_project, is_not_campaign_plan, is_not_small_scale, is_public_program, is_not_labor_conflict_only. Menciona cada proyecto y si cumple o no con cada criterio, y justifica brevemente tu evaluación.
+
+En el segundo párrafo, evalúa si la nota cumple con al menos uno de los criterios adicionales: opponents_vs_project, collective_actions_vs_project, acts_of_violence_vs_opponents, social_impact_as_consequence, environmental_impact_as_consequence. Justifica tu evaluación y concluye si la nota debería incluirse para ser analizada o no.
+
+
+
+
+
+
+Es un proyecto extractivista o de gran escala:
+Qué tanta certeza existe de que sea un proyecto extractivista o que sea de gran escala, o bien, que implique algún tipo de acumulación de capital, para ello, los
+

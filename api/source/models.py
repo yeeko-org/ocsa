@@ -219,6 +219,8 @@ class ExtractivismTypes(enum.Enum):
     energia = "energia"
     urbano = "urbano"
     infra = "infra"
+    # small_scale = "small_scale"
+    # public_program = "public_program"
 
 
 class ProjectBase(BaseModel):
@@ -339,34 +341,6 @@ class Article(models.Model):
                 degree = 99
         return degree
 
-    # def get_criteria(self, engine_name: str | None = None, use_deepseek: bool = False):
-    #     prompt_criteria = "prompt_article_criteria.txt"
-    #     articles_criteria_request = JsonRequestOpenAI(
-    #         f"source/scraper/{prompt_criteria}",
-    #         engine=engine_name, use_deepseek=use_deepseek)
-    #
-    #     if not (self.content or self.basic_content):
-    #         return
-    #
-    #     pre_classify_response, _ = articles_criteria_request\
-    #         .send_prompt(self.content or self.basic_content)
-    #
-    #     if not pre_classify_response:
-    #         print("No response from OpenAI")
-    #         return
-    #
-    #     if not isinstance(pre_classify_response, dict):
-    #         print("Invalid response")
-    #         return
-    #
-    #     certain_degree = self.get_certainty_degree(pre_classify_response)
-    #     is_selected = certain_degree > 10
-    #
-    #     self.criteria = pre_classify_response
-    #     self.certainty_degree = certain_degree
-    #     self.is_selected = is_selected
-    #     self.save()
-
     def __str__(self):
         return f"{self.uid} - {self.title}"
 
@@ -412,6 +386,7 @@ class ArticleQualify(models.Model):
     qualify_schema = models.ForeignKey(
         QualifySchema, on_delete=models.CASCADE, related_name='qualifications')
     is_selected = models.BooleanField(blank=True, null=True)
+
     criteria = models.JSONField(blank=True, null=True)
     certainty_degree = models.IntegerField(blank=True, null=True)
     change_value = models.CharField(

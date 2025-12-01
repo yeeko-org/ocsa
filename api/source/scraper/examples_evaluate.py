@@ -9,10 +9,10 @@ def examples():
         ScrapedRecord, Article, QualifySchema, ArticleQualify, Note)
 
     manager_scraper = JornadaManagerScraper(
-        "2023/04/01", "2023/04/03", open_ai_engine="gemini-2.5-flash")
+        "2023/04/01", "2023/04/03", ai_engine="gemini-2.5-flash")
 
     manager_reforma = ReformaManagerScraper(
-        "2023/04/01", "2023/04/03", open_ai_engine="gemini-2.5-flash")
+        "2023/04/01", "2023/04/03", ai_engine="gemini-2.5-flash")
 
     # print(manager_scraper.scraped_record)
     print(manager_reforma.scraped_record.id)
@@ -21,11 +21,11 @@ def examples():
 
     manager_scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=38),
-        open_ai_engine="gemini-2.5-flash")
+        ai_engine="gemini-2.5-flash")
 
     manager_reforma = ReformaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=13),
-        open_ai_engine="gemini-2.5-flash")
+        ai_engine="gemini-2.5-flash")
 
     manager_scraper.record_articles(reset=True)
     manager_reforma.record_articles(reset=True)
@@ -71,7 +71,7 @@ def test_reforma_subtitle():
 
 
 def scrape_full_articles(
-        sr_id=17, open_ai_engine="gemini-2.5-flash",
+        sr_id=17, ai_engine="gemini-2.5-flash",
         prompt_version="v2"):
     from source.scraper.jornada import JornadaManagerScraper
     from source.scraper.reforma import ReformaManagerScraper
@@ -79,16 +79,17 @@ def scrape_full_articles(
 
     scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
-        open_ai_engine=open_ai_engine)
+        ai_engine=ai_engine, is_test=True)
 
-    if open_ai_engine == "deepseek-chat":
-        scraper.use_deepseek = True
+    # if ai_engine == "deepseek-chat":
+    #     scraper.use_deepseek = True
     scraper.scrape_articles()
-    scraper.build_ai_criteria(
-        prompt_version=prompt_version)
+    scraper.articles_by_id = {}
+    scraper.build_ai_criteria(prompt_version=prompt_version)
 
 
-scrape_full_articles(22, 1, "gemini-2.5-flash", "v1")
+scrape_full_articles(22, prompt_version="v1")
+scrape_full_articles(22, prompt_version="v2")
 
 # scrape_full_articles(22, 6, "gemini-2.5-flash", "v2")
 # scrape_full_articles(22, 6, "gemini-2.5-flash", "v1")
@@ -98,10 +99,37 @@ scrape_full_articles(22, 1, "gemini-2.5-flash", "v1")
 # scrape_full_articles(17, 20, "gemini-2.5-flash")
 
 
+def compare_versions(
+        sr_id=50, ai_engine="gemini-2.5-flash",
+        prompt_version="v2"):
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.scraper.reforma import ReformaManagerScraper
+    from source.models import ScrapedRecord, Article
+
+    articles = Article.objects.filter(
+        scraped__id=sr_id, certainty_degree__gt=100).order_by("-certainty_degree")
+
+    scraper = JornadaManagerScraper(
+        "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
+        ai_engine=ai_engine, is_test=True)
+
+    # if ai_engine == "deepseek-chat":
+    #     scraper.use_deepseek = True
+    scraper.scrape_articles(update=True)
+    scraper.articles_by_id = {article.id: article for article in articles}
+    scraper.build_ai_criteria(prompt_version=prompt_version)
+
+
+compare_versions(49)
+
+
 #######
+
+
 
 def counter_by_schema(sr_id=17):
     from django.db.models import Count
+    from source.models import Article, QualifySchema, ArticleQualify
     all_schemas = QualifySchema.objects.filter(scraped_record__id=sr_id)
     total_articles = Article.objects.filter(scraped__id=sr_id).count()
     print(f"Total de artículos: {total_articles}")

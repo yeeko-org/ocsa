@@ -67,6 +67,7 @@ all_collections = {
             "color": "deep-purple",
             "all_filters": [
                 { "filter_name": "source_types", "hidden": False },
+                { "filter_name": "discarded_reasons", "hidden": True },
                 {
                     "title": "Fechas",
                     "component": "RangeDates", "hidden": False
@@ -95,6 +96,13 @@ all_collections = {
             "all_filters": [
                 { "filter_name": "source_types", "hidden": False },
             ]
+        },
+        {
+            "snake_name": "discarded_reason",
+            "name": "Motivo de descarte",
+            "plural_name": "Motivos de descarte",
+            "model_name": "DiscardedReason",
+            "level": "category_subtype",
         }
     ],
     "project": [
@@ -532,6 +540,13 @@ filter_groups = [
         "plural_name": "Bloques de scraping",
         "main_collection": "source-article",
         "category_subtype": "source-scraped_record",
+    },
+    {
+        "key_name": "discarded_reasons",
+        "name": "Motivo de Descarte",
+        "plural_name": "Motivos de Descarte",
+        "main_collection": "source-article",
+        "category_subtype": "source-discarded_reason",
     },
     {
         "key_name": "project_types",

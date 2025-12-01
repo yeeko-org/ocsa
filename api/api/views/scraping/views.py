@@ -25,7 +25,7 @@ def full_scrape_articles(source, scraped_record: ScrapedRecord):
     manager_scraper_class = get_manager_scraper_class(source)
     manager_scraper = manager_scraper_class(
         "", "", recover_record=scraped_record,
-        open_ai_engine="gemini-2.5-flash")
+        ai_engine="gemini-2.5-flash")
     scraped_record.last_updated = timezone.now()
     scraped_record.save()
 
@@ -52,7 +52,7 @@ class ScrapingDatesView(APIView):
         print(f"Using scraper class: {manager_scraper_class.__name__}")
 
         manager_scraper = manager_scraper_class(
-            from_date, to_date or from_date, open_ai_engine="gemini-2.5-flash")
+            from_date, to_date or from_date, ai_engine="gemini-2.5-flash")
 
         if manager_scraper.errors or manager_scraper.overlapping_dates:
             return Response({

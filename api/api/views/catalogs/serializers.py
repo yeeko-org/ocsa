@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup, Impact
-from source.models import Source
+from source.models import Source, DiscardedReason
 from work_flux.models import StatusControl
 
 from ps_schema.models import Level, Collection, FilterGroup
@@ -78,6 +78,12 @@ class SourceSerializer(serializers.ModelSerializer):
     notes_count = serializers.ReadOnlyField()
     class Meta:
         model = Source
+        fields = "__all__"
+
+
+class DiscardedReasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiscardedReason
         fields = "__all__"
 
 

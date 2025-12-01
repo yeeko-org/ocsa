@@ -1,7 +1,13 @@
 from django.urls import reverse
 from rest_framework import serializers
-from source.models import Article, Source, ScrapedRecord
+from source.models import Article, Source, ScrapedRecord, ArticleQualify
 from api.views.note.serializers import NoteFullSerializer
+
+
+class ArticleQualifySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ArticleQualify
+        fields = '__all__'
 
 
 class ArticleListSerializer(serializers.ModelSerializer):
@@ -16,18 +22,29 @@ class ArticleListSerializer(serializers.ModelSerializer):
             'paragraphs']
 
 
+class ArticleListSuperSerializer(ArticleListSerializer):
+    qualifications = ArticleQualifySerializer(many=True, read_only=True)
+
+
 class ArticleDetailSerializer(serializers.ModelSerializer):
     note_full = NoteFullSerializer(read_only=True, source='note')
+    qualifications = ArticleQualifySerializer(many=True, read_only=True)
 
     class Meta:
         model = Article
         fields = '__all__'
 
 
-class ArticleSelectedSerializer(serializers.Serializer):
-    is_selected = serializers.BooleanField()
-    other_discarded_reason = serializers.CharField(
-        allow_blank=True, allow_null=True, required=False)
+class ArticleSuperDetailSerializer(ArticleDetailSerializer):
+    qualifications = ArticleQualifySerializer(many=True, read_only=True)
+
+
+class ArticleSelectedSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Article
+        fields = '__all__'
+        read_only_fields = ['scraped', 'source', 'uid', 'url']
 
 
 class ArticleStatusSerializer(serializers.ModelSerializer):

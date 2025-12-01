@@ -1,9 +1,9 @@
-s
+
 def preclassify_articles(
-        block_size=500, sr_id=17, open_ai_engine="gpt-4o-mini"):
+        block_size=500, sr_id=17, ai_engine="gpt-4o-mini"):
     scraper = JornadaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
-        open_ai_engine=open_ai_engine)
+        ai_engine=ai_engine)
     scraper.record_articles(reset=True)
     scraper.make_preclassify_articles(block_size=block_size)
 

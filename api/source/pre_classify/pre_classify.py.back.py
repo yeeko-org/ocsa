@@ -51,7 +51,7 @@ class PreClassify(ManagerScraper):
         # está declarado acá o allá o en dónde y me confundo, pasa mucho en
         # muchos lados y me pierdo entre miles de declaraciones aisladas.
         self.pre_classify_request = JsonRequestOpenAI(
-            prompt_path, engine=self.open_ai_engine,
+            prompt_path, engine=self.ai_engine,
             use_deepseek=self.use_deepseek)
 
         self.pre_classify_response, request_id = self.pre_classify_request \

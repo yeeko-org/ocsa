@@ -74,8 +74,8 @@ class ManagerScraper(ABC):
     # pre_classify_request: JsonRequestOpenAI
     pre_classify_request: RequestGemini
 
-    open_ai_engine: str | None
-    use_deepseek: bool
+    ai_engine: str | None
+    # use_deepseek: bool
     qualify_schema: QualifySchema | None
 
     def __init__(
@@ -83,8 +83,8 @@ class ManagerScraper(ABC):
             main_scraper_class: Type["MainScraper"],
             article_scraper_class: Type["ArticleScraper"],
             recover_record: ScrapedRecord | None = None,
-            open_ai_engine: str | None = None,
-            use_deepseek: bool = False
+            ai_engine: str | None = None,
+            is_test: bool = False
 
     ) -> None:
         self.block_size = PRECLASSIFY_ARTICLES_BLOCK
@@ -93,9 +93,9 @@ class ManagerScraper(ABC):
         self.overlapping_dates = []
         self.articles_by_id = {}
         self.errors = []
-        self.open_ai_engine = open_ai_engine
-        self.use_deepseek = use_deepseek
+        self.ai_engine = ai_engine
         self.scraped_record = None
+        self.is_test = is_test
 
         if recover_record:
             self.scraped_record = recover_record
@@ -247,7 +247,8 @@ class ManagerScraper(ABC):
         self.articles_for_ai.append(article_for_ai)
 
     def get_change_value(self, is_selected: bool, article_obj: Article):
-        if article_obj.is_selected == is_selected:
+        saved_is_selected = article_obj.certainty_degree > 100
+        if saved_is_selected == is_selected:
             return "selected" if is_selected else "not_selected"
         return "plus" if is_selected else "minus"
 
@@ -273,29 +274,37 @@ class ManagerScraper(ABC):
                 self.add_error(
                     f"Error getting content for article {article.id}", e)
 
-    def build_ai_criteria(
-            self, prompt_version: str = "v1"):
+    def build_ai_criteria(self, prompt_version: str = "v2"):
         from django.utils import timezone
 
         self.scraped_record.status = "criteria"
         self.scraped_record.save()
-        ready_articles = []
-
-        self.qualify_schema = None
-
         articles_objects: List[Article] = self.get_articles_objects()
+        if self.is_test:
+            self.qualify_schema, _ = QualifySchema.objects.get_or_create(
+                scraped_record=self.scraped_record,
+                ia_model=self.ai_engine,
+                prompt_version=prompt_version,
+                batch_size=1)
+            ready_articles = Article.objects.filter(
+                scraped=self.scraped_record,
+                qualifications__qualify_schema=self.qualify_schema)\
+                .distinct().values_list("id", flat=True)
 
-        if ready_articles:
             articles_objects = [
                 article for article in articles_objects
                 if article.id not in ready_articles
             ]
+
+        else:
+            self.qualify_schema = None
+
         len_articles = len(articles_objects)
 
         gemini_text = "prompt_gemini"
         prompt_criteria = (f"{gemini_text}_article"
                            f"_criteria_{prompt_version}.txt")
-        self.pre_classify_request = RequestGemini(engine=self.open_ai_engine)
+        self.pre_classify_request = RequestGemini(engine=self.ai_engine)
         cache_name = f"criteria_{prompt_version}_single"
         self.pre_classify_request.build_chat(
             f"source/scraper/{prompt_criteria}")
@@ -316,8 +325,10 @@ class ManagerScraper(ABC):
             return list(self.articles_by_id.values())
             # print("type of articles_objects:", type(articles_objects))
         else:
-            return list(Article.objects.filter(
-                scraped=self.scraped_record, criteria__isnull=True))
+            query = {"scraped": self.scraped_record}
+            if not self.is_test:
+                query["criteria__isnull"] = True
+            return list(Article.objects.filter(**query))
 
     def get_ai_criteria(self, article: Article):
 
@@ -367,11 +378,24 @@ class ManagerScraper(ABC):
         json_criteria = json.dumps(
             criteria.model_dump(), ensure_ascii=False,
             indent=2, cls=EnumEncoder)
-        article.criteria = json.loads(json_criteria)
-        article.certainty_degree = certain_degree
-        article.save()
-        is_selected = certain_degree > 100
-        return is_selected
+        json_criteria = json.loads(json_criteria)
+        is_pre_selected = certain_degree > 100
+        if self.is_test:
+            change_value = self.get_change_value(is_pre_selected, article)
+            _ = ArticleQualify.objects.create(
+                article=article,
+                qualify_schema=self.qualify_schema,
+                # is_selected=is_selected,
+                criteria=json_criteria,
+                certainty_degree=certain_degree,
+                change_value=change_value,
+                request_id=None)
+        else:
+            article.criteria = json_criteria
+            article.certainty_degree = certain_degree
+            article.save()
+
+        return is_pre_selected
 
     def send_second_criteria(self):
         pass

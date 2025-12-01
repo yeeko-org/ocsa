@@ -15,21 +15,22 @@ class JornadaManagerScraper(ManagerScraper):
     def __init__(
             self, from_date: str | date, to_date: str | date,
             recover_record: ScrapedRecord | None = None,
-            open_ai_engine: str | None = None,
+            ai_engine: str | None = None, is_test: bool = False
     ) -> None:
         super().__init__(
             from_date, to_date, JornadaMainScraper, JornadaArticleScraper,
-            recover_record=recover_record, open_ai_engine=open_ai_engine,
+            recover_record=recover_record, ai_engine=ai_engine,
+            is_test=is_test
         )
 
     def get_source(self) -> Source:
-        if not hasattr(self, "_source"):
-            self._source, _ = Source.objects.get_or_create(
+        if not hasattr(self, "source"):
+            self.source, _ = Source.objects.get_or_create(
                 main_url="https://www.jornada.com.mx/", defaults={
                     "name": "La Jornada",
                     "is_news": True
                 })
-        return self._source
+        return self.source
 
 
 class JornadaMainScraper(MainScraper):
@@ -132,7 +133,11 @@ class JornadaArticleScraper(ArticleScraper):
 
         article = self.soup_content.find('article')
         title_div = article.find('div', class_='cabeza')
-        self.title = get_clean_text(title_div)
+
+        if title_div:
+            self.title = get_clean_text(title_div)
+        else:
+            self.title = ""
 
         subtitles = []
         if sumarios := article.find_all('div', class_='sumarios'):

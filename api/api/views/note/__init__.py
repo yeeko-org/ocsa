@@ -20,10 +20,10 @@ class NoteFilter(FilterSet):
 
     start_date = DateFilter(field_name='date', lookup_expr='gte')
     end_date = DateFilter(field_name='date', lookup_expr='lte')
-    status_register = CharFilter(field_name='status_register__name')
     has_files = BooleanFilter(
         field_name='files', lookup_expr='isnull', exclude=True)
     editor = CharFilter(method='filter_by_user')
+    status_register = CharFilter(field_name='status_register__name')
     reviewer = CharFilter(method='filter_by_user')
 
     def filter_by_user(self, queryset, name, value):

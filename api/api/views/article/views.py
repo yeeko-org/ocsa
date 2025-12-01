@@ -1,27 +1,31 @@
 import requests
 from django.db.models import Count
+from django.conf import settings
 
 from django_filters import FilterSet, NumberFilter, DateFilter, CharFilter
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from source.models import Article, Note, NoteFile, Source
+from source.models import Article, Note, NoteFile, Source, DiscardedReason
 
 from api.views.common_views import (
     BaseGenericViewSet, BaseStatusViewSet, ClickHistoryMixin)
 from .serializers import (
     ArticleListSerializer, ArticleDetailSerializer,
+    ArticleSuperDetailSerializer, ArticleListSuperSerializer,
     ArticleSelectedSerializer, ArticleStatusSerializer, SourceFullSerializer)
-from ..catalogs import SourceSerializer
+from api.views.catalogs.serializers import (
+    SourceSerializer, DiscardedReasonSerializer)
 from ...permissions import IsAdminOrReadOnly
 
 
 class ArticleFilter(FilterSet):
     scraped_record = NumberFilter(
         field_name="scraped__id", lookup_expr="exact")
-    start_date = DateFilter(field_name='scraped_date', lookup_expr='gte')
-    end_date = DateFilter(field_name='scraped_date', lookup_expr='lte')
+    start_date = DateFilter(field_name='published_date', lookup_expr='gte')
+    end_date = DateFilter(field_name='published_date', lookup_expr='lte')
     status = CharFilter(method='custom_filter_status')
+    status_retro = CharFilter(field_name='status_retro__name')
 
     # { "plural_name": "Validados", "value": "validated" },
     # { "plural_name": "Rechazados", "value": "rejected" },
@@ -67,26 +71,47 @@ class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
     filterset_class = ArticleFilter
     search_fields = ["title", "subtitle", "author"]
     click_actions = ["opened"]
+    show_tests = getattr(settings, "SHOW_TEST_PROMPTS", False)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.show_tests:
+            return queryset.prefetch_related('qualifications')
+        return queryset\
 
     def get_serializer_class(self):
         if self.action == "retrieve":
+            if self.show_tests:
+                return ArticleSuperDetailSerializer
             return ArticleDetailSerializer
         elif self.action == "select":
             return ArticleSelectedSerializer
+        elif self.show_tests:
+            return ArticleListSuperSerializer
         return super().get_serializer_class()
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["patch"])
     def select(self, request, pk=None):
         article = self.get_object()
         context = self.get_serializer_context()
 
+        # print("article", article.id)
+        # request.data["id"] = pk
+        # print("request.data", request.data)
         serializer = self.get_serializer(data=request.data)
+        # print("name of serializer:", serializer.__class__.__name__)
         serializer.is_valid(raise_exception=True)
-        article.is_selected = serializer.validated_data["is_selected"]
-        if other_reason := serializer.validated_data.get(
-                "other_discarded_reason"):
-            article.other_discarded_reason = other_reason
-        article.save()
+        print("serializer.validated_data", serializer.validated_data)
+        # print("serializer.validated_data", serializer.validated_data)
+        # article.is_selected = serializer.validated_data["is_selected"]
+        # article.discarded_reason = serializer.validated_data.get(
+        #     "discarded_reason", None)
+        # if other_reason := serializer.validated_data.get(
+        #         "other_discarded_reason"):
+        #     article.other_discarded_reason = other_reason
+
+        serializer.update(article, serializer.validated_data)
+
 
         self.save_click_action(request, article, force=True)
 
@@ -193,3 +218,8 @@ class SourceViewSet(BaseStatusViewSet):
                 .prefetch_related('scraped_records',
                                   'scraped_records__articles')
         return queryset
+
+class DiscardedReasonViewSet(BaseGenericViewSet):
+    queryset = DiscardedReason.objects.all()
+    serializer_class = DiscardedReasonSerializer
+    permission_classes = [IsAdminOrReadOnly]

@@ -58,21 +58,22 @@ class ReformaManagerScraper(ManagerScraper):
     def __init__(
             self, from_date: str | date, to_date: str | date,
             recover_record: ScrapedRecord | None = None,
-            open_ai_engine: str | None = None
+            ai_engine: str | None = None, is_test: bool = False
     ) -> None:
         super().__init__(
             from_date, to_date, ReformaMainScraper, ReformaArticleScraper,
-            recover_record=recover_record, open_ai_engine=open_ai_engine
+            recover_record=recover_record, ai_engine=ai_engine,
+            is_test=is_test
         )
 
     def get_source(self) -> Source:
         if not hasattr(self, "_source"):
-            self._source, _ = Source.objects.get_or_create(
+            self.source, _ = Source.objects.get_or_create(
                 main_url="https://www.reforma.com", defaults={
                     "name": "El Reforma",
                     "is_news": True
                 })
-        return self._source
+        return self.source
 
 
 class ReformaMainScraper(MainScraper):

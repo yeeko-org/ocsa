@@ -9,7 +9,7 @@ from api.views.catalogs import (
     ExtractivismTypeViewSet,
     MegaprojectTypeViewSet
 )
-from api.views.article.views import SourceViewSet
+from api.views.article.views import SourceViewSet, DiscardedReasonViewSet
 from api.views.catalogs.event_views import (
     EventGroupViewSet, EventTypeViewSet,
     PurposeViewSet)
@@ -58,6 +58,7 @@ router.register(r'impact_type', ImpactTypeViewSet, basename='catalog_impact_type
 router.register(r'impact_subtype', ImpactSubtypeViewSet, basename='catalog_impact_subtype')
 
 router.register(r'source', SourceViewSet, basename='catalog_source')
+router.register(r'discarded_reason', DiscardedReasonViewSet, basename='catalog_discarded_reason')
 router.register(r'status_control', StatusControlViewSet, basename='catalog_status_control')
 
 
