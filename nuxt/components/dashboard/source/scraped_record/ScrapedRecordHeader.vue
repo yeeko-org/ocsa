@@ -1,7 +1,10 @@
 <script setup>
 import dayjs from 'dayjs'
+import 'dayjs/locale/es'
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
 import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
+
+dayjs.locale('es')
 
 const props = defineProps({
   main: {
@@ -15,7 +18,7 @@ const props = defineProps({
 const emits = defineEmits(['item-saved'])
 
 const title = computed(() => {
-  const format = 'DD/MMM/YY'
+  const format = 'DD MMM/YY'
   return `${dayjs(props.main.from_date).format(format)} -->
   ${dayjs(props.main.to_date).format(format)}`
 })
@@ -28,7 +31,14 @@ const title = computed(() => {
     :collection_data="collection_data"
   >
     <template #title>
-      {{ title }}
+      <div class="d-flex flex-column align-start justify-start">
+        <div class="text-caption text-purple-darken-1">
+          {{main.source_full.name}}
+        </div>
+        <div class="font-weight-medium">
+          {{ title }}
+        </div>
+      </div>
     </template>
     <template #details>
       <v-chip
@@ -57,7 +67,7 @@ const title = computed(() => {
         label="Preclasificados"
         label_plural="Preclasificados"
         collection_name="article"
-        color="teal"
+        color="light-blue"
         icon="smart_toy"
       />
       <HeaderChip
@@ -66,9 +76,9 @@ const title = computed(() => {
         label="Pendiente"
         label_plural="Pendientes"
         icon="hourglass_empty"
-        color="orange"
+        :color="main.pending_count ? 'orange' : 'green'"
         is_reverse
-
+        :tooltip_complement="`De <b>${main.pre_selected}</b> pre-seleccionados`"
       />
 
     </template>

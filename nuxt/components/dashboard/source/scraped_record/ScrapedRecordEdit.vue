@@ -108,7 +108,7 @@ function sendReprocess() {
         </template>
 
         <v-list-item-title>
-          {{ready_count}}/{{full_main.pre_selected}} seleccionadas
+          {{ready_count}}/{{full_main.pre_selected}} clasificadas
         </v-list-item-title>
         <v-list-item-subtitle>
           De las {{full_main.pre_selected}} que fueron preseleccionadas,

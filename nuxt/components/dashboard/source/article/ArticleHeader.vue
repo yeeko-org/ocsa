@@ -39,14 +39,6 @@ const valid_undefined = {
   value: null,
 }
 
-const selected_undefined = {
-  id: null,
-  name: "--",
-  icon: "",
-  color: "yellow-darken-1",
-  value: null,
-}
-
 const pre_valid_value = computed(() => {
   const degree = props.main.certainty_degree
   if (degree === undefined || degree === null)
@@ -70,39 +62,6 @@ const valid_value = computed(() => {
   }
   return valid_options.value.find(
       option => option.value === props.main.is_selected)
-})
-
-const final_mentions = computed(() => {
-  if (!props.main || !props.main.criteria) {
-    console.warn("No main or criteria found", props.main)
-    return []
-  }
-  const projects = props.main.criteria.projects
-  if (!projects){
-    console.warn("No projects found in main criteria", props.main)
-    return []
-  }
-  return projects.map(project => {
-    const name_types = project.types
-    if (!name_types) {
-      console.warn("Problem: ", props.main)
-      return {
-        project_full: {
-          name: project.name,
-          extractivism_types: [],
-        }
-      }
-    }
-    let extractivism_types = name_types.map(type => {
-      return ai_extractivism_types.value[type]
-    })
-    return {
-      project_full: {
-        name: project.name,
-        extractivism_types: extractivism_types,
-      }
-    }
-  })
 })
 
 const discarded_reason = computed(() => {

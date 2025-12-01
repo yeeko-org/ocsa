@@ -142,10 +142,10 @@ watch(
         <client-only>
           <template
             v-for="collection in main_collections"
+            :key="collection.snake_name"
           >
             <v-list-group
               v-if="collection.catalog_groups.length"
-              :key="collection.snake_name"
               :value="collection.snake_name"
               soubgroup
             >
@@ -160,8 +160,6 @@ watch(
                   :class="collection.level === 'primary' ? '' : '_ml-3'"
                   :active-class="collection.level === 'primary'
                     ? '' : 'font-weight-bold'"
-                  _disabled="!is_full_editor &&
-                      !['location', 'note'].includes(collection.snake_name)"
                 >
                   <template v-slot:append="{ isActive, select }">
                     <v-icon
@@ -176,7 +174,7 @@ watch(
                 v-for="(sub_coll, i) in collection.catalog_groups"
                 :key="i"
                 exact
-                :title="sub_coll.name"
+                :title="sub_coll.plural_name"
                 :value="sub_coll.snake_name"
                 _to="`/dashboard/catalog/${sub_item.key}`"
                 :to="`/dashboard/catalog/${sub_coll.key_name}`"
@@ -184,7 +182,6 @@ watch(
             </v-list-group>
             <v-list-item
               v-else
-              :key="collection.snake_name"
               :value="collection.snake_name"
               exact
               _active-class="text-accent"
