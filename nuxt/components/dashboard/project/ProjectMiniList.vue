@@ -35,6 +35,11 @@ const props = defineProps({
           :max-width="400"
         >
           {{ mention.project_full.name }}
+          <br/>
+          <template v-if="mention.project_full.tooltip_complement">
+            Párrafos:
+            {{ mention.project_full.tooltip_complement }}
+          </template>
         </v-tooltip>
       </v-card>
 

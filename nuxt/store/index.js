@@ -696,7 +696,7 @@ export const useMainStore = defineStore('main', {
       const { $api } = useNuxtApp()
       // this.setHeader()
       try {
-        let response = await $api.post(`article/${id}/select/`, data);
+        let response = await $api.patch(`article/${id}/select/`, data);
         return response.data
       } catch (error) {
         console.error(error);
@@ -825,6 +825,11 @@ export const useMainStore = defineStore('main', {
       if (!state.cats)
         return {}
       return state.cats.dimension.find(d => d.name.includes('nterno'))
+    },
+    other_discarded_reason(state) {
+      if (!state.cats)
+        return null
+      return state.cats.discarded_reason.find(dr => dr.is_other)
     },
     event_group_show_position(state) {
       if (!state.cats)

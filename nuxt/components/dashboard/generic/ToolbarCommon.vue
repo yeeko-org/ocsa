@@ -368,8 +368,9 @@ function resetInitialData(){
     <v-snackbar
       v-model="snackbar"
       color="success"
-      location="right top"
+      location="right bottom"
       location-strategy="connected"
+      timeout="3500"
     >
       {{ `${child_collection.name} guardado` }}
       <template v-slot:actions>

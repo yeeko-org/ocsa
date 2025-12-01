@@ -206,6 +206,7 @@ function deleteRecord() {
       color="success"
       location="right bottom"
       location-strategy="connected"
+      timeout="3500"
     >
       {{ snackbar_text }}
       <template v-slot:actions>

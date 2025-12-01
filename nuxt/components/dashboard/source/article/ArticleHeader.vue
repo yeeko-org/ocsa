@@ -1,14 +1,15 @@
 <script setup>
 
 import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
-import {useMainStore} from "~/store/index.js";
 import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
 import {computed} from "vue";
 import dayjs from "dayjs";
 
+import {useMainStore} from "~/store/index.js";
+import {storeToRefs} from "pinia";
+import ProjectsCriteria from "~/components/dashboard/source/article/ProjectsCriteria.vue";
 const mainStore = useMainStore()
-const { ai_extractivism_types, cats, valid_options } = mainStore
+const { ai_extractivism_types, cats, valid_options } =storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,
@@ -24,7 +25,7 @@ const pretty_date = computed(() => {
 })
 
 const source = computed(() => {
-  return cats.source.find(src => src.id === props.main.source) || {
+  return cats.value.source.find(src => src.id === props.main.source) || {
     name: "Desconocida",
     id: 0,
   }
@@ -51,9 +52,9 @@ const pre_valid_value = computed(() => {
   if (degree === undefined || degree === null)
     return valid_undefined
   if (degree < 100)
-    return valid_options[0]
+    return valid_options.value[0]
   else
-    return valid_options[1]
+    return valid_options.value[1]
 })
 
 const valid_value = computed(() => {
@@ -67,7 +68,7 @@ const valid_value = computed(() => {
       name: need_selection ? "Pendiente" : "Sin selección",
     }
   }
-  return valid_options.find(
+  return valid_options.value.find(
       option => option.value === props.main.is_selected)
 })
 
@@ -93,7 +94,7 @@ const final_mentions = computed(() => {
       }
     }
     let extractivism_types = name_types.map(type => {
-      return ai_extractivism_types[type]
+      return ai_extractivism_types.value[type]
     })
     return {
       project_full: {
@@ -102,6 +103,19 @@ const final_mentions = computed(() => {
       }
     }
   })
+})
+
+const discarded_reason = computed(() => {
+  if (props.main.is_selected === false)
+    return cats.value.discarded_reason.find(
+      reason => reason.id === props.main.discarded_reason
+    ) || {
+      id: null,
+      name: 'Otra razón',
+      description: props.main.other_discarded_reason || 'No especificada',
+
+    }
+  return null
 })
 
 </script>
@@ -171,7 +185,12 @@ const final_mentions = computed(() => {
                 Razón de descarte:
               </v-card-title>
               <v-card-text>
-                {{ main.other_discarded_reason || 'No especificada' }}
+                <div class="font-weight-bold mb-2">
+                  {{ discarded_reason.name }}:
+                </div>
+                <div>
+                  {{ discarded_reason.description }}
+                </div>
               </v-card-text>
             </v-card>
           </v-tooltip>
@@ -189,27 +208,27 @@ const final_mentions = computed(() => {
         </v-btn>
 
       </div>
+      <div
+        v-if="main.qualifications && main.qualifications.length"
+      >
+        <span
+          v-for="qualification in main.qualifications"
+          :key="qualification.id"
+          class="text-caption mr-1 text-grey-darken-1"
+        >
+          {{ qualification.certainty_degree }}
+        </span>
+
+
+      </div>
       <CriteriaChip
         v-if="main.criteria"
         :main="main"
         show_foreign
       />
-
-      <ProjectMiniList
-        :mentions="final_mentions"
+      <ProjectsCriteria
+        :criteria="main.criteria"
       />
-      <v-alert
-        v-if="final_mentions.length === 0"
-        type="warning"
-        max-width="200"
-        variant="outlined"
-        density="compact"
-        class="ml-0"
-      >
-        Sin proyectos
-      </v-alert>
-
-
     </template>
   </HeaderCommon>
 </template>

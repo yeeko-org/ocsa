@@ -76,6 +76,7 @@ export function useSaveElements() {
 
   function saveComplex(collection_name, element, copy_id=null) {
     normal_save.value = !copy_id
+
     return new Promise((resolve, reject) => {
       total_requests.value = 0
       resolved_requests.value = 0
@@ -107,13 +108,17 @@ export function useSaveElements() {
     // console.log("one_to_many_fields", one_to_many_fields)
 
     one_to_many_fields.forEach(field => {
-      if (['involved', "eventlocation"].includes(field.name))
+      if (['involved', "eventlocation", "clicks"].includes(field.name))
         return
       if (field.name.includes('displacement_'))
         return
 
       const related_collection = schemas.value.collections_dict[
         field.related_model]
+      // if (!related_collection) {
+      //   console.error('Related collection not found for field', field)
+      //   // return
+      // }
       const snake_name2 = related_collection.snake_name
 
       main_item[field.name].forEach(item => {

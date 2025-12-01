@@ -5,10 +5,12 @@ import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
 import ParagraphsContent from "~/components/dashboard/source/ParagraphsContent.vue";
 import PanelList from "~/components/dashboard/common/PanelList.vue";
 import { storeToRefs } from "pinia";
+import ProjectsCriteria from "~/components/dashboard/source/article/ProjectsCriteria.vue";
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const mainStore = useMainStore()
 const { saveSelected, valid_options } = mainStore
-const { schemas } = storeToRefs(mainStore)
+const { schemas, other_discarded_reason } = storeToRefs(mainStore)
 
 const props = defineProps({
   full_main: {
@@ -54,14 +56,24 @@ async function changeSelected(){
   // const { valid } = await linkForm.value.validate()
   // if (!valid) return
   const is_selected = props.full_main.is_selected
+  const discarded_reason = props.full_main.discarded_reason
   const other_reason = props.full_main.other_discarded_reason
   // console.log("other_reason", other_reason)
-  if (is_selected === false && !other_reason && pre_valid.value) {
+  // if (is_selected === false && !other_reason && pre_valid.value) {
+  //   errors.value = ["Debes escribir una razón de descarte."]
+  //   return
+  // }
+  // const has_reason =
+  if (!discarded_reason) {
+    errors.value = ["Debes seleccionar una razón de descarte."]
+    return
+  }
+  if (need_manual_discard.value && !other_reason) {
     errors.value = ["Debes escribir una razón de descarte."]
     return
   }
 
-  const params = {is_selected, "other_discarded_reason": other_reason}
+  const params = {is_selected, discarded_reason, "other_discarded_reason": other_reason}
   sending_link.value = true
   // console.log("params", params)
   saveSelected([props.full_main.id, params]).then(response => {
@@ -78,6 +90,19 @@ async function changeSelected(){
     // note_content.value = response
   })
 }
+
+const need_manual_discard = computed(() => {
+  // full_main.discarded_reason && full_main.discarded_reason === other_discarded_reason.id
+  if (props.full_main.is_selected !== false)
+    return false
+  if (!pre_valid.value)
+    return false
+  if (!other_discarded_reason.value)
+    return true
+  if (!props.full_main.discarded_reason)
+    return false
+  return props.full_main.discarded_reason === other_discarded_reason.value.id
+})
 
 </script>
 
@@ -178,6 +203,7 @@ async function changeSelected(){
           </v-btn>
         </v-btn-toggle>
       </v-input>
+
     </div>
     <v-card
       v-if="full_main.is_selected === false && pre_valid"
@@ -185,7 +211,13 @@ async function changeSelected(){
       class="ml-4 pt-2"
       style="max-width: 400px; min-width: 240px;"
     >
+      <SelectGroup
+        :main_object="full_main"
+        filter_group_name="discarded_reasons"
+        main_collection_name="article"
+      />
       <v-textarea
+        v-if="need_manual_discard"
         v-model="full_main.other_discarded_reason"
         label="Razón de descarte"
         variant="solo-filled"
@@ -215,6 +247,37 @@ async function changeSelected(){
       :collection_data="note_collection"
       :show_details="true"
     />
+  </v-col>
+
+  <v-col
+    v-if="full_main.qualifications && full_main.qualifications.length"
+    cols="12"
+    class="px-0"
+  >
+    Alternativas:
+    <v-card
+      v-for="qualy in full_main.qualifications"
+      :key="qualy.id"
+      class="pa-2 mb-2"
+      variant="outlined"
+    >
+      <div class="d-flex align-center mb-2">
+
+        <CriteriaChip
+          :main="qualy"
+          show_foreign
+        />
+        <ProjectsCriteria
+          :criteria="qualy.criteria"
+        />
+        <div class="ml-4">
+          ({{qualy.qualify_schema}})
+          {{qualy.change_value}}
+          {{qualy.certainty_degree}}
+        </div>
+      </div>
+
+    </v-card>
   </v-col>
 
   <v-col cols="12" class="px-0">

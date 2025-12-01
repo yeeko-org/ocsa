@@ -100,7 +100,7 @@ const full_paragraphs = computed(() => {
 <template>
   <v-card variant="flat">
     <v-card-title
-      class="text-subtitle-1 mt-4 d-flex align-center px-2"
+      class="text-subtitle-1 mt-4 d-flex align-center px-2 flex-wrap"
     >
       <span class="font-weight-bold">
         Párrafos de la pre-nota:

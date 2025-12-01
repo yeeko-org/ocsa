@@ -230,7 +230,7 @@ const children_projects = computed(() => {
   <v-snackbar
     v-model="snackbar"
     color="success"
-    location="right top"
+    location="right bottom"
     location-strategy="connected"
   >
     Se guardaron las ubicaciones

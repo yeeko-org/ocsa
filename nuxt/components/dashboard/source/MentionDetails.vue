@@ -317,23 +317,6 @@ function deleteMention() {
         </v-row>
       </v-form>
     </v-card>
-<!--    <v-snackbar-->
-<!--      v-model="snackbar"-->
-<!--      color="success"-->
-<!--      location="right top"-->
-<!--      location-strategy="connected"-->
-<!--    >-->
-<!--      {{ snackbar_message || 'Cambios guardados' }}-->
-<!--      <template v-slot:actions>-->
-<!--        <v-btn-->
-<!--          color="accent"-->
-<!--          variant="text"-->
-<!--          @click="snackbar = false"-->
-<!--        >-->
-<!--          Close-->
-<!--        </v-btn>-->
-<!--      </template>-->
-<!--    </v-snackbar>-->
     <v-dialog
       v-model="dialog_search"
       max-width="920"
