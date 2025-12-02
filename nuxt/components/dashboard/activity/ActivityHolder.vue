@@ -255,6 +255,6 @@ onMounted(() => {
         </v-col>
       </v-row>
     </v-card>
-<!--    <OfflineEdit ref="offline_create" />-->
+    <OfflineEdit ref="offline_create" />
   </v-card>
 </template>

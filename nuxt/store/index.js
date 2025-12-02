@@ -739,6 +739,18 @@ export const useMainStore = defineStore('main', {
         ;
       }
     },
+    async saveOffline(params) {
+      const { $api } = useNuxtApp()
+      const method = params.id ? 'put' : 'post'
+      const id = params.id ? `${params.id}/` : ''
+      try {
+        let response = await $api[method](`/offline_task/${id}`, params);
+        return response.data
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    }
 
   },
   getters: {

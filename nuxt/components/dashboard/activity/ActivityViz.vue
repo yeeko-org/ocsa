@@ -44,6 +44,12 @@ const activities_config = ref([
   },
   {
     color: 'rgba(203,49,200,0.93)',
+    model_colors: {
+      'article': 'rgba(203,49,200,0.93)',
+      'note': 'rgba(82,49,203,0.93)',
+      'project': 'rgb(11,49,138)',
+      'location': 'rgb(4,72,61)',
+    },
     field: 'click',
     y: 5,
     stroke_width: 0.5,
@@ -98,8 +104,8 @@ function drawChart() {
     .attr('fill', 'rgba(62,160,180,0.79)')
     .attr('opacity', 0.5)
 
-  if (log)
-    console.log("activities_config", activities_config.value)
+  // if (log)
+  //   console.log("activities_config", activities_config.value)
 
   activities_config.value.forEach((activity) => {
     const activity_data = day.activities.filter(d =>
@@ -114,12 +120,18 @@ function drawChart() {
       .attr('y', activity.y)
       .attr('height', 25)
       .attr('width', d => xScale(d.end_time) - xScale(d.start_time))
-      .attr('fill', activity.colors
-        ? d => activity.colors[d.offline_type]
-        : activity.color)
-      .attr('stroke', activity.colors
-        ? d => activity.colors[d.offline_type]
-        : activity.color)
+      .attr('fill', d => activity.colors
+        ? activity.colors[d.offline_type]
+        : activity.model_colors && d.model
+          ? activity.model_colors[d.model]
+          : activity.color
+      )
+      .attr('stroke', d =>  activity.colors
+        ? activity.colors[d.offline_type]
+        : activity.model_colors && d.model
+          ? activity.model_colors[d.model]
+          : activity.color
+      )
       .attr('stroke-width', activity.stroke_width)
 
     if (activity.field === 'offline') {

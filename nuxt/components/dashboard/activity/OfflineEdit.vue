@@ -3,11 +3,14 @@ import { ref, computed } from 'vue'
 import { useMainStore } from '~/store/index'
 import { useRules } from '~/composables/useRules'
 import UserSelect from "~/components/dashboard/custom_filters/UserSelect.vue";
+import {storeToRefs} from "pinia";
+import {useAuthStore} from "~/store/auth.js";
 // import PersonDetail from '~/components/dashboard/common/PersonDetail.vue'
 
+const authStore = useAuthStore()
 const mainStore = useMainStore()
 const { rules } = useRules()
-
+const { cats } = storeToRefs(mainStore)
 const OfflineForm = ref(null)
 
 const dialog_add_offline = ref(false)
@@ -21,8 +24,9 @@ const new_offline = ref({
   users: [],
 })
 
-const offline_types = computed(() => mainStore.offline_types)
-const user = computed(() => mainStore.user_ocamis_details)
+const offline_types = computed(() => cats.value.offline_types)
+// const user = computed(() => mainStore.user_ocamis_details)
+const { user_details_ocsa: user } = storeToRefs(authStore)
 
 const offline_list = computed(() => {
   if (!offline_types.value) return []
@@ -70,7 +74,7 @@ async function saveOffline() {
       date_start: `${date_str} ${new_offline.value.time_start}`,
       date_end: `${date_str} ${new_offline.value.time_end}`,
     }
-    await mainStore.SAVE_OFFLINE(params)
+    await mainStore.saveOffline(params)
     OfflineForm.value.reset()
     dialog_add_offline.value = false
   }
@@ -138,7 +142,6 @@ defineExpose({
             is_filter
             style="max-width: 200px;"
             multiple
-            @update:model-value="getActivities"
           />
         </v-card-text>
         <v-card-actions>
