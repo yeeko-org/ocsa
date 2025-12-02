@@ -64,7 +64,7 @@ async function changeSelected(){
   //   return
   // }
   // const has_reason =
-  if (!discarded_reason) {
+  if (!discarded_reason && is_selected === false) {
     errors.value = ["Debes seleccionar una razón de descarte."]
     return
   }
