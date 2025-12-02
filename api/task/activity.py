@@ -28,7 +28,7 @@ class BuildSpendGroups:
                 self.append_group()
                 self.set_last_group(activity)
             else:
-                if activity[" "] > self.last_group["end"]:
+                if activity["real_end"] > self.last_group["end"]:
                     self.last_group["end"] = activity["real_end"]
         self.append_group()
         self.clean_activities()

@@ -43,14 +43,15 @@ class ClickHistory(models.Model):
         ordering = ["-date_start"]
 
 
+OFFLINE_TYPES = (
+    ('weekly_meeting', 'Reunión semanal'),
+    ('meeting', 'Reunión'),
+    ('training', 'Capacitación'),
+    ('other', 'Otro'),
+)
+
 class OfflineTask(models.Model):
 
-    OFFLINE_TYPES = (
-        ('weekly_meeting', 'Reunión semanal'),
-        ('meeting', 'Reunión'),
-        ('training', 'Capacitación'),
-        ('other', 'Otro'),
-    )
 
     users = models.ManyToManyField(User, related_name="offline_tasks")
     date_start = models.DateTimeField(verbose_name="Inicio")

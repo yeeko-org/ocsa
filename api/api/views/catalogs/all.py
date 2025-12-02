@@ -76,6 +76,7 @@ class CatalogsView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request):
+        from task.models import OFFLINE_TYPES
         networks = Actor.objects\
             .filter(network_seq__isnull=False)\
             .values_list('network_seq', flat=True)\
@@ -93,6 +94,7 @@ class CatalogsView(APIView):
             # 30 ms
             "user": UserProfileSerializer(
                 User.objects.all(), many=True).data,
+            "offline_types": { k: v for k, v in OFFLINE_TYPES },
 
             # 42 ms
             "participant_type": ParticipantTypeSerializer(

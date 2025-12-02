@@ -185,6 +185,8 @@ class EventFilter(FilterSet):
 
     start_date = DateFilter(field_name='date', lookup_expr='gte')
     end_date = DateFilter(field_name='date', lookup_expr='lte')
+    event_group = NumberFilter(
+        field_name='event_type__event_group', lookup_expr='exact')
     sector_group = NumberFilter(
         field_name='involvements__participant__actor__sector__sector_group',
         lookup_expr='exact')

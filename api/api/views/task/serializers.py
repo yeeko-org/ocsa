@@ -57,7 +57,7 @@ class ScrapedRecordActivitySerializer(ActivitySerializer):
 
 class ClickHistoryActivitySerializer(ActivitySerializer):
     reals = (3, 8)
-    date_start = serializers.DateTimeField(source="date", read_only=True)
+    date_start = serializers.DateTimeField(read_only=True)
     model = serializers.SerializerMethodField()
 
     def get_model(self, obj):
@@ -67,11 +67,11 @@ class ClickHistoryActivitySerializer(ActivitySerializer):
                 return model
 
     def get_activity_type(self, obj):
-        return obj.action
+        return 'click'
 
     class Meta:
         model = ClickHistory
-        fields = mandatory_fields + ["model"]
+        fields = mandatory_fields + ["model", "action"]
 
 
 class OfflineTaskActivitySerializer(ActivitySerializer):
