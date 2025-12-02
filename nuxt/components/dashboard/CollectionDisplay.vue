@@ -1,6 +1,7 @@
 <script setup>
 import {computed, onMounted, ref, onBeforeMount, watch, nextTick } from "vue";
 import {useMainStore} from '~/store/index'
+const mainStore = useMainStore()
 import FiltersList from "~/components/dashboard/common/select/FiltersList.vue";
 import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
 // import { status_filters } from "~/composables/filters.js";
@@ -10,7 +11,6 @@ import ExportButton from "~/components/dashboard/generic/ExportButton.vue";
 import _debounce from "lodash/debounce.js";
 import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
 
-const mainStore = useMainStore()
 
 const {
   schemas,

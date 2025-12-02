@@ -383,6 +383,8 @@ export const useMainStore = defineStore('main', {
         "main_layer": "unclustered-point"
       },
     ],
+    activities: [],
+    spend_groups: [],
   }),
   actions: {
     // setHeader() {
@@ -719,6 +721,18 @@ export const useMainStore = defineStore('main', {
       try {
         let response = await $api.post(
           `/scraped_record/${scraped_id}/reprocess/`);
+        return response.data
+      } catch (error) {
+        console.error(error)
+        ;
+      }
+    },
+    async fetchActivities(params) {
+      const { $api } = useNuxtApp()
+      try {
+        let response = await $api.get(`/activity/`, {params: params});
+        this.activities = response.data.activities
+        this.spend_groups = response.data.spend_groups
         return response.data
       } catch (error) {
         console.error(error)

@@ -13,11 +13,11 @@ const props = defineProps({
   editors: Boolean,
 })
 
-const final_users = computed(() => {
-  // if (props.editors)
-  //   return full_editors.value
-  return all_users.value
-})
+// const final_users = computed(() => {
+//   // if (props.editors)
+//   //   return full_editors.value
+//   return all_users.value
+// })
 
 </script>
 

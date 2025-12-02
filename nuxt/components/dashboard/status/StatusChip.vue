@@ -112,7 +112,7 @@ const label = computed(() => {
         class="mr-1"
         :size="(props.disabled || props.small) ? 'small' : 'default'"
       >
-        {{(!item_built.icon || item_built.icon === 'mdi-check-circle')
+        {{(!item_built.icon || item_built.icon === 'check_circle')
           ? 'fiber_manual_record'
           : item_built.icon
         }}

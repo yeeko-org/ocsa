@@ -196,6 +196,16 @@ watch(
         </client-only>
         <v-divider></v-divider>
         <v-list-item
+          :to="`/dashboard/activity/`"
+          title="Registro de Actividad"
+        >
+          <template v-slot:prepend>
+            <v-icon color="accent">keyboard</v-icon>
+          </template>
+
+        </v-list-item>
+        <v-divider></v-divider>
+        <v-list-item
           :href="`${admin_url}/profile_auth/user/`"
           target="_blank"
           title="Gestión de usuarios"

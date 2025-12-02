@@ -27,28 +27,11 @@ const props = defineProps({
 });
 
 const showing = ref(10)
-// const actor_collection = computed(() => {
-//   return schemas.value.collections_dict['actor']
-// })
 
 const emits = defineEmits([
   'update:selectedProject',
   'open-child-project',
 ]);
-
-const direct_mention_ids = computed(() => {
-  let mention_ids = new Set()
-  props.full_main.mentions.forEach(mention => {
-    if (mention.project === props.selectedProject.project.id){
-      mention_ids.add(mention.note)
-    }
-  })
-  return Array.from(mention_ids)
-})
-
-// const is_grouper = computed(() => {
-//   return props.selectedProject?.project?.is_grouper || false
-// })
 
 const related_notes = computed(() => {
   let note_ids = new Set()
