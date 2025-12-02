@@ -1,14 +1,12 @@
 from rest_framework import permissions, status, views
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from api.views.task import serializers
 from task.models import OfflineTask
-from source.models import ScrapedRecord
 from api.mixins import CreateMix
 
 
-
 class OfflineTaskViewSet(CreateMix):
+
     queryset = OfflineTask.objects.all()
     serializer_class = serializers.OfflineTaskSerializer
     permission_classes = [permissions.IsAuthenticated]

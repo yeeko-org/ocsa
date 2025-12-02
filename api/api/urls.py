@@ -15,7 +15,7 @@ from api.views.article.views import ArticleViewSet
 from api.views.auth.login_views import UserLoginAPIView
 from api.views.scraping.views import ScrapingDatesView, ScrapedRecordView
 from api.views.space_time import LocationViewSet
-from api.views.task import ActivityView
+from api.views.task import ActivityView, OfflineTaskViewSet
 # from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 from api.views.ps_schemas.views import CollectionViewSet
@@ -58,6 +58,8 @@ router.register(r'collection', CollectionViewSet, basename='collection')
 
 router.register(r'scraped_record', ScrapedRecordView,
                 basename='scraped_record')
+
+router.register(r'offline_task', OfflineTaskViewSet)
 
 
 urlpatterns = [
