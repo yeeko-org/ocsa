@@ -39,6 +39,14 @@ const scraped_record_collection = computed(() => {
   return schemas.value.collections_dict['scraped_record']
 })
 
+const scraped_records = computed(() => {
+  const source_full = {'id': props.full_main.id, 'name': props.full_main.name}
+  return props.full_main.scraped_records.map(scraped_record => {
+    scraped_record.source_full = source_full
+    return scraped_record
+  })
+})
+
 async function saveScrapedRecord() {
   const { valid } = await recordForm.value.validate()
   if (!valid) return
@@ -186,7 +194,7 @@ function selectDay(day) {
     </v-card-title>
     <v-card-text class="px-0">
       <PanelList
-        :results="full_main.scraped_records"
+        :results="scraped_records"
         :collection_data="scraped_record_collection"
         :show_details="true"
       />

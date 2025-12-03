@@ -48,16 +48,20 @@ function resetInitialData(){
     @add-item="emits('search-item', $event)"
     required
   >
-    <template #rows_init="{ item }">
+    <template #rows_init="{ item, in_edition }">
       <CardCommon
+        v-if="in_edition"
         :full_main="item.actor_full"
         @edited-item="emits('edited-item', item)"
         @selected-item="emits('selected-item', [item, $event])"
         indirect_get
         :collection_data="actor_collection_data"
       />
+      <div v-else>
+        Hola actor
+      </div>
     </template>
-    <template #second-column="{ item }">
+    <template #second-column="{ item, in_edition }">
       <ToolbarCommon
         ref="secondToolbarRef"
         :main_object="item"
@@ -68,6 +72,7 @@ function resetInitialData(){
         field="interests"
         second_level
         color="cyan"
+        :external_in_edition="in_edition"
       >
         <template #rows="{ item }">
           <v-textarea
