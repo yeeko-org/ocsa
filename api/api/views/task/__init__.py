@@ -36,7 +36,7 @@ class ActivityView(views.APIView):
         user_id = request.query_params.get("user", None)
         worker_user = request.user
 
-        if user_id and worker_user.is_superuser:
+        if user_id and worker_user.is_staff:
             worker_user = User.objects.get(id=user_id)
         now = timezone.now()
         last_days = now - timedelta(days=int(days_ago))
