@@ -1,7 +1,6 @@
 from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
 from ps_schema.constants import (
-    all_collections, deprecated_collection_links, filter_groups,
-    delete_collections)
+    all_collections, filter_groups, delete_collections)
 
 
 class InitLevels:
@@ -139,17 +138,13 @@ class InitCollections:
                     app_label=app_label, level=level)
                 my_model = apps.get_model(app_label, model_name)
                 meta_data = my_model._meta
-                verbose_name = meta_data.verbose_name
-                verbose_name_plural = meta_data.verbose_name_plural
-                name = collection.get('name', verbose_name)
-                plural_name = collection.get('plural_name', verbose_name_plural)
-                # if (name != verbose_name):
-                #     print(f"Name: {name} - Verbose: {verbose_name}")
-                # if (plural_name != verbose_name_plural):
-                #     print(f"Plural: {plural_name} - Verbose: {verbose_name_plural}")
 
-                new_collection.name = name
-                new_collection.plural_name = plural_name
+                new_collection.name = collection.get(
+                    'name', meta_data.verbose_name)
+
+                new_collection.plural_name = collection.get(
+                    'plural_name', meta_data.verbose_name_plural)
+
                 new_collection.model_name = model_name
                 new_collection.optional_category = collection.get(
                     'optional_category', False)

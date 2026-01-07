@@ -58,6 +58,7 @@ class StatusProjectSerializer(CommonCount):
 
 class StatusProjectFullSerializer(CommonCount):
     projects_count = serializers.ReadOnlyField()
+    status_histories_count = serializers.ReadOnlyField()
 
     class Meta:
         model = StatusProject

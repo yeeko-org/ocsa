@@ -172,7 +172,8 @@ class InvolvedViewSet(viewsets.ModelViewSet):
 
 class StatusHistoryViewSet(BaseStatusViewSet):
     filterset_fields = ['status_project']
-    queryset = StatusHistory.objects.all()
+    queryset = StatusHistory.objects.all()\
+        .select_related('mention__project', 'mention__note')
 
     serializer_class = StatusHistoryFullSerializer
 

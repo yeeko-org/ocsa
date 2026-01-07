@@ -125,8 +125,6 @@ class Mention(CommentsMixin, models.Model):
         Project, on_delete=models.CASCADE, related_name='mentions')
     filled = models.BooleanField(default=False)
     date_filled = models.DateField(blank=True, null=True)
-    # status_register = models.ForeignKey(
-    #     StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -141,7 +139,8 @@ class StatusHistory(models.Model):
     mention = models.ForeignKey(
         Mention, on_delete=models.CASCADE, related_name='status_history')
     status_project = models.ForeignKey(
-        StatusProject, on_delete=models.CASCADE, blank=True, null=True)
+        StatusProject, on_delete=models.CASCADE, blank=True, null=True,
+        related_name='status_histories')
     date = models.DateField(blank=True, null=True)
     interval = models.DurationField(blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
@@ -219,8 +218,6 @@ class ExtractivismTypes(enum.Enum):
     energia = "energia"
     urbano = "urbano"
     infra = "infra"
-    # small_scale = "small_scale"
-    # public_program = "public_program"
 
 
 class ProjectBase(BaseModel):
@@ -229,18 +226,29 @@ class ProjectBase(BaseModel):
     paragraphs: list[int] = []
 
 
-class ArticleBase(BaseModel):
-    projects: list[ProjectBase] = []
+class ProjectSelect(ProjectBase):
+    is_specific_project: bool
+    is_not_public_policy: bool
+    is_extractivist_or_big_scale: bool
+    is_not_labor_conflict_only: bool
+
+
+class FeaturesBase(BaseModel):
     opponents: list[int] = []
     social_impacts: list[int] = []
     ecological_impacts: list[int] = []
     acts_of_violence: list[int] = []
     collective_actions: list[int] = []
+
+
+class ArticleBase(FeaturesBase):
+    projects: list[ProjectBase] = []
     is_foreign: bool | None = None
+    is_political_opinion: bool | None = None
 
 
-class ArticlesReport(BaseModel):
-    articles: list[ArticleBase]
+class ArticleRevision(BaseModel):
+    projects: list[ProjectSelect] = []
 
 
 class Article(models.Model):
@@ -336,9 +344,12 @@ class Article(models.Model):
         if bool(criteria.collective_actions):
             degree += 20
 
-        if bool(criteria.is_foreign):
+        if bool(criteria.is_political_opinion):
             if degree > 100:
                 degree = 99
+        if bool(criteria.is_foreign):
+            if degree > 100:
+                degree = 98
         return degree
 
     def __str__(self):

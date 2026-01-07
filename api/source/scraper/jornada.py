@@ -34,6 +34,7 @@ class JornadaManagerScraper(ManagerScraper):
 
 
 class JornadaMainScraper(MainScraper):
+    need_proxy = False
 
     def __init__(self, scraper_date: date | str):
         super().__init__(scraper_date)
@@ -128,6 +129,7 @@ class JornadaSectionScraper:
 
 
 class JornadaArticleScraper(ArticleScraper):
+    need_proxy = False
 
     def get_article_data(self):
 

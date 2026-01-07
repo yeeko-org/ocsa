@@ -57,6 +57,16 @@ class EnumEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
+class CriteriaError(Exception):
+
+    def __init__(self, article: Article, message: str,
+                 exception: Exception | None = None):
+        final_msg = f"ID - {article.id} ({article.title}): {message}"
+        if exception:
+            final_msg += f" | Exception: {str(exception)}"
+        super().__init__(final_msg)
+
+
 class ManagerScraper(ABC):
     scraped_record: ScrapedRecord | None
     main_scraper_class: Type["MainScraper"]
@@ -119,8 +129,10 @@ class ManagerScraper(ABC):
         self.scraped_record.errors.extend(errors)
         self.scraped_record.save()
 
-    def add_error(self, error: str, exception: Exception | None = None):
-        if exception:
+    def add_error(
+            self, error: str, exception: Exception | None = None,
+            raise_exception: bool = False):
+        if exception and  raise_exception:
             raise exception
         if not self.scraped_record:
             self.errors.append(f"{error}: {exception or ''}")
@@ -255,7 +267,10 @@ class ManagerScraper(ABC):
     def scrape_articles(self, update: bool = False):
         articles_objects = self.get_articles_objects()
         for article in tqdm(articles_objects, desc="Scraping articles"):
-            self.full_scrape_article(article, update)
+            try:
+                self.full_scrape_article(article, update)
+            except CriteriaError as e:
+                self.add_error(str(e))
 
     def full_scrape_article(
             self, article: Article, update: bool = False):
@@ -265,14 +280,13 @@ class ManagerScraper(ABC):
                 article_scraper = self.article_scraper_class(
                     article, update=update)
             except Exception as e:
-                self.add_error(
-                    f"Error scraping article {article.id}", e)
-                return
+                raise CriteriaError(
+                    article, "Error scraping article", e)
             try:
                 article_scraper.get_reduced_content_text()
             except Exception as e:
-                self.add_error(
-                    f"Error getting content for article {article.id}", e)
+                raise CriteriaError(
+                    article, "Error getting content for article", e)
 
     def build_ai_criteria(self, prompt_version: str = "v2"):
         from django.utils import timezone
@@ -313,7 +327,13 @@ class ManagerScraper(ABC):
 
         desc = f"Classifying articles ({len_articles})"
         for article in tqdm(articles_objects, desc=desc):
-            self.get_ai_criteria(article)
+            try:
+                is_selected = self.get_ai_criteria(article)
+                if is_selected:
+                    self.send_second_criteria(article)
+            except CriteriaError as e:
+                self.add_error(str(e))
+                continue
         if self.pre_classify_request.errors:
             self.add_errors(self.pre_classify_request.errors)
         if not self.scraped_record.date_end:
@@ -333,8 +353,8 @@ class ManagerScraper(ABC):
     def get_ai_criteria(self, article: Article):
 
         if not article.paragraphs and not article.images:
-            print(f"Article {article.id} has no paragraphs")
-            return
+            raise CriteriaError(
+                article, "Article has no paragraphs or images")
         p_idx = 0
         content = f"Título: {article.title.strip()}\n"
         if subtitle := article.subtitle:
@@ -352,25 +372,24 @@ class ManagerScraper(ABC):
 
         full_content = content
 
-        if not full_content:
-            print("No content to classify")
-            return
-
         criteria = self.pre_classify_request\
             .send_gemini_prompt(full_content, schema_clss=ArticleBase)
 
         if not criteria:
-            print("No response from OpenAI")
-            return
+
+            self.add_error(f"No response AI service for article {article.id}"
+                           f"({article.title})")
+            return None
 
         if not isinstance(criteria, ArticleBase):
-            print(f"Invalid response, received: {type(criteria)}")
-            return
+            # print(f"Invalid response, received: {type(criteria)}")
+            self.add_error(
+                f"Invalid response type for article {article.id}"
+                f"({article.title}); type: {type(criteria)}")
+            return None
 
         is_selected = self.save_criteria_results(criteria, article.id)
-        if is_selected:
-            # print(f"Article {criteria.id} selected by criteria")
-            self.send_second_criteria()
+        return is_selected
 
     def save_criteria_results(self, criteria:ArticleBase, article_id: int):
         article = Article.objects.get(pk=int(article_id))
@@ -397,6 +416,6 @@ class ManagerScraper(ABC):
 
         return is_pre_selected
 
-    def send_second_criteria(self):
+    def send_second_criteria(self, article: Article):
         pass
 

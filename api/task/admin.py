@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ClickHistory
+from .models import ClickHistory, OfflineTask
 
 
 class ClickHistoryAdmin(admin.ModelAdmin):
@@ -23,3 +23,12 @@ class ClickHistoryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ClickHistory, ClickHistoryAdmin)
+
+
+class OfflineTaskAdmin(admin.ModelAdmin):
+    list_display = ["name", "activity_type", "date_start", "date_end"]
+    raw_id_fields = ["users", "user_added"]
+    list_filter = ["activity_type", "date_start"]
+
+
+admin.site.register(OfflineTask, OfflineTaskAdmin)

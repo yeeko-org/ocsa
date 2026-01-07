@@ -45,8 +45,8 @@ all_collections = {
         },
         {
             "snake_name": "status_history",
-            "name": "Historial de status",
-            "plural_name": "Historiales de status",
+            "name": "Registro de status de proyecto",
+            "plural_name": "Registros de status de proyecto",
             "model_name": "StatusHistory",
             "level": "secondary",
         },
@@ -556,7 +556,10 @@ filter_groups = [
         "main_collection": "project-project",
         "category_type": "project-extractivism_type",
         "category_subtype": "project-megaproject_type",
-        "addl_config": {"subtype_is_autocomplete": True, "open_search": True},
+        "addl_config": {
+            "subtype_is_autocomplete": True,
+            "open_search": True
+        },
     },
     {
         "key_name": "participant_types",
@@ -695,7 +698,7 @@ filter_groups = [
     {
         "key_name": "status_projects",
         "name": "Status de Proyecto",
-        "plural_name": "Status de Proyectos",
+        "plural_name": "Status de Proyectos (tipos)",
         "main_collection": "project-project",
         "category_subtype": "project-status_project",
         "addl_config": {"subtype_is_autocomplete": True},

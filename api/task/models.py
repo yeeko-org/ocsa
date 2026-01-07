@@ -50,8 +50,8 @@ OFFLINE_TYPES = (
     ('other', 'Otro'),
 )
 
-class OfflineTask(models.Model):
 
+class OfflineTask(models.Model):
 
     users = models.ManyToManyField(User, related_name="offline_tasks")
     date_start = models.DateTimeField(verbose_name="Inicio")

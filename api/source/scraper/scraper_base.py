@@ -6,14 +6,25 @@ from bs4.element import Tag, PageElement
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Type
 import requests
+from django.conf import settings
 import re
 
 REQUESTS_DEFAULT_HEADERS = {'User-Agent': 'Mozilla/4.0'}
 
 
-def get_content(url, parser="html.parser") -> BeautifulSoup:
-
-    response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS)
+def get_content(
+        url, parser="html.parser", with_proxy:bool=False
+) -> BeautifulSoup:
+    proxy_key = settings.PROXY_KEY
+    if with_proxy and proxy_key:
+        proxies = {
+            "http": f"http://{proxy_key}",
+            "https": f"https://{proxy_key}",
+        }
+        response = requests.get(
+            url, headers=REQUESTS_DEFAULT_HEADERS, proxies=proxies)
+    else:
+        response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS)
     if response.status_code == 200:
         return BeautifulSoup(response.text, parser)
     else:
@@ -55,10 +66,12 @@ class MainScraper(ABC):
     sections_dict: Dict[str, dict]
     scraper_date: str
     parser = "html.parser"
+    need_proxy = False
 
     def __init__(self, scraper_date: date | str):
         self.scraper_date = date_in_str(scraper_date)
-        self.soup_content = get_content(self.main_url(), self.parser)
+        self.soup_content = get_content(
+            self.main_url(), self.parser, self.need_proxy)
 
         self.get_sections()
         self.get_articles()
@@ -87,6 +100,7 @@ class ArticleScraper(ABC):
     images: List[dict[str, Any]] | None
     ai_engine: str | None
     parser = "html.parser"
+    need_proxy: bool = False
 
     def __init__(self, article: Article, update: bool = False):
         self.article = article
@@ -95,7 +109,8 @@ class ArticleScraper(ABC):
                 article.html_content, self.parser)
             self.get_article_data()
             return
-        self.soup_content = get_content(self.article.url, self.parser)
+        self.soup_content = get_content(
+            self.article.url, self.parser, self.need_proxy)
         try:
             self.get_article_data()
         except Exception as e:

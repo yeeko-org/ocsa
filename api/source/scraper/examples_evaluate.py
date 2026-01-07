@@ -12,7 +12,7 @@ def examples():
         "2023/04/01", "2023/04/03", ai_engine="gemini-2.5-flash")
 
     manager_reforma = ReformaManagerScraper(
-        "2023/04/01", "2023/04/03", ai_engine="gemini-2.5-flash")
+        "2024/04/01", "2023/04/03", ai_engine="gemini-2.5-flash")
 
     # print(manager_scraper.scraped_record)
     print(manager_reforma.scraped_record.id)
@@ -24,7 +24,7 @@ def examples():
         ai_engine="gemini-2.5-flash")
 
     manager_reforma = ReformaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=13),
+        "", "", recover_record=ScrapedRecord.objects.get(pk=69),
         ai_engine="gemini-2.5-flash")
 
     manager_scraper.record_articles(reset=True)

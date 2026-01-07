@@ -48,3 +48,6 @@ Analiza el artículo que se te proporcionará, el cual tiene un título y párra
       - `false`: Si el proyecto ocurre en México, o si el artículo menciona algún impacto social o ambiental para México.
       - `null`: Si no se puede determinar la ubicación del proyecto con la información del texto.
 
+**4. Campo booleano `is_political_opinion`:**
+
+  - Evalúa si el artículo es una opinión política más que de un análisis riguroso de proyectos extractivistas. Clasifícalo así si la nota da opiniones de personas políticas en el contexto de sus campañas electorales, sobre todo si ofrecen detalles demasiado generales de los proyectos. Clasifica también así las notas editoriales políticas o columnas de opinión que mencionen proyectos de forma superficial, es decir, si no aportan datos o hechos relevantes de los proyectos, más allá de los datos comunmente conocidos.

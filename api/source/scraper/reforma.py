@@ -78,6 +78,7 @@ class ReformaManagerScraper(ManagerScraper):
 
 class ReformaMainScraper(MainScraper):
     parser = "xml"
+    need_proxy = False
 
     def __init__(self, scraper_date: date | str):
         super().__init__(scraper_date)
@@ -141,7 +142,7 @@ class ReformaSectionScraper:
 
     def __init__(self, url: str, meta_section: dict | None = None):
         self.meta_section = meta_section or {}
-        self.soup_content = get_content(url, parser="xml")
+        self.soup_content = get_content(url, parser="xml", with_proxy=True)
         self.get_articles()
 
     def get_articles(self):
@@ -183,6 +184,7 @@ class ReformaSectionScraper:
 
 
 class ReformaArticleScraper(ArticleScraper):
+    need_proxy = True
 
     def get_article_data(self):
         self.title = ""

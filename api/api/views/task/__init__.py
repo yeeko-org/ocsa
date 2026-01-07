@@ -1,7 +1,7 @@
 from rest_framework import permissions, status, views
 from rest_framework.response import Response
 from api.views.task import serializers
-from task.models import OfflineTask
+from task.models import OfflineTask, ClickHistory
 from api.mixins import CreateMix
 
 
@@ -21,6 +21,25 @@ class OfflineTaskViewSet(CreateMix):
         else:
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ClickHistoryViewSet(CreateMix):
+
+    queryset = ClickHistory.objects.all()
+    serializer_class = serializers.ClickHistoryActivitySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        # data["user"] = request.user.id
+        serializer = serializers.ClickHistoryActivitySerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ActivityView(views.APIView):

@@ -174,6 +174,8 @@ class MentionFullSerializer(ConditionalFieldsMixin):
 
 
 class StatusHistorySerializer(serializers.ModelSerializer):
+    project_full = ProjectSerializer(
+        source='mention.project', read_only=True)
     class Meta:
         model = StatusHistory
         fields = '__all__'
@@ -206,6 +208,8 @@ class NoteSerializer(ConditionalFieldsMixin):
 
 
 class StatusHistoryFullSerializer(serializers.ModelSerializer):
+    project_full = ProjectSerializer(
+        source='mention.project', read_only=True)
     note_full = NoteSerializer(source='mention.note', read_only=True)
 
     class Meta:
