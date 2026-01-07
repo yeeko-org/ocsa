@@ -102,7 +102,6 @@ class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
         serializer = self.get_serializer(data=request.data)
         # print("name of serializer:", serializer.__class__.__name__)
         serializer.is_valid(raise_exception=True)
-        print("serializer.validated_data", serializer.validated_data)
         # print("serializer.validated_data", serializer.validated_data)
         # article.is_selected = serializer.validated_data["is_selected"]
         # article.discarded_reason = serializer.validated_data.get(

@@ -29,7 +29,7 @@ def get_content(
     if response.status_code == 200:
         return BeautifulSoup(response.text, parser)
     else:
-        if attempts <= 3:
+        if attempts <= 3 and with_proxy:
             print(f"Intento {attempts} fallido para {url}.")
             time.sleep(2 ** attempts)
             return get_content(url, parser, with_proxy, attempts + 1)
