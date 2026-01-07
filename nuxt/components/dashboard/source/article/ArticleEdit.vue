@@ -271,7 +271,7 @@ const label_other_reason = computed(() => {
 
         <CriteriaChip
           :main="qualy"
-          show_foreign
+          show_negatives
         />
         <ProjectsCriteria
           :criteria="qualy.criteria"

@@ -56,6 +56,22 @@ const init_filters = computed(() => {
       />
     </v-card-text>
   </v-card>
+<!--  <v-card class="mb-4">-->
+<!--    <v-card-title>-->
+<!--      Proyectos-->
+<!--      <span>-->
+<!--        ({{ full_main.projects_count }})-->
+<!--      </span>-->
+<!--    </v-card-title>-->
+<!--    <v-card-text>-->
+<!--      <CollectionDisplay-->
+<!--        :parent_collection="schemas.collections_dict['project']"-->
+<!--        :init_filters="init_filters"-->
+<!--        :init_total_count="full_main.projects_count"-->
+<!--        direct_sheet-->
+<!--      />-->
+<!--    </v-card-text>-->
+<!--  </v-card>-->
 </template>
 
 <style scoped>

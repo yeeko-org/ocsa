@@ -28,6 +28,16 @@ const props = defineProps({
         class="ml-2"
         horizontal
       />
+      <HeaderChip
+        :count="main.status_histories_count"
+        icon="history_toggle_off"
+        label="registro de status de proyecto"
+        label_plural="registros de status de proyecto"
+        collection_name="status_history"
+        color="purple"
+        class="ml-2"
+        horizontal
+      />
     </template>
   </HeaderCommon>
 </template>

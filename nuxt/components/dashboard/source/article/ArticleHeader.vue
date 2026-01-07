@@ -197,7 +197,7 @@ const discarded_reason = computed(() => {
       <CriteriaChip
         v-if="main.criteria"
         :main="main"
-        show_foreign
+        show_negatives
       />
       <ProjectsCriteria
         :criteria="main.criteria"

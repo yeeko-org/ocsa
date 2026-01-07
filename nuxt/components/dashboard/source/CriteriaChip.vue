@@ -13,7 +13,7 @@ const props = defineProps({
     type: Array,
     required: false,
   },
-  show_foreign: Boolean,
+  show_negatives: Boolean,
 })
 
 // opponents: list[int] = []
@@ -59,18 +59,33 @@ const criteria_data = computed(() => {
       "is_selected": is_selected,
     }
   })
-  if (props.show_foreign && criteria_values.is_foreign){
-    criteria_items.push({
-      name: 'Es una pre-nota extranjera',
-      public_name: 'Es una nota extranjera',
-      icon: 'public',
-      color: 'red-darken-3',
-      final_color: 'red-darken-3',
-      count: "Sin",
-      value: "identificado en el texto",
-      key: 'is_foreign',
-      is_selected: true,
-    })
+  if (props.show_negatives){
+    if (criteria_values.is_foreign){
+      criteria_items.push({
+        name: 'Es una pre-nota extranjera',
+        public_name: 'Es una nota extranjera',
+        icon: 'public',
+        color: 'red-darken-3',
+        final_color: 'red-darken-3',
+        count: "Sin",
+        value: "identificado en el texto",
+        key: 'is_foreign',
+        is_selected: true,
+      })
+    }
+    if (criteria_values.is_political_opinion) {
+      criteria_items.push({
+        name: 'Contiene opinión política',
+        public_name: 'Contiene opinión política',
+        icon: 'announcement',
+        color: 'purple-darken-3',
+        final_color: 'purple-darken-3',
+        count: "Sin",
+        value: "identificado en el texto",
+        key: 'is_political_opinion',
+        is_selected: true,
+      })
+    }
   }
   return criteria_items
 })
