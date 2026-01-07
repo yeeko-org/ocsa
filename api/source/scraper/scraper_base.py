@@ -13,8 +13,9 @@ REQUESTS_DEFAULT_HEADERS = {'User-Agent': 'Mozilla/4.0'}
 
 
 def get_content(
-        url, parser="html.parser", with_proxy:bool=False
+        url, parser="html.parser", with_proxy:bool=False, attempts:int=1
 ) -> BeautifulSoup:
+    import time
     proxy_key = settings.PROXY_KEY
     if with_proxy and proxy_key:
         proxies = {
@@ -28,8 +29,13 @@ def get_content(
     if response.status_code == 200:
         return BeautifulSoup(response.text, parser)
     else:
-        raise Exception(
-            f"Error al acceder a la página: {response.status_code}")
+        if attempts <= 3:
+            print(f"Intento {attempts} fallido para {url}.")
+            time.sleep(2 ** attempts)
+            return get_content(url, parser, with_proxy, attempts + 1)
+        else:
+            raise Exception(
+                f"Error al acceder a la página: {response.status_code}")
 
 
 def get_clean_text(elem: PageElement) -> str:
