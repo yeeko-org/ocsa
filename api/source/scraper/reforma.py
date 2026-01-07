@@ -78,7 +78,7 @@ class ReformaManagerScraper(ManagerScraper):
 
 class ReformaMainScraper(MainScraper):
     parser = "xml"
-    need_proxy = False
+    need_proxy = True
 
     def __init__(self, scraper_date: date | str):
         super().__init__(scraper_date)
