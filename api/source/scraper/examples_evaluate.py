@@ -1,4 +1,95 @@
-# Ejecucion de pruebas de scraping por pasos completos, y sus formas de ver la informacion.
+
+def compare_versions(
+        sr_id=50, ai_engine="gemini-3-flash-preview",
+        prompt_version="v2", count: int=None):
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.scraper.reforma import ReformaManagerScraper
+    from source.models import ScrapedRecord, Article
+
+    scraped_record = ScrapedRecord.objects.get(pk=sr_id)
+
+    scraper_class = ReformaManagerScraper \
+        if scraped_record.source.name == "Reforma" \
+        else JornadaManagerScraper
+
+    articles = Article.objects.filter(
+        scraped=scraped_record, certainty_degree__gt=100
+    ).order_by("-certainty_degree")
+    if count:
+        articles = articles[:count]
+
+    scraper = scraper_class(
+        "", "", recover_record=scraped_record,
+        ai_engine=ai_engine, is_test=True)
+
+    scraper.scrape_articles(update=True)
+    scraper.articles_by_id = {article.id: article for article in articles}
+    scraper.build_ai_criteria(prompt_version=prompt_version)
+
+
+compare_versions(76, count=40)
+
+
+def direct_second_criteria(
+        sr_id=50, ai_engine="gemini-3-flash-preview",
+        prompt_version="v2", count: int=None):
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.scraper.reforma import ReformaManagerScraper
+    from source.models import ScrapedRecord
+    scraped_record = ScrapedRecord.objects.get(pk=sr_id)
+
+    scraper_class = ReformaManagerScraper \
+        if scraped_record.source.name == "Reforma" \
+        else JornadaManagerScraper
+
+    scraper = scraper_class(
+        "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
+        ai_engine=ai_engine, is_test=True)
+    scraper.first_selected_articles = scraper.get_articles_objects(
+        is_second=True)
+
+    if count:
+        scraper.first_selected_articles = scraper.first_selected_articles[:count]
+    scraper.build_second_criteria(prompt_version=prompt_version)
+
+
+direct_second_criteria(76, count=8)
+
+
+
+
+def rewrite_first_criteria(
+        sr_id=50, ai_engine="gemini-3-flash-preview",
+        prompt_version="v2", count: int=None):
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.scraper.reforma import ReformaManagerScraper
+    from source.models import ScrapedRecord, Article
+
+    scraped_record = ScrapedRecord.objects.get(pk=sr_id)
+
+    scraper_class = ReformaManagerScraper \
+        if scraped_record.source.name == "Reforma" \
+        else JornadaManagerScraper
+
+    articles = Article.objects\
+        .filter(
+        scraped=scraped_record, certainty_degree__gt=100,
+        is_selected__isnull=True)\
+        .order_by("-certainty_degree")
+    if count:
+        articles = articles[:count]
+
+    scraper = scraper_class(
+        "", "", recover_record=scraped_record, ai_engine=ai_engine)
+
+    scraper.scrape_articles(update=True)
+    scraper.articles_by_id = {article.id: article for article in articles}
+    scraper.build_ai_criteria(prompt_version=prompt_version)
+
+
+compare_versions(76, count=40)
+
+
 
 
 def examples():
@@ -9,10 +100,10 @@ def examples():
         ScrapedRecord, Article, QualifySchema, ArticleQualify, Note)
 
     manager_scraper = JornadaManagerScraper(
-        "2023/04/01", "2023/04/03", ai_engine="gemini-2.5-flash")
+        "2023/04/01", "2023/04/03", ai_engine="gemini-3-flash-preview")
 
     manager_reforma = ReformaManagerScraper(
-        "2024/04/01", "2023/04/03", ai_engine="gemini-2.5-flash")
+        "2024/04/01", "2023/04/03", ai_engine="gemini-3-flash-preview")
 
     # print(manager_scraper.scraped_record)
     print(manager_reforma.scraped_record.id)
@@ -20,12 +111,12 @@ def examples():
     manager_reforma.scrape_sections()
 
     manager_scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=38),
-        ai_engine="gemini-2.5-flash")
+        "", "", recover_record=ScrapedRecord.objects.get(pk=42),
+        ai_engine="gemini-3-flash-preview")
 
     manager_reforma = ReformaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=69),
-        ai_engine="gemini-2.5-flash")
+        ai_engine="gemini-3-flash-preview")
 
     manager_scraper.record_articles(reset=True)
     manager_reforma.record_articles(reset=True)
@@ -71,7 +162,7 @@ def test_reforma_subtitle():
 
 
 def scrape_full_articles(
-        sr_id=17, ai_engine="gemini-2.5-flash",
+        sr_id=17, ai_engine="gemini-3-flash-preview",
         prompt_version="v2"):
     from source.scraper.jornada import JornadaManagerScraper
     from source.scraper.reforma import ReformaManagerScraper
@@ -88,39 +179,15 @@ def scrape_full_articles(
     scraper.build_ai_criteria(prompt_version=prompt_version)
 
 
-scrape_full_articles(22, prompt_version="v1")
-scrape_full_articles(22, prompt_version="v2")
+scrape_full_articles(42, prompt_version="v1")
+scrape_full_articles(42, prompt_version="v2")
 
-# scrape_full_articles(22, 6, "gemini-2.5-flash", "v2")
-# scrape_full_articles(22, 6, "gemini-2.5-flash", "v1")
+# scrape_full_articles(22, 6, "gemini-3-flash-preview", "v2")
+# scrape_full_articles(22, 6, "gemini-3-flash-preview", "v1")
 # scrape_full_articles(22, 6, "deepseek-chat", "v1")
 
 # scrape_full_articles(1, 20, "gpt-4o-2024-11-20")
-# scrape_full_articles(17, 20, "gemini-2.5-flash")
-
-
-def compare_versions(
-        sr_id=50, ai_engine="gemini-2.5-flash",
-        prompt_version="v2"):
-    from source.scraper.jornada import JornadaManagerScraper
-    from source.scraper.reforma import ReformaManagerScraper
-    from source.models import ScrapedRecord, Article
-
-    articles = Article.objects.filter(
-        scraped__id=sr_id, certainty_degree__gt=100).order_by("-certainty_degree")
-
-    scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
-        ai_engine=ai_engine, is_test=True)
-
-    # if ai_engine == "deepseek-chat":
-    #     scraper.use_deepseek = True
-    scraper.scrape_articles(update=True)
-    scraper.articles_by_id = {article.id: article for article in articles}
-    scraper.build_ai_criteria(prompt_version=prompt_version)
-
-
-compare_versions(49)
+# scrape_full_articles(17, 20, "gemini-3-flash-preview")
 
 
 #######
@@ -295,7 +362,7 @@ def update_all_articles_with_criteria():
     from source.models import Article
     articles = Article.objects.filter(criteria__isnull=False)
     for article in articles:
-        cert_degree = article.get_certainty_degree()
+        cert_degree = article.get_certainty_degree_v2()
         article.certainty_degree = cert_degree
         article.save()
 

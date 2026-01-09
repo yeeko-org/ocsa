@@ -25,7 +25,7 @@ def full_scrape_articles(source, scraped_record: ScrapedRecord):
     manager_scraper_class = get_manager_scraper_class(source)
     manager_scraper = manager_scraper_class(
         "", "", recover_record=scraped_record,
-        ai_engine="gemini-2.5-flash")
+        ai_engine="gemini-3-flash-preview")
     scraped_record.last_updated = timezone.now()
     scraped_record.save()
 
@@ -52,7 +52,7 @@ class ScrapingDatesView(APIView):
         print(f"Using scraper class: {manager_scraper_class.__name__}")
 
         manager_scraper = manager_scraper_class(
-            from_date, to_date or from_date, ai_engine="gemini-2.5-flash")
+            from_date, to_date or from_date, ai_engine="gemini-3-flash-preview")
 
         if manager_scraper.errors or manager_scraper.overlapping_dates:
             return Response({
@@ -144,10 +144,11 @@ class ScrapedRecordView(BaseGenericViewSet):
 
         total_minutes = scraped_record.total_days * 3
         if max_date + timedelta(minutes=total_minutes) > time_now:
-            return Response(
-                {"detail": "Cannot reprocess a recently updated scraped record."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            if not request.user.is_superuser:
+                return Response(
+                    {"detail": "Cannot reprocess a recently updated scraped record."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         # last_update = min(scraped_record.date_end, scraped_record.last_update)
         if not scraped_record.date_end:

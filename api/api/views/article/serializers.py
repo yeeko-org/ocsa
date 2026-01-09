@@ -75,34 +75,56 @@ class SourceSimpleSerializer(serializers.ModelSerializer):
 
 class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
     articles_count = serializers.SerializerMethodField()
-    preclassified_count = serializers.SerializerMethodField()
+    scraped_count = serializers.SerializerMethodField()
+    analyzed_count = serializers.SerializerMethodField()
+    pre_selected_count = serializers.SerializerMethodField()
+    pre_filtered_count = serializers.SerializerMethodField()
     pending_count = serializers.SerializerMethodField()
+    errors_count = serializers.SerializerMethodField()
 
     def get_articles_count(self, obj):
         return obj.articles.count()
 
-    def get_preclassified_count(self, obj):
+    def get_scraped_count(self, obj):
+        return obj.articles.filter(criteria__isnull=False).count()
+
+    def get_analyzed_count(self, obj):
         return obj.articles.filter(certainty_degree__isnull=False).count()
+
+    def get_pre_selected_count(self, obj):
+        return obj.articles\
+            .filter(certainty_degree__gt=100).count()
+
+    def get_pre_filtered_count(self, obj):
+        return obj.articles\
+            .filter(second_criteria__isnull=False).count()
 
     def get_pending_count(self, obj):
         return obj.articles\
             .filter(is_selected__isnull=True)\
             .filter(certainty_degree__gt=100).count()
 
+    def get_errors_count(self, obj):
+        if obj.errors:
+            return len(obj.errors)
+        return 0
+
     class Meta:
         model = ScrapedRecord
         fields = [
-            "id", "from_date", "to_date", "source", "errors",
-            "articles_count", "preclassified_count", "pending_count"]
+            "id", "from_date", "to_date", "source", "errors_count",
+            "articles_count", 'scraped_count',
+            "analyzed_count", "pre_selected_count",
+            "pre_filtered_count", "pending_count"
+        ]
 
 
 class ScrapedRecordSerializer(ScrapedRecordSimpleSerializer):
     source_full = SourceSimpleSerializer(read_only=True, source='source')
-    pre_selected = serializers.SerializerMethodField()
 
-    def get_pre_selected(self, obj):
-        return obj.articles\
-            .filter(certainty_degree__gt=100).count()
+    # def get_pre_selected(self, obj):
+    #     return obj.articles\
+    #         .filter(certainty_degree__gt=100).count()
 
     class Meta:
         model = ScrapedRecord

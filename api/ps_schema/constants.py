@@ -1,4 +1,5 @@
 
+
 all_collections = {
     "source": [
         {
@@ -76,12 +77,12 @@ all_collections = {
                     "title": "Status", "field": "status",
                     "component": "OnlyByFilter", "hidden": False,
                     "custom_options": [
-                        {"plural_name": "Requiere validar", "value": "to_validate"},
-                        {"plural_name": "Poco probables", "value": "unlikely"},
+                        {"plural_name": "Faltan validar", "value": "to_validate"},
                         {"plural_name": "Validados", "value": "validated"},
                         {"plural_name": "Rechazados", "value": "rejected"},
+                        {"plural_name": "Poco probables", "value": "unlikely"},
+                        {"plural_name": "Reincluidos", "value": "reincluded"},
                         {"plural_name": "Descartados", "value": "discarded"},
-                        {"plural_name": "Reincluidos", "value": "reincluded"}
                     ]
                 },
             ],
@@ -516,7 +517,6 @@ all_collections = {
         },
     ]
 }
-
 delete_collections = ["event_subtype"]
 
 all_available_actions = [

@@ -8,7 +8,7 @@ from project.models import Project, StatusProject
 from utils.open_ai import JsonRequestOpenAI
 from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import enum
 
 
@@ -226,19 +226,20 @@ class ProjectBase(BaseModel):
     paragraphs: list[int] = []
 
 
-class ProjectSelect(ProjectBase):
-    is_specific_project: bool
-    is_not_public_policy: bool
-    is_extractivist_or_big_scale: bool
-    is_not_labor_conflict_only: bool
-
-
 class FeaturesBase(BaseModel):
-    opponents: list[int] = []
-    social_impacts: list[int] = []
-    ecological_impacts: list[int] = []
-    acts_of_violence: list[int] = []
-    collective_actions: list[int] = []
+    opponents: list[int]
+    social_impacts: list[int]
+    ecological_impacts: list[int]
+    acts_of_violence: list[int]
+    collective_actions: list[int]
+
+
+class ProjectSelect(ProjectBase, FeaturesBase):
+    is_specific_project: bool
+    is_extractivist_or_big_scale: bool
+    is_public_policy: bool
+    is_political_opinion: bool
+    is_labor_conflict_only: bool
 
 
 class ArticleBase(FeaturesBase):
@@ -293,6 +294,7 @@ class Article(models.Model):
 
     scraped = models.ForeignKey(
         ScrapedRecord, on_delete=models.CASCADE, related_name='articles')
+    errors = models.JSONField(blank=True, null=True)
 
     note = models.ForeignKey(
         Note, on_delete=models.CASCADE, related_name='articles',
@@ -301,56 +303,80 @@ class Article(models.Model):
     def get_meta(self, key: str):
         return self.metadata.get(key) if self.metadata else None
 
-    def get_certainty_degree(self, criteria: dict = None) -> int:
-        criteria = criteria or self.criteria
+    def get_certainty_degree_v2(self, criteria: type[ArticleBase] | None) -> int:
+
+        if not criteria and self.criteria:
+            criteria = ArticleBase(**self.criteria)
+
         if not criteria:
             return 0
 
         degree = 0
-        if bool(criteria.get("projects", [])):
-            degree += 95
-        if bool(criteria.get("has_opponents")):
-            degree += 13
-        if bool(criteria.get("social_impacts")):
-            degree += 18
-        if bool(criteria.get("ecological_impacts")):
-            degree += 24
-        if bool(criteria.get("acts_of_violence")):
-            degree += 21
-        if bool(criteria.get("collective_actions")):
-            degree += 20
-
-        if bool(criteria.get("is_foreign")):
-            if degree > 100:
-                degree = 99
-        return degree
-
-    def get_certainty_degree_v2(self, criteria: ArticleBase) -> int:
-
-        if not criteria:
-            return self.get_certainty_degree()
-
-        degree = 0
         if bool(criteria.projects):
             degree += 95
-        if bool(criteria.opponents):
-            degree += 13
-        if bool(criteria.social_impacts):
-            degree += 18
-        if bool(criteria.ecological_impacts):
-            degree += 24
-        if bool(criteria.acts_of_violence):
-            degree += 21
-        if bool(criteria.collective_actions):
-            degree += 20
+        degree += self.sum_degrees(criteria)
 
         if bool(criteria.is_political_opinion):
             if degree > 100:
-                degree = 99
+                degree = 98
         if bool(criteria.is_foreign):
             if degree > 100:
-                degree = 98
+                degree = 97
         return degree
+
+    def sum_degrees(self, criteria: type[FeaturesBase]) -> int:
+        total = 0
+        feature_weights = {
+            'opponents': 13,
+            'social_impacts': 18,
+            'ecological_impacts': 24,
+            'acts_of_violence': 21,
+            'collective_actions': 20,
+        }
+        for feature, weight in feature_weights.items():
+            if getattr(criteria, feature):
+                total += weight
+        # if bool(criteria.opponents):
+        #     total += 13
+        # if bool(criteria.social_impacts):
+        #     total += 18
+        # if bool(criteria.ecological_impacts):
+        #     total += 24
+        # if bool(criteria.acts_of_violence):
+        #     total += 21
+        # if bool(criteria.collective_actions):
+        #     total += 20
+        return total
+
+    def get_second_certainty_degree(self, criteria: dict | None) -> int:
+
+        criteria = criteria or self.second_criteria
+
+        if not criteria:
+            return 0
+
+        degrees = []
+        fields = [
+            ("is_specific_project", False),
+            ("is_extractivist_or_big_scale", False),
+            ("is_public_policy", True),
+            ("is_political_opinion", True),
+            ("is_labor_conflict_only", True)
+        ]
+        for project in criteria["projects"]:
+            negatives = 0
+            for field, failed_val in fields:
+                if project.get(field) == failed_val:
+                    negatives += 1
+            if negatives > 0:
+                project_degree = 100 - negatives
+            else:
+                project_like = ProjectSelect(**project)
+                project_degree = 95 + self.sum_degrees(project_like)
+            project["degrees"] = project_degree
+            degrees.append(project_degree)
+
+        return max(degrees) if degrees else 0
 
     def __str__(self):
         return f"{self.uid} - {self.title}"
@@ -359,7 +385,12 @@ class Article(models.Model):
         unique_together = ['uid', 'source']
         verbose_name = 'Pre-Nota'
         verbose_name_plural = 'Pre-Notas'
-        ordering = ['-certainty_degree', '-published_date']
+        # ordering = ['-second_certainty_degree', '-certainty_degree', '-published_date']
+        ordering = [
+            models.F('second_certainty_degree').desc(nulls_last=True),
+            '-certainty_degree',
+            '-published_date'
+        ]
 
 
 class QualifySchema(models.Model):

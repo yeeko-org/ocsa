@@ -56,7 +56,7 @@ class ReformaManagerScraper(ManagerScraper):
     date_format = "%Y%m%d"
 
     def __init__(
-            self, from_date: str | date, to_date: str | date,
+            self, from_date: str | date | None, to_date: str | date | None,
             recover_record: ScrapedRecord | None = None,
             ai_engine: str | None = None, is_test: bool = False
     ) -> None:

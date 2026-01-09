@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup, Impact
-from source.models import Source, DiscardedReason
+from source.models import Source, DiscardedReason, QualifySchema
 from work_flux.models import StatusControl
 
 from ps_schema.models import Level, Collection, FilterGroup
@@ -84,6 +84,12 @@ class SourceSerializer(serializers.ModelSerializer):
 class DiscardedReasonSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscardedReason
+        fields = "__all__"
+
+
+class QualifySchemaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QualifySchema
         fields = "__all__"
 
 

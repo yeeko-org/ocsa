@@ -14,7 +14,8 @@ class RequestGemini:
 
     def __init__(
             self,
-            engine="gemini-2.5-flash"
+            # engine="gemini-2.5-flash"
+            engine="gemini-3-flash-preview"
     ):
 
         api_key_name = "GEMINI_API_KEY"
@@ -46,14 +47,13 @@ class RequestGemini:
     def create_cache(
             self, name:str = 'criteria_v1_single', seconds:int = 300
     ):
-        model = f"models/{self.engine}"
+        # model = f"models/{self.engine}"
         try:
             self.cache = self.client.caches.create(
-                model=model,
+                model=self.engine,
                 config=types.CreateCachedContentConfig(
                     display_name=name,
                     system_instruction=self.system_msg,
-                    # ttl="300s",
                     ttl=f"{seconds}s",
                 )
             )
@@ -85,9 +85,12 @@ class RequestGemini:
         else:
             system_instruction = self.system_msg
         config = types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            # thinking_config=types.ThinkingConfig(thinking_budget=0),
+            thinking_config=types.ThinkingConfig(
+                thinking_level='minimal'),
             system_instruction=system_instruction,
-            response_schema=schema_clss,
+            # response_schema=schema_clss,
+            response_json_schema=schema_clss.model_json_schema(),
             response_mime_type="application/json",
             cached_content=cache_name,
         )

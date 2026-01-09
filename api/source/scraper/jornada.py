@@ -13,7 +13,7 @@ from source.scraper.scraper_base import get_content, get_clean_text
 class JornadaManagerScraper(ManagerScraper):
 
     def __init__(
-            self, from_date: str | date, to_date: str | date,
+            self, from_date: str | date | None, to_date: str | date | None,
             recover_record: ScrapedRecord | None = None,
             ai_engine: str | None = None, is_test: bool = False
     ) -> None:

@@ -4,7 +4,7 @@ from rest_framework import permissions
 
 from ps_schema.models import Level, Collection, FilterGroup
 from impact.models import ImpactSubtype, ImpactType, ImpactGroup
-from source.models import Source, DiscardedReason
+from source.models import Source, DiscardedReason, QualifySchema
 from work_flux.models import StatusControl
 from space_time.models import State
 from api.views.catalogs.serializers import (
@@ -13,6 +13,7 @@ from api.views.catalogs.serializers import (
     ImpactTypeSimpleSerializer,
     SourceSerializer,
     DiscardedReasonSerializer,
+    QualifySchemaSerializer,
     StatusControlSerializer,
     LevelSerializer,
     CollectionSerializer,
@@ -165,6 +166,8 @@ class CatalogsView(APIView):
                 Source.objects.all(), many=True).data,
             "discarded_reason": DiscardedReasonSerializer(
                 DiscardedReason.objects.all(), many=True).data,
+            "qualify_schema": QualifySchemaSerializer(
+                QualifySchema.objects.all(), many=True).data,
             "status_control": StatusControlSerializer(
                 StatusControl.objects.all(), many=True).data,
             "state": StateListSerializer(

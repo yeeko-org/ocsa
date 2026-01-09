@@ -7,7 +7,7 @@ from tqdm import tqdm
 from django.conf import settings
 from source.models import (
     Article, ScrapedRecord, Source, ArticleQualify, QualifySchema,
-    ArticleBase)
+    ArticleBase, ArticleRevision, ProjectBase, ProjectSelect)
 from utils.open_ai import JsonRequestOpenAI
 from utils.gemini_ai import RequestGemini
 from source.scraper.scraper_base import MainScraper, ArticleScraper
@@ -61,9 +61,16 @@ class CriteriaError(Exception):
 
     def __init__(self, article: Article, message: str,
                  exception: Exception | None = None):
-        final_msg = f"ID - {article.id} ({article.title}): {message}"
+        from django.utils import timezone
+        final_msg = message
         if exception:
             final_msg += f" | Exception: {str(exception)}"
+        if article:
+            article_error = f"{timezone.now().isoformat()} - {final_msg}"
+            article.errors = article.errors or []
+            article.errors.append(article_error)
+            article.save()
+        final_msg = f"ID - {article.id} ({article.title}): {final_msg}"
         super().__init__(final_msg)
 
 
@@ -84,12 +91,15 @@ class ManagerScraper(ABC):
     # pre_classify_request: JsonRequestOpenAI
     pre_classify_request: RequestGemini
 
+    second_classify_response: Any
+    second_classify_request: RequestGemini
+
     ai_engine: str | None
     # use_deepseek: bool
     qualify_schema: QualifySchema | None
 
     def __init__(
-            self, from_date: str | date, to_date: str | date,
+            self, from_date: str | date | None, to_date: str | date | None,
             main_scraper_class: Type["MainScraper"],
             article_scraper_class: Type["ArticleScraper"],
             recover_record: ScrapedRecord | None = None,
@@ -102,6 +112,7 @@ class ManagerScraper(ABC):
         self.article_scraper_class = article_scraper_class
         self.overlapping_dates = []
         self.articles_by_id = {}
+        self.first_selected_articles: List[Article] = []
         self.errors = []
         self.ai_engine = ai_engine
         self.scraped_record = None
@@ -130,9 +141,11 @@ class ManagerScraper(ABC):
         self.scraped_record.save()
 
     def add_error(
-            self, error: str, exception: Exception | None = None,
+            self, error: str,
+            exception: Exception | None = None,
             raise_exception: bool = False):
-        if exception and  raise_exception:
+
+        if exception and raise_exception:
             raise exception
         if not self.scraped_record:
             self.errors.append(f"{error}: {exception or ''}")
@@ -289,8 +302,6 @@ class ManagerScraper(ABC):
                     article, "Error getting content for article", e)
 
     def build_ai_criteria(self, prompt_version: str = "v2"):
-        from django.utils import timezone
-
         self.scraped_record.status = "criteria"
         self.scraped_record.save()
         articles_objects: List[Article] = self.get_articles_objects()
@@ -322,7 +333,7 @@ class ManagerScraper(ABC):
         cache_name = f"criteria_{prompt_version}_single"
         self.pre_classify_request.build_chat(
             f"source/scraper/{prompt_criteria}")
-        seconds_cache = len_articles * 2
+        seconds_cache = len_articles * 3
         self.pre_classify_request.create_cache(cache_name, seconds_cache)
 
         desc = f"Classifying articles ({len_articles})"
@@ -330,31 +341,32 @@ class ManagerScraper(ABC):
             try:
                 is_selected = self.get_ai_criteria(article)
                 if is_selected:
-                    self.send_second_criteria(article)
+                    self.first_selected_articles.append(article)
             except CriteriaError as e:
                 self.add_error(str(e))
                 continue
         if self.pre_classify_request.errors:
             self.add_errors(self.pre_classify_request.errors)
-        if not self.scraped_record.date_end:
-            self.scraped_record.date_end = timezone.now()
-            self.scraped_record.save()
 
-    def get_articles_objects(self) -> List[Article]:
+        self.build_second_criteria(prompt_version=prompt_version)
+
+    def get_articles_objects(
+            self, is_second: bool = False
+    ) -> List[Article]:
         if self.articles_by_id:
             return list(self.articles_by_id.values())
             # print("type of articles_objects:", type(articles_objects))
         else:
-            query = {"scraped": self.scraped_record}
+            articles = Article.objects.filter(scraped=self.scraped_record)
             if not self.is_test:
-                query["criteria__isnull"] = True
-            return list(Article.objects.filter(**query))
+                articles = articles.filter(criteria__isnull=True)
+            if is_second:
+                articles = articles.filter(
+                    certainty_degree__gt=100,
+                    second_criteria__isnull=True)
+            return list(articles)
 
-    def get_ai_criteria(self, article: Article):
-
-        if not article.paragraphs and not article.images:
-            raise CriteriaError(
-                article, "Article has no paragraphs or images")
+    def get_full_content(self, article: Article) -> tuple[str, int]:
         p_idx = 0
         content = f"Título: {article.title.strip()}\n"
         if subtitle := article.subtitle:
@@ -370,28 +382,62 @@ class ManagerScraper(ABC):
                 caption = caption.replace("\n", " ")
                 content += f"[{p_idx}]: {caption.strip()} (pie de foto)\n"
 
-        full_content = content
+        return content, p_idx
 
+    def get_ai_criteria(self, article: Article):
+
+        if not article.paragraphs and not article.images:
+            raise CriteriaError(
+                article, "Article has no paragraphs or images")
+
+        full_content, p_count = self.get_full_content(article)
+
+        schema_clss = self.build_article_base_class(p_count)
         criteria = self.pre_classify_request\
-            .send_gemini_prompt(full_content, schema_clss=ArticleBase)
+            .send_gemini_prompt(full_content, schema_clss=schema_clss)
 
         if not criteria:
+            raise CriteriaError(article, "No response AI service")
 
-            self.add_error(f"No response AI service for article {article.id}"
-                           f"({article.title})")
-            return None
+        criteria = schema_clss.model_validate(criteria)
 
-        if not isinstance(criteria, ArticleBase):
-            # print(f"Invalid response, received: {type(criteria)}")
-            self.add_error(
-                f"Invalid response type for article {article.id}"
-                f"({article.title}); type: {type(criteria)}")
-            return None
+        if not isinstance(criteria, schema_clss):
+            msg = f"Invalid response type; type: {type(criteria)}"
+            raise CriteriaError(article, msg)
 
         is_selected = self.save_criteria_results(criteria, article.id)
         return is_selected
 
-    def save_criteria_results(self, criteria:ArticleBase, article_id: int):
+    def build_features_base_class(self, p_count: int):
+        from pydantic import Field, BaseModel
+        from typing import Annotated, List
+
+        bounded_int = List[Annotated[int, Field(ge=1, le=p_count)]]
+
+        class FeaturesBase(BaseModel):
+            opponents: bounded_int
+            social_impacts: bounded_int
+            ecological_impacts: bounded_int
+            acts_of_violence: bounded_int
+            collective_actions: bounded_int
+
+        return FeaturesBase, bounded_int
+
+    def build_article_base_class(self, p_count: int) -> Type[ArticleBase]:
+        from typing import List
+
+        features_base, bounded_int = self.build_features_base_class(p_count)
+
+        class FinalProjectBase(ProjectBase):
+            paragraphs: bounded_int
+
+        class FinalArticleBase(ArticleBase, features_base):
+            projects: List[FinalProjectBase]
+
+        return FinalArticleBase
+
+    def save_criteria_results(
+            self, criteria:type[ArticleBase], article_id: int):
         article = Article.objects.get(pk=int(article_id))
         certain_degree = article.get_certainty_degree_v2(criteria)
         json_criteria = json.dumps(
@@ -404,7 +450,6 @@ class ManagerScraper(ABC):
             _ = ArticleQualify.objects.create(
                 article=article,
                 qualify_schema=self.qualify_schema,
-                # is_selected=is_selected,
                 criteria=json_criteria,
                 certainty_degree=certain_degree,
                 change_value=change_value,
@@ -416,6 +461,87 @@ class ManagerScraper(ABC):
 
         return is_pre_selected
 
-    def send_second_criteria(self, article: Article):
-        pass
+    def build_second_criteria(self, prompt_version: str = "v2"):
+        from django.utils import timezone
 
+        prompt_criteria = f"gemini_second_criteria_{prompt_version}.txt"
+        self.second_classify_request = RequestGemini(engine=self.ai_engine)
+        cache_name = f"second:criteria_{prompt_version}"
+        self.second_classify_request.build_chat(
+            f"source/prompts/{prompt_criteria}")
+        len_articles = len(self.first_selected_articles)
+        seconds_cache = len_articles * 3
+        self.second_classify_request.create_cache(cache_name, seconds_cache)
+
+        desc = f"Classifying articles ({len_articles})"
+        for article in tqdm(self.first_selected_articles, desc=desc):
+            try:
+                self.send_second_criteria(article)
+            except CriteriaError as e:
+                self.add_error(str(e))
+                continue
+        if self.second_classify_request.errors:
+            self.add_errors(self.second_classify_request.errors)
+        if not self.scraped_record.date_end:
+            self.scraped_record.date_end = timezone.now()
+            self.scraped_record.save()
+
+    def save_second_criteria(
+            self, criteria:Type[ArticleRevision], article: Article):
+
+        json_criteria = json.dumps(
+            criteria.model_dump(), ensure_ascii=False,
+            indent=2, cls=EnumEncoder)
+        json_criteria = json.loads(json_criteria)
+        second_certainty = article.get_second_certainty_degree(json_criteria)
+        # sort json_criteria projects by "degrees" descending
+        sorted_projects = sorted(
+            json_criteria.get("projects", []),
+            key=lambda x: x.get("degrees", 0), reverse=True)
+        json_criteria["projects"] = sorted_projects
+        article.second_criteria = json_criteria
+
+        article.second_certainty_degree = second_certainty
+        article.save()
+
+    def send_second_criteria(self, article: Article):
+
+        full_content, p_count = self.get_full_content(article)
+        full_content += f"\n\n{"="*30}\nCriterios y párrafos previamente identificados:\n"
+        if article.criteria:
+            full_content += json.dumps(
+                article.criteria, ensure_ascii=False,
+                indent=2, cls=EnumEncoder)
+        else:
+            full_content += "No hay criterios previos disponibles."
+        schema_clss = self.build_article_revision_class(p_count)
+        second_criteria = self.second_classify_request\
+            .send_gemini_prompt(full_content, schema_clss=schema_clss)
+        try:
+            second_criteria = schema_clss.model_validate(second_criteria)
+        except Exception as e:
+            raise CriteriaError(
+                article,
+                "Response not of class type ArticleRevision", e)
+        if not second_criteria or not isinstance(second_criteria, schema_clss):
+            raise CriteriaError(
+                article,
+                "Invalid second criteria response from AI service")
+
+        self.save_second_criteria(second_criteria, article)
+
+    def build_article_revision_class(
+            self, p_count: int
+    ) -> Type[ArticleRevision]:
+
+        from typing import List
+
+        features_base, bounded_int = self.build_features_base_class(p_count)
+
+        class FinalProjectSelect(features_base, ProjectSelect):
+            paragraphs: bounded_int
+
+        class FinalArticleRevision(ArticleRevision):
+            projects: List[FinalProjectSelect]
+
+        return FinalArticleRevision

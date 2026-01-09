@@ -56,9 +56,9 @@ Identifica si el proyecto se menciona únicamente en el contexto de conflictos l
 
 ---
 
-### 3. Identificación de Párrafos con Atributos Específicos
+### 3. Identificación de Números de Párrafos con Atributos Específicos
 
-Para cada proyecto, identifica la lista de IDs de los párrafos (`paragraphs`) que contengan las siguientes características. Debe existir una relación explícita de causa o consecuencia entre el proyecto y la característica.
+Para cada proyecto, identifica la lista de números de los párrafos que contengan las siguientes características. Debe existir una relación explícita de causa o consecuencia entre el proyecto y la característica.
 
 **`opponents`**
 Párrafos que mencionan actores (personas, comunidades, ejidos u organizaciones) que se oponen explícitamente al proyecto.

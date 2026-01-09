@@ -34,7 +34,6 @@ class Command(BaseCommand):
                     "url": article.url,
                     "is_selected": article.is_selected,
                     "criteria": article.criteria,
-                    # "certainty_degree": article.get_certainty_degree(),
                 }
                 for article in self.articles
             ]

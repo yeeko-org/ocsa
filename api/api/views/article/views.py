@@ -34,6 +34,7 @@ class ArticleFilter(FilterSet):
     # { "plural_name": "Descartados", "value": "discarded" },
 
     def custom_filter_status(self, queryset, name, value):
+        from django.db.models import Q
         print(f"Name: {name}, Value: {value}")
         if not value:
             return queryset
@@ -43,6 +44,9 @@ class ArticleFilter(FilterSet):
 
         if value in ["rejected", "to_validate"]:
             queryset = queryset.filter(certainty_degree__gt=100)
+            queryset = queryset.filter(
+                Q(second_certainty_degree__isnull=True) |
+                Q(second_certainty_degree__gt=100))
         elif value in ["unlikely", "discarded", "reincluded"]:
             queryset = queryset.filter(certainty_degree__lte=100)
 
