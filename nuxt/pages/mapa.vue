@@ -160,31 +160,30 @@ function openChildProject(project) {
 </script>
 
 <template>
-  <div>
-    <MainFilterMap
-      v-model:selectedExtractivismTypes="selectedExtractivismTypes"
-      @update:selectedExtractivismTypes="updateMapData"
-    />
-    <ProjectCardMap
-      v-if="selectedParentProject"
-      :selectedProject="selectedParentProject"
-      :childProject="childProject?.project"
-      :full_main="parentProject"
-      @update:selectedProject="selectedParentProject = $event"
-      @open-child-project="openChildProject($event)"
-    />
-    <ProjectCardMap
-      v-if="childProject"
-      :selectedProject="selectedChildProject"
-      :full_main="childProject?.project"
-      is_child
-      @update:selectedProject="childProject = $event"
-    />
+  <MainFilterMap
+    v-model:selectedExtractivismTypes="selectedExtractivismTypes"
+    @update:selectedExtractivismTypes="updateMapData"
+  />
+  <ProjectCardMap
+    v-if="selectedParentProject"
+    :selectedProject="selectedParentProject"
+    :childProject="childProject?.project"
+    :full_main="parentProject"
+    @update:selectedProject="selectedParentProject = $event"
+    @open-child-project="openChildProject($event)"
+  />
+  <ProjectCardMap
+    v-if="childProject"
+    :selectedProject="selectedChildProject"
+    :full_main="childProject?.project"
+    is_child
+    @update:selectedProject="childProject = $event"
+  />
 
-    <div class="map-container" ref="mapContainer">
+  <div class="map-container" ref="mapContainer">
 
-    </div>
   </div>
+
 </template>
 
 <style>
