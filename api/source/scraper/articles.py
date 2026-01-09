@@ -507,7 +507,7 @@ class ManagerScraper(ABC):
     def send_second_criteria(self, article: Article):
 
         full_content, p_count = self.get_full_content(article)
-        full_content += f"\n\n{"="*30}\nCriterios y párrafos previamente identificados:\n"
+        full_content += f"\n\n{'='*30}\nCriterios y párrafos previamente identificados:\n"
         if article.criteria:
             full_content += json.dumps(
                 article.criteria, ensure_ascii=False,
