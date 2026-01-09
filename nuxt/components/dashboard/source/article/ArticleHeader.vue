@@ -39,11 +39,20 @@ const valid_undefined = {
   value: null,
 }
 
-const pre_valid_value = computed(() => {
+const final_degree = computed(() => {
   const degree = props.main.certainty_degree
+  const second_degree = props.main.second_certainty_degree
   if (degree === undefined || degree === null)
+    return null
+  if (second_degree !== undefined && second_degree !== null)
+    return second_degree
+  return degree
+})
+
+const pre_valid_value = computed(() => {
+  if (final_degree.value === null)
     return valid_undefined
-  if (degree < 100)
+  if (final_degree.value < 100)
     return valid_options.value[0]
   else
     return valid_options.value[1]
@@ -51,7 +60,7 @@ const pre_valid_value = computed(() => {
 
 const valid_value = computed(() => {
   if (typeof props.main.is_selected !== 'boolean'){
-    const need_selection = props.main.certainty_degree > 100
+    const need_selection = final_degree.value > 100
     return {
       id: null,
       icon: need_selection ? "help_outline" : null,
@@ -71,7 +80,6 @@ const discarded_reason = computed(() => {
     ) || {
       id: null,
       name: '',
-      // description: props.main.other_discarded_reason || 'No especificada',
       description: '',
     }
   return null
@@ -85,6 +93,7 @@ const discarded_reason = computed(() => {
     :main="main"
     :show_details="show_details"
     :collection_data="collection_data"
+    :height="70"
   >
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
@@ -167,7 +176,6 @@ const discarded_reason = computed(() => {
               </v-card-text>
             </v-card>
           </v-tooltip>
-
         </v-btn>
         <v-btn
           readonly
@@ -181,27 +189,45 @@ const discarded_reason = computed(() => {
         </v-btn>
 
       </div>
-      <div
-        v-if="main.qualifications && main.qualifications.length"
-      >
-        <span
-          v-for="qualification in main.qualifications"
-          :key="qualification.id"
-          class="text-caption mr-1 text-grey-darken-1"
+      <template v-if="false">
+        <div
+          v-if="main.qualifications && main.qualifications.length"
         >
-          {{ qualification.certainty_degree }}
-        </span>
+          <span
+            v-for="qualification in main.qualifications"
+            :key="qualification.id"
+            class="text-caption mr-1 text-grey-darken-1"
+          >
+            {{ qualification.certainty_degree }}
+          </span>
 
+        </div>
+        <div v-if="main.second_certainty_degree">
+          {{ main.second_certainty_degree }}
+        </div>
+      </template>
+      <template v-if="main.second_criteria">
+<!--      <div class="d-flex flex-column align-space-between">-->
+<!--        </div>-->
+<!--        <div class="d-flex align-start" v-if="main.second_criteria">-->
+          <ProjectsCriteria
+            :criteria="main.second_criteria"
 
-      </div>
-      <CriteriaChip
-        v-if="main.criteria"
-        :main="main"
-        show_negatives
-      />
-      <ProjectsCriteria
-        :criteria="main.criteria"
-      />
+          />
+<!--        </div>-->
+<!--        <v-divider></v-divider>-->
+<!--        <div class="d-flex align-end mb-1">-->
+      </template>
+      <template v-else-if="main.criteria">
+          <CriteriaChip
+            :main="main"
+            show_negatives
+          />
+          <ProjectsCriteria
+            :criteria="main.criteria"
+          />
+      </template>
+<!--      </div>-->
     </template>
   </HeaderCommon>
 </template>

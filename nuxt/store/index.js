@@ -114,10 +114,10 @@ const calculateSchemas = (data) => {
       //   return arr
       // }
       arr.push(new_filter)
-      if (filter_data.category_group){
-        console.log("collection", coll.snake_name)
-        console.log("new_filter with category_group", new_filter)
-      }
+      // if (filter_data.category_group){
+      //   console.log("collection", coll.snake_name)
+      //   console.log("new_filter with category_group", new_filter)
+      // }
       return arr
     }, [])
     coll.is_category = coll.level.includes('category_')

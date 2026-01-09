@@ -7,6 +7,7 @@ import PanelList from "~/components/dashboard/common/PanelList.vue";
 import { storeToRefs } from "pinia";
 import ProjectsCriteria from "~/components/dashboard/source/article/ProjectsCriteria.vue";
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import ParagraphsProjectsContent from "~/components/dashboard/source/ParagraphsProjectsContent.vue";
 
 const mainStore = useMainStore()
 const { saveSelected, valid_options } = mainStore
@@ -282,11 +283,21 @@ const label_other_reason = computed(() => {
           {{qualy.certainty_degree}}
         </div>
       </div>
-
     </v-card>
   </v-col>
 
-  <v-col cols="12" class="px-0">
+  <v-col
+    v-if="full_main.second_criteria"
+    cols="12"
+    class="px-0"
+  >
+    <ParagraphsProjectsContent
+      :full_main="full_main"
+      :sending_link="sending_link"
+    />
+  </v-col>
+
+  <v-col v-else cols="12" class="px-0">
     <ParagraphsContent
       :full_main="full_main"
       :sending_link="sending_link"

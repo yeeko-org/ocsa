@@ -36,7 +36,7 @@ const emits = defineEmits(['update:selected_fields', 'reset-filters'])
 const criteria_data = computed(() => {
   if (props.direct_criteria)
     return props.direct_criteria
-  const criteria_values = props.main.criteria || []
+  const criteria_values = props.main?.criteria || []
   let criteria_items = fields.map((field) => {
     const criteria_data = criteria[field] || {}
     const is_selected = props.is_filter
@@ -60,32 +60,69 @@ const criteria_data = computed(() => {
     }
   })
   if (props.show_negatives){
-    if (criteria_values.is_foreign){
-      criteria_items.push({
-        name: 'Es una pre-nota extranjera',
-        public_name: 'Es una nota extranjera',
-        icon: 'public',
-        color: 'red-darken-3',
-        final_color: 'red-darken-3',
-        count: "Sin",
-        value: "identificado en el texto",
-        key: 'is_foreign',
-        is_selected: true,
-      })
+    let base_criteria = {
+      count: "Sin",
+      value: "identificado en el texto",
+      is_selected: true,
     }
-    if (criteria_values.is_political_opinion) {
+    const negative_fields = [
+      {
+        "key": "is_foreign",
+        "name": 'Es una nota extranjera',
+        "icon": 'public',
+      },
+      {
+        "key": "is_political_opinion",
+        "name": 'Contiene opinión política',
+        "icon": 'announcement',
+        "color": 'purple-darken-3',
+      },
+      {
+        "key": "is_public_policy",
+        "name": "Es una política pública",
+        "icon": 'gavel',
+      },
+      {
+        "key": "is_political_opinion",
+        "name": "Es artículo de opinión / política",
+        "icon": 'how_to_vote',
+      },
+      {
+        "key": "is_labor_conflict_only",
+        "name": "Sólo trata conflicto laboral",
+        "icon": 'work',
+      },
+      {
+        "is_inverse": true,
+        "key": "is_specific_project",
+        "name": "El proyecto no es específico",
+        "icon": 'factory',
+      },
+      {
+        "is_inverse": true,
+        "key": "is_extractivist_or_big_scale",
+        "name": "No es extractivista o de gran escala",
+        "icon": 'handyman',
+      },
+    ]
+    negative_fields.forEach((neg_field) => {
+      if (!neg_field.is_inverse && !criteria_values[neg_field.key])
+        return
+      if (neg_field.is_inverse){
+        if (!criteria_values.hasOwnProperty(neg_field.key))
+          return
+        else if (criteria_values[neg_field.key])
+          return
+      }
+      const color = neg_field.color || 'red-darken-3'
       criteria_items.push({
-        name: 'Contiene opinión política',
-        public_name: 'Contiene opinión política',
-        icon: 'announcement',
-        color: 'purple-darken-3',
-        final_color: 'purple-darken-3',
-        count: "Sin",
-        value: "identificado en el texto",
-        key: 'is_political_opinion',
-        is_selected: true,
+        ...base_criteria,
+        ...neg_field,
+        public_name: neg_field.name,
+        color: color,
+        final_color: color,
       })
-    }
+    })
   }
   return criteria_items
 })
@@ -156,7 +193,7 @@ function addField(field) {
           >
             {{ field.name }}
           </v-card-title>
-          <v-card-text v-if="!is_simple">
+          <v-card-text v-if="field.count">
             {{field.count}} párrafos: {{field.value}}
           </v-card-text>
         </v-card>

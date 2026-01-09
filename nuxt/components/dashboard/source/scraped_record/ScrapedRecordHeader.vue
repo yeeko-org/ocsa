@@ -23,6 +23,14 @@ const title = computed(() => {
   ${dayjs(props.main.to_date).format(format)}`
 })
 
+const ready_count = computed(() => {
+  return props.main.pre_selected_count - props.main.pending_count
+})
+
+const is_init_ready = computed(() => {
+  return props.main.articles_count === props.main.analyzed_count
+})
+
 </script>
 <template>
   <HeaderCommon
@@ -41,34 +49,76 @@ const title = computed(() => {
       </div>
     </template>
     <template #details>
-      <v-chip
-        v-if="main.errors && main.errors.length > 0"
-        color="error"
-        class="ml-3"
-      >
-        Tiene errores
-      </v-chip>
-      <v-chip
-        v-else
-        color="success"
-        class="ml-3"
-      >
-        Exitoso
-      </v-chip>
+      <div class="d-flex flex-column align-center">
+        <span
+          class="text-caption text-grey"
+        >
+          Recolección:
+        </span>
+        <v-chip
+          v-if="!is_init_ready"
+          :color="main.errors_count > 0 ? 'red-darken-1' : 'orange-darken-3'"
+        >
+
+          <span v-if="main.errors_count > 0">
+            Con errores
+          </span>
+          <span v-else class="ml-1">
+            Reclasificar
+          </span>
+        </v-chip>
+        <v-chip
+          v-else
+          color="success"
+        >
+          Exitosa
+          {{main.errors_count ? '⚠️' : '✅'}}
+
+        </v-chip>
+      </div>
       <HeaderChip
         :count="main.articles_count"
         collection_name="article"
         class="ml-2"
-        horizontal
+        icon="article"
+        color="purple-darken-4"
+        width="57"
       />
       <HeaderChip
-        :count="main.preclassified_count"
+        :count="main.scraped_count"
         class="ml-2"
-        label="Preclasificados"
-        label_plural="Preclasificados"
-        collection_name="article"
+        label="Scrapeado"
+        label_plural="Scrapeados"
+        color="indigo"
+        icon="document_scanner"
+        width="57"
+      />
+      <HeaderChip
+        :count="main.analyzed_count"
+        class="ml-2"
+        label="Preclasificado por IA"
+        label_plural="Preclasificados por IA"
+        color="blue-darken-2"
+        icon="assistant"
+        width="57"
+      />
+      <HeaderChip
+        :count="main.pre_selected_count"
+        class="ml-2"
+        label="Pre-seleccionado por IA"
+        label_plural="Pre-seleccionados por IA"
+        icon="fact_check"
         color="light-blue"
-        icon="smart_toy"
+        width="49"
+      />
+      <HeaderChip
+        :count="main.pre_filtered_count"
+        class="ml-2"
+        label="Re-analizado por IA"
+        label_plural="Re-analizados por IA"
+        icon="auto_mode"
+        color="cyan-darken-1"
+        width="49"
       />
       <HeaderChip
         :count="main.pending_count"
@@ -78,7 +128,7 @@ const title = computed(() => {
         icon="hourglass_empty"
         :color="main.pending_count ? 'orange' : 'green'"
         is_reverse
-        :tooltip_complement="`De <b>${main.pre_selected}</b> pre-seleccionados`"
+        :tooltip_complement="`<b> ${ready_count} </b> Clasificados`"
       />
 
     </template>

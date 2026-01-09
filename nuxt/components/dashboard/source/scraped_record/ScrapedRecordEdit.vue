@@ -41,7 +41,7 @@ const to_date = computed(() => {
 })
 
 const ai_completed = computed(() => {
-  return props.full_main.articles_count === props.full_main.preclassified_count
+  return props.full_main.articles_count === props.full_main.scraped_count
 })
 
 const avg_per_day = computed(() => {
@@ -52,7 +52,7 @@ const avg_per_day = computed(() => {
 })
 
 const ready_count = computed(() => {
-  return props.full_main.pre_selected - props.full_main.pending_count
+  return props.full_main.pre_selected_count - props.full_main.pending_count
 })
 
 function sendReprocess() {
@@ -67,22 +67,42 @@ function sendReprocess() {
   <v-col cols="7" class="d-flex pa-0">
     <v-list>
       <v-list-item prepend-icon="calendar_today">
-          <v-list-item-title class="_text-h6">
-            {{total_days}} días de pre-notas
-          </v-list-item-title>
-          <v-list-item-subtitle>
-            Del {{from_date}} al {{to_date}}
-          </v-list-item-subtitle>
+        <v-list-item-title class="_text-h6">
+          {{total_days}} días de pre-notas
+        </v-list-item-title>
+        <v-list-item-subtitle>
+          Del {{from_date}} al {{to_date}}
+        </v-list-item-subtitle>
       </v-list-item>
       <v-divider></v-divider>
-      <v-list-item prepend-icon="newspaper">
-          <v-list-item-title class="_text-subtitle-1">
-            {{ full_main.articles_count }} pre-notas ({{avg_per_day}} diarias)
-          </v-list-item-title>
-          <v-list-item-subtitle>
-            Las notas extraídas de la fuente
-          </v-list-item-subtitle>
+      <v-list-item>
+        <template v-slot:prepend>
+          <v-icon color="purple-darken-4">
+            newspaper
+          </v-icon>
+        </template>
+
+        <v-list-item-title class="_text-subtitle-1">
+          {{ full_main.articles_count }} pre-notas ({{avg_per_day}} diarias)
+        </v-list-item-title>
+        <v-list-item-subtitle>
+          Las notas extraídas de la fuente
+        </v-list-item-subtitle>
       </v-list-item>
+      <v-list-item>
+        <template v-slot:prepend>
+          <v-icon color="indigo">
+            document_scanner
+          </v-icon>
+        </template>
+        <v-list-item-title class="_text-subtitle-1">
+          {{full_main.scraped_count}} scrapeadas correctamente
+        </v-list-item-title>
+        <v-list-item-subtitle>
+          Pre-notas cuya información fue extraída sin errores
+        </v-list-item-subtitle>
+      </v-list-item>
+
       <v-list-item>
         <template v-slot:prepend>
           <v-icon
@@ -92,7 +112,7 @@ function sendReprocess() {
           </v-icon>
         </template>
         <v-list-item-title class="_text-subtitle-1">
-          {{full_main.preclassified_count}} exploradas por la IA
+          {{full_main.analyzed_count}} exploradas por la IA
         </v-list-item-title>
         <v-list-item-subtitle>
           Pre-notas que pasaron por el proceso vía IA
@@ -103,22 +123,22 @@ function sendReprocess() {
           <v-icon
             :color="full_main.pending_count ? 'warning' : 'success'"
           >
-            call_split
+            how_to_reg
           </v-icon>
         </template>
 
         <v-list-item-title>
-          {{ready_count}}/{{full_main.pre_selected}} clasificadas
+          {{ready_count}}/{{full_main.pre_selected_count}} clasificadas
         </v-list-item-title>
         <v-list-item-subtitle>
-          De las {{full_main.pre_selected}} que fueron preseleccionadas,
+          De las {{full_main.pre_selected_count}} que fueron preseleccionadas,
           {{ready_count}} ya fueron clasificadas
         </v-list-item-subtitle>
       </v-list-item>
     </v-list>
   </v-col>
   <v-col
-    v-if="full_main.articles_count > full_main.preclassified_count"
+    v-if="full_main.articles_count > full_main.scraped_count"
     cols="5"
     class="d-flex pa-0"
   >
