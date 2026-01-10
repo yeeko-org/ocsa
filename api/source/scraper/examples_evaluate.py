@@ -37,17 +37,14 @@ def direct_second_criteria(
     from source.scraper.reforma import ReformaManagerScraper
     from source.models import ScrapedRecord
     scraped_record = ScrapedRecord.objects.get(pk=sr_id)
-
     scraper_class = ReformaManagerScraper \
         if scraped_record.source.name == "Reforma" \
         else JornadaManagerScraper
-
     scraper = scraper_class(
         "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
         ai_engine=ai_engine, is_test=True)
     scraper.first_selected_articles = scraper.get_articles_objects(
         is_second=True)
-
     if count:
         scraper.first_selected_articles = scraper.first_selected_articles[:count]
     scraper.build_second_criteria(prompt_version=prompt_version)
@@ -55,6 +52,18 @@ def direct_second_criteria(
 
 direct_second_criteria(76, count=8)
 
+
+def second_year(year=2024, source_id=1):
+    from source.models import ScrapedRecord
+    scraped_records = ScrapedRecord.objects.filter(
+        source__id=source_id,
+        from_date__year=year,
+        to_date__year=year,
+    )
+    for sr in scraped_records:
+        print(f"Rewriting ScrapedRecord ID: {sr.id}; "
+              f"Date Range: {sr.from_date} to {sr.to_date}")
+        direct_second_criteria(sr.id)
 
 
 
@@ -64,13 +73,10 @@ def rewrite_first_criteria(
     from source.scraper.jornada import JornadaManagerScraper
     from source.scraper.reforma import ReformaManagerScraper
     from source.models import ScrapedRecord, Article
-
     scraped_record = ScrapedRecord.objects.get(pk=sr_id)
-
     scraper_class = ReformaManagerScraper \
         if scraped_record.source.name == "Reforma" \
         else JornadaManagerScraper
-
     articles = Article.objects\
         .filter(
         scraped=scraped_record, certainty_degree__gt=100,
@@ -78,16 +84,29 @@ def rewrite_first_criteria(
         .order_by("-certainty_degree")
     if count:
         articles = articles[:count]
-
     scraper = scraper_class(
         "", "", recover_record=scraped_record, ai_engine=ai_engine)
-
     scraper.scrape_articles(update=True)
     scraper.articles_by_id = {article.id: article for article in articles}
     scraper.build_ai_criteria(prompt_version=prompt_version)
 
 
-compare_versions(76, count=40)
+rewrite_first_criteria(57)
+
+def rewrite_year(year=2024, source_id=2):
+    from source.models import ScrapedRecord
+    scraped_records = ScrapedRecord.objects.filter(
+        source__id=source_id,
+        from_date__year=year,
+        to_date__year=year,
+    ).exclude(id__in=[53, 36, 57, 30])
+    for sr in scraped_records:
+        print(f"Rewriting ScrapedRecord ID: {sr.id}; "
+              f"Date Range: {sr.from_date} to {sr.to_date}")
+        rewrite_first_criteria(sr.id)
+
+
+rewrite_year(2024, 1)
 
 
 

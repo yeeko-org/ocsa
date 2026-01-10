@@ -48,7 +48,10 @@ class ArticleFilter(FilterSet):
                 Q(second_certainty_degree__isnull=True) |
                 Q(second_certainty_degree__gt=100))
         elif value in ["unlikely", "discarded", "reincluded"]:
-            queryset = queryset.filter(certainty_degree__lte=100)
+            queryset = queryset.filter(certainty_degree__lte=100)\
+                .filter(
+                    Q(second_certainty_degree__isnull=True) |
+                    Q(second_certainty_degree__lte=100))
 
         if value in ["rejected", "discarded"]:
             queryset = queryset.filter(is_selected=False)
