@@ -12,6 +12,7 @@ const mainStore = useMainStore()
 const { saveSimple, getSimple } = mainStore
 const { schemas } = storeToRefs(mainStore)
 import { useSaveElements } from "~/composables/save_elements.js";
+import ParagraphsProjectsContent from "~/components/dashboard/source/ParagraphsProjectsContent.vue";
 const { saveComplex } = useSaveElements()
 
 const props = defineProps({
@@ -143,8 +144,16 @@ const two_columns = ref(false)
           child_relation_name="note_file"
           main_collection_name="note"
         />
+        <ParagraphsProjectsContent
+          v-if="full_note.articles.length > 0 && full_note.articles[0].second_criteria"
+          :full_main="full_main.articles[0]"
+          :sending_link="false"
+          class="ma-2 px-2"
+          :show_init="false"
+        />
+
         <ParagraphsContent
-          v-if="full_note.articles.length > 0"
+          v-else-if="full_note.articles.length > 0"
           :full_main="full_note.articles[0]"
           :sending_link="false"
           class="ma-2 px-2"
