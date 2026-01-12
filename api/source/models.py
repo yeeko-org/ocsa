@@ -142,10 +142,10 @@ class StatusHistory(models.Model):
         StatusProject, on_delete=models.CASCADE, blank=True, null=True,
         related_name='status_histories')
     date = models.DateField(blank=True, null=True)
-    interval = models.DurationField(blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    type_temporalidad = models.CharField(
-        max_length=20, blank=True, null=True)
+    # interval = models.DurationField(blank=True, null=True)
+    # type_temporalidad = models.CharField(
+    #     max_length=20, blank=True, null=True)
 
     def __str__(self):
         return str(self.status_project)

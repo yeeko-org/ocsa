@@ -88,14 +88,12 @@ class CatalogsView(APIView):
                           for i in network_list_sorted]
         megaproject_types = MegaprojectType.objects.all()\
             .prefetch_related("extractivism_types")
-        all_users = User.objects.all()\
-            .order_by('-full_editor', '-is_staff', 'is_superuser', 'email')
         catalogs = {
             # cortos: 56 ms (183 kb)
             # con largos: 450 ms (303 kb)
 
             # 30 ms
-            "user": UserProfileSerializer(all_users, many=True).data,
+            "user": [],
             "offline_types": { k: v for k, v in OFFLINE_TYPES },
 
             # 42 ms
@@ -181,4 +179,9 @@ class CatalogsView(APIView):
             "filter_groups": FilterGroupSerializer(
                 FilterGroup.objects.all(), many=True).data,
         }
+        if self.request.user.is_authenticated:
+            all_users = User.objects.all() \
+                .order_by('-full_editor', '-is_staff', 'is_superuser', 'email')
+            catalogs["user"] = UserProfileSerializer(
+                all_users, many=True).data
         return Response(catalogs)

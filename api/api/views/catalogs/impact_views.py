@@ -80,7 +80,6 @@ class ImpactSubtypeViewSet(viewsets.ModelViewSet):
     serializer_class = ImpactSubtypeFullSerializer
 
     def get_serializer_class(self):
-        # print("action", self.action)
         action_serializer = {
             'list': ImpactSubtypeSerializer,
         }

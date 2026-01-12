@@ -173,19 +173,23 @@ class MentionFullSerializer(ConditionalFieldsMixin):
         fields = '__all__'
 
 
-class StatusHistorySerializer(serializers.ModelSerializer):
-    project_full = ProjectSerializer(
-        source='mention.project', read_only=True)
+class StatusSimpleHistorySerializer(serializers.ModelSerializer):
+
     class Meta:
         model = StatusHistory
         fields = '__all__'
+
+
+class StatusHistorySerializer(StatusSimpleHistorySerializer):
+    project_full = ProjectSerializer(
+        source='mention.project', read_only=True)
 
 
 class MentionMegaFullSerializer(MentionFullSerializer):
     project_full = ProjectSemiFullSerializer(
         source='project', read_only=True)
     # project = ProjectSemiFullSerializer()
-    status_history = StatusHistorySerializer(many=True)
+    status_history = StatusSimpleHistorySerializer(many=True)
     events = EventEmbedSerializer(many=True)
     impacts = ImpactEmbedSerializer(many=True)
 

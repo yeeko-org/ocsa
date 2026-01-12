@@ -1,5 +1,9 @@
 # ocs django db
 
+Ejecutar la siguiente función:
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
+
 los datos de ubicacion tienen que cargarse primero antes de las migracion de datos
 
 orden de ejecucion de migracion de datos:
