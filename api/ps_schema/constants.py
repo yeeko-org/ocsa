@@ -46,8 +46,8 @@ all_collections = {
         },
         {
             "snake_name": "status_history",
-            "name": "Registro de status de proyecto",
-            "plural_name": "Registros de status de proyecto",
+            "name": "Cambio al status de proyecto",
+            "plural_name": "Cambios al status de proyecto",
             "model_name": "StatusHistory",
             "level": "secondary",
         },

@@ -1,0 +1,93 @@
+// Debemos proporcionar la fecha de la nota
+
+{
+  // "mentions": [
+  "projects": [
+    {      
+      "project_data": {
+        "_project_id": null,
+        "name": "Desarrollo inmobiliario Aztecas 215",
+        "alternative_name": null,
+        "extractivism_types_str": ["urbano"],
+        "_extractivism_types": [1],
+        "project_type_text": "Desarrollo inmobiliario",
+        "parent_project_text": "Conjunto ciudad futura",
+        "paragraphs": [],
+        "locations": [
+          {
+            "state_str": "CDMX",
+            "_state_id": 9,
+            "municipality_text": "Azcapotzalco",
+            "_municipality": null,
+            "locality_text": null,
+            "details": null,
+          }
+        ]
+      },
+      "status_history": [
+        {
+          "_discarded": false,
+          "_status_history_id": null,
+          "date": null,
+          // activo, ampliación, cancelado, clausurado, construcción, planeación, suspendido, o cualquier otro cambio en la etapa del proyecto que mencione la nota
+          "status_project_text": "Cancelado",
+          "paragraphs": [],
+        }
+      ],
+      "impacts": [
+        {
+          "_discarded": false,
+          "_impact_id": null,
+          "impact_group_str": "enviromental",
+          "_impact_group": 1,
+          "impact_type_str": "agua",
+          "_impact_type_id": null,
+          "description": "Derrame de agua potable al drenaje",
+          "is_potential": false,
+          // Nota: Ubicaciones distintas al proyecto
+          "locations": [],
+          "paragraphs": [],
+        }
+      ],
+      "actors": [
+        {
+          "uid": 2009,
+          "_discarded": false,
+          "_participant_id": null,
+          "name": "Jefatura de Gobierno de la Ciudad de México",
+          // "grupo_sector_str": "CAT",
+          "sector_text": "ABIERTO",
+          "belongs_str": ["indigena"],
+          "_belongs": [],
+          "interest_text": "Texto de cuál es el interés",
+          "position_str": "against",
+          "_position": 3,
+          "❓ subposition": "",
+          "paragraphs": [],
+        },
+      ],
+      "events": [
+        {
+          "_discarded": false,
+          "_event_id": null,
+          "event_group_str": "Violencia", // Mec. legal a favor o en contra
+          "_event_group_id": 2,
+          "_purpose_id": null,
+          "description": "Denuncia pública - Denuncia",
+//          "involvements_str": [
+//            {
+//              "❓actor_uid": 2009,
+//              "role": "Participante" // CAT
+//            }
+//          ],
+          "involvements_str": [
+            "Luisa Medina fue la firmante de la denuncia pública"
+          ],
+          // Nota: Ubicaciones distintas al proyecto
+          "locations": [],
+          "paragraphs": [],
+        }
+      ],
+    }
+  ],
+}

@@ -65,6 +65,7 @@ class Note(CommentsMixin, models.Model):
     status_register = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
+    pre_mentions = models.JSONField(blank=True, null=True)
 
     files: models.QuerySet["NoteFile"]
     status_register_id = str | None
@@ -120,15 +121,16 @@ class NoteFile(models.Model):
 class Mention(CommentsMixin, models.Model):
     note = models.ForeignKey(
         Note, on_delete=models.CASCADE, related_name='mentions')
-    # RICK: Aún no sé si esto debería ser not null
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name='mentions')
+        Project, blank=True, null=True,
+        on_delete=models.CASCADE, related_name='mentions')
+    pre_project = models.JSONField(blank=True, null=True)
+    discarded = models.BooleanField(default=False)
     filled = models.BooleanField(default=False)
     date_filled = models.DateField(blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.note} - {self.project}'
+        return f'{self.note} - {self.project or "Sin proyecto"}'
 
     class Meta:
         verbose_name = 'Mención de proyecto en nota'
