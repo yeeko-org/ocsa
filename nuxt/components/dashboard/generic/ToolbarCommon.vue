@@ -28,6 +28,11 @@ const props = defineProps({
   partial_save: Boolean,
   required_field: String,
   required_full_category: Boolean,
+  external_in_edition: {
+    type: Boolean,
+    default: null,
+    required: false,
+  },
   cols: {
     type: Number,
     default: 12,
@@ -59,12 +64,29 @@ const filter_group = computed(() =>
     cat_group => cat_group.key_name === props.filter_group_name)
 )
 
-const main_collection = computed(() =>
-  schemas.value.collections_dict[props.main_collection_name])
-
 // Event Collection
 const child_collection = computed(() =>
   schemas.value.collections_dict[props.child_relation_name])
+
+const forced_edition = ref(false)
+
+const in_edition = computed(() => {
+  // get() {
+  if (props.external_in_edition !== null)
+    return props.external_in_edition
+  if (!props.main_object.id)
+    return true
+  return forced_edition.value
+  // },
+  // set(val) {
+  //   console.log("Setting in_edition to", val)
+  //   forced_edition.value = val
+  // }
+})
+
+function toggleEdition(){
+  forced_edition.value = !forced_edition.value
+}
 
 const addItem = (group=null) => {
   // console.log("child_collection", child_collection.value)
@@ -210,6 +232,16 @@ function resetInitialData(){
         :color="`${color}-lighten-${second_level ? 2 : 1}`"
         :height="second_level ? 32 : 46"
       >
+
+        <v-btn
+          v-if="!second_level"
+          @click="toggleEdition"
+          icon="edit"
+          size="small"
+          color="accent"
+          variant="text"
+        >
+        </v-btn>
         <v-toolbar-title
           style="min-width: 300px;"
           :class="second_level ? '' : 'text-h6'"
@@ -217,10 +249,14 @@ function resetInitialData(){
           {{ child_collection.plural_name }} ({{ total_count }})
         </v-toolbar-title>
         <QuestionMark
+          v-if="in_edition"
           :size="second_level ? 'small' : 'default'"
           :collection_data="child_collection"
         />
-        <slot name="main_buttons">
+        <slot
+          name="main_buttons"
+          v-if="in_edition"
+        >
           <template v-if="filter_group.category_groups">
             <v-btn
               v-for="cat_group in filter_group.category_groups"
@@ -283,28 +319,40 @@ function resetInitialData(){
           <v-col
             :cols="two_columns ? 6 : 12"
             class="pa-2"
+            :class="in_edition ? '' : 'd-flex flex-wrap align-start justify-start'"
           >
-            <div class="d-flex flex-wrap">
+            <v-card
+              class="d-flex flex-wrap"
+              :variant="in_edition ? 'flat' : 'tonal'"
+              :color="in_edition ? 'transparent' : 'black'"
+            >
               <SelectGroup
                 ref="selectGroupRef"
                 :filter_group_name="filter_group_name"
                 :main_collection="child_collection"
                 :main_object="item"
                 is_toolbar
+                :is_display="!in_edition"
                 :special_multiple="special_multiple"
                 :forced_level="forced_level"
                 :required="required_full_category"
                 @delete-record="wantDeleteRecord(item, index)"
               >
                 <template #chip>
-                  <slot name="rows_init" :item="item">
-                  </slot>
+                  <slot
+                    name="rows_init"
+                    :item="item"
+                    :in_edition="in_edition"
+                  ></slot>
                 </template>
               </SelectGroup>
-            </div>
-            <slot name="rows" :item="item">
+            </v-card>
+            <slot name="rows" :item="item" :in_edition="in_edition">
             </slot>
-            <v-card-actions class="mt-3" v-if="partial_save && item.id">
+            <v-card-actions
+              v-if="partial_save && item.id && in_edition"
+              class="mt-3"
+            >
               <v-spacer></v-spacer>
               <v-btn
                 variant="outlined"
@@ -339,13 +387,14 @@ function resetInitialData(){
               v-else
               name="second-column"
               :item="item"
+              :in_edition="in_edition"
             >
             </slot>
           </v-col>
         </v-row>
       </v-card>
       <v-alert
-        v-if="total_count === 0"
+        v-if="total_count === 0 && in_edition"
         :type="required ? 'error' : 'warning'"
         variant="flat"
       >

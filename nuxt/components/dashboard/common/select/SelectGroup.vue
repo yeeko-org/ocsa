@@ -436,7 +436,7 @@ function changeSubtypeValue(value){
 </script>
 
 <template>
-  <template v-if="is_toolbar">
+  <template v-if="is_toolbar && !is_display">
     <v-col cols="12" class="d-flex px-0 pt-1">
       <v-btn
         @click="emits('delete-record')"
@@ -459,15 +459,6 @@ function changeSubtypeValue(value){
           >
             {{ group_object.name }}
           </v-chip>
-  <!--        <v-btn-->
-  <!--          size="x-small"-->
-  <!--          color="error"-->
-  <!--          variant="outlined"-->
-  <!--          class="mt-1"-->
-  <!--          @click="emits('delete-record')"-->
-  <!--        >-->
-  <!--          Eliminar-->
-  <!--        </v-btn>-->
         </div>
         <v-chip v-else variant="outlined" color="grey" min-width="150" label>
           {{ final_main_collection.name }}
@@ -475,21 +466,26 @@ function changeSubtypeValue(value){
       </slot>
     </v-col>
   </template>
-  <GenericSelect
-    v-else-if="collections.group && (forced_level || true)"
-    :main_object="main_object"
-    level="group"
-    :level_name="level_names.group"
-    :is_filter="is_filter"
-    :main_width="width || 200"
-    :items="filter_group_data.category_groups"
-    :label="collections.group.name"
-    :class="{'mr-2': !is_display}"
-    :is_display="is_display"
-    :required="required"
-    :forced_clearable="forced_clearable"
-    @update-value="changeValue('group', $event)"
-  />
+  <template v-else>
+
+    <slot name="chip">
+    </slot>
+    <GenericSelect
+      v-if="collections.group && (forced_level || true)"
+      :main_object="main_object"
+      level="group"
+      :level_name="level_names.group"
+      :is_filter="is_filter"
+      :main_width="width || 200"
+      :items="filter_group_data.category_groups"
+      :label="collections.group.name"
+      :class="{'mr-2': !is_display}"
+      :is_display="is_display"
+      :required="required"
+      :forced_clearable="forced_clearable"
+      @update-value="changeValue('group', $event)"
+    />
+  </template>
   <GenericSelect
     v-if="display_type"
     :main_object="main_object"

@@ -11,6 +11,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  is_display: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 

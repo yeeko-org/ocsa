@@ -12,10 +12,7 @@ import _debounce from "lodash/debounce.js";
 import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
 
 
-const {
-  schemas,
-  current_collection_data,
-} = storeToRefs(mainStore)
+const { current_collection_data } = storeToRefs(mainStore)
 const { fetchElements, cancelFetch, exportData } = mainStore
 
 const props = defineProps({

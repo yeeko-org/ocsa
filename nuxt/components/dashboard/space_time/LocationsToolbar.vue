@@ -30,7 +30,7 @@ const props = defineProps({
     :second_level="second_level"
     :additional_fields="{'status_location': 'empty', 'type_location': 'point'}"
   >
-    <template #rows_init="{item}">
+    <template #rows_init="{item, in_edition}">
       <div
         v-if="!second_level"
         class="d-flex align-start align-self-start"
@@ -42,6 +42,7 @@ const props = defineProps({
       <v-spacer></v-spacer>
       <div
         class="d-flex justify-end"
+        v-if="in_edition"
       >
         <StatusDetail
           :final_filters="item"
@@ -56,11 +57,15 @@ const props = defineProps({
         />
       </div>
     </template>
-    <template #rows="{item}">
+    <template #rows="{item, in_edition}">
       <LocationEdit
+        v-if="in_edition"
         :full_main="item"
         :second_level="second_level"
       />
+      <div v-else>
+        Hola ubicación
+      </div>
     </template>
   </ToolbarCommon>
 

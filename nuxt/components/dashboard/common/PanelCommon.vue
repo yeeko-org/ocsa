@@ -61,7 +61,7 @@ const openMain = () => {
     full_main.value = props.main
     return
   }
-  const elem_id = props.main.id ? 'id' : 'key_name'
+  const elem_id = props.collection_data.pk
   getElement(props.collection_data, props.main[elem_id]).then((res) => {
     full_main.value = res
     emits('finish-open')

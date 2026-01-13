@@ -46,12 +46,12 @@ function resetInitialData(){
     required_full_category
     :additional_fields="{
       'involvements': [], 'locations': [], 'displacements': []}"
-    required
   >
-    <template #rows="{ item }">
+    <template #rows="{ item, in_edition }">
       <EventDetails
         :full_main="item"
         :is_edit="false"
+        :in_edition="in_edition"
       />
       <div
         v-if="item && item.id"
@@ -65,7 +65,7 @@ function resetInitialData(){
         />
       </div>
     </template>
-    <template #second-column="{ item }">
+    <template #second-column="{ item, in_edition }">
       <ToolbarCommon
         :main_object="item"
         main_collection_name="event"
@@ -75,6 +75,7 @@ function resetInitialData(){
         second_level
         color="blue"
         required
+        :external_in_edition="in_edition"
       >
         <template v-if="false" #rdows="{ item }">
           <v-select
@@ -89,6 +90,7 @@ function resetInitialData(){
         </template>
         <template #rows_init="{ item }">
           <v-select
+            v-if="in_edition"
             v-model="item.participant"
             :items="all_actors"
             item-title="name"
@@ -119,9 +121,24 @@ function resetInitialData(){
               />
             </template>
           </v-select>
-        </template>
-        <template #footer>
           <v-card
+            v-else
+            color="blue lighten-5"
+            class="py-1 px-2"
+            variant="tonal"
+          >
+
+            <ActorCard
+
+              :full_main="all_actors.find(actor => actor.id === item.participant)"
+              is_simple
+            />
+          </v-card>
+
+        </template>
+        <template #footer v-if="false">
+          <v-card
+
             class="ma-2"
             elevation="2"
             variant="flat"

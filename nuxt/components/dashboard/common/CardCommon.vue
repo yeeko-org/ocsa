@@ -12,6 +12,7 @@ const props = defineProps({
     required: true,
   },
   is_simple: Boolean,
+  is_display: Boolean,
   title: String,
   indirect_get: Boolean,
   null_available: Boolean,
@@ -42,7 +43,8 @@ const elem_in_edition = ref(null)
 function editItem(item) {
   // console.log("editItem", item)
   if (props.indirect_get || props.is_select){
-    getElement(props.collection_data, item.id).then(response => {
+    const elem_id = props.collection_data.pk
+    getElement(props.collection_data, item[elem_id]).then(response => {
       elem_in_edition.value = response
       dialog_edit.value = true
     })
@@ -75,12 +77,13 @@ function closeChangeDialog(new_item) {
     class="d-flex align-center px-3"
     :color="collection_data.color"
     variant="tonal"
-    style="width: 100%;"
+    :style="`width: ${is_display ? 'none' : '100%'}`"
   >
     <component
       v-if="card_component && full_main"
       :is="card_component"
       :full_main="full_main"
+      :is_simple="is_simple"
       :title="title"
     />
     <span v-else class="text-h6 mr-2 text-warning">
@@ -88,6 +91,7 @@ function closeChangeDialog(new_item) {
     </span>
     <v-spacer></v-spacer>
     <div
+      v-if="!is_display"
       class="d-flex align-center"
       :class="{'flex-column': !is_simple && !is_select}"
     >

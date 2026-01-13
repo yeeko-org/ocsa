@@ -10,11 +10,9 @@ import CardCommon from "~/components/dashboard/common/CardCommon.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import {nextTick, watch} from "vue";
-import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
-import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
-const { saveSimple, getRelatedActors, deleteSimple } = mainStore
+const { saveSimple, getRelatedActors, deleteSimple, patchSimple } = mainStore
 import { useSaveElements } from "~/composables/save_elements.js";
 import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
 const { saveComplex, save_errors } = useSaveElements()
@@ -105,12 +103,16 @@ function searchActor(group) {
 
 
 function saveParticipant([elem_in_edition, actor]) {
-  const part_idx = props.mention.participants.findIndex(
-    part => part.id === elem_in_edition.id)
-  props.mention.participants.splice(part_idx, 1, {
-    ...elem_in_edition,
-    actor: actor.id,
-    actor_full: actor,
+  const params = {"mention": props.mention.id, "actor": actor.id}
+  patchSimple(['participant', props.mention.id, params]).then(response => {
+    console.log("participant saved", response)
+    const part_idx = props.mention.participants.findIndex(
+      part => part.id === elem_in_edition.id)
+    props.mention.participants.splice(part_idx, 1, {
+      ...elem_in_edition,
+      actor: actor.id,
+      actor_full: actor,
+    })
   })
 }
 
@@ -119,12 +121,10 @@ function saveNewParticipant(actor) {
     mention: props.mention.id,
     actor: actor.id,
   }
-  console.log("actor to save", actor)
+  // console.log("actor to save", actor)
   if (actor.participant_type)
     params.participant_types = [actor.participant_type]
   saveSimple(['participant', params]).then(response => {
-    // props.mention.participants.push(response)
-    // response.participant_group = participant_group_selected.value,
     if (!actor.participant_type && participant_group_selected.value)
       response.participant_group = participant_group_selected.value
     else if (actor.participant_group)
@@ -141,8 +141,15 @@ function closeChangeDialog(event) {
 }
 
 function changeProject(project) {
-  props.mention.project = project.id
-  props.mention.project_full = project
+  const params = {
+    project: project.id,
+    note: props.mention.note,
+  }
+  patchSimple(['mention', props.mention.id, params])
+    .then((res) => {
+      props.mention.project = res.project
+      props.mention.project_full = res.project_full
+    })
 }
 
 const dialog_delete = ref(false)
@@ -248,8 +255,9 @@ function deleteMention() {
             color="purple"
             ref="has_select"
           >
-            <template #rows_init="{item}" v-if="true">
+            <template #rows_init="{item, in_edition}">
               <div
+                v-if="in_edition"
                 class="d-flex align-start align-self-start"
               >
                 <v-chip variant="outlined" color="grey" min-width="150" label>
@@ -258,12 +266,16 @@ function deleteMention() {
               </div>
               <v-spacer></v-spacer>
               <SelectDate
+                v-if="in_edition"
                 :init_date="item.date"
                 @update-date="item.date = $event"
                 label="Fecha de cambio"
                 class="mb-n6"
                 hide_details
               />
+              <div v-else>
+                {{ item.date }} -
+              </div>
             </template>
           </ToolbarCommon>
           <ImpactToolbar

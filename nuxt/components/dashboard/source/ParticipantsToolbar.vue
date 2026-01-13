@@ -4,6 +4,7 @@ import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
 import CardCommon from "~/components/dashboard/common/CardCommon.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
+import DescriptionIcon from "~/components/dashboard/utils/DescriptionIcon.vue";
 
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
@@ -48,16 +49,18 @@ function resetInitialData(){
     @add-item="emits('search-item', $event)"
     required
   >
-    <template #rows_init="{ item }">
+    <template #rows_init="{ item, in_edition }">
       <CardCommon
         :full_main="item.actor_full"
         @edited-item="emits('edited-item', item)"
         @selected-item="emits('selected-item', [item, $event])"
         indirect_get
+        :is_display="!in_edition"
+        :is_simple="!in_edition"
         :collection_data="actor_collection_data"
       />
     </template>
-    <template #second-column="{ item }">
+    <template #second-column="{ item, in_edition }">
       <ToolbarCommon
         ref="secondToolbarRef"
         :main_object="item"
@@ -68,9 +71,11 @@ function resetInitialData(){
         field="interests"
         second_level
         color="cyan"
+        :external_in_edition="in_edition"
       >
-        <template #rows="{ item }">
+        <template #rows="{ item, in_edition }">
           <v-textarea
+            v-if="in_edition"
             v-model="item.text"
             label="Descripción del interés"
             variant="outlined"
@@ -79,6 +84,11 @@ function resetInitialData(){
             rows="1"
             auto-grow
           ></v-textarea>
+          <DescriptionIcon
+            v-else
+            :description="item.text"
+          />
+
         </template>
       </ToolbarCommon>
     </template>

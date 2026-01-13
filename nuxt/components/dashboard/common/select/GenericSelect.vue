@@ -131,7 +131,7 @@ const selectComponent = computed(() => {
 
 function changeValue(val){
   console.log('changeValue', val)
-  console.log('collection_data', props.collection_data)
+  // console.log('collection_data', props.collection_data)
   props.main_object[`${props.level_name}_null`] = null
   emits('update-value', val)
 }

@@ -28,7 +28,6 @@ const props = defineProps({
         class="mx-2 d-flex _flex-column align-center"
       >
         <SelectGroup
-          v-if="true"
           :main_object="main"
           filter_group_name="impact_types"
           main_collection_name="impact_subtype"

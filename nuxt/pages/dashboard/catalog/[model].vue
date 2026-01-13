@@ -5,7 +5,6 @@ import {useMainStore} from '~/store/index'
 
 import {storeToRefs} from "pinia";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
-import PanelList from "~/components/dashboard/common/PanelList.vue";
 import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
 
 definePageMeta({
