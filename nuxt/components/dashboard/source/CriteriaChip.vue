@@ -8,6 +8,7 @@ const props = defineProps({
   main: Object,
   is_simple: Boolean,
   direct_criteria: Array,
+  indirect_criteria: Object,
   is_filter: Boolean,
   selected_fields: {
     type: Array,
@@ -36,7 +37,7 @@ const emits = defineEmits(['update:selected_fields', 'reset-filters'])
 const criteria_data = computed(() => {
   if (props.direct_criteria)
     return props.direct_criteria
-  const criteria_values = props.main?.criteria || []
+  const criteria_values = props.main?.criteria || props.indirect_criteria || {}
   let criteria_items = fields.map((field) => {
     const criteria_data = criteria[field] || {}
     const is_selected = props.is_filter

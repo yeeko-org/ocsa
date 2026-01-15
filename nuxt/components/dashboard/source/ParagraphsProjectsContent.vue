@@ -48,8 +48,8 @@ onMounted(() => {
     .map((p, idx) => p.id || idx) || []
 })
 
-const full_paragraphs = computed(() => {
 
+const hydrated_data = computed(() => {
   let paragraphs = props.full_main.paragraphs.map((p, idx) => {
     return {
       "idx": idx + 1,
@@ -58,6 +58,10 @@ const full_paragraphs = computed(() => {
       "criteria_set": new Set(),
       "projects": [],
     }
+  })
+  let full_criteria = {}
+  criteria_fields.forEach((field) => {
+    full_criteria[field] = new Set()
   })
   let image_idx = paragraphs.length + 1
   const images = props.full_main.images || []
@@ -123,13 +127,17 @@ const full_paragraphs = computed(() => {
   })
   paragraphs.forEach((paragraph) => {
     paragraph.criteria = Array.from(paragraph.criteria_set).map((c_name) => {
+      full_criteria[c_name].add(paragraph.idx)
       return {...criteria[c_name], "count": 1}
     })
     delete paragraph.criteria_set
   })
-  // console.log("Full paragraphs", paragraphs)
+  const final_criteria = {}
+  Object.entries(full_criteria).forEach(([c_name, p_set]) => {
+    final_criteria[c_name] = Array.from(p_set)
+  })
 
-  return paragraphs
+  return {full_paragraphs: paragraphs, full_criteria: final_criteria}
 })
 
 </script>
@@ -143,8 +151,8 @@ const full_paragraphs = computed(() => {
         Párrafos de la pre-nota:
       </span>
       <CriteriaChip
-        v-if="full_main.criteria"
-        :main="full_main"
+        v-if="full_main.second_criteria"
+        :indirect_criteria="hydrated_data.full_criteria"
         :selected_fields="selected_fields"
         is_filter
         @reset-filters="showAll(false)"
@@ -176,7 +184,7 @@ const full_paragraphs = computed(() => {
       v-if="show_init || forced_show"
     >
       <template
-        v-for="paragraph in full_paragraphs"
+        v-for="paragraph in hydrated_data.full_paragraphs"
       >
         <v-card
           v-if="show_all || (selected_fields.length
@@ -202,12 +210,13 @@ const full_paragraphs = computed(() => {
             </div>
             <template v-if="paragraph.image">
 
-              <b
+              <v-btn
+                variant="text"
+                size="small"
                 @click="paragraph.show_image = !paragraph.show_image"
-                class="pointer"
               >
                 [IMAGEN]
-              </b>
+              </v-btn>
               <v-img
                 v-if="paragraph.show_image"
                 :src="paragraph.image"
