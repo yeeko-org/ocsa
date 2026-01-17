@@ -73,6 +73,7 @@ export function useSaveElements() {
   const save_errors = ref([])
   const participants_dict = ref({})
   const normal_save = ref(true)
+  const first_special = ref(false)
 
   function saveComplex(collection_name, element, copy_id=null) {
     normal_save.value = !copy_id
@@ -93,7 +94,21 @@ export function useSaveElements() {
         }
       }
 
-      saveOneToMany(collection_name, element, checkFinished, copy_id)
+      const checkInitialFinished = () => {
+        if (resolved_requests.value === total_requests.value) {
+          first_special.value = false
+          saveOneToMany(collection_name, element, checkFinished, copy_id)
+        }
+      }
+
+      if (copy_id) {
+        first_special.value = true
+        saveOneToMany(collection_name, element, checkInitialFinished, copy_id)
+      }
+      else{
+        saveOneToMany(collection_name, element, checkFinished)
+      }
+
     })
   }
 
@@ -108,13 +123,19 @@ export function useSaveElements() {
     // console.log("one_to_many_fields", one_to_many_fields)
 
     one_to_many_fields.forEach(field => {
+      const is_actor = ['participants', 'interests'].includes(field.name)
+      if (first_special.value && !is_actor)
+        return
+      if (!first_special.value && is_actor && !normal_save.value)
+        return
+
       if (['involved', "eventlocation", "clicks"].includes(field.name))
         return
-      if (field.name.includes('displacement_'))
+      else if (field.name.includes('displacement_'))
         return
 
       const related_collection = schemas.value.collections_dict[
-        field.related_model]
+        field.related_snake_name]
       // if (!related_collection) {
       //   console.error('Related collection not found for field', field)
       //   // return
@@ -138,16 +159,17 @@ export function useSaveElements() {
           if (res.errors) {
             console.error(`Error saving ${snake_name2} item:`, res.errors)
             save_errors.value.push({
-              field: field.name,
+              field: `${field.name} --> ${snake_name2}`,
               item: new_item,
               errors: res.errors,
             })
           }
-          if (!normal_save.value){
-            if (snake_name2 === 'participant')
-              participants_dict.value[item.id] = res.id
+          if (first_special.value && field.name === 'participants')
+            participants_dict.value[item.id] = res.id
+
+          if (!normal_save.value)
             saveOneToMany(snake_name2, new_item, onFinished, res.id)
-          }
+
           resolved_requests.value += 1
           onFinished()
         })
