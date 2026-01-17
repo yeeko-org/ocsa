@@ -173,7 +173,7 @@ const calculateSchemas = (data) => {
 
   let collections_dict = collections.reduce((obj, coll) => {
     obj[coll.snake_name] = coll
-    obj[coll.model_name] = coll
+    // obj[coll.model_name] = coll
     return obj
   }, {})
   return {

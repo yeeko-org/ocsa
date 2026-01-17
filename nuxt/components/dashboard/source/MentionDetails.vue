@@ -232,7 +232,7 @@ function deleteMention() {
           <v-col cols="7">
             <CardCommon
               :full_main="mention.project_full"
-              :collection_data="schemas.collections_dict.project"
+              :collection_data="schemas.collections_dict['project']"
               @selected-item="changeProject"
               indirect_get
               class="py-3"
@@ -291,6 +291,9 @@ function deleteMention() {
                 type="error"
               >
                 Error al guardar {{ error.field }}: {{ error.errors }}
+                <v-code v-if="error.item">
+                  {{ error.item }}
+                </v-code>
               </v-alert>
             </v-col>
           </v-row>

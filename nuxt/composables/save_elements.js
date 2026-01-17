@@ -120,18 +120,19 @@ export function useSaveElements() {
     const main_schema = schemas.value.collections_dict[snake_name]
     const one_to_many_fields = main_schema.fields.filter(
       field => field.relation_type === 'one_to_many')
-    // console.log("one_to_many_fields", one_to_many_fields)
 
     one_to_many_fields.forEach(field => {
-      const is_actor = ['participants', 'interests'].includes(field.name)
-      if (first_special.value && !is_actor)
-        return
-      if (!first_special.value && is_actor && !normal_save.value)
-        return
+      if (!normal_save.value){
+        const is_actor = ['participants', 'interests'].includes(field.name)
+        if (first_special.value && !is_actor)
+          return
+        if (!first_special.value && is_actor)
+          return
+      }
 
       if (['involved', "eventlocation", "clicks"].includes(field.name))
         return
-      else if (field.name.includes('displacement_'))
+      if (field.name.includes('displacement_'))
         return
 
       const related_collection = schemas.value.collections_dict[
@@ -151,9 +152,7 @@ export function useSaveElements() {
           if (snake_name2 === 'involved')
             new_item['participant'] = participants_dict.value[item.participant]
         }
-
         total_requests.value += 2
-        // console.log(`snake_name2', ${snake_name2}, 'new_item`, new_item)
 
         saveSimple([snake_name2, new_item]).then(res => {
           if (res.errors) {
@@ -173,9 +172,8 @@ export function useSaveElements() {
           resolved_requests.value += 1
           onFinished()
         })
-        if (normal_save.value){
+        if (normal_save.value)
           saveOneToMany(snake_name2, item, onFinished)
-        }
         resolved_requests.value += 1
         onFinished()
       })
