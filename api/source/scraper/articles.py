@@ -214,6 +214,7 @@ class ManagerScraper(ABC):
 
         self.articles_for_ai = []
         self.articles_by_id = {}
+        self.get_source()
         for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
             for section_name, section_data in sections_dict.items():
                 if section_name in ["error", "exception"]:
@@ -473,7 +474,7 @@ class ManagerScraper(ABC):
         seconds_cache = len_articles * 3
         self.second_classify_request.create_cache(cache_name, seconds_cache)
 
-        desc = f"Classifying articles ({len_articles})"
+        desc = f"Reclassifying articles ({len_articles})"
         for article in tqdm(self.first_selected_articles, desc=desc):
             try:
                 self.send_second_criteria(article)

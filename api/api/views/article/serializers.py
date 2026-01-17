@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils.lorem_ipsum import paragraph
 from rest_framework import serializers
 from source.models import Article, Source, ScrapedRecord, ArticleQualify
 from api.views.note.serializers import NoteFullSerializer
@@ -86,7 +87,7 @@ class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
         return obj.articles.count()
 
     def get_scraped_count(self, obj):
-        return obj.articles.filter(criteria__isnull=False).count()
+        return obj.articles.filter(content__isnull=False).count()
 
     def get_analyzed_count(self, obj):
         return obj.articles.filter(certainty_degree__isnull=False).count()
@@ -102,7 +103,7 @@ class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
     def get_pending_count(self, obj):
         return obj.articles\
             .filter(is_selected__isnull=True)\
-            .filter(certainty_degree__gt=100).count()
+            .filter(second_certainty_degree__gt=100).count()
 
     def get_errors_count(self, obj):
         if obj.errors:

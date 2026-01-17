@@ -110,9 +110,62 @@ rewrite_year(2024, 1)
 
 
 
+def get_again_old_articles(
+        sr_id=78, ai_engine="gemini-3-flash-preview",
+        prompt_version="v2", limit=5):
+    # from source.scraper.reforma import ReformaManagerScraper
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.models import ScrapedRecord, Article, Note
+    scraped_record = ScrapedRecord.objects.get(pk=sr_id)
+    scraper_class = JornadaManagerScraper
+    pending_notes = Note.objects.filter(
+        date__lte="2023-12-31",
+        articles__isnull=True,
+        source=scraped_record.source,
+        link__isnull=False
+    ).distinct()
+    print(f"Total de notas pendientes: {pending_notes.count()}")
+    for note in pending_notes[:limit]:
+        has_same_url = Article.objects.filter(url=note.link).exists()
+        if has_same_url:
+            print(f"Nota ya tiene artículo asociado: {note.link}")
+            print(f"title: {note.title}")
+            continue
+        uid = note.link.replace("https://www.jornada.com.mx/", "")
+        Article.objects.create(
+            scraped=scraped_record,
+            uid=uid,
+            source=scraped_record.source,
+            url=note.link,
+            title="",
+            note=note,
+            is_selected=True,
+            certainty_degree=101,
+            published_date=note.date
+        )
+    scraper = scraper_class(
+        "", "", recover_record=scraped_record, ai_engine=ai_engine)
+    scraper.scrape_articles(update=True)
+    articles_objects = scraper.get_articles_objects()
+    for article in articles_objects:
+        if note := article.note:
+            note.subtitle = article.subtitle
+            note.save()
+    scraper.first_selected_articles = list(Article.objects.filter(
+        scraped=scraped_record,
+        paragraphs__isnull=False,
+        second_criteria__isnull=True
+    ))
+    print(f"Total de artículos para segunda evaluación: "
+          f"{len(scraper.first_selected_articles)}")
+    scraper.build_second_criteria(prompt_version=prompt_version)
+
+
+get_again_old_articles(86, limit=200)
+
+
 
 def examples():
-    from pprint import pprint
     from source.scraper.jornada import JornadaManagerScraper
     from source.scraper.reforma import ReformaManagerScraper
     from source.models import (

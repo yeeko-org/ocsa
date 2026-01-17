@@ -1,8 +1,7 @@
 // Debemos proporcionar la fecha de la nota
 
 {
-  // "mentions": [
-  "projects": [
+  "mentions": [
     {      
       "project_data": {
         "_project_id": null,
@@ -24,32 +23,30 @@
           }
         ]
       },
-      "status_history": [
+      "status_history": [ // Lista opcional
         {
           "_discarded": false,
           "_status_history_id": null,
           "date": null,
-          // activo, ampliación, cancelado, clausurado, construcción, planeación, suspendido, o cualquier otro cambio en la etapa del proyecto que mencione la nota
           "status_project_text": "Cancelado",
           "paragraphs": [],
         }
       ],
-      "impacts": [
+      "impacts": [ // Lista opcional
         {
           "_discarded": false,
           "_impact_id": null,
-          "impact_group_str": "enviromental",
+          "impact_group_str": "enviromental",  // según catálogo ImpactGroup
           "_impact_group": 1,
           "impact_type_str": "agua",
           "_impact_type_id": null,
           "description": "Derrame de agua potable al drenaje",
           "is_potential": false,
-          // Nota: Ubicaciones distintas al proyecto
-          "locations": [],
+          "locations": [],  // campo opcional
           "paragraphs": [],
         }
       ],
-      "actors": [
+      "actors": [ // Lista opcional
         {
           "uid": 2009,
           "_discarded": false,
@@ -66,7 +63,7 @@
           "paragraphs": [],
         },
       ],
-      "events": [
+      "events": [ // Lista opcional
         {
           "_discarded": false,
           "_event_id": null,

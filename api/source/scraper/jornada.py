@@ -192,3 +192,19 @@ class JornadaArticleScraper(ArticleScraper):
             a.decompose()
 
         return body
+
+
+sections_names_dict = {
+    "Nacional": "national",
+    "Política": "politica",
+    "Economía": "economia",
+    "Sociedad": "sociedad",
+    "Sociedad y Justicia": "sociedad",
+    "Cultura": "cultura",
+    "Opinión": "opinion",
+    "Estados": "estados",
+    "El Correo Ilustrado": "correo",
+    "Capital": "capital",
+}
+
+
