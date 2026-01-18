@@ -43,14 +43,14 @@ def direct_second_criteria(
     scraper = scraper_class(
         "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
         ai_engine=ai_engine, is_test=True)
-    scraper.first_selected_articles = scraper.get_articles_objects(
-        is_second=True)
+    pending_articles = scraper.get_articles_objects(is_second=True)
     if count:
-        scraper.first_selected_articles = scraper.first_selected_articles[:count]
-    scraper.build_second_criteria(prompt_version=prompt_version)
+        pending_articles = pending_articles[:count]
+    scraper.build_second_criteria(
+        prompt_version=prompt_version, articles=pending_articles)
 
 
-direct_second_criteria(76, count=8)
+direct_second_criteria(83, count=8)
 
 
 def second_year(year=2024, source_id=1):
@@ -151,17 +151,18 @@ def get_again_old_articles(
         if note := article.note:
             note.subtitle = article.subtitle
             note.save()
-    scraper.first_selected_articles = list(Article.objects.filter(
+    first_selected_articles = list(Article.objects.filter(
         scraped=scraped_record,
         paragraphs__isnull=False,
         second_criteria__isnull=True
     ))
     print(f"Total de artículos para segunda evaluación: "
           f"{len(scraper.first_selected_articles)}")
-    scraper.build_second_criteria(prompt_version=prompt_version)
+    scraper.build_second_criteria(
+        prompt_version=prompt_version, articles=first_selected_articles)
 
 
-get_again_old_articles(86, limit=200)
+get_again_old_articles(86, limit=522)
 
 
 
@@ -187,13 +188,14 @@ def examples():
         ai_engine="gemini-3-flash-preview")
 
     manager_reforma = ReformaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=69),
+        "", "", recover_record=ScrapedRecord.objects.get(pk=83),
         ai_engine="gemini-3-flash-preview")
 
     manager_scraper.record_articles(reset=True)
     manager_reforma.record_articles(reset=True)
 
     manager_scraper.scrape_articles(update=True)
+    manager_reforma.scrape_articles(update=True)
 
     manager_reforma.scraped_record.articles.update(
         html_content=None, title=None, subtitle=None, author=None,
@@ -202,7 +204,7 @@ def examples():
 
     manager_scraper.build_ai_criteria(prompt_version="v1")
 
-    manager_reforma.build_ai_criteria(prompt_version="v1")
+    manager_reforma.build_ai_criteria(prompt_version="v2")
 
     # QualifySchema.objects.all().delete()
     Article.objects.filter(scraped__id=45).count()

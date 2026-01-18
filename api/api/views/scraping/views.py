@@ -10,9 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from api.permissions import IsEditorOrCreateOrRead, IsFullEditorOrReadOnly
-from api.views.article.serializers import (
-    ScrapingDateSerializer, ScrapedRecordSerializer,
-    ScrapedRecordSimpleSerializer)
+from api.views.article.source_serializers import ScrapedRecordSimpleSerializer, ScrapedRecordSerializer, \
+    ScrapingDateSerializer
 from source.models import ScrapedRecord, Article
 from source.scraper.jornada import JornadaManagerScraper
 from source.scraper.reforma import ReformaManagerScraper
@@ -31,6 +30,8 @@ def full_scrape_articles(source, scraped_record: ScrapedRecord):
 
     manager_scraper.scrape_articles(update=True)
     manager_scraper.build_ai_criteria()
+    manager_scraper.build_second_criteria()
+
 
 
 class ScrapingDatesView(APIView):
@@ -152,10 +153,11 @@ class ScrapedRecordView(BaseGenericViewSet):
 
         # last_update = min(scraped_record.date_end, scraped_record.last_update)
         if not scraped_record.date_end:
-            return Response(
-                {"detail": "Cannot reprocess an ongoing scraped record."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            if scraped_record.date_start + timedelta(days=1) < time_now:
+                return Response(
+                    {"detail": "Cannot reprocess an ongoing scraped record."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         thread = threading.Thread(
             target=full_scrape_articles, args=(source, scraped_record,))
         thread.start()

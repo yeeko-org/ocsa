@@ -13,7 +13,8 @@ from api.views.common_views import (
 from .serializers import (
     ArticleListSerializer, ArticleDetailSerializer,
     ArticleSuperDetailSerializer, ArticleListSuperSerializer,
-    ArticleSelectedSerializer, ArticleStatusSerializer, SourceFullSerializer)
+    ArticleSelectedSerializer, ArticleStatusSerializer)
+from .source_serializers import SourceFullSerializer
 from api.views.catalogs.serializers import (
     SourceSerializer, DiscardedReasonSerializer)
 from ...permissions import IsAdminOrReadOnly

@@ -17,14 +17,15 @@ from api.views.action_file import ActionFileMixin
 from api.views.actor.serializers import ActorFullCountSerializer
 from api.views.common_views import (
     UnaccentSearchFilter, BaseStatusViewSet, MassiveEdit, ClickHistoryMixin)
-from api.views.note.serializers import LocationVizSerializer
+# from api.views.note.serializers import LocationVizSerializer
+from api.views.note.serializers import ProjectSemiFullSerializer
 from project.models import Conflict, Project, ProjectFile
 
 from .list_serializers import (
     ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
-    ProjectExportSerializer, ProjectMiniBasicSerializer, MentionSerializer)
+    ProjectExportSerializer, ProjectMiniBasicSerializer, MentionSerializer,
+    LocationVizSerializer)
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
-from api.views.note.serializers import ProjectSemiFullSerializer
 
 
 class ProjectFilter(FilterSet):

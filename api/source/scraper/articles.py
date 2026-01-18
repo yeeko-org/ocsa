@@ -83,7 +83,7 @@ class ManagerScraper(ABC):
     parser = "html.parser"
     source: Source
     articles_by_date: Dict[str, dict]
-    articles_for_ai: list
+    # articles_for_ai: list
     articles_by_id: Dict[int, Article]
     overlapping_dates: list
     errors: list
@@ -112,7 +112,7 @@ class ManagerScraper(ABC):
         self.article_scraper_class = article_scraper_class
         self.overlapping_dates = []
         self.articles_by_id = {}
-        self.first_selected_articles: List[Article] = []
+        # self.first_selected_articles: List[Article] = []
         self.errors = []
         self.ai_engine = ai_engine
         self.scraped_record = None
@@ -212,7 +212,7 @@ class ManagerScraper(ABC):
         self.scraped_record.status = "record_articles"
         self.scraped_record.save()
 
-        self.articles_for_ai = []
+        # self.articles_for_ai = []
         self.articles_by_id = {}
         self.get_source()
         for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
@@ -260,17 +260,17 @@ class ManagerScraper(ABC):
         article_id = article_obj.id
         self.articles_by_id[article_id] = article_obj
 
-        if not title:
-            return
-
-        article_for_ai = {
-            "id": article_id,
-            "title": title,
-            "section": section_name,
-        }
-        if content:
-            article_for_ai["content"] = content
-        self.articles_for_ai.append(article_for_ai)
+        # if not title:
+        #     return
+        #
+        # article_for_ai = {
+        #     "id": article_id,
+        #     "title": title,
+        #     "section": section_name,
+        # }
+        # if content:
+        #     article_for_ai["content"] = content
+        # self.articles_for_ai.append(article_for_ai)
 
     def get_change_value(self, is_selected: bool, article_obj: Article):
         saved_is_selected = article_obj.certainty_degree > 100
@@ -340,16 +340,14 @@ class ManagerScraper(ABC):
         desc = f"Classifying articles ({len_articles})"
         for article in tqdm(articles_objects, desc=desc):
             try:
-                is_selected = self.get_ai_criteria(article)
-                if is_selected:
-                    self.first_selected_articles.append(article)
+                self.get_ai_criteria(article)
             except CriteriaError as e:
                 self.add_error(str(e))
                 continue
         if self.pre_classify_request.errors:
             self.add_errors(self.pre_classify_request.errors)
 
-        self.build_second_criteria(prompt_version=prompt_version)
+        # self.build_second_criteria(prompt_version=prompt_version)
 
     def get_articles_objects(
             self, is_second: bool = False
@@ -406,8 +404,7 @@ class ManagerScraper(ABC):
             msg = f"Invalid response type; type: {type(criteria)}"
             raise CriteriaError(article, msg)
 
-        is_selected = self.save_criteria_results(criteria, article.id)
-        return is_selected
+        self.save_criteria_results(criteria, article.id)
 
     def build_features_base_class(self, p_count: int):
         from pydantic import Field, BaseModel
@@ -462,7 +459,9 @@ class ManagerScraper(ABC):
 
         return is_pre_selected
 
-    def build_second_criteria(self, prompt_version: str = "v2"):
+    def build_second_criteria(
+            self, prompt_version: str = "v2",
+            articles: List[Article] | None = None):
         from django.utils import timezone
 
         prompt_criteria = f"gemini_second_criteria_{prompt_version}.txt"
@@ -470,12 +469,15 @@ class ManagerScraper(ABC):
         cache_name = f"second:criteria_{prompt_version}"
         self.second_classify_request.build_chat(
             f"source/prompts/{prompt_criteria}")
-        len_articles = len(self.first_selected_articles)
+        if not articles:
+            articles = self.get_articles_objects(is_second=True)
+        len_articles = len(articles)
+
         seconds_cache = len_articles * 3
         self.second_classify_request.create_cache(cache_name, seconds_cache)
 
         desc = f"Reclassifying articles ({len_articles})"
-        for article in tqdm(self.first_selected_articles, desc=desc):
+        for article in tqdm(articles, desc=desc):
             try:
                 self.send_second_criteria(article)
             except CriteriaError as e:

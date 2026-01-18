@@ -89,37 +89,6 @@ class ExtractivismTypesIdsSerializer(serializers.RelatedField):
         return value.extractivism_types.values_list('id', flat=True)
 
 
-class ProjectLocationVizSerializer(ConditionalFieldsMixin):
-    # extractivism_types = ExtractivismTypesIdsSerializer(
-    #     source='megaproject_type', read_only=True)
-
-    # extractivism_types2 = serializers.SerializerMethodField()
-    #
-    # def get_extractivism_types2(self, obj):
-    #     if obj.megaproject_type:
-    #         return obj.megaproject_type.extractivism_types.values_list(
-    #             'id', flat=True)
-    #     return []
-
-    class Meta:
-        model = Project
-        fields = [
-            'id', 'name', 'alternative_name', 'description',
-            'megaproject_type', 'is_grouper', 'parent_project'
-        ]
-
-
-class LocationVizSerializer(serializers.ModelSerializer):
-    project = ProjectLocationVizSerializer(read_only=True)
-
-    class Meta:
-        model = Location
-        fields = [
-            'id', 'state', 'municipality', 'locality',
-            'latitude', 'longitude', 'type_location', 'geojson',
-            'project']
-
-
 class InvolvedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Involved
