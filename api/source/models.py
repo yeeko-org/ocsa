@@ -188,6 +188,10 @@ class ScrapedRecord(models.Model):
     def total_days(self):
         return (self.to_date - self.from_date).days + 1
 
+    def set_status(self, status_str: str):
+        self.status = status_str
+        self.save()
+
     def __str__(self):
         return f"{self.source.name} - {self.from_date} to {self.to_date} ({self.status})"
 
@@ -305,7 +309,7 @@ class Article(models.Model):
     def get_meta(self, key: str):
         return self.metadata.get(key) if self.metadata else None
 
-    def get_certainty_degree_v2(self, criteria: type[ArticleBase] | None) -> int:
+    def get_certainty_degree_v2(self, criteria: ArticleBase | None) -> int:
 
         if not criteria and self.criteria:
             criteria = ArticleBase(**self.criteria)

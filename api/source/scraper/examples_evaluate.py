@@ -1,4 +1,84 @@
 
+def direct_second_criteria(
+        sr_id=50, ai_engine="gemini-3-flash-preview",
+        prompt_version="v2", count: int=None):
+    from source.scraper.criteria import ManagerCriteria
+    from source.models import ScrapedRecord
+    scraped_record = ScrapedRecord.objects.get(pk=sr_id)
+    manager_criteria = ManagerCriteria(
+        recover_record=scraped_record, ai_engine=ai_engine)
+    pending_articles = manager_criteria.get_articles_objects(is_second=True)
+    if count:
+        pending_articles = pending_articles[:count]
+    print(f"Total de artículos para segunda evaluación: "
+          f"{len(pending_articles)}")
+    manager_criteria.build_second_criteria(
+        prompt_version=prompt_version, articles=pending_articles)
+
+
+direct_second_criteria(79, count=40)
+
+
+def second_year(year=2024, source_id=1):
+    from source.models import ScrapedRecord
+    scraped_records = ScrapedRecord.objects.filter(
+        source__id=source_id,
+        from_date__year=year,
+        to_date__year=year,
+    )
+    for sr in scraped_records:
+        print(f"Rewriting ScrapedRecord ID: {sr.id}; "
+              f"Date Range: {sr.from_date} to {sr.to_date}")
+        direct_second_criteria(sr.id)
+
+
+
+def rewrite_first_criteria(
+        sr_id=50, ai_engine="gemini-3-flash-preview",
+        prompt_version="v2", count: int=None):
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.scraper.reforma import ReformaManagerScraper
+    from source.models import ScrapedRecord, Article
+    from source.scraper.criteria import ManagerCriteria
+    scraped_record = ScrapedRecord.objects.get(pk=sr_id)
+    scraper_class = ReformaManagerScraper \
+        if scraped_record.source.name == "Reforma" \
+        else JornadaManagerScraper
+    articles = Article.objects\
+        .filter(
+        scraped=scraped_record, certainty_degree__gt=100,
+        is_selected__isnull=True)\
+        .order_by("-certainty_degree")
+    if count:
+        articles = articles[:count]
+    scraper = scraper_class("", "", recover_record=scraped_record)
+    scraper.scrape_articles(update=True)
+    analyzer = ManagerCriteria(
+        recover_record=scraped_record, ai_engine=ai_engine)
+    # scraper.articles_by_id = {article.id: article for article in articles}
+    analyzer.build_first_criteria(
+        prompt_version=prompt_version, articles=list(articles))
+
+
+rewrite_first_criteria(57)
+
+def rewrite_year(year=2024, source_id=2):
+    from source.models import ScrapedRecord
+    scraped_records = ScrapedRecord.objects.filter(
+        source__id=source_id,
+        from_date__year=year,
+        to_date__year=year,
+    ).exclude(id__in=[53, 36, 57, 30])
+    for sr in scraped_records:
+        print(f"Rewriting ScrapedRecord ID: {sr.id}; "
+              f"Date Range: {sr.from_date} to {sr.to_date}")
+        rewrite_first_criteria(sr.id)
+
+
+rewrite_year(2024, 1)
+
+
+
 def compare_versions(
         sr_id=50, ai_engine="gemini-3-flash-preview",
         prompt_version="v2", count: int=None):
@@ -23,98 +103,17 @@ def compare_versions(
         ai_engine=ai_engine, is_test=True)
 
     scraper.scrape_articles(update=True)
-    scraper.articles_by_id = {article.id: article for article in articles}
-    scraper.build_ai_criteria(prompt_version=prompt_version)
+    scraper.build_first_criteria(prompt_version=prompt_version)
 
 
 compare_versions(76, count=40)
 
 
-def direct_second_criteria(
-        sr_id=50, ai_engine="gemini-3-flash-preview",
-        prompt_version="v2", count: int=None):
-    from source.scraper.jornada import JornadaManagerScraper
-    from source.scraper.reforma import ReformaManagerScraper
-    from source.models import ScrapedRecord
-    scraped_record = ScrapedRecord.objects.get(pk=sr_id)
-    scraper_class = ReformaManagerScraper \
-        if scraped_record.source.name == "Reforma" \
-        else JornadaManagerScraper
-    scraper = scraper_class(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=sr_id),
-        ai_engine=ai_engine, is_test=True)
-    pending_articles = scraper.get_articles_objects(is_second=True)
-    if count:
-        pending_articles = pending_articles[:count]
-    scraper.build_second_criteria(
-        prompt_version=prompt_version, articles=pending_articles)
-
-
-direct_second_criteria(83, count=8)
-
-
-def second_year(year=2024, source_id=1):
-    from source.models import ScrapedRecord
-    scraped_records = ScrapedRecord.objects.filter(
-        source__id=source_id,
-        from_date__year=year,
-        to_date__year=year,
-    )
-    for sr in scraped_records:
-        print(f"Rewriting ScrapedRecord ID: {sr.id}; "
-              f"Date Range: {sr.from_date} to {sr.to_date}")
-        direct_second_criteria(sr.id)
-
-
-
-def rewrite_first_criteria(
-        sr_id=50, ai_engine="gemini-3-flash-preview",
-        prompt_version="v2", count: int=None):
-    from source.scraper.jornada import JornadaManagerScraper
-    from source.scraper.reforma import ReformaManagerScraper
-    from source.models import ScrapedRecord, Article
-    scraped_record = ScrapedRecord.objects.get(pk=sr_id)
-    scraper_class = ReformaManagerScraper \
-        if scraped_record.source.name == "Reforma" \
-        else JornadaManagerScraper
-    articles = Article.objects\
-        .filter(
-        scraped=scraped_record, certainty_degree__gt=100,
-        is_selected__isnull=True)\
-        .order_by("-certainty_degree")
-    if count:
-        articles = articles[:count]
-    scraper = scraper_class(
-        "", "", recover_record=scraped_record, ai_engine=ai_engine)
-    scraper.scrape_articles(update=True)
-    scraper.articles_by_id = {article.id: article for article in articles}
-    scraper.build_ai_criteria(prompt_version=prompt_version)
-
-
-rewrite_first_criteria(57)
-
-def rewrite_year(year=2024, source_id=2):
-    from source.models import ScrapedRecord
-    scraped_records = ScrapedRecord.objects.filter(
-        source__id=source_id,
-        from_date__year=year,
-        to_date__year=year,
-    ).exclude(id__in=[53, 36, 57, 30])
-    for sr in scraped_records:
-        print(f"Rewriting ScrapedRecord ID: {sr.id}; "
-              f"Date Range: {sr.from_date} to {sr.to_date}")
-        rewrite_first_criteria(sr.id)
-
-
-rewrite_year(2024, 1)
-
-
-
 def get_again_old_articles(
         sr_id=78, ai_engine="gemini-3-flash-preview",
         prompt_version="v2", limit=5):
-    # from source.scraper.reforma import ReformaManagerScraper
     from source.scraper.jornada import JornadaManagerScraper
+    from source.scraper.criteria import ManagerCriteria
     from source.models import ScrapedRecord, Article, Note
     scraped_record = ScrapedRecord.objects.get(pk=sr_id)
     scraper_class = JornadaManagerScraper
@@ -144,7 +143,7 @@ def get_again_old_articles(
             published_date=note.date
         )
     scraper = scraper_class(
-        "", "", recover_record=scraped_record, ai_engine=ai_engine)
+        "", "", recover_record=scraped_record)
     scraper.scrape_articles(update=True)
     articles_objects = scraper.get_articles_objects()
     for article in articles_objects:
@@ -157,12 +156,14 @@ def get_again_old_articles(
         second_criteria__isnull=True
     ))
     print(f"Total de artículos para segunda evaluación: "
-          f"{len(scraper.first_selected_articles)}")
-    scraper.build_second_criteria(
+          f"{len(first_selected_articles)}")
+    analyzer = ManagerCriteria(
+        recover_record=scraped_record, ai_engine=ai_engine)
+    analyzer.build_second_criteria(
         prompt_version=prompt_version, articles=first_selected_articles)
 
 
-get_again_old_articles(86, limit=522)
+get_again_old_articles(86, limit=40)
 
 
 
@@ -191,8 +192,8 @@ def examples():
         "", "", recover_record=ScrapedRecord.objects.get(pk=83),
         ai_engine="gemini-3-flash-preview")
 
-    manager_scraper.record_articles(reset=True)
-    manager_reforma.record_articles(reset=True)
+    manager_scraper.record_articles()
+    manager_reforma.record_articles()
 
     manager_scraper.scrape_articles(update=True)
     manager_reforma.scrape_articles(update=True)
@@ -202,9 +203,9 @@ def examples():
         content=None, images=None)
     manager_reforma.scrape_articles(update=True)
 
-    manager_scraper.build_ai_criteria(prompt_version="v1")
+    manager_scraper.build_first_criteria(prompt_version="v1")
 
-    manager_reforma.build_ai_criteria(prompt_version="v2")
+    manager_reforma.build_first_criteria(prompt_version="v2")
 
     # QualifySchema.objects.all().delete()
     Article.objects.filter(scraped__id=45).count()
@@ -233,8 +234,6 @@ def test_reforma_subtitle():
     self = scraper
 
 
-
-
 def scrape_full_articles(
         sr_id=17, ai_engine="gemini-3-flash-preview",
         prompt_version="v2"):
@@ -249,8 +248,7 @@ def scrape_full_articles(
     # if ai_engine == "deepseek-chat":
     #     scraper.use_deepseek = True
     scraper.scrape_articles()
-    scraper.articles_by_id = {}
-    scraper.build_ai_criteria(prompt_version=prompt_version)
+    scraper.build_first_criteria(prompt_version=prompt_version)
 
 
 scrape_full_articles(42, prompt_version="v1")

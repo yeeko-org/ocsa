@@ -9,12 +9,25 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
-from api.permissions import IsEditorOrCreateOrRead, IsFullEditorOrReadOnly
+from api.permissions import IsFullEditorOrReadOnly
 from api.views.article.source_serializers import ScrapedRecordSimpleSerializer, ScrapedRecordSerializer, \
     ScrapingDateSerializer
 from source.models import ScrapedRecord, Article
 from source.scraper.jornada import JornadaManagerScraper
 from source.scraper.reforma import ReformaManagerScraper
+from source.scraper.criteria import ManagerCriteria
+
+
+def get_manager_scraper_class(source):
+    from source.models import Source
+    if isinstance(source, int):
+        source = Source.objects.get(pk=source).name.lower()
+    if source == 'jornada' or source == 'la jornada':
+        return JornadaManagerScraper
+    elif source == "reforma":
+        return ReformaManagerScraper
+    else:
+        raise ValidationError("Invalid source")
 
 
 def full_scrape_articles(source, scraped_record: ScrapedRecord):
@@ -23,15 +36,15 @@ def full_scrape_articles(source, scraped_record: ScrapedRecord):
 
     manager_scraper_class = get_manager_scraper_class(source)
     manager_scraper = manager_scraper_class(
-        "", "", recover_record=scraped_record,
-        ai_engine="gemini-3-flash-preview")
+        "", "", recover_record=scraped_record)
     scraped_record.last_updated = timezone.now()
     scraped_record.save()
-
     manager_scraper.scrape_articles(update=True)
-    manager_scraper.build_ai_criteria()
-    manager_scraper.build_second_criteria()
+    manager_criteria = ManagerCriteria(
+        recover_record=scraped_record, ai_engine="gemini-3-flash-preview")
 
+    manager_criteria.build_first_criteria()
+    manager_criteria.build_second_criteria()
 
 
 class ScrapingDatesView(APIView):
@@ -52,8 +65,7 @@ class ScrapingDatesView(APIView):
         manager_scraper_class = get_manager_scraper_class(source)
         print(f"Using scraper class: {manager_scraper_class.__name__}")
 
-        manager_scraper = manager_scraper_class(
-            from_date, to_date or from_date, ai_engine="gemini-3-flash-preview")
+        manager_scraper = manager_scraper_class(from_date, to_date or from_date)
 
         if manager_scraper.errors or manager_scraper.overlapping_dates:
             return Response({
@@ -64,8 +76,6 @@ class ScrapingDatesView(APIView):
         manager_scraper.scrape_sections()
 
         manager_scraper.record_articles()
-        # manager_scraper.scrape_articles()
-        # manager_scraper.build_ai_criteria(block_size=1)
 
         scraped_record = manager_scraper.scraped_record
         scraped_data = ScrapedRecordSimpleSerializer(scraped_record).data
@@ -166,15 +176,4 @@ class ScrapedRecordView(BaseGenericViewSet):
             status=status.HTTP_200_OK
         )
 
-
-def get_manager_scraper_class(source):
-    from source.models import Source
-    if isinstance(source, int):
-        source = Source.objects.get(pk=source).name.lower()
-    if source == 'jornada' or source == 'la jornada':
-        return JornadaManagerScraper
-    elif source == "reforma":
-        return ReformaManagerScraper
-    else:
-        raise ValidationError("Invalid source")
 

@@ -37,7 +37,7 @@ def examples_base():
     # manager_scraper.record_articles(reset=True)
     manager_scraper.scrape_articles()
 
-    manager_scraper.build_ai_criteria()
+    manager_scraper.build_first_criteria()
 
 
     # python manage.py articles_json "2022-10-01" "2022-12-31" 4

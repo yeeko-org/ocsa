@@ -34,7 +34,7 @@ class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
 
     def get_pre_filtered_count(self, obj):
         return obj.articles\
-            .filter(second_criteria__isnull=False).count()
+            .filter(second_certainty_degree__isnull=False).count()
 
     def get_pending_count(self, obj):
         return obj.articles\

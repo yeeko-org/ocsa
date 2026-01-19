@@ -8,8 +8,7 @@ class PreClassify(ManagerScraper):
 
     def make_preclassify_articles(
             self, block_size: int = 0, alt_version: bool = False):
-        self.scraped_record.status = "preclassify"
-        self.scraped_record.save()
+        self.scraped_record.set_status("preclassify")
         if block_size:
             self.block_size = block_size
 

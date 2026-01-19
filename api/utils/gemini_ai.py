@@ -6,11 +6,13 @@ from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
 
+api_key_name = "GEMINI_API_KEY"
+api_key = getattr(settings, api_key_name, None)
+
 
 class RequestGemini:
     first_response = None
-    # client = openai.OpenAI(api_key=openai_api_key)
-    # engine = getattr(settings, 'OPENAI_ENGINE', 'gpt-4.1-2025-04-14')
+    client = genai.Client(api_key=api_key)
 
     def __init__(
             self,
@@ -18,11 +20,6 @@ class RequestGemini:
             engine="gemini-3-flash-preview"
     ):
 
-        api_key_name = "GEMINI_API_KEY"
-        api_key = getattr(settings, api_key_name, None)
-
-
-        self.client = genai.Client(api_key=api_key)
         self.engine = engine
         self.messages: list[dict] = []
         self.base_messages: list[str] = []
