@@ -26,6 +26,9 @@ def get_manager_scraper_class(source):
         return JornadaManagerScraper
     elif source == "reforma":
         return ReformaManagerScraper
+    # elif source == "proceso":
+    #     from source.scraper.proceso import ProcesoManagerScraper
+    #     return ProcesoManagerScraper
     else:
         raise ValidationError("Invalid source")
 

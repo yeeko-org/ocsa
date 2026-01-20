@@ -44,7 +44,6 @@ class RequestGemini:
     def create_cache(
             self, name:str = 'criteria_v1_single', seconds:int = 300
     ):
-        # model = f"models/{self.engine}"
         try:
             self.cache = self.client.caches.create(
                 model=self.engine,
@@ -83,8 +82,7 @@ class RequestGemini:
             system_instruction = self.system_msg
         config = types.GenerateContentConfig(
             # thinking_config=types.ThinkingConfig(thinking_budget=0),
-            thinking_config=types.ThinkingConfig(
-                thinking_level='minimal'),
+            thinking_config=types.ThinkingConfig(thinking_level='minimal'),
             system_instruction=system_instruction,
             # response_schema=schema_clss,
             response_json_schema=schema_clss.model_json_schema(),

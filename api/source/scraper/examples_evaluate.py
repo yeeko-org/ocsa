@@ -16,7 +16,7 @@ def direct_second_criteria(
         prompt_version=prompt_version, articles=pending_articles)
 
 
-direct_second_criteria(79, count=40)
+direct_second_criteria(85, count=40)
 
 
 def second_year(year=2024, source_id=1):
@@ -117,39 +117,41 @@ def get_again_old_articles(
     from source.models import ScrapedRecord, Article, Note
     scraped_record = ScrapedRecord.objects.get(pk=sr_id)
     scraper_class = JornadaManagerScraper
-    pending_notes = Note.objects.filter(
-        date__lte="2023-12-31",
-        articles__isnull=True,
-        source=scraped_record.source,
-        link__isnull=False
-    ).distinct()
-    print(f"Total de notas pendientes: {pending_notes.count()}")
-    for note in pending_notes[:limit]:
-        has_same_url = Article.objects.filter(url=note.link).exists()
-        if has_same_url:
-            print(f"Nota ya tiene artículo asociado: {note.link}")
-            print(f"title: {note.title}")
-            continue
-        uid = note.link.replace("https://www.jornada.com.mx/", "")
-        Article.objects.create(
-            scraped=scraped_record,
-            uid=uid,
-            source=scraped_record.source,
-            url=note.link,
-            title="",
-            note=note,
-            is_selected=True,
-            certainty_degree=101,
-            published_date=note.date
-        )
-    scraper = scraper_class(
-        "", "", recover_record=scraped_record)
-    scraper.scrape_articles(update=True)
-    articles_objects = scraper.get_articles_objects()
-    for article in articles_objects:
-        if note := article.note:
-            note.subtitle = article.subtitle
-            note.save()
+    # pending_notes = Note.objects.filter(
+    #     date__lte="2023-12-31",
+    #     articles__isnull=True,
+    #     source=scraped_record.source,
+    #     link__isnull=False
+    # ).distinct()
+    # print(f"Total de notas pendientes: {pending_notes.count()}")
+    # for note in pending_notes[:limit]:
+    #     has_same_url = Article.objects.filter(url=note.link).exists()
+    #     if has_same_url:
+    #         print(f"Nota ya tiene artículo asociado: {note.link}")
+    #         print(f"title: {note.title}")
+    #         continue
+    #     uid = note.link.replace("https://www.jornada.com.mx/", "")
+    #     Article.objects.create(
+    #         scraped=scraped_record,
+    #         uid=uid,
+    #         source=scraped_record.source,
+    #         url=note.link,
+    #         title="",
+    #         note=note,
+    #         is_selected=True,
+    #         certainty_degree=101,
+    #         published_date=note.date
+    #     )
+    # scraper = scraper_class(
+    #     "", "", recover_record=scraped_record)
+    # scraper.scrape_articles(update=True)
+    # articles_objects = Article.objects.filter(
+    #     scraped=scraped_record, note__isnull=False, subtitle__isnull=False
+    # )
+    # for article in articles_objects:
+    #     if note := article.note:
+    #         note.subtitle = article.subtitle
+    #         note.save()
     first_selected_articles = list(Article.objects.filter(
         scraped=scraped_record,
         paragraphs__isnull=False,
@@ -163,7 +165,7 @@ def get_again_old_articles(
         prompt_version=prompt_version, articles=first_selected_articles)
 
 
-get_again_old_articles(86, limit=40)
+get_again_old_articles(86, limit=900)
 
 
 

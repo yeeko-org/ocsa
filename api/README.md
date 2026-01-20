@@ -1,12 +1,67 @@
-# ocs django db
 
-Ejecutar la siguiente función:
+
+## Pasos iniciales:
+- Tener instalado Python 3, mínimo 3.13
+
+- instalar pip (normalmente ya viene con python)
+
+- Revisar que las variables de entorno se escribieron adecuadamente (Si se trabaja en Windows)
+
+## Entornos virtuales
+- Preferentemente, tener dos carpetas separadas (para una mejor organización):
+- La primera para los entornos virtuales, y otro para los sistemas/proyectos
+
+- Instalar venv
+- Crear en ambiente virtual, en este caso llamado 'escaleras' en la carpeta env:
+```bash
+python -m venv ocsa
+````
+
+- Iniciar el entorno virtual (venv) en la carpeta colocada
+```
+# en Windows
+.\ocsa\Scripts\Activate.ps1
+# o en Linux/Mac
+source ocsa/bin/activate
+```
+
+## Variables de entorno
+- Crear un archivo .env en la carpeta dev\ocsa con las variables de entorno necesarias (puedes basarte en el archivo .env.example)
+
+## Instalación de paquetes requeridos
+- Instalar los paquetes requeridos para el sistema en la carpeta dev\ocsa.  (Esto viene en el archivo requirements.txt)
+```bash
+pip install -r requirements.txt
+```
+
+
+## Base de datos
+
+
+### Opción PostgreSQL (Para producción o equipos que ya lo usan)
+
+- Deberás tener instalado PostgreSQL
+- Crear una base de datos en PostgreSQL llamada 'escaleras-local' (o el nombre que desees)
+- Configurar tu archivo `.env` con las credenciales de PostgreSQL:
+  ```env
+  POSTRGRESQL_DB=True
+  DATABASE_NAME=ocsa-local
+  DATABASE_USER=tu_usuario
+  DATABASE_PASSWORD=tu_contraseña
+  DATABASE_HOST=localhost
+  DATABASE_PORT=5432
+  DATABASE_SCHEMA=public
+  ```
+  
+Crear la extensión unaccent en PostgreSQL
+```bash
 CREATE EXTENSION IF NOT EXISTS unaccent;
+```
 
 
-los datos de ubicacion tienen que cargarse primero antes de las migracion de datos
+Los datos de ubicación tienen que cargarse primero antes de las migraciones de datos
 
-orden de ejecucion de migracion de datos:
+Órden de ejecución de migración de datos:
 
 python manage.py migrate
 python manage.py migrate_initial_data
@@ -35,6 +90,8 @@ python manage.py migrate_note_files --source /path/ --output migrate_note_files_
 python manage.py datum_recovery
 python manage.py post_legal_resources
 
+
+### Ayudas adicionales:
 ID a partir del cual son borradores: 3915
 
 from source.models.models import Note
