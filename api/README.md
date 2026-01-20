@@ -91,6 +91,25 @@ python manage.py datum_recovery
 python manage.py post_legal_resources
 
 
+## Correr el servidor localmente
+- Antes de correr el servicio, genera los archivos estáticos con el siguiente comando:
+```bash
+python manage.py collectstatic
+```
+
+## Crear un superuser para poder entrar al admin
+```bash
+python manage.py createsuperuser
+```
+
+- Correr el servidor localmente con el siguiente comando:
+```console
+python manage.py runserver
+```
+- Acceder a la aplicación en el navegador web en la dirección http://localhost:8000/admin
+- Acceder al API Explorer en el navegador web en la dirección http://localhost:8000/api
+
+
 ### Ayudas adicionales:
 ID a partir del cual son borradores: 3915
 
