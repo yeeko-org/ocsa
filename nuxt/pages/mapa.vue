@@ -1,5 +1,6 @@
 <script setup>
 import mapboxgl from 'mapbox-gl';
+import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import {onMounted, onUnmounted, ref, watch} from 'vue';
 import ProjectCardMap from "~/components/map/ProjectCardMap.vue";
@@ -11,6 +12,7 @@ import { useMapClusters } from "~/components/map/useMapClusters.js";
 
 const mainStore = useMainStore()
 const { getSimple } = mainStore
+const { target_project_id } = storeToRefs(mainStore)
 
 definePageMeta({
   layout: 'default',
@@ -58,6 +60,56 @@ watch(ready_gets, (newVal) => {
     hydrateProjectLocations();
     initBuildMap();
   }
+});
+
+watch(target_project_id, (newId) => {
+  if (!newId || !map.value) return;
+
+  // 1. Filtrar todas las geometrías asociadas a ese ID
+  const features = projectLocations.value.features.filter(f =>
+    f.properties.project.id === newId
+  );
+
+  if (features.length === 0) return;
+
+  // 2. Calcular Bounding Box para hacer zoom
+  const bounds = new mapboxgl.LngLatBounds();
+
+  features.forEach(feature => {
+    const geometry = feature.geometry;
+    if (geometry.type === 'Point') {
+      bounds.extend(geometry.coordinates);
+    } else if (geometry.type === 'Polygon') {
+      geometry.coordinates.forEach(ring => {
+        ring.forEach(coord => bounds.extend(coord));
+      });
+    } else if (geometry.type === 'MultiPolygon') {
+      geometry.coordinates.forEach(polygon => {
+        polygon.forEach(ring => {
+          ring.forEach(coord => bounds.extend(coord));
+        });
+      });
+    } else if (geometry.type === 'LineString') {
+      geometry.coordinates.forEach(coord => bounds.extend(coord));
+    } else if (geometry.type === 'MultiLineString') {
+      geometry.coordinates.forEach(line => {
+        line.forEach(coord => bounds.extend(coord));
+      });
+    }
+  });
+
+  // 3. Mover el mapa
+  if (!bounds.isEmpty()) {
+    map.value.fitBounds(bounds, {
+      padding: { top: 100, bottom: 100, left: 100, right: 350 },
+      maxZoom: 14,
+      duration: 1500
+    });
+  }
+
+  // 4. Abrir la tarjeta del proyecto
+  // Usamos las propiedades del primer feature encontrado
+  buildFullProjectData(features[0].properties);
 });
 
 function buildPreMap() {

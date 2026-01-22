@@ -8,7 +8,7 @@ import ConflictCard from "~/components/dashboard/project/conflict/ConflictCard.v
 import NoteTitle from "~/components/dashboard/source/note/NoteTitle.vue";
 import CollectionListMap from "~/components/map/CollectionListMap.vue";
 const mainStore = useMainStore()
-const { megaproject_types_dict, all_nodes, schemas } = storeToRefs(mainStore)
+const { megaproject_types_dict } = storeToRefs(mainStore)
 
 const props = defineProps({
   selectedProject: {

@@ -357,6 +357,8 @@ export const useMainStore = defineStore('main', {
     current_collection_data: null,
     // groups: menu_content,
     full_geo: {"state": {}, "municipality": {}},
+    searchable_projects: [],
+    target_project_id: null,
     geometry_types: [
       {
         "type": "Polygon",

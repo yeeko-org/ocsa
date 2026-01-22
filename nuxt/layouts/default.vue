@@ -1,8 +1,10 @@
 <script setup>
+import { storeToRefs } from 'pinia'
 import {useMainStore} from '~/store/index'
 const mainStore = useMainStore()
 
 const { exportData } = mainStore
+const { searchable_projects, target_project_id } = storeToRefs(mainStore)
 const q_value = ref('')
 const loading_export = ref(false)
 
@@ -54,21 +56,24 @@ function downloadProjects(all_records = true) {
                 OCSA
               </span>
             </a>
-<!--            <v-text-field-->
-<!--              v-model="q_value"-->
-<!--              label="Buscar proyectos"-->
-<!--              outlined-->
-<!--              density="compact"-->
-<!--              clearable-->
-<!--              base-color="white"-->
-<!--              color="white"-->
-<!--              variant="outlined"-->
-<!--              hide-details-->
-<!--              max-width="300"-->
-<!--              min-width="300"-->
-<!--              append-inner-icon="search"-->
-<!--              class="ml-4 my-1"-->
-<!--            ></v-text-field>-->
+            <v-autocomplete
+              v-model="target_project_id"
+              :items="searchable_projects"
+              item-title="label"
+              item-value="id"
+              label="Buscar proyectos"
+              density="compact"
+              base-color="white"
+              color="white"
+              variant="outlined"
+              hide-details
+              menu-icon=""
+              append-inner-icon="search"
+              max-width="300"
+              min-width="300"
+              class="ml-4 my-1"
+              clearable
+            ></v-autocomplete>
           </div>
         </v-toolbar-title>
       </client-only>

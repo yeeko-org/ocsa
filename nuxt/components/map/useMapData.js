@@ -8,14 +8,34 @@ export function useMapData() {
   const { getProjectLocations, fetchCatalogs } = mainStore
   const { megaproject_types_dict, cats } = storeToRefs(mainStore)
 
-  const projectLocations = ref([]);
+  const projectLocations = ref({ type: "FeatureCollection", features: [] });
   const ready_gets = ref(0);
   const selectedExtractivismTypes = ref([]);
 
   function hydrateProjectLocations() {
+
     const random_color = "#755f4c"
+    const processed_ids = new Set();
+    let temp_search_list = []
+
     projectLocations.value.features.forEach(feature => {
       const props = feature.properties;
+
+      // Lógica de búsqueda: Crear lista única
+      if (props.project && !processed_ids.has(props.project.id)) {
+        processed_ids.add(props.project.id);
+        const alt = props.project.alternative_name;
+        const name = props.project.name;
+        // Creamos una etiqueta amigable para la búsqueda
+        const label = alt ? `${name} (${alt})` : name;
+
+        temp_search_list.push({
+          id: props.project.id,
+          name: name,
+          label: label
+        });
+      }
+
       if (props.project.megaproject_type) {
         const mp_t = props.project.megaproject_type
         const megaproject_type_obj = megaproject_types_dict.value[mp_t] || {}
@@ -36,6 +56,9 @@ export function useMapData() {
         props.extractivism_type = null;
         props.extractivism_types = [];
       }
+      mainStore.searchable_projects = temp_search_list.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
     });
   }
 
@@ -75,7 +98,6 @@ export function useMapData() {
     projectLocations,
     ready_gets,
     selectedExtractivismTypes,
-    megaproject_types_dict,
     extractivism_type_props,
     hydrateProjectLocations,
     loadData
