@@ -128,17 +128,17 @@ export function useMapLayers(map) {
     });
 
     let data = {};
-    geometry_types.value.forEach(dt => {
-      data[dt.source] = {
+    geometry_types.value.forEach(gt => {
+      data[gt.source] = {
         type: 'FeatureCollection',
-        features: features_filtered.filter(f => f.geometry.type === dt.type)
+        features: features_filtered.filter(f => f.geometry.type === gt.type)
       };
     });
 
-    geometry_types.value.forEach(dt => {
-      const source = map.value.getSource(dt.source);
+    geometry_types.value.forEach(gt => {
+      const source = map.value.getSource(gt.source);
       if (source) {
-        source.setData(data[dt.source]);
+        source.setData(data[gt.source]);
       }
     });
   }

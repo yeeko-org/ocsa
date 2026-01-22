@@ -74,7 +74,7 @@ function trashFile(file){
         rounded="lg"
         hide-details
         density="compact"
-        class="normal-field mr-2"
+        class="mr-2"
         bg-color="success"
         :loading="saving"
         @change="uploadFile($event)"

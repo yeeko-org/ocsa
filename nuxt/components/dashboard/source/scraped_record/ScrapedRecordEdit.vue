@@ -138,7 +138,7 @@ function sendReprocess() {
     </v-list>
   </v-col>
   <v-col
-    v-if="full_main.articles_count > full_main.scraped_count"
+    v-if="full_main.articles_count > full_main.analyzed_count"
     cols="5"
     class="d-flex pa-0"
   >
