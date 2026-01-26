@@ -38,9 +38,10 @@ const props = defineProps({
         collection_name="note"
       />
       <HeaderChip
+        v-if="main.impact_subtype_count"
         class="ml-3"
         color="indigo"
-        :count="main.impact_subtype_count ? 1 : 0"
+        :count="main.impact_subtype_count"
         collection_name="impact_subtype"
       />
       <v-icon

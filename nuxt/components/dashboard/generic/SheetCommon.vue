@@ -64,7 +64,7 @@ const elem_id = computed(() => {
     :key="child_collection.relation_id"
     class="mb-4"
   >
-    <v-card-title>
+    <v-card-title v-if="!child_collection.results">
       {{ child_collection.collection_data.plural_name }}
       <span v-if="child_collection.results">
         ({{ child_collection.results.length }})
@@ -90,7 +90,23 @@ const elem_id = computed(() => {
         :show_details="show_details"
         :total_count="child_collection.results.length"
         in_sheet
-      />
+      >
+        <template #title>
+          {{ child_collection.collection_data.plural_name }}
+          <span v-if="child_collection.results">
+            ({{ child_collection.results.length }})
+          </span>
+          <span v-else-if="child_collection.count !== null
+            && child_collection.count !== undefined"
+          >
+            ({{ child_collection.count }})
+          </span>
+          <span v-else class="text-error">
+            Sin data heredada!!
+          </span>
+        </template>
+
+      </PanelsResult>
       <CollectionDisplay
         v-else
         :parent_collection="child_collection.collection_data"

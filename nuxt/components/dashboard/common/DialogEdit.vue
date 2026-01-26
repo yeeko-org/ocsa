@@ -69,6 +69,7 @@ function saveItem({res, is_new}) {
         :full_main="full_main"
         :collection_name="collection_data.snake_name"
         @item-saved="saveItem"
+        in_dialog
       >
         <template #edit="{ full_main }" v-if="edit_component">
           <component

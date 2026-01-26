@@ -312,17 +312,17 @@ function openDialog(is_add=true){
         >
           <div class="d-flex align-start">
             {{ item.raw.description.substring(0, 120) }}{{ item.raw.description.length > 120 ? '...' : '' }}
-        <v-tooltip
-          v-if="item.raw.description"
-          activator="parent"
-          :open-on-hover="true"
-          :close-delay="0"
-          :open-delay="0"
-          location="right"
-          :max-width="400"
-        >
-          {{ item.raw.description }}
-        </v-tooltip>
+            <v-tooltip
+              v-if="item.raw.description"
+              activator="parent"
+              :open-on-hover="true"
+              :close-delay="0"
+              :open-delay="0"
+              location="right"
+              :max-width="400"
+            >
+              {{ item.raw.description }}
+            </v-tooltip>
 
           </div>
 

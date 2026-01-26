@@ -356,7 +356,7 @@ function selectItem(item) {
         ></v-select>
         <v-spacer></v-spacer>
         <FiltersList
-          v-if="simplified_filters"
+          v-if="simplified_filters && !direct_sheet"
           :final_filters="final_filters"
           :visible_filters="visible_filters"
         />
@@ -378,7 +378,7 @@ function selectItem(item) {
             Agregar {{ collection_data.name }}
           </v-btn>
           <ExportButton
-            v-if="collection_data.xls_export"
+            v-if="collection_data.xls_export && !direct_sheet"
             @export-records="exportRecords($event)"
             :loading-export="loading_export"
           />

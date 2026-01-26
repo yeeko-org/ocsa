@@ -268,7 +268,7 @@ const label_other_reason = computed(() => {
       class="pa-2 mb-2"
       variant="outlined"
     >
-      <div class="d-flex align-center mb-2">
+      <div class="d-flex align-center mb-2 ga-2">
 
         <CriteriaChip
           :main="qualy"

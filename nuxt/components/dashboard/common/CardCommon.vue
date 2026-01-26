@@ -33,7 +33,7 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${card_nam
     })
   })
 
-const emits = defineEmits(['selected-item', 'delete-item'])
+const emits = defineEmits(['selected-item', 'delete-item', 'edit-item'])
 
 const dialog_search = ref(false)
 const dialog_edit = ref(false)
@@ -60,6 +60,7 @@ function searchItem() {
 function closeDialog(event) {
   // console.log("close dialog", event)
   dialog_edit.value = false
+  emits('selected-item', event)
 }
 
 function closeChangeDialog(new_item) {

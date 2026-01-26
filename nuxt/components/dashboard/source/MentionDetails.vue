@@ -103,7 +103,6 @@ function searchActor(group) {
   })
 }
 
-
 function saveParticipant([elem_in_edition, actor]) {
   const part_idx = props.mention.participants.findIndex(
     part => part.id === elem_in_edition.id)
@@ -233,7 +232,7 @@ function deleteMention() {
             <CardCommon
               :full_main="mention.project_full"
               :collection_data="schemas.collections_dict['project']"
-              @selected-item="changeProject"
+              @selected-item="changeProject($event)"
               indirect_get
               class="py-3"
             />

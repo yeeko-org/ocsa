@@ -63,7 +63,6 @@ const final_mentions = computed(() => {
     max-width="200"
     variant="outlined"
     density="compact"
-    class="ml-2"
   >
     Sin proyectos
   </v-alert>

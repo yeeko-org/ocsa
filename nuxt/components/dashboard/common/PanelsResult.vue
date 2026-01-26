@@ -23,6 +23,7 @@ const props = defineProps({
   is_mini: Boolean,
   is_simple: Boolean,
   in_sheet: Boolean,
+  hide_actions: Boolean,
   main_action: String,
   is_map_viz: {
     type: Boolean,
@@ -190,66 +191,72 @@ function selectItem(item) {
 </script>
 
 <template>
-  <v-card
-    v-if="group_actions_enabled && !is_mini && !is_map_viz"
-    class="px-2 py-1 d-flex align-center justify-space-between"
-    variant="tonal"
-    color="secondary"
-  >
-    <v-btn
-      v-if="collection_data.level !== 'secondary'"
-      color="accent"
-      @click="addItem"
-      class="mr-3"
-      prepend-icon="add"
+  <div class="d-flex align-center">
+    <span v-if="in_sheet" class="text-h6 text-black mr-6">
+      <slot name="title">
+      </slot>
+    </span>
+    <v-card
+      v-if="group_actions_enabled && !is_mini && !is_map_viz  && !hide_actions"
+      class="px-2 py-1 d-flex align-center justify-space-between flex-grow-1"
+      variant="tonal"
+      color="secondary"
     >
-      Crear
-      {{collection_data.name.length > 15
-        ? 'registro' : collection_data.name}}
-    </v-btn>
-    <v-spacer></v-spacer>
-    <template
-      v-if="collection_data.has.order && collection_data.level !== 'category_group'"
-    >
-      <v-divider vertical class="mx-2" color="blue"></v-divider>
-      <v-switch
-        v-model="sel.show_order"
-        label="Reordenar"
+      <v-btn
+        v-if="collection_data.level !== 'secondary' && !in_sheet"
+        color="accent"
+        @click="addItem"
         class="mr-3"
-        hide-details
-      ></v-switch>
-    </template>
-    <v-divider
-      vertical
-      class="mx-2"
-      color="blue"
-    ></v-divider>
-    <MassiveActions
-      v-if="results.length && collection_data.available_actions.length"
-      :sel="sel"
-      :results="results"
-      :collection_data="collection_data"
-      @select-all="selectAll"
-      @want-massive-edit="wantMassiveEdit()"
-      @want-merge="wantMerge()"
-    />
-    <v-alert
-      v-else-if="init_indirect"
-      type="info"
-      variant="outlined"
-      density="compact"
-    >
-      Busca manualmente | Utiliza el ícono <v-icon>search</v-icon>
-    </v-alert>
-    <v-alert
-      v-else-if="!results.length && in_sheet"
-      type="warning"
-      variant="outlined"
-      density="compact"
-    >
-      No existen {{ props.collection_data.plural_name }}
-    </v-alert>
-  </v-card>
+        prepend-icon="add"
+      >
+        Crear
+        {{collection_data.name.length > 15
+          ? 'registro' : collection_data.name}}
+      </v-btn>
+      <v-spacer></v-spacer>
+      <template
+        v-if="collection_data.has.order && collection_data.level !== 'category_group'"
+      >
+        <v-divider vertical class="mx-2" color="blue"></v-divider>
+        <v-switch
+          v-model="sel.show_order"
+          label="Reordenar"
+          class="mr-3"
+          hide-details
+        ></v-switch>
+      </template>
+      <v-divider
+        vertical
+        class="mx-2"
+        color="blue"
+      ></v-divider>
+      <MassiveActions
+        v-if="results.length && collection_data.available_actions.length"
+        :sel="sel"
+        :results="results"
+        :collection_data="collection_data"
+        @select-all="selectAll"
+        @want-massive-edit="wantMassiveEdit()"
+        @want-merge="wantMerge()"
+      />
+      <v-alert
+        v-else-if="init_indirect"
+        type="info"
+        variant="outlined"
+        density="compact"
+      >
+        Busca manualmente | Utiliza el ícono <v-icon>search</v-icon>
+      </v-alert>
+      <v-alert
+        v-else-if="!results.length && in_sheet"
+        type="warning"
+        variant="outlined"
+        density="compact"
+      >
+        No existen {{ props.collection_data.plural_name }}
+      </v-alert>
+    </v-card>
+  </div>
   <v-card class="mt-2" v-if="results.length">
     <span v-if="!in_sheet" class="text-grey-darken-1 text-caption">
       Página {{page_number}} de {{Math.ceil(total_count / final_filters.page_size)}}

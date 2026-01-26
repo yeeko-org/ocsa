@@ -97,12 +97,6 @@ const others_parents = computed(() => {
 
 <template>
   <v-card class="mb-4" v-if="others_parents.length">
-    <v-card-title>
-      Actores padres extras
-      <span>
-        ({{ others_parents.length }})
-      </span>
-    </v-card-title>
     <v-card-text>
       <PanelsResult
         :results="others_parents"
@@ -111,16 +105,14 @@ const others_parents = computed(() => {
         :total_count="others_parents.length"
         in_sheet
         is_simple
-      />
+      >
+        <template #title>
+          Actores padres extras ({{ others_parents.length }})
+        </template>
+      </PanelsResult>
     </v-card-text>
   </v-card>
   <v-card class="mb-4">
-    <v-card-title>
-      Actores hijos
-      <span v-if="children_actors">
-        ({{ children_actors.length }})
-      </span>
-    </v-card-title>
     <v-card-text v-if="children_actors && children_actors.length">
       <PanelsResult
         :results="children_actors"
@@ -129,16 +121,17 @@ const others_parents = computed(() => {
         :total_count="children_actors.length"
         in_sheet
         is_simple
-      />
+      >
+        <template #title>
+          Actores hijos
+          <span v-if="children_actors">
+            ({{ children_actors.length }})
+          </span>
+        </template>
+      </PanelsResult>
     </v-card-text>
   </v-card>
   <v-card class="mb-4">
-    <v-card-title>
-      Proyectos
-      <span v-if="projects">
-        ({{ projects.length }})
-      </span>
-    </v-card-title>
     <v-card-text>
       <PanelsResult
         :results="projects"
@@ -147,16 +140,17 @@ const others_parents = computed(() => {
         :total_count="projects.length"
         in_sheet
         is_simple
-      />
+      >
+        <template #title>
+          Proyectos
+          <span v-if="projects">
+            ({{ projects.length }})
+          </span>
+        </template>
+      </PanelsResult>
     </v-card-text>
   </v-card>
   <v-card class="mb-4">
-    <v-card-title>
-      Notas
-      <span v-if="notes">
-        ({{ notes.length }})
-      </span>
-    </v-card-title>
     <v-card-text>
       <PanelsResult
         :results="notes"
@@ -165,7 +159,15 @@ const others_parents = computed(() => {
         :total_count="notes.length"
         in_sheet
         is_simple
-      />
+        hide_actions
+      >
+        <template #title>
+          Notas
+          <span v-if="notes">
+            ({{ notes.length }})
+          </span>
+        </template>
+      </PanelsResult>
     </v-card-text>
   </v-card>
 </template>

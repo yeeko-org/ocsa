@@ -14,6 +14,7 @@ const props = defineProps({
   collection_data: Object,
   collection_name: String,
   can_delete: Boolean,
+  in_dialog: Boolean,
   edit_type: {
     type: Object,
     default: () => ({key: 'edit', title: 'Agregar Registro', btn: 'Guardar'})
@@ -81,6 +82,7 @@ async function saveRecord() {
 
 const snackbar = ref(false)
 const snackbar_text = ref('Se ha guardado el registro')
+
 function finishSave(snackbar_msg='Se ha guardado el registro'){
   saving.value = false
   snackbar.value = true
@@ -95,12 +97,14 @@ function updateStatus({status_group, new_status, res}){
   const msg = `Status ${status_info.name} actualizado
     a "${new_status_obj.public_name}"`
   finishSave(msg)
-  emits('item-saved', {res, is_new: false})
+  if (!props.in_dialog)
+    emits('item-saved', {res, is_new: false})
 }
 
 function updateComments(res){
   finishSave('Comentarios guardados correctamente')
-  emits('item-saved', {res, is_new: false})
+  if (!props.in_dialog)
+    emits('item-saved', {res, is_new: false})
 }
 
 function deleteRecord() {

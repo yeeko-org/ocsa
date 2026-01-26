@@ -212,7 +212,7 @@ const discarded_reason = computed(() => {
 <!--        <div class="d-flex align-start" v-if="main.second_criteria">-->
           <ProjectsCriteria
             :criteria="main.second_criteria"
-
+            class="ml-2"
           />
 <!--        </div>-->
 <!--        <v-divider></v-divider>-->

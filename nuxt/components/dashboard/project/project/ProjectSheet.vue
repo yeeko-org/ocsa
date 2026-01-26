@@ -167,12 +167,6 @@ const children_projects = computed(() => {
     />
   </v-card>
   <v-card class="mb-4" v-if="full_main.is_grouper">
-    <v-card-title>
-      Proyectos agrupados
-      <span v-if="children_projects">
-        ({{ children_projects.length }})
-      </span>
-    </v-card-title>
     <v-card-text v-if="children_projects && children_projects.length">
       <PanelsResult
         :results="children_projects"
@@ -180,51 +174,47 @@ const children_projects = computed(() => {
         :show_details="show_details"
         :total_count="children_projects.length"
         in_sheet
-      />
+        hide_actions
+      >
+        <template #title>
+          Proyectos agrupados:
+          <span v-if="children_projects">
+            ({{ children_projects.length }})
+          </span>
+        </template>
+      </PanelsResult>
     </v-card-text>
   </v-card>
 
   <v-card v-if="full_project.mentions">
-    <v-card-title class="text-deep-purple">
-      {{ full_project.mentions.length }} Notas:
-    </v-card-title>
     <v-card-text>
-      <PanelList
-        v-if="false"
-        :results="related_notes"
-        :collection_data="note_collection"
-        :show_details="show_details"
-        parent="project"
-      />
       <PanelsResult
         :results="related_notes"
         :collection_data="note_collection"
         :show_details="show_details"
         :total_count="related_notes.length"
         in_sheet
-      />
+        hide_actions
+      >
+        <template #title>
+          {{ full_project.mentions.length }} Notas:
+        </template>
+      </PanelsResult>
     </v-card-text>
   </v-card>
   <v-card class="my-3">
-    <v-card-title>
-      Todos los actores ({{ related_actors.length }}):
-    </v-card-title>
     <v-card-text>
-      <PanelList
-        v-if="false"
-        :results="related_actors"
-        :collection_data="actor_collection"
-        :show_details="show_details"
-        parent="project"
-      />
       <PanelsResult
         :results="related_actors"
         :collection_data="actor_collection"
         :show_details="show_details"
         :total_count="related_actors.length"
         in_sheet
-      />
-
+      >
+        <template #title>
+          Actores involucrados ({{ related_actors.length }})
+        </template>
+      </PanelsResult>
     </v-card-text>
   </v-card>
   <v-snackbar
