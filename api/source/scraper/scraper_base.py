@@ -1,29 +1,77 @@
-from source.models import (
-    Article, ScrapedRecord, Source, ArticleQualify, QualifySchema)
+import re
 from abc import ABC, abstractmethod
-from bs4 import BeautifulSoup
-from bs4.element import Tag, PageElement
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Type
-import requests
-from django.conf import settings
-import re
 
-REQUESTS_DEFAULT_HEADERS = {'User-Agent': 'Mozilla/4.0'}
+import requests
+from bs4 import BeautifulSoup
+from bs4.element import PageElement, Tag
+from django.conf import settings
+
+from source.models import Article, ArticleQualify, QualifySchema, ScrapedRecord, Source
+
+REQUESTS_DEFAULT_HEADERS = {"User-Agent": "Mozilla/4.0"}
+
+
+def get_json_content(
+    url: str,
+    with_proxy: bool = False,
+    attempts: int = 1,
+    custom_headers: dict | None = None,
+) -> dict:
+    """
+    Hace requests a APIs JSON con headers personalizados.
+
+    Args:
+        url: URL de la API
+        with_proxy: Si usar proxy
+        attempts: Número de intento actual (para reintentos)
+        custom_headers: Headers personalizados (ej: Bearer token)
+
+    Returns:
+        dict: Respuesta JSON parseada
+    """
+    import time
+
+    headers = custom_headers or REQUESTS_DEFAULT_HEADERS
+    proxy_key = settings.PROXY_KEY
+
+    if with_proxy and proxy_key:
+        proxies = {
+            "http": f"http://{proxy_key}",
+            "https": f"https://{proxy_key}",
+        }
+        response = requests.get(url, headers=headers, proxies=proxies)
+    else:
+        response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        if attempts <= 3:
+            print(
+                f"Intento {attempts} fallido para {url}. Status: {response.status_code}"
+            )
+            time.sleep(2**attempts)
+            return get_json_content(url, with_proxy, attempts + 1, custom_headers)
+        else:
+            raise Exception(
+                f"Error al acceder a la API: {response.status_code} - {response.text[:200]}"
+            )
 
 
 def get_content(
-        url, parser="html.parser", with_proxy:bool=False, attempts:int=1
+    url, parser="html.parser", with_proxy: bool = False, attempts: int = 1
 ) -> BeautifulSoup:
     import time
+
     proxy_key = settings.PROXY_KEY
     if with_proxy and proxy_key:
         proxies = {
             "http": f"http://{proxy_key}",
             "https": f"https://{proxy_key}",
         }
-        response = requests.get(
-            url, headers=REQUESTS_DEFAULT_HEADERS, proxies=proxies)
+        response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS, proxies=proxies)
     else:
         response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS)
     if response.status_code == 200:
@@ -31,11 +79,10 @@ def get_content(
     else:
         if attempts <= 3 and with_proxy:
             print(f"Intento {attempts} fallido para {url}.")
-            time.sleep(2 ** attempts)
+            time.sleep(2**attempts)
             return get_content(url, parser, with_proxy, attempts + 1)
         else:
-            raise Exception(
-                f"Error al acceder a la página: {response.status_code}")
+            raise Exception(f"Error al acceder a la página: {response.status_code}")
 
 
 def get_clean_text(elem: PageElement) -> str:
@@ -43,9 +90,9 @@ def get_clean_text(elem: PageElement) -> str:
     Obtiene el texto limpio de un Tag de BeautifulSoup, eliminando espacios
     adicionales y saltos de línea.
     """
-    text = elem.get_text(separator=' ')
-    text = re.sub(r'\n+', ' ', text)  # Reemplaza saltos de línea por espacio
-    return re.sub(r'\s+', ' ', text).strip()
+    text = elem.get_text(separator=" ")
+    text = re.sub(r"\n+", " ", text)  # Reemplaza saltos de línea por espacio
+    return re.sub(r"\s+", " ", text).strip()
 
 
 class MainScraper(ABC):
@@ -76,8 +123,7 @@ class MainScraper(ABC):
 
     def __init__(self, scraper_date: date | str):
         self.scraper_date = date_in_str(scraper_date)
-        self.soup_content = get_content(
-            self.main_url(), self.parser, self.need_proxy)
+        self.soup_content = get_content(self.main_url(), self.parser, self.need_proxy)
 
         self.get_sections()
         self.get_articles()
@@ -111,12 +157,10 @@ class ArticleScraper(ABC):
     def __init__(self, article: Article, update: bool = False):
         self.article = article
         if article.html_content and not update:
-            self.soup_content = BeautifulSoup(
-                article.html_content, self.parser)
+            self.soup_content = BeautifulSoup(article.html_content, self.parser)
             self.get_article_data()
             return
-        self.soup_content = get_content(
-            self.article.url, self.parser, self.need_proxy)
+        self.soup_content = get_content(self.article.url, self.parser, self.need_proxy)
         try:
             self.get_article_data()
         except Exception as e:
@@ -129,8 +173,7 @@ class ArticleScraper(ABC):
         article.content = self.content or article.content
         article.paragraphs = self.get_paragraphs(article.content)
         # article.paragraps = self.content.split("\n") if self.content else []
-        article.html_content = str(
-            self.get_main_body()) or article.html_content
+        article.html_content = str(self.get_main_body()) or article.html_content
         article.images = self.images or article.images  # type: ignore
 
     @abstractmethod
@@ -149,10 +192,10 @@ class ArticleScraper(ABC):
         if not content:
             return []
 
-        paragraphs = re.split(r'\n{2,}', content)
+        paragraphs = re.split(r"\n{2,}", content)
         final_paragraphs = []
         for paragraph in paragraphs:
-            single_line = paragraph.replace('\n', ' ').strip()
+            single_line = paragraph.replace("\n", " ").strip()
             if paragraph:
                 final_paragraphs.append(single_line)
         return final_paragraphs
@@ -167,19 +210,69 @@ class ArticleScraper(ABC):
         #     title = None
 
         excluded_tags = [
-            'script', 'style', 'noscript', 'svg', 'button', 'input',
-            'textarea', 'select', 'option', 'form', 'fieldset', 'canvas',
-            'nav', 'aside', 'address', 'map', 'area',
-            'legend', 'iframe', 'embed', 'object', 'param', 'video', 'audio']
+            "script",
+            "style",
+            "noscript",
+            "svg",
+            "button",
+            "input",
+            "textarea",
+            "select",
+            "option",
+            "form",
+            "fieldset",
+            "canvas",
+            "nav",
+            "aside",
+            "address",
+            "map",
+            "area",
+            "legend",
+            "iframe",
+            "embed",
+            "object",
+            "param",
+            "video",
+            "audio",
+        ]
         for excluded_tag in excluded_tags:
             for tag in body.find_all(excluded_tag):
                 tag.decompose()
         main_tags = [
-            'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ul', 'div',
-            'span', 'article', 'section', 'header', 'footer', 'img',
-            'video', 'figure', 'figcaption', 'blockquote',
-            'table', 'tr', 'td', 'th', 'ol', 'dl', 'dt', 'dd'
-            'em', 'strong', 'b', 'i', 'a', 'br']
+            "p",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "li",
+            "ul",
+            "div",
+            "span",
+            "article",
+            "section",
+            "header",
+            "footer",
+            "img",
+            "video",
+            "figure",
+            "figcaption",
+            "blockquote",
+            "table",
+            "tr",
+            "td",
+            "th",
+            "ol",
+            "dl",
+            "dt",
+            "ddem",
+            "strong",
+            "b",
+            "i",
+            "a",
+            "br",
+        ]
         begin_title = not bool(title)
         for tag in body.find_all():
             tag_text = tag.get_text(strip=True)
@@ -196,19 +289,18 @@ class ArticleScraper(ABC):
 
         # body = self.special_cleanup(body)
 
-        allowed_attrs = [
-            'class', 'id', 'href', 'src', 'alt', 'title']
+        allowed_attrs = ["class", "id", "href", "src", "alt", "title"]
         # new_body = BeautifulSoup('', 'html.parser')
         for tag in body.find_all():
             relevant_attrs = {
-                key: value for key, value in tag.attrs.items()
-                if key in allowed_attrs
+                key: value for key, value in tag.attrs.items() if key in allowed_attrs
             }
             tag.attrs = relevant_attrs
         try:
             # body_encoding = body.encode("utf-8")
-            self.article.html_content = body.prettify()\
-                .encode("utf-8", errors="ignore").decode("utf-8")
+            self.article.html_content = (
+                body.prettify().encode("utf-8", errors="ignore").decode("utf-8")
+            )
             # print("Body4:", self.htmml_content)
         except Exception as e:
             print("Error body.pretty:", e)
