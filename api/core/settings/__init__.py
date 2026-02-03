@@ -1,75 +1,77 @@
 import os
-from core.settings.get_env import getenv_bool, getenv_int, getenv_list
+
 from dotenv import load_dotenv
+
+from core.settings.get_env import getenv_bool, getenv_int, getenv_list
+
 load_dotenv()
 
 # BASE_DIR = Path(__file__).resolve().parent.parent
-BASE_DIR = os.path.dirname(os.path.dirname(
-    os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-WSGI_APPLICATION = 'core.wsgi.application'
-AUTH_USER_MODEL = 'profile_auth.User'
+WSGI_APPLICATION = "core.wsgi.application"
+AUTH_USER_MODEL = "profile_auth.User"
 
 # Application definition
 
 INSTALLED_APPS = [
-    'ps_schema',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.postgres',
-    'rest_framework',
-    'corsheaders',
-    'rest_framework.authtoken',
-    'django_filters',
-    'profile_auth',
-    'ocsa_legacy',
-    'work_flux',
-    'classify',
-    'space_time',
-    'project',
-    'source',
-    'actor',
-    'impact',
-    'event',
-    'df',
-    'task',
+    "ps_schema",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.postgres",
+    "rest_framework",
+    "corsheaders",
+    "rest_framework.authtoken",
+    "django_filters",
+    "profile_auth",
+    "ocsa_legacy",
+    "work_flux",
+    "classify",
+    "space_time",
+    "project",
+    "source",
+    "actor",
+    "impact",
+    "event",
+    "df",
+    "task",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = "core.urls"
 
 # TEMPLATE_PATH = os.path.join(BASE_DIR, 'templates')
-TEMPLATE_PATH = os.path.join(BASE_DIR, os.getenv("TEMPLATE_PATH", 'templates'))
+TEMPLATE_PATH = os.path.join(BASE_DIR, os.getenv("TEMPLATE_PATH", "templates"))
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [TEMPLATE_PATH],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.contrib.auth.context_processors.auth',
-                'django.template.context_processors.debug',
-                'django.template.context_processors.i18n',
-                'django.template.context_processors.media',
-                'django.template.context_processors.static',
-                'django.template.context_processors.tz',
-                'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.request',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [TEMPLATE_PATH],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",
             ],
         },
     },
@@ -77,73 +79,74 @@ TEMPLATES = [
 
 
 # -----------------------Default database configuration-----------------------
-POSTRGRESQL_DB = os.getenv('POSTRGRESQL_DB', False)
+POSTRGRESQL_DB = os.getenv("POSTRGRESQL_DB", False)
 DATABASE_NAME = os.getenv("DATABASE_NAME", "db.sqlite3")
 DATABASE_SCHEMA = os.getenv("DATABASE_SCHEMA")
 if POSTRGRESQL_DB:
     default_database = {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': DATABASE_NAME,
-        'USER': os.getenv("DATABASE_USER"),
-        'PASSWORD': os.getenv("DATABASE_PASSWORD"),
-        'HOST': os.getenv("DATABASE_HOST"),
-        'PORT': int(os.getenv("DATABASE_PORT", 5432)),
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": DATABASE_NAME,
+        "USER": os.getenv("DATABASE_USER"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "HOST": os.getenv("DATABASE_HOST"),
+        "PORT": int(os.getenv("DATABASE_PORT", 5432)),
     }
 else:
     default_database = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, DATABASE_NAME)
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, DATABASE_NAME),
     }
 
 if DATABASE_SCHEMA:
-    default_database['OPTIONS'] = {  # type: ignore
-        'options': f'-c search_path={DATABASE_SCHEMA}',
+    default_database["OPTIONS"] = {  # type: ignore
+        "options": f"-c search_path={DATABASE_SCHEMA}",
     }
 
-DATABASES = {
-    "default": default_database
-}
+DATABASES = {"default": default_database}
 # ---------------------end Default database configuration---------------------
 
 
 # -----------------------Legacy database configuration------------------------
 DATABASE_LEGACY_NAME = os.getenv("DATABASE_LEGACY_NAME")
 if DATABASE_LEGACY_NAME:
-    POSTRGRESQL_LEGACY_DB = os.getenv('POSTRGRESQL_LEGACY_DB', False)
+    POSTRGRESQL_LEGACY_DB = os.getenv("POSTRGRESQL_LEGACY_DB", False)
     DATABASE_LEGACY_SCHEMA = os.getenv("DATABASE_LEGACY_SCHEMA")
     if POSTRGRESQL_LEGACY_DB:
         legacy = {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': DATABASE_LEGACY_NAME,
-            'USER': os.getenv("DATABASE_LEGACY_USER"),
-            'PASSWORD': os.getenv("DATABASE_LEGACY_PASSWORD"),
-            'HOST': os.getenv("DATABASE_LEGACY_HOST"),
-            'PORT': int(os.getenv("DATABASE_LEGACY_PORT", 5432)),
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": DATABASE_LEGACY_NAME,
+            "USER": os.getenv("DATABASE_LEGACY_USER"),
+            "PASSWORD": os.getenv("DATABASE_LEGACY_PASSWORD"),
+            "HOST": os.getenv("DATABASE_LEGACY_HOST"),
+            "PORT": int(os.getenv("DATABASE_LEGACY_PORT", 5432)),
         }
     else:
-
         legacy = {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, DATABASE_LEGACY_NAME)
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, DATABASE_LEGACY_NAME),
         }
 
     if DATABASE_LEGACY_SCHEMA:
-        legacy['OPTIONS'] = {  # type: ignore
-            'options': f'-c search_path={DATABASE_LEGACY_SCHEMA}',
+        legacy["OPTIONS"] = {  # type: ignore
+            "options": f"-c search_path={DATABASE_LEGACY_SCHEMA}",
         }
 
     DATABASES["legacy"] = legacy
-    DATABASE_ROUTERS = ['core.routers.LegacyRouter']
+    DATABASE_ROUTERS = ["core.routers.LegacyRouter"]
 # ---------------------end Legacy database configuration----------------------
 
 # ---------------------------------SECURITY-----------------------------------
 
-SECRET_KEY = '***REMOVED***'
+SECRET_KEY = "***REMOVED***"
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PROXY_KEY = os.getenv("PROXY_KEY")
+
+# PressReader credentials (para scraper de Proceso)
+PRESSREADER_USER = os.getenv("PRESSREADER_USER")
+PRESSREADER_PASS = os.getenv("PRESSREADER_PASS")
 OPENAI_TOKENS_MAX_LENGTH = getenv_int("OPENAI_TOKENS_MAX_LENGTH", 128000)
 OPENAI_ENGINE = os.getenv("OPENAI_ENGINE", "gpt-4o")
 SHOW_TEST_PROMPTS = getenv_bool("SHOW_TEST_PROMPTS", False)
@@ -171,68 +174,62 @@ HTTP_X_FORWARDED_HOST = os.getenv("HTTP_X_FORWARDED_HOST")
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 # -------------------------------END SECURITY---------------------------------
 
 
-LANGUAGE_CODE = 'es-mx'
+LANGUAGE_CODE = "es-mx"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
 USE_TZ = True
 
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    'SEARCH_PARAM': 'q',
-    'DEFAULT_PERMISSION_CLASSES': (
-        'api.permissions.IsFullEditorOrReadOnly',
+    "SEARCH_PARAM": "q",
+    "DEFAULT_PERMISSION_CLASSES": ("api.permissions.IsFullEditorOrReadOnly",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ),
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
     ],
-
 }
 
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 
-CELERY_RESULT_BACKEND = os.getenv(
-    "CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
 CELERY_TASK_RESULT_EXPIRES = getenv_int("CELERY_TASK_RESULT_EXPIRES", 3600)
 

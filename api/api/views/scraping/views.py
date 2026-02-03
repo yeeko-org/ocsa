@@ -22,24 +22,23 @@ def get_manager_scraper_class(source):
     from source.models import Source
     if isinstance(source, int):
         source = Source.objects.get(pk=source).name.lower()
-    elif isinstance(source, Source):
-        source = source.name.lower()
-    # dd
     if source == 'jornada' or source == 'la jornada':
         return JornadaManagerScraper
     elif source == "reforma":
         return ReformaManagerScraper
-    # elif source == "proceso":
-    #     from source.scraper.proceso import ProcesoManagerScraper
-    #     return ProcesoManagerScraper
+    elif source == "proceso":
+        from source.scraper.proceso import ProcesoManagerScraper
+
+        return ProcesoManagerScraper
     else:
         raise ValidationError("Invalid source")
 
 
-def full_scrape_articles(scraped_record: ScrapedRecord):
+def full_scrape_articles(source, scraped_record: ScrapedRecord):
     from django.utils import timezone
     # connection.close()  # TODO: revisar funcionamiento
-    manager_scraper_class = get_manager_scraper_class(scraped_record.source)
+
+    manager_scraper_class = get_manager_scraper_class(source)
     manager_scraper = manager_scraper_class(
         "", "", recover_record=scraped_record)
     scraped_record.last_updated = timezone.now()
@@ -47,6 +46,7 @@ def full_scrape_articles(scraped_record: ScrapedRecord):
     manager_scraper.scrape_articles(update=True)
     manager_criteria = ManagerCriteria(
         recover_record=scraped_record, ai_engine="gemini-3-flash-preview")
+
     manager_criteria.build_first_criteria()
     manager_criteria.build_second_criteria()
 
