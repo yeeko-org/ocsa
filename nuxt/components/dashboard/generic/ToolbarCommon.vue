@@ -6,8 +6,9 @@ import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
 import AlertInfo from "~/components/dashboard/common/AlertInfo.vue";
 
-import { useSaveElements } from "~/composables/save_elements.js";
-const { saveComplex, save_errors } = useSaveElements()
+import { useSaveElements, savePreItem } from "~/composables/save_elements.js";
+import DialogDelete from "~/components/dashboard/common/DialogDelete.vue";
+const { saveComplex } = useSaveElements()
 
 const props = defineProps({
   main_object: Object,  // Mention
@@ -26,6 +27,11 @@ const props = defineProps({
   two_columns: Boolean,
   emit_add: Boolean,
   partial_save: Boolean,
+  parent_object: {
+    type: Object,
+    default: null,
+  },
+  note_id: Number,
   required_field: String,
   required_full_category: Boolean,
   cols: {
@@ -145,9 +151,18 @@ function saveNewItem(item, index) {
     })
 }
 
+async function acceptItem(item, index) {
+  const params = {...item, ...props.parent_object}
+  const child_name = child_collection.value.snake_name
+  console.log("params to save pre-item", params)
+  console.log("child_name", child_name)
+  const new_item = await savePreItem(item.path, params, child_name, props.note_id)
+  console.log("new_item", new_item)
+  props.main_object[props.field].splice(index, 1, new_item)
+}
+
 const wantDeleteRecord = (item, index) => {
-  const saved = item.id
-  record_to_delete.value = { item, index, saved }
+  record_to_delete.value = { item, index, saved: !!item.id }
   dialog_delete.value = true
   // props.main_object[field.value].splice(index, 1)
 }
@@ -156,8 +171,6 @@ const deleteRecord = () => {
   const {item, index, saved} = record_to_delete.value
   if (saved && delete_text.value !== 'eliminar')
     return
-  // console.log("item", item)
-  // console.log("index", index)
   if (item.id){
     deleteSimple([child_collection.value.snake_name, item.id])
       .then(() => {
@@ -168,9 +181,8 @@ const deleteRecord = () => {
     props.main_object[props.field].splice(index, 1)
   dialog_delete.value = false
   record_to_delete.value = {}
-  // props.main_object[props.field].splice(index, 1)
-  // dialog_delete.value = false
 }
+
 const total_count = computed(() => {
   try {
     return props.main_object[props.field].length
@@ -196,7 +208,6 @@ function resetInitialData(){
 }
 
 </script>
-
 
 <template>
   <v-col :cols="cols" class="py-2 px-2">
@@ -263,9 +274,7 @@ function resetInitialData(){
         class="ma-2"
         elevation="2"
       >
-        <AlertInfo
-          :help_text="child_collection.help_text"
-        />
+        <AlertInfo :help_text="child_collection.help_text"/>
       </v-card>
       <v-card
         v-for="(item, index) in main_object[field]"
@@ -294,7 +303,9 @@ function resetInitialData(){
                 :special_multiple="special_multiple"
                 :forced_level="forced_level"
                 :required="required_full_category"
+                :can_edit_pre_save="!!note_id"
                 @delete-record="wantDeleteRecord(item, index)"
+                @accept-record="acceptItem(item, index)"
               >
                 <template #chip>
                   <slot name="rows_init" :item="item">
@@ -304,7 +315,10 @@ function resetInitialData(){
             </div>
             <slot name="rows" :item="item">
             </slot>
-            <v-card-actions class="mt-3" v-if="partial_save && item.id">
+            <v-card-actions
+              class="mt-3"
+              v-if="partial_save && item.id"
+            >
               <v-spacer></v-spacer>
               <v-btn
                 variant="outlined"
@@ -323,7 +337,17 @@ function resetInitialData(){
             cols="6"
             class="my-0"
           >
-            <v-card-actions v-if="required_field && !item.id">
+            <v-alert
+              v-if="item.path"
+              type="warning"
+              variant="outlined"
+              class="mt-2"
+            >
+              Antes de continuar acá, decide si aceptas el pre-elemento
+            </v-alert>
+            <v-card-actions
+              v-else-if="required_field && !item.id"
+            >
               <v-btn
                 block
                 variant="elevated"
@@ -336,7 +360,7 @@ function resetInitialData(){
               </v-btn>
             </v-card-actions>
             <slot
-              v-else
+              v-if="item.path || !(required_field && !item.id)"
               name="second-column"
               :item="item"
             >
@@ -383,53 +407,12 @@ function resetInitialData(){
         </v-btn>
       </template>
     </v-snackbar>
-
-    <v-dialog
+    <DialogDelete
       v-model="dialog_delete"
-      max-width="500"
-    >
-      <v-card>
-        <v-card-title>
-          ¿Confirmas la eliminación de este registro?
-        </v-card-title>
-        <v-card-subtitle>
-          Esta acción no se puede deshacer
-        </v-card-subtitle>
-        <v-card-text>
-          <v-row>
-            <v-col
-              v-if="record_to_delete.saved"
-              cols="12"
-            >
-              <v-text-field
-                v-model="delete_text"
-                label="Escribe 'eliminar' para confirmar"
-                outlined
-                dense
-                clearable
-              ></v-text-field>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn
-            color="accent"
-            variant="outlined"
-            @click="dialog_delete = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="error"
-            variant="elevated"
-            @click="deleteRecord"
-          >
-            Eliminar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      v-model:delete_text="delete_text"
+      :is_saved="record_to_delete.saved"
+      @confirm-delete="deleteRecord"
+    />
   </v-col>
 </template>
 

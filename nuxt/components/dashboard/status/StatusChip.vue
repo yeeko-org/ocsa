@@ -16,6 +16,11 @@ const props = defineProps({
   hide_details: Boolean,
   left_label: Boolean,
   bold_text: Boolean,
+  custom_class: {
+    type: String,
+    required: false,
+    default: 'flex-column',
+  },
   small: {
     type: Boolean,
     required: false,
@@ -82,12 +87,12 @@ const label = computed(() => {
   <div
     v-if="item_built"
     class="d-flex text-body-3 align-center"
-    :class="props.left_label ? 'flex-row mb-1' : 'flex-column'"
+    :class="custom_class"
   >
     <span
       v-if="!props.hide_details"
       class="text-caption text-grey-darken-1"
-      :class="props.left_label ? 'mr-2' : 'mb-n1'"
+      :class="props.left_label ? 'mr-1' : 'mb-n1'"
     >
       {{ label }}
     </span>

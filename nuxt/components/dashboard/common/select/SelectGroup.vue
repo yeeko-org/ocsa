@@ -32,6 +32,7 @@ const props = defineProps({
   required: Boolean,
   forced_clearable: Boolean,
   show_console: Boolean,
+  can_edit_pre_save: Boolean,
 })
 
 const collection_display = ref(null)
@@ -42,7 +43,8 @@ const level_dialog = ref(null)
 const init_filters = ref(null)
 const init_in_edition = ref(null)
 
-const emits = defineEmits(['delete-record'])
+const emits = defineEmits(
+  ['delete-record', 'accept-record', 'discard-record'])
 
 defineExpose({ externalSetInitialData })
 
@@ -438,7 +440,39 @@ function changeSubtypeValue(value){
 <template>
   <template v-if="is_toolbar">
     <v-col cols="12" class="d-flex px-0 pt-1">
+      <div
+        v-if="main_object.path"
+        class="d-flex xflex-column pr-2 ga-1"
+      >
+        <v-btn
+          color="success"
+          icon
+          variant="outlined"
+          size="small"
+          v-tooltip="'Aceptar'"
+          :disabled="!can_edit_pre_save"
+          @click="emits('accept-record')"
+        >
+          <v-icon>
+            done_outline
+          </v-icon>
+        </v-btn>
+        <v-btn
+          color="error"
+          icon
+          variant="outlined"
+          size="small"
+          v-tooltip="'Rechazar'"
+          :disabled="!can_edit_pre_save"
+          @click="emits('discard-record')"
+        >
+          <v-icon>
+            close
+          </v-icon>
+        </v-btn>
+      </div>
       <v-btn
+        v-else
         @click="emits('delete-record')"
         icon="delete"
         color="error"

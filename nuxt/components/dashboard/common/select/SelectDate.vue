@@ -74,6 +74,7 @@ function editDate(date) {
         :density="is_filter ? 'compact' : 'default'"
         clear-icon="close"
         @click:clear="editDate(null)"
+        style="min-width: 130px;"
       >
       </v-text-field>
     </template>

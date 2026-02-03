@@ -86,9 +86,7 @@ const full_paragraphs = computed(() => {
     project.paragraphs.forEach((p_idx) => {
       paragraphs[p_idx - 1].projects.push(final_project)
     })
-
   })
-
   return paragraphs
 })
 

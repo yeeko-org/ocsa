@@ -51,10 +51,6 @@ const avg_per_day = computed(() => {
   return 0
 })
 
-const ready_count = computed(() => {
-  return props.full_main.pre_selected_count - props.full_main.pending_count
-})
-
 function sendReprocess() {
   sendReprocessScrapedRecord(props.full_main.id).then(response => {
     // console.log("response sendReprocess", response)
@@ -128,11 +124,11 @@ function sendReprocess() {
         </template>
 
         <v-list-item-title>
-          {{ready_count}}/{{full_main.pre_selected_count}} clasificadas
+          {{full_main.ready_count}}/{{full_main.first_pre_selected_count}} clasificadas
         </v-list-item-title>
         <v-list-item-subtitle>
-          De las {{full_main.pre_selected_count}} que fueron preseleccionadas,
-          {{ready_count}} ya fueron clasificadas
+          De las {{full_main.first_pre_selected_count}} que fueron preseleccionadas,
+          {{full_main.ready_count}} ya fueron clasificadas
         </v-list-item-subtitle>
       </v-list-item>
     </v-list>

@@ -31,8 +31,7 @@ const fields = [
   'collective_actions',
 ]
 
-// const selected_fields = ref([])
-const emits = defineEmits(['update:selected_fields', 'reset-filters'])
+const emits = defineEmits(['add-field'])
 
 const criteria_data = computed(() => {
   if (props.direct_criteria)
@@ -132,16 +131,16 @@ const total_count = computed(() => {
   return criteria_data.value.reduce((acc, field) => acc + field.count, 0)
 })
 
-function addField(field) {
-  // console.log('addField', field)
-  if (props.selected_fields.includes(field)){
-    const index = props.selected_fields.indexOf(field)
-    props.selected_fields.splice(index, 1)
-  }
-  else
-    props.selected_fields.push(field)
-  emits('reset-filters')
-}
+// function addField(field) {
+//   // console.log('addField', field)
+//   if (props.selected_fields.includes(field)){
+//     const index = props.selected_fields.indexOf(field)
+//     props.selected_fields.splice(index, 1)
+//   }
+//   else
+//     props.selected_fields.push(field)
+//   emits('reset-filters')
+// }
 
 </script>
 
@@ -165,7 +164,7 @@ function addField(field) {
         size="small"
         :color="field.count ? field.color : 'grey-ligthen-2'"
         :variant="field.is_selected ? 'elevated' : 'plain'"
-        @click="addField(field.name)"
+        @click="emits('add-field', field.name)"
         :disabled="!field.count"
       >
         <v-icon

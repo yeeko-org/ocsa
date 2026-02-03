@@ -13,7 +13,7 @@ const props = defineProps({
 
 const all_belongs = computed(() => {
   return cats.value.belong.filter(
-      belong => props.actor.belongs.includes(belong.key_name))
+      belong => props.actor.belongs.includes(belong.id))
 })
 
 </script>
@@ -28,6 +28,7 @@ const all_belongs = computed(() => {
     color="secondary"
     class="ml-2"
   >
+
     <v-icon
       size="large"
     >

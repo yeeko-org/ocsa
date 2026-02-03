@@ -3,6 +3,7 @@ import {computed, nextTick, watch} from "vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import CommentIcon from "~/components/dashboard/utils/CommentIcon.vue";
 import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
+import DescriptionIcon from "~/components/dashboard/utils/DescriptionIcon.vue";
 
 const props = defineProps({
   main: Object,
@@ -117,24 +118,9 @@ const emits = defineEmits(['open-panel'])
 <!--            </v-tooltip>-->
 <!--          </v-card>-->
         </slot>
-        <v-btn
-          v-if="main.description"
-          icon
-          variant="text"
-        >
-          <v-icon
-            color="grey-darken-1"
-          >
-            subject
-          </v-icon>
-          <v-tooltip
-            activator="parent"
-            location="end"
-            max-width="400"
-          >
-            {{ main.description }}
-          </v-tooltip>
-        </v-btn>
+        <DescriptionIcon
+          :description="main.description"
+        />
       </div>
     </v-toolbar-title>
     <template v-if="real_show_details" >

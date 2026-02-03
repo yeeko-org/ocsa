@@ -13,7 +13,9 @@ const props = defineProps({
   },
 })
 
-
+const full_belongs = computed(() => {
+  return {belongs: props.full_main.belongs.map(b => ({"key_name": b}))}
+})
 
 </script>
 
@@ -28,7 +30,17 @@ const props = defineProps({
         variant="plain"
         class="mr-2 d-flex"
       >
+        <div
+          v-if="full_main.status_validation === 'yk_proposed'
+          && full_main.sector_text"
+          class="px-3"
+        >
+          {{ full_main.sector_text }}
+          <BelongIcons :actor="full_belongs"/>
+        </div>
+
         <SelectGroup
+          v-else
           :main_object="full_main"
           filter_group_name="sectors"
           main_collection_name="actor"

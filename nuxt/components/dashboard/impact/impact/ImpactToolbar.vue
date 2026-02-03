@@ -1,4 +1,4 @@
-<script setup>
+  <script setup>
 
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
@@ -21,6 +21,8 @@ const props = defineProps({
     required
     partial_save
     required_field="impact_type"
+    :note_id="mention.id ? mention.note : null"
+    :parent_object="{ mention: mention.id }"
     :additional_fields="{'locations': [], 'displacements': []}"
   >
     <template #rows="{ item }">

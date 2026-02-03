@@ -1,5 +1,6 @@
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
+import {mixOrigins} from "~/composables/pre_capture.js";
 
 function final_snake_name(collection_data) {
   const is_category = collection_data.is_category
@@ -189,3 +190,26 @@ export function useSaveElements() {
     save_errors
   }
 }
+
+
+// const index = all_mentions.value.findIndex(item => (item.path === path))
+export async function savePreItem(path, params, collection_name, note_id) {
+  const mainStore = useMainStore()
+  const { saveSimple, savePreCapture } = mainStore
+
+  // const params = {
+  //   project: project.id,
+  //   note: props.full_main.id,
+  // }
+  const saved_item = await saveSimple([collection_name, params])
+    // const path = pre_item.path
+
+  const data = {
+    path,
+    element_id: saved_item.id,
+    discarded: false,
+  }
+  const res = await savePreCapture({data, note_id})
+  return mixOrigins(saved_item, res.content, 2)
+}
+

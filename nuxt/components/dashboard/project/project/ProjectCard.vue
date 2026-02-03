@@ -3,22 +3,52 @@
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 import LocationsChip from "~/components/dashboard/project/LocationsChip.vue";
+import FullLocationsChip from "~/components/dashboard/project/FullLocationsChip.vue";
 
 const props = defineProps({
   full_main: Object,
+})
+
+const parent_project = computed(() => {
+  if (props.full_main.parent_project_text)
+    return props.full_main.parent_project_text
+  else if (props.full_main.parent_project_full)
+    return props.full_main.parent_project_full.name
+  else
+    return null
 })
 
 </script>
 
 <template>
   <div class="py-2">
-    <div class="text-caption" v-if="full_main.parent_project_full">
-      <span class="text-grey-darken-1">
-        Agrupador:
-      </span>
-      <span class="text-blue-darken-1 ml-1">
-        {{full_main.parent_project_full.name}}
-      </span>
+    <div
+      v-if="parent_project || full_main.status_validation"
+      class="text-caption d-flex ga-4"
+    >
+      <div v-if="parent_project" class="mt-n1">
+        <span class="text-grey-darken-1">
+          Agrupador:
+        </span>
+        <span class="text-blue-darken-1 ml-1">
+          {{parent_project}}
+        </span>
+      </div>
+      <v-divider
+        v-if="parent_project"
+        vertical
+        class="mx-3 mt-n1"
+      ></v-divider>
+      <StatusChip
+        v-if="full_main.status_validation"
+        :main="full_main"
+        collection="validation"
+        custom_class="flex-row mt-n1"
+        bold_text
+        x_small
+        left_label
+      />
+
     </div>
     <div class="d-flex align-center">
       <v-icon
@@ -46,30 +76,21 @@ const props = defineProps({
         show_name
       />
       <v-divider
-        v-if="full_main.status_validation"
         vertical
         class="mx-3"
       ></v-divider>
-      <StatusChip
-        v-if="full_main.status_validation"
-        :main="full_main"
-        collection="validation"
-        class="mb-1"
-        bold_text
-        x_small
-        left_label
-      />
-      <v-divider
-        v-if="full_main.status_validation"
-        vertical
-        class="mx-3"
-      ></v-divider>
-      <LocationsChip
+      <FullLocationsChip
         v-if="full_main.locations"
-        :project="full_main"
-        class="ml-3 mb-n1"
+        :locations="full_main.locations"
+        class="mb-n1"
         horizontal
       />
+      <span
+        v-if="!full_main.id && full_main.locations?.length > 0"
+        class="text-indigo"
+      >
+        + {{ full_main.locations[0].details }}
+      </span>
     </div>
   </div>
 </template>

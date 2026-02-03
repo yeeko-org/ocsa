@@ -23,10 +23,6 @@ const title = computed(() => {
   ${dayjs(props.main.to_date).format(format)}`
 })
 
-const ready_count = computed(() => {
-  return props.main.pre_selected_count - props.main.pending_count
-})
-
 const is_init_ready = computed(() => {
   return props.main.articles_count === props.main.analyzed_count
 })
@@ -103,7 +99,7 @@ const is_init_ready = computed(() => {
         width="57"
       />
       <HeaderChip
-        :count="main.pre_selected_count"
+        :count="main.first_pre_selected_count"
         class="ml-2"
         label="Pre-seleccionado por IA"
         label_plural="Pre-seleccionados por IA"
@@ -128,7 +124,7 @@ const is_init_ready = computed(() => {
         icon="hourglass_empty"
         :color="main.pending_count ? 'orange' : 'green'"
         is_reverse
-        :tooltip_complement="`<b> ${ready_count} </b> Clasificados`"
+        :tooltip_complement="`<b> ${main.ready_count} </b> Clasificados`"
       />
 
     </template>

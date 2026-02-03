@@ -34,7 +34,8 @@ const note = computed(() => props.main)
 // const emits = defineEmits(['open-panel'])
 
 const final_mentions = computed(() => {
-  return props.mentions || props.main.mentions
+  let mentions =  props.mentions || props.main.mentions
+  return mentions.filter(mention => mention.project)
 })
 
 const events_count = computed(() => {

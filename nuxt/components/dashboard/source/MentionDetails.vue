@@ -1,35 +1,32 @@
 <script setup>
-
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
-import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
 import ParticipantsToolbar from "~/components/dashboard/source/ParticipantsToolbar.vue";
 import EventToolbar from "~/components/dashboard/event/event/EventToolbar.vue";
 import CardCommon from "~/components/dashboard/common/CardCommon.vue";
 
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
-import {nextTick, watch} from "vue";
-import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
-import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
+import {nextTick} from "vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { saveSimple, getRelatedActors, deleteSimple } = mainStore
 import { useSaveElements } from "~/composables/save_elements.js";
 import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
+import StatusHistoryToolbar from "~/components/dashboard/project/status_history/StatusHistoryToolbar.vue";
 const { saveComplex, save_errors } = useSaveElements()
-
 
 const props = defineProps({
   mention: Object,
+  note_id: Number,
   is_full: {
     type: Boolean,
     default: false,
   },
 })
 
-const has_select = ref(null)
-const emits = defineEmits(['mention-saved', 'mention-deleted'])
+const emits = defineEmits(
+  ['mention-saved', 'mention-deleted', 'mention-accepted',
+    'mention-discarded'])
 defineExpose({ allFinished })
 
 // const mention_id = computed(() => props.mention.id)
@@ -118,12 +115,10 @@ function saveNewParticipant(actor) {
     mention: props.mention.id,
     actor: actor.id,
   }
-  console.log("actor to save", actor)
+  // console.log("actor to save", actor)
   if (actor.participant_type)
     params.participant_types = [actor.participant_type]
   saveSimple(['participant', params]).then(response => {
-    // props.mention.participants.push(response)
-    // response.participant_group = participant_group_selected.value,
     if (!actor.participant_type && participant_group_selected.value)
       response.participant_group = participant_group_selected.value
     else if (actor.participant_group)
@@ -140,9 +135,26 @@ function closeChangeDialog(event) {
 }
 
 function changeProject(project) {
-  props.mention.project = project.id
-  props.mention.project_full = project
+  if (props.mention.path && props.mention.discarded === null){
+    emits('mention-accepted', project)
+  }
+  else{
+    props.mention.project = project.id
+    props.mention.project_full = project
+  }
 }
+
+const project_init_filters = computed(() => {
+  if (props.mention.path && props.mention.project_full.locations.length > 0) {
+    const first_location = props.mention.project_full.locations[0]
+    return {
+      state: first_location.state || null,
+      q: props.mention.project_full.name || null,
+    }
+  }
+  return {}
+})
+
 
 const dialog_delete = ref(false)
 function deleteMention() {
@@ -165,106 +177,28 @@ function deleteMention() {
     cols="12"
     _md="is_full ? 6 : 12"
   >
-<!--    <v-fab-->
-<!--      _id="fabPosition"-->
-<!--      :key="props.mention.id"-->
-<!--      location="top right"-->
-<!--      size="large"-->
-<!--      position="sticky"-->
-<!--      icon-->
-<!--      offset-->
-<!--      style="z-index: 1000; bottom: 20px; left: 30px;"-->
-<!--    >-->
-<!--      <v-icon>save</v-icon>-->
-<!--    </v-fab>-->
     <v-card variant="outlined" color="indigo-lighten-1">
 
-<!--      <div class="px-3 py-2" v-else-if="mention.note">-->
-<!--        <div class="text-h6 d-flex">-->
-<!--          <v-icon>-->
-<!--            newspaper-->
-<!--          </v-icon>-->
-<!--          {{ mention.note.title }}-->
-<!--          <v-btn-->
-<!--            v-if="mention.note.link"-->
-<!--            color="accent"-->
-<!--            icon-->
-<!--            :href="mention.note.link"-->
-<!--            target="_blank"-->
-<!--            class="ml-2"-->
-<!--            size="small"-->
-<!--            variant="text"-->
-<!--          >-->
-<!--            <v-icon>open_in_new</v-icon>-->
-<!--          </v-btn>-->
-<!--        </div>-->
-<!--        <div class="d-flex flex-wrap">-->
-<!--          <span v-if="mention.note.section">-->
-<!--            <b>Sección:</b> {{ mention.note.section }}-->
-<!--          </span>-->
-<!--          <StatusChip-->
-<!--            :main="mention.note"-->
-<!--            collection="register"-->
-<!--            left_label-->
-<!--            class="mb-1"-->
-<!--            bold_text-->
-<!--          />-->
-<!--        </div>-->
-<!--      </div>-->
-<!--      <v-divider></v-divider>-->
-<!--      <v-banner-->
-<!--        sticky-->
-<!--        lines="one"-->
-<!--      >-->
-<!--        <template v-slot:text>-->
-<!--          We can't save your edits while you are in offline mode.-->
-<!--        </template>-->
-<!--  -->
-<!--        <template v-slot:actions>-->
-<!--          <v-btn color="deep-purple-accent-4">-->
-<!--            Go Online-->
-<!--          </v-btn>-->
-<!--        </template>-->
-<!--      </v-banner>-->
       <v-form ref="mentionForm">
-        <v-row class="py-3 mx-0" v-if="mention.id">
+        <v-row class="py-3 mx-0" v-if="mention.id || mention.path">
           <v-col cols="7">
             <CardCommon
+              v-if="mention.project_full"
               :full_main="mention.project_full"
               :collection_data="schemas.collections_dict['project']"
-              @selected-item="changeProject($event)"
+              :note_id="note_id"
+              :project_id="mention.project"
+              :init_filters="project_init_filters"
               indirect_get
               class="py-3"
+              @selected-item="changeProject($event)"
+              @discard-item="emits('mention-discarded')"
             />
           </v-col>
-          <ToolbarCommon
-            :cols="5"
-            :main_object="mention"
-            main_collection_name="mention"
-            filter_group_name="status_projects"
-            child_relation_name="status_history"
-            field="status_history"
-            color="purple"
-            ref="has_select"
-          >
-            <template #rows_init="{item}" v-if="true">
-              <div
-                class="d-flex align-start align-self-start"
-              >
-                <v-chip variant="outlined" color="grey" min-width="150" label>
-                  Status
-                </v-chip>
-              </div>
-              <v-spacer></v-spacer>
-              <SelectDate
-                :init_date="item.date"
-                @update-date="item.date = $event"
-                label="Fecha de cambio"
-                class="mb-n6"
-                hide_details
-              />
-            </template>
-          </ToolbarCommon>
+          <StatusHistoryToolbar
+            :mention="mention"
+            class="mt-2"
+          />
           <ImpactToolbar
             :mention="mention"
             class="mt-2"

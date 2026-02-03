@@ -4,15 +4,21 @@ import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
 import { useMainStore } from "~/store/index.js";
 import ProjectsCriteria from "~/components/dashboard/source/article/ProjectsCriteria.vue";
+import {storeToRefs} from "pinia";
+import {watch} from "vue";
+import mapboxgl from "mapbox-gl";
+import Paragraph from "~/components/dashboard/source/Paragraph.vue";
 
 const mainStore = useMainStore()
 const { criteria, ai_extractivism_types } = mainStore
+const { content_paragraphs } = storeToRefs(mainStore)
 
 const props = defineProps({
   full_main: {
     type: Object,
     required: true,
   },
+  note_id: Number,
   sending_link: {
     type: Boolean,
     default: false,
@@ -35,19 +41,24 @@ const show_all = ref(false)
 const selected_fields = ref([])
 const selected_projects = ref([])
 const forced_show = ref(false)
+const external_paragraphs = ref([])
 
 function showAll(value){
+  external_paragraphs.value = []
   show_all.value = value
   if (value)
     selected_fields.value = []
 }
 
-onMounted(() => {
+function setSelectedProjects(){
   selected_projects.value = props.full_main.second_criteria?.projects
     .filter(p => p.degrees >= 100)
     .map((p, idx) => p.id || idx) || []
-})
+}
 
+onMounted(() => {
+  setSelectedProjects()
+})
 
 const hydrated_data = computed(() => {
   let paragraphs = props.full_main.paragraphs.map((p, idx) => {
@@ -140,6 +151,39 @@ const hydrated_data = computed(() => {
   return {full_paragraphs: paragraphs, full_criteria: final_criteria}
 })
 
+function addField(field) {
+  if (selected_fields.value.includes(field)){
+    const index = selected_fields.value.indexOf(field)
+    selected_fields.value.splice(index, 1)
+  }
+  else
+    selected_fields.value.push(field)
+  showAll(false)
+}
+
+function closeExternalParagraphs(){
+  setSelectedProjects()
+  content_paragraphs.value = {}
+  external_paragraphs.value = []
+}
+
+watch(content_paragraphs, (new_content) => {
+  if (new_content.is_reset){
+    closeExternalParagraphs()
+    return
+  }
+  if (!new_content.paragraphs || !new_content.note_id)
+    return
+  if (!props.note_id)
+    return
+  if (new_content.note_id !== props.note_id)
+    return
+  selected_fields.value = []
+  selected_projects.value = []
+  forced_show.value = true
+  external_paragraphs.value = new_content.paragraphs
+});
+
 </script>
 
 <template>
@@ -155,7 +199,7 @@ const hydrated_data = computed(() => {
         :indirect_criteria="hydrated_data.full_criteria"
         :selected_fields="selected_fields"
         is_filter
-        @reset-filters="showAll(false)"
+        @add-field="addField"
         class="ml-3"
       />
       <ProjectsCriteria
@@ -165,6 +209,19 @@ const hydrated_data = computed(() => {
         :selected_projects="selected_projects"
         @update:selected_projects="selected_projects = $event"
       />
+      <v-btn
+        v-if="external_paragraphs.length"
+        variant="elevated"
+        color="accent"
+        @click="closeExternalParagraphs"
+        icon
+        size="x-small"
+      >
+        <v-icon
+          size="large"
+        >filter_list</v-icon>
+
+      </v-btn>
       <v-spacer></v-spacer>
 
       <v-btn
@@ -183,81 +240,16 @@ const hydrated_data = computed(() => {
       class="px-0 d-flex flex-wrap"
       v-if="show_init || forced_show"
     >
-      <template
+      <Paragraph
         v-for="paragraph in hydrated_data.full_paragraphs"
+        :key="paragraph.idx"
+        :paragraph="paragraph"
+        :selected_fields="selected_fields"
+        :external_paragraphs="external_paragraphs"
+        :loading="sending_link"
+        @show-all="showAll(true)"
       >
-        <v-card
-          v-if="show_all || (selected_fields.length
-            ? paragraph.criteria.some(c => selected_fields.includes(c.name))
-            : (paragraph.projects.length) )"
-          :key="paragraph.idx"
-          variant="outlined"
-          class="mb-1"
-          color="grey-lighten-1"
-          :loading="sending_link"
-          style="width: 100%;"
-        >
-          <v-card-text class="pb-1 pt-2 text-black">
-            <div class="d-flex" v-for="project in paragraph.projects">
-              <ProjectMiniList
-                :mentions="[project]"
-                show_full
-              />
-              <CriteriaChip
-                is_simple
-                :direct_criteria="project.criteria"
-              />
-            </div>
-            <template v-if="paragraph.image">
-
-              <v-btn
-                variant="text"
-                size="small"
-                @click="paragraph.show_image = !paragraph.show_image"
-              >
-                [IMAGEN]
-              </v-btn>
-              <v-img
-                v-if="paragraph.show_image"
-                :src="paragraph.image"
-                class="my-2"
-                max-height="400"
-                contain
-              >
-              </v-img>
-            </template>
-            <span v-html="paragraph.text" class="text-body-1">
-            </span>
-          </v-card-text>
-        </v-card>
-        <v-btn
-          v-else
-          :key="paragraph.idx"
-          class="mb-1"
-          variant="text"
-          color="accent"
-          icon
-          @click="showAll(true)"
-        >
-          <v-icon>subject</v-icon>
-          <v-tooltip
-            activator="parent"
-            location="bottom"
-            :max-width="400"
-          >
-            <v-card
-              class="mx-n4 my-n2"
-            >
-              <v-card-title class="text-subtitle-1">
-                {{ paragraph.idx }}. Click para ver todos los párrafos
-              </v-card-title>
-              <v-card-text>
-                {{ paragraph.text }}
-              </v-card-text>
-            </v-card>
-          </v-tooltip>
-        </v-btn>
-      </template>
+      </Paragraph>
       <v-btn
         v-if="show_all"
         variant="outlined"

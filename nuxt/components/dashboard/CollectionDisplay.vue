@@ -138,10 +138,10 @@ function realApplyFilters(page=null) {
     collection_name += '_mini'
   results.value = []
   const params = {
+    ...props.init_filters,
     ...final_filters.value,
-    q: q_value.value,
     page: page,
-    ...props.init_filters
+    q: q_value.value,
   }
   fetchElements([collection_name, params]).then(res => {
     if (res.cancelled) {
@@ -207,12 +207,28 @@ function initFilters() {
   let collection_filters = collection_data.value.collection_filters
   current_filters.value = collection_filters
 
-  if (props.is_mini)
-    visible_filters.value = []
+  if (props.is_mini) {
+    if (props.init_filters?.q) {
+      visible_filters.value = current_filters.value.filter(
+        f => f.key_name === 'states'
+      )
+      final_filters.value = {
+        ...final_filters.value,
+        ...props.init_filters,
+      }
+    }
+    else {
+      visible_filters.value = []
+    }
+  }
   else if (collection_filters.length <= 3)
     visible_filters.value = current_filters.value
   else
     visible_filters.value = current_filters.value.filter(f => !f.hidden)
+  // console.log("visible_filters", visible_filters.value)
+  if (props.init_filters.q)
+    q_value.value = props.init_filters.q
+
 }
 
 function setInitResults(init_results){
@@ -378,7 +394,7 @@ function selectItem(item) {
             Agregar {{ collection_data.name }}
           </v-btn>
           <ExportButton
-            v-if="collection_data.xls_export && !direct_sheet"
+            v-if="collection_data.xls_export && !direct_sheet && !is_mini"
             @export-records="exportRecords($event)"
             :loading-export="loading_export"
           />

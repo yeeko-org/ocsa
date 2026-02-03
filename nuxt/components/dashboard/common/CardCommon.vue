@@ -1,9 +1,13 @@
 <script setup>
 
 import {shallowRef} from "vue";
+import {storeToRefs} from "pinia";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import DialogEdit from "~/components/dashboard/common/DialogEdit.vue";
 import { getElement } from "~/composables/save_elements.js";
+import { useMainStore } from "~/store/index.js";
+const mainStore = useMainStore()
+const { content_paragraphs } = storeToRefs(mainStore)
 
 const props = defineProps({
   full_main: Object,
@@ -16,6 +20,12 @@ const props = defineProps({
   indirect_get: Boolean,
   null_available: Boolean,
   is_select: Boolean,
+  note_id: Number,
+  project_id: Number,
+  init_filters: {
+    type: Object,
+    default: () => ({}),
+  },
 })
 
 const card_component = shallowRef('')
@@ -33,7 +43,8 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${card_nam
     })
   })
 
-const emits = defineEmits(['selected-item', 'delete-item', 'edit-item'])
+const emits = defineEmits([
+  'selected-item', 'delete-item', 'edit-item', 'discard-item'])
 
 const dialog_search = ref(false)
 const dialog_edit = ref(false)
@@ -69,6 +80,26 @@ function closeChangeDialog(new_item) {
   dialog_search.value = false
 }
 
+const paragraphs_active = computed(() => {
+  return content_paragraphs.value &&
+    content_paragraphs.value.note_id === props.note_id
+})
+
+function filterParagraphs() {
+  if (!props.note_id || !props.full_main.paragraphs)
+    return
+  if (paragraphs_active.value) {
+    content_paragraphs.value = {is_reset: true}
+    return
+  }
+
+  content_paragraphs.value = {
+    paragraphs: props.full_main.paragraphs,
+    note_id: props.note_id,
+    project_id: props.project_id,
+  }
+}
+
 </script>
 
 <template>
@@ -89,11 +120,12 @@ function closeChangeDialog(new_item) {
     </span>
     <v-spacer></v-spacer>
     <div
-      class="d-flex align-center"
+      class="d-flex align-center ga-1"
       :class="{'flex-column': !is_simple && !is_select}"
     >
       <template v-if="full_main">
         <v-btn
+          v-if="full_main.id"
           icon="edit"
           size="small"
           color="accent"
@@ -101,6 +133,15 @@ function closeChangeDialog(new_item) {
           @click="editItem(full_main)"
           class="mr-1"
           v-tooltip="`Editar`"
+        ></v-btn>
+        <v-btn
+          v-else-if="!full_main.id"
+          icon="done_outline"
+          size="small"
+          color="success"
+          variant="outlined"
+          @click="searchItem"
+          v-tooltip="`Aceptar y elegir ${collection_data.name}`"
         ></v-btn>
         <v-btn
           v-if="null_available"
@@ -122,6 +163,15 @@ function closeChangeDialog(new_item) {
         Seleccionar
       </v-btn>
       <v-btn
+        v-else-if="full_main && !full_main.id"
+        icon="close"
+        size="small"
+        color="error"
+        variant="outlined"
+        @click="emits('discard-item')"
+        v-tooltip="`Rechazar ${collection_data.name}`"
+      ></v-btn>
+      <v-btn
         v-else
         icon="cached"
         size="small"
@@ -131,17 +181,29 @@ function closeChangeDialog(new_item) {
         class="mr-1"
         v-tooltip="`Cambiar`"
       ></v-btn>
+      <v-btn
+        v-if="full_main.paragraphs"
+        icon
+        size="small"
+        color="accent"
+        :variant="paragraphs_active ? 'elevated' : 'text'"
+        @click="filterParagraphs()"
+        v-tooltip="`Filtrar párrafos`"
+      >
+        <v-icon size="large">filter_list</v-icon>
+      </v-btn>
     </div>
     <v-dialog
       v-model="dialog_search"
       max-width="920"
     >
-      <v-card height="800">
+      <v-card height="840">
         <v-card-text class="py-0">
           <CollectionDisplay
             :parent_collection="collection_data"
             is_mini
             @select-item="closeChangeDialog"
+            :init_filters="init_filters"
           />
         </v-card-text>
       </v-card>
