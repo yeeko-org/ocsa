@@ -182,7 +182,7 @@ class PreCaptureManager(BaseCriteriaManager):
 
             for status_history in mention.status_history:
                 if status_his := status_project_dict.get(
-                        status_history.status_project_str):
+                        status_history.status_project_text):
                     status_history.status_project = status_his
 
             mention.project_full.locations = map_locations(

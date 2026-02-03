@@ -3,7 +3,7 @@ import json
 
 
 # def first_test(article_id: int) -> None:
-article_id = 61854
+article_id = 60967
 from source.criteria.pre_capture import PreCaptureManager
 from source.models import Article, Note
 
