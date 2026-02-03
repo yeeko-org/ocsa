@@ -22,6 +22,9 @@ def get_manager_scraper_class(source):
     from source.models import Source
     if isinstance(source, int):
         source = Source.objects.get(pk=source).name.lower()
+    elif isinstance(source, Source):
+        source = source.name.lower()
+    # dd
     if source == 'jornada' or source == 'la jornada':
         return JornadaManagerScraper
     elif source == "reforma":
@@ -33,11 +36,10 @@ def get_manager_scraper_class(source):
         raise ValidationError("Invalid source")
 
 
-def full_scrape_articles(source, scraped_record: ScrapedRecord):
+def full_scrape_articles(scraped_record: ScrapedRecord):
     from django.utils import timezone
     # connection.close()  # TODO: revisar funcionamiento
-
-    manager_scraper_class = get_manager_scraper_class(source)
+    manager_scraper_class = get_manager_scraper_class(scraped_record.source)
     manager_scraper = manager_scraper_class(
         "", "", recover_record=scraped_record)
     scraped_record.last_updated = timezone.now()
@@ -45,7 +47,6 @@ def full_scrape_articles(source, scraped_record: ScrapedRecord):
     manager_scraper.scrape_articles(update=True)
     manager_criteria = ManagerCriteria(
         recover_record=scraped_record, ai_engine="gemini-3-flash-preview")
-
     manager_criteria.build_first_criteria()
     manager_criteria.build_second_criteria()
 
@@ -90,7 +91,7 @@ class ScrapingDatesView(APIView):
         }
 
         thread = threading.Thread(
-            target=full_scrape_articles, args=(source, scraped_record,))
+            target=full_scrape_articles, args=(scraped_record,))
         thread.start()
 
         return Response(response_data)
@@ -172,7 +173,7 @@ class ScrapedRecordView(BaseGenericViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         thread = threading.Thread(
-            target=full_scrape_articles, args=(source, scraped_record,))
+            target=full_scrape_articles, args=(scraped_record,))
         thread.start()
         return Response(
             {"detail": "Reprocessing started."},

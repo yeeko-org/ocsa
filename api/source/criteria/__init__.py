@@ -1,12 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import List, Type, Annotated, Any
+from typing import List, Type, Any
 import json
 import enum
 from tqdm import tqdm
-from source.models import (
-    Article, ScrapedRecord, ArticleQualify, QualifySchema,
-    ArticleBase, ArticleRevision, ProjectSelect
-)
+from source.models import Article, ScrapedRecord, QualifySchema
 from utils.gemini_ai import RequestGemini
 from source.scraper.articles import CriteriaError
 
@@ -14,64 +11,31 @@ from source.scraper.articles import CriteriaError
 class EnumEncoder(json.JSONEncoder):
 
     def default(self, obj):
+        import datetime
         if isinstance(obj, enum.Enum):
             return obj.value
+        elif isinstance(obj, datetime.date):
+            return obj.isoformat()
         return super().default(obj)
 
 
 class BaseCriteriaManager(ABC):
 
-    scraped_record: ScrapedRecord | None
     classify_request: RequestGemini
-    ai_engine: str | None
     qualify_schema: QualifySchema | None
+    prompt_name: str
 
     def __init__(
-            self,
-            recover_record: ScrapedRecord,
+            self, recover_record: ScrapedRecord | None = None,
             ai_engine: str | None = None,
-            is_test: bool = False
+            is_test: bool = False,
+            prompt_version: str | None = 'v2'
     ) -> None:
-        self.ai_engine = ai_engine
-        self.scraped_record = recover_record
+        self.ai_engine: str | None = ai_engine
+        self.scraped_record: ScrapedRecord | None = recover_record
         self.is_test = is_test
-
-    def build_criteria(
-            self, prompt_version: str | None = None,
-            articles: List[Article] | None = None
-    ) -> None:
-        if prompt_version is None:
-            prompt_version = self.get_prompt_version_default()
-
-        self.build_gemini_request(prompt_version, articles)
-
-    @abstractmethod
-    def get_prompt_name(self) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_prompt_version_default(self) -> str:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_seconds_cache(self) -> int:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_articles_objects(self) -> List[Article]:
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_schema_class(self, article: Article, p_count: int) -> Type:
-        raise NotImplementedError
-
-    def prepare_full_content(self, article: Article, base_content: str) -> str:
-        return base_content
-
-    @abstractmethod
-    def save_criteria_results(
-            self, criteria: Any, json_criteria: dict, article: Article):
-        raise NotImplementedError
+        self.version = prompt_version
+        self.seconds_cache: int = 2
 
     def add_errors(self, errors: List[str]) -> None:
         saved_errors = self.scraped_record.errors or []
@@ -79,15 +43,14 @@ class BaseCriteriaManager(ABC):
         self.scraped_record.errors = saved_errors
         self.scraped_record.save()
 
-    def get_full_content(
-            self, article: Article
-    ) -> tuple[str, int]:
-        p_idx = 0
+    def get_full_content(self, article: Article) -> tuple[str, int]:
+
         content = f"Título: {article.title.strip()}\n"
 
         if subtitle := article.subtitle:
             content += f"Subtítulo: {subtitle.strip()}\n"
 
+        p_idx = 0
         for paragraph in article.paragraphs:
             p_idx += 1
             content += f"[{p_idx}]: {paragraph.strip()}\n"
@@ -98,41 +61,35 @@ class BaseCriteriaManager(ABC):
                 caption = caption.replace("\n", " ")
                 content += f"[{p_idx}]: {caption.strip()} (pie de foto)\n"
 
+        content += self.get_additional_content(article)
+
         return content, p_idx
 
-    def pre_process_articles(
-            self, prompt_version: str, articles: List[Article]
-    ) -> List[Article]:
+    def get_additional_content(self, article: Article) -> str:
+        return ""
+
+    def pre_process_articles(self, articles: List[Article]) -> List[Article]:
         return articles
 
-    def build_gemini_request(
-            self, prompt_version: str, articles: List[Article] | None = None):
-        prompt_name = self.get_prompt_name()
-        self.scraped_record.set_status(f"{prompt_name} criteria")
+    def build_direct_criteria(self, article: Article) -> None:
+        self.build_gemini_request()
+        try:
+            self.get_ai_criteria(article)
+        except CriteriaError as e:
+            print("Error building direct criteria:", str(e))
+        if self.classify_request.errors:
+            print("Request Errors:", self.classify_request.errors)
 
+    def build_criteria(self, articles: List[Article] | None = None):
         if not articles:
+            self.scraped_record.set_status(f"{self.prompt_name} criteria")
             articles = self.get_articles_objects()
 
-        articles = self.pre_process_articles(prompt_version, articles)
+        articles = self.pre_process_articles(articles)
 
-        len_articles = len(articles)
-        prompt_file = f"gemini_{prompt_name}_criteria_{prompt_version}.txt"
+        self.build_gemini_request(len(articles))
 
-        seconds_cache = self.get_seconds_cache()
-        total_seconds_cache = len_articles * seconds_cache
-
-        self.classify_request = RequestGemini(
-            engine=self.ai_engine
-        )
-        self.classify_request.build_chat(
-            f"source/prompts/{prompt_file}"
-        )
-
-        cache_name = f"{prompt_name}_criteria_{prompt_version}"
-        self.classify_request.create_cache(cache_name, total_seconds_cache)
-
-        desc = f"{prompt_name} classifying articles ({len_articles})"
-
+        desc = f"{self.prompt_name} classifying articles"
         for article in tqdm(articles, desc=desc):
             try:
                 self.get_ai_criteria(article)
@@ -143,15 +100,26 @@ class BaseCriteriaManager(ABC):
         if self.classify_request.errors:
             self.add_errors(self.classify_request.errors)
 
+    def build_gemini_request(self, len_articles: int = 1) -> None:
+
+        prompt_file = f"gemini_{self.prompt_name}_criteria_{self.version}.txt"
+        self.classify_request = RequestGemini(engine=self.ai_engine)
+        self.classify_request.build_chat(f"source/prompts/{prompt_file}")
+
+        if len_articles > 1:
+            total_seconds_cache = len_articles * self.seconds_cache
+            cache_name = f"{self.prompt_name}_criteria_{self.version}"
+            self.classify_request.create_cache(cache_name, total_seconds_cache)
+
     def get_ai_criteria(self, article: Article) -> None:
         if not article.paragraphs and not article.images:
             raise CriteriaError(
                 article, "Article has no paragraphs or images")
 
-        base_content, p_count = self.get_full_content(article)
-        full_content = self.prepare_full_content(article, base_content)
+        full_content, p_count = self.get_full_content(article)
+        # full_content = self.prepare_full_content(article, base_content)
 
-        schema_clss = self.get_schema_class(article, p_count)
+        schema_clss = self.get_schema_class(p_count)
 
         criteria_result = self.classify_request.send_gemini_prompt(
                 full_content, schema_clss=schema_clss)
@@ -162,18 +130,35 @@ class BaseCriteriaManager(ABC):
         try:
             criteria = schema_clss.model_validate(criteria_result)
         except Exception as e:
-            prompt_name = self.get_prompt_name()
             raise CriteriaError(
-                article, f"Response not of class type for {prompt_name}", e)
+                article, f"Response not of class type for {self.prompt_name}", e)
 
         if not isinstance(criteria, schema_clss):
-            prompt_name = self.get_prompt_name()
-            msg = f"Invalid response {prompt_name}; type: {type(criteria)}"
+            msg = f"Invalid response {self.prompt_name}; type: {type(criteria)}"
             raise CriteriaError(article, msg)
 
+        json_criteria = self.get_json_data(criteria)
+
+        self.save_criteria_results(criteria, json_criteria, article)
+
+    def get_json_data(self, criteria: Any) -> dict | list:
         json_criteria = json.dumps(
             criteria.model_dump(), ensure_ascii=False,
             indent=2, cls=EnumEncoder)
-        json_criteria = json.loads(json_criteria)
+        return json.loads(json_criteria)
 
-        self.save_criteria_results(criteria, json_criteria, article)
+    @abstractmethod
+    def get_articles_objects(self) -> List[Article]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_schema_class(self, p_count: int) -> Type:
+        raise NotImplementedError
+
+    # def prepare_full_content(self, article: Article, base_content: str) -> str:
+    #     return base_content
+
+    @abstractmethod
+    def save_criteria_results(
+            self, criteria: Any, json_criteria: dict | list, article: Article):
+        raise NotImplementedError

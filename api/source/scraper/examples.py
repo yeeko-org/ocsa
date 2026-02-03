@@ -1,16 +1,14 @@
 # Ejecucion de pruebas de scraping por pasos completos, y sus formas de ver la informacion.
 
-from pprint import pprint
-from source.scraper.jornada import JornadaManagerScraper
-from source.models import ScrapedRecord, Article
-
-
 def examples_base():
+
+    from pprint import pprint
+    from source.scraper.jornada import JornadaManagerScraper
+    from source.models import ScrapedRecord, Article
 
     # manager_scraper = JornadaManagerScraper(
     #     "2022/10/01", "2022/12/31", ai_engine="gpt-4o-mini")
-    manager_scraper = JornadaManagerScraper(
-        "2022/02/01", "2023/02/28", ai_engine="gpt-4o-mini")
+    manager_scraper = JornadaManagerScraper("2022/02/01", "2023/02/01",)
 
     # print(manager_scraper.scraped_record)
     manager_scraper.scrape_sections()

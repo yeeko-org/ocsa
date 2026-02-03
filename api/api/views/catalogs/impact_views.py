@@ -33,8 +33,8 @@ class ImpactTypeViewSet(viewsets.ModelViewSet):
     from django.db.models import Count
 
     queryset = ImpactType.objects.all()\
-        .annotate(impact_subtype_count=Count('impact_subtypes'),
-                  mentions_count=Count('impact'))\
+        .annotate(impact_subtype_count=Count('impact_subtypes', distinct=True),
+                  mentions_count=Count('impact', distinct=True))\
         .distinct()
     filterset_class = ImpactTypeFilter
     pagination_class = CustomPagination

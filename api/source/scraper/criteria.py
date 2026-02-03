@@ -4,8 +4,8 @@ import json
 import enum
 from tqdm import tqdm
 from source.models import (
-    Article, ScrapedRecord, ArticleQualify, QualifySchema,
-    ArticleBase, ArticleRevision, ProjectSelect)
+    Article, ScrapedRecord, ArticleQualify, QualifySchema)
+from source.base_models import ProjectSelect, ArticleBase, ArticleRevision
 from utils.gemini_ai import RequestGemini
 from source.scraper.articles import CriteriaError
 
@@ -24,7 +24,7 @@ class ManagerCriteria:
     qualify_schema: QualifySchema | None
 
     def __init__(
-            self, recover_record: ScrapedRecord,
+            self, recover_record: ScrapedRecord | None = None,
             ai_engine: str | None = None, is_test: bool = False
     ) -> None:
         self.ai_engine = ai_engine

@@ -7,8 +7,10 @@ from api.views.project.list_serializers import (
 from project.models import (
     Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
-from api.views.common_serializers import ConditionalFieldsMixin
 from space_time.models import Location
+from api.views.common_serializers import (
+    ConditionalFieldsMixin, MunicipalitySimpleSerializer,
+    LocalitySimpleSerializer)
 
 
 class ConflictSerializer(ConditionalFieldsMixin):
@@ -24,6 +26,10 @@ class ExtractivismTypeSerializer(serializers.ModelSerializer):
 
 
 class LocationFullSerializer(serializers.ModelSerializer):
+    municipality_full = MunicipalitySimpleSerializer(
+        source='municipality', read_only=True)
+    locality_full = LocalitySimpleSerializer(
+        source='locality', read_only=True)
 
     class Meta:
         model = Location

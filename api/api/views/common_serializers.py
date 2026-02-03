@@ -71,3 +71,16 @@ class BaseExportSerializer(serializers.ModelSerializer):
     locality__name = serializers.ReadOnlyField()
     latitude = serializers.ReadOnlyField()
     longitude = serializers.ReadOnlyField()
+
+
+class MunicipalitySimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Municipality
+        fields = ["id", "name", "state"]
+
+
+class LocalitySimpleSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Locality
+        fields = ["id", "name", "municipality"]

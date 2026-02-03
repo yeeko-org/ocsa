@@ -1,6 +1,7 @@
 from django_filters import FilterSet, DateFilter, CharFilter, BooleanFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, permissions
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from api.permissions import (
@@ -11,7 +12,7 @@ from source.models import Note, NoteFile
 from api.pagination import CustomPagination
 from api.views.note.serializers import (
     NoteSerializer, NoteCreateSerializer, NoteFullSerializer,
-    NoteFileSerializer, MentionSerializer)
+    NoteFileSerializer, MentionSerializer, PreMentionSerializer)
 from api.views.common_views import (
     UnaccentSearchFilter, OrderingAutoFilter, ClickHistoryMixin)
 
@@ -73,18 +74,22 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
     action_add_file_param = 'note'
 
     def get_queryset(self):
-        is_retrieve = self.action == 'retrieve'
+        # is_retrieve = self.action == 'retrieve'
+        is_full = self.action in [
+            'retrieve', 'update', 'partial_update', 'create']
         queryset = super().get_queryset()
         queryset = self.queryset.prefetch_related(
             'files',
             'mentions__project__locations',
+            'mentions__project__locations__municipality',
+            'mentions__project__locations__locality',
             'mentions__project__conflict',
             'mentions__project__parent_project',
             'mentions__events__involvements',
             'mentions__events__locations',
             'mentions__status_history',
             'articles',
-        ) if is_retrieve else queryset
+        ) if is_full else queryset
         return queryset
 
     def get_serializer_class(self):
@@ -126,9 +131,30 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=400)
 
+    @action(detail=True, methods=['post'])
+    def edit_pre_capture(self, request, pk=None):
+        note = self.get_object()
+        # validar con PreMentionSerializer
+        req_data = request.data
+        validator = PreMentionSerializer(data=req_data)
+        if not validator.is_valid():
+            return Response(validator.errors, status=400)
+        # path = request.data.get('path', '')
+        # discarded = request.data.get('discarded', False)
+        data = validator.validated_data
+        path = data.get('path', '')
+        discarded = data.get('discarded')
+        element_id = data.get('element_id', None)
+        new_content = note.set_pre_capture(
+            path=path,
+            discarded=discarded,
+            element_id=element_id)
+        return Response({'content': new_content})
+
 
 class NoteFileViewSet(mixins.DestroyModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     queryset = NoteFile.objects.all()
     serializer_class = NoteFileSerializer
 

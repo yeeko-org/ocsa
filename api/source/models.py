@@ -5,11 +5,9 @@ from django.utils.text import slugify
 import requests
 
 from project.models import Project, StatusProject
-from utils.open_ai import JsonRequestOpenAI
+from source.base_models import FeaturesBase, ProjectSelect, ArticleBase
 from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
-from pydantic import BaseModel, Field
-import enum
 
 
 class Source(models.Model):
@@ -66,6 +64,7 @@ class Note(CommentsMixin, models.Model):
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     pre_mentions = models.JSONField(blank=True, null=True)
+    frozen_pre_capture = models.BooleanField(default=False)
 
     files: models.QuerySet["NoteFile"]
     status_register_id = str | None
@@ -81,6 +80,22 @@ class Note(CommentsMixin, models.Model):
         if not self.slug_title:
             self.set_slug_title(save=False)
         super().save(*args, **kwargs)
+
+    def set_pre_capture(
+            self, path: str, discarded: bool, element_id: int | None = None
+    ):
+        from jsonpath_ng.ext import parse
+        if not self.pre_mentions:
+            return None
+        new_values = {"discarded": discarded, "element_id": element_id}
+        jsonpath_expr = parse(path)
+        matches = jsonpath_expr.find(self.pre_mentions)
+        if matches:
+            match = matches[0]
+            match.value.update(new_values)
+            self.save()
+            return match.value
+        return None
 
     def __str__(self):
         return self.title
@@ -122,10 +137,7 @@ class Mention(CommentsMixin, models.Model):
     note = models.ForeignKey(
         Note, on_delete=models.CASCADE, related_name='mentions')
     project = models.ForeignKey(
-        Project, blank=True, null=True,
-        on_delete=models.CASCADE, related_name='mentions')
-    pre_project = models.JSONField(blank=True, null=True)
-    discarded = models.BooleanField(default=False)
+        Project, on_delete=models.CASCADE, related_name='mentions')
     filled = models.BooleanField(default=False)
     date_filled = models.DateField(blank=True, null=True)
 
@@ -153,8 +165,8 @@ class StatusHistory(models.Model):
         return str(self.status_project)
 
     class Meta:
-        verbose_name = 'Historial de estatus de proyecto'
-        verbose_name_plural = 'Historiales de estatus de proyectos'
+        verbose_name = 'Cambios de estatus'
+        verbose_name_plural = 'Cambios de status'
 
 
 class ScrapedRecord(models.Model):
@@ -217,47 +229,6 @@ class DiscardedReason(models.Model):
         verbose_name_plural = 'Razones de descarte'
 
 
-class ExtractivismTypes(enum.Enum):
-    agro = "agro"
-    mineria = "mineria"
-    hidricos = "hidricos"
-    energia = "energia"
-    urbano = "urbano"
-    infra = "infra"
-
-
-class ProjectBase(BaseModel):
-    name: str
-    types: list[ExtractivismTypes] = []
-    paragraphs: list[int] = []
-
-
-class FeaturesBase(BaseModel):
-    opponents: list[int]
-    social_impacts: list[int]
-    ecological_impacts: list[int]
-    acts_of_violence: list[int]
-    collective_actions: list[int]
-
-
-class ProjectSelect(ProjectBase, FeaturesBase):
-    is_specific_project: bool
-    is_extractivist_or_big_scale: bool
-    is_public_policy: bool
-    is_political_opinion: bool
-    is_labor_conflict_only: bool
-
-
-class ArticleBase(FeaturesBase):
-    projects: list[ProjectBase] = []
-    is_foreign: bool | None = None
-    is_political_opinion: bool | None = None
-
-
-class ArticleRevision(BaseModel):
-    projects: list[ProjectSelect] = []
-
-
 class Article(models.Model):
 
     uid = models.CharField(max_length=255)
@@ -288,6 +259,7 @@ class Article(models.Model):
     second_certainty_degree = models.IntegerField(
         blank=True, null=True, verbose_name='Grado de certeza (deep)',
         help_text='Debe superar 100 para ser considerado')
+    pre_capture = models.JSONField(blank=True, null=True)
 
     is_selected = models.BooleanField(blank=True, null=True)
     discarded_reason = models.ForeignKey(
@@ -331,6 +303,9 @@ class Article(models.Model):
         return degree
 
     def sum_degrees(self, criteria: type[FeaturesBase]) -> int:
+        if not isinstance(criteria, FeaturesBase):
+            print("WARNING: sum_degrees called with wrong type")
+            return 0
         total = 0
         feature_weights = {
             'opponents': 13,
@@ -355,7 +330,6 @@ class Article(models.Model):
         return total
 
     def get_second_certainty_degree(self, criteria: dict | None) -> int:
-
         criteria = criteria or self.second_criteria
 
         if not criteria:
@@ -384,6 +358,38 @@ class Article(models.Model):
 
         return max(degrees) if degrees else 0
 
+    def create_note_from_article(self) -> Note:
+        if self.note:
+            return self.note
+        try:
+            pages = self.get_meta("pagina").get("texto")
+        except:
+            pages = None
+
+        note = Note.objects.create(
+            title=self.title,
+            subtitle=self.subtitle,
+            author=self.author,
+            source=self.source,
+            section=self.section,
+            pages=pages,
+            link=self.url,
+            date=self.published_date,
+            status_register_id="ia_selected",
+        )
+
+        file_url = get_url_file_reforma(self)
+
+        if file_url:
+            note_file = NoteFile()
+            note_file.note = note
+            note_file.save_file_from_url(file_url, f"{pages}.pdf")
+            note_file.save()
+
+        self.note = note
+        self.save()
+        return note
+
     def __str__(self):
         return f"{self.uid} - {self.title}"
 
@@ -397,6 +403,36 @@ class Article(models.Model):
             '-certainty_degree',
             '-published_date'
         ]
+
+
+def get_url_file_reforma(article: Article):
+    try:
+        pages = (article.get_meta("pagina") or {}).get("texto")
+    except:
+        return None
+
+    if not pages or not article.published_date:
+        return None
+
+    published_str = article.published_date.strftime("%Y%m%d")
+    reforma_url = f"https://hemeroteca.reforma.com/{published_str}/pdfs/{pages}.PDF"
+
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+
+    }
+
+    response = requests.post(
+        "https://www.reforma.com/edicionimpresa/aplicacionei/webview/GeneraUrl.aspx/PathCDN",
+        json={"Url": reforma_url}, headers=headers
+    )
+    if response.status_code == 200:
+        try:
+            return response.json().get("d")
+        except:
+            return None
 
 
 class QualifySchema(models.Model):

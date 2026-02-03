@@ -69,6 +69,6 @@ urlpatterns = [
     path('catalogs/', include('api.views.catalogs.urls')),
     path('space_time/', include('api.views.space_time.urls')),
     path('generic_merge/', MergeRecordsView.as_view(), name='generic-merge'),
-    path('scraped_date/', ScrapingDatesView.as_view(), name='generic-merge'),
+    path('scraped_date/', ScrapingDatesView.as_view(), name='scraping-dates'),
     path('', include(router.urls)),
 ]
