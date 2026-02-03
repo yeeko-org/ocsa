@@ -34,11 +34,11 @@ def get_manager_scraper_class(source):
         raise ValidationError("Invalid source")
 
 
-def full_scrape_articles(source, scraped_record: ScrapedRecord):
+def full_scrape_articles(scraped_record: ScrapedRecord):
     from django.utils import timezone
     # connection.close()  # TODO: revisar funcionamiento
 
-    manager_scraper_class = get_manager_scraper_class(source)
+    manager_scraper_class = get_manager_scraper_class(scraped_record.source)
     manager_scraper = manager_scraper_class(
         "", "", recover_record=scraped_record)
     scraped_record.last_updated = timezone.now()
@@ -173,7 +173,7 @@ class ScrapedRecordView(BaseGenericViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         thread = threading.Thread(
-            target=full_scrape_articles, args=(scraped_record,))
+            target=full_scrape_articles, args=(scraped_record, ))
         thread.start()
         return Response(
             {"detail": "Reprocessing started."},

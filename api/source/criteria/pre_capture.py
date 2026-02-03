@@ -178,7 +178,7 @@ class PreCaptureManager(BaseCriteriaManager):
                 if event_map:
                     event.event_group = event_map["event_group"]
                     event.purpose = event_map.get("purpose", None)
-                event.loctions = map_locations(event.locations)
+                event.locations = map_locations(event.locations)
 
             for status_history in mention.status_history:
                 if status_his := status_project_dict.get(
