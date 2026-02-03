@@ -118,7 +118,7 @@ class PreCaptureManager(BaseCriteriaManager):
         # full_pre_capture = NoteFull(root=json_criteria)
         if not json_criteria:
             json_criteria = article.pre_capture
-        full_pre_capture = NoteFull(root=json_criteria)
+        full_pre_capture = NoteFull(**json_criteria)
         # print("full_pre_capture\n", full_pre_capture.model_dump_json())
 
         def map_locations(locations: List[LocationFull]) -> List[LocationFull]:
