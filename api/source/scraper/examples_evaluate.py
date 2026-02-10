@@ -187,8 +187,7 @@ def examples():
     manager_reforma.scrape_sections()
 
     manager_scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=42),
-        ai_engine="gemini-3-flash-preview")
+        "", "", recover_record=ScrapedRecord.objects.get(pk=78))
 
     manager_reforma = ReformaManagerScraper(
         "", "", recover_record=ScrapedRecord.objects.get(pk=83),

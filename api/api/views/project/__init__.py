@@ -203,13 +203,13 @@ class ProjectViewSet(
     xls_name = "Exportación de Proyectos"
 
     pagination_class = CustomPagination
+    serializer_class = ProjectBasicSerializer
     filterset_class = ProjectFilter
 
     # filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     filter_backends = [
         UnaccentSearchFilter, OrderingFilter, DjangoFilterBackend]
 
-    serializer_class = ProjectBasicSerializer
 
     action_add_file_param = "project"
 
@@ -312,7 +312,8 @@ class ProjectViewSet(
         return Response(sorted_actors)
 
 
-class ProjectFileViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
+class ProjectFileViewSet(
+    mixins.RetrieveModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     queryset = ProjectFile.objects.all()
     serializer_class = ProjectFileSerializer
     pagination_class = CustomPagination

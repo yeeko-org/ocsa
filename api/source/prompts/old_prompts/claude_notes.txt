@@ -1,0 +1,462 @@
+
+---
+
+## 1. ESTRUCTURA GENERAL DE UNA MENCIÓN
+
+Por cada proyecto identificado en la lista, deberás generar una mención (`mention`). Cada mención contiene un objeto `project_full` con características del proyecto y cuatro listas opcionales: `status_history`, `impacts`, `actors` y `events`.
+
+---
+
+## 2. ATRIBUTOS DE `project_full`
+
+| Campo | Tipo | Descripción | Notas |
+|-------|------|-------------|-------|
+| `name` | string | Nombre oficial del proyecto o nombre más claro que ayude a identificarlo | Obligatorio |
+| `alternative_name` | string \| None | Otros nombres o siglas con los que se menciona el proyecto | Opcional |
+| `project_type_text` | string | Tipo de proyecto: presa hidroeléctrica, mina de plata, desarrollo inmobiliario, monocultivo de soya, puerto, gasoducto, tren, línea de metro, centro comercial, planta de amoniaco, relleno sanitario, tala ilegal, autopista urbana, parque eólico, granja porcícola, etc. | Obligatorio |
+| `parent_project_text` | string \| None | Nombre del proyecto más grande del cual forma parte este (si aplica). Úsalo solo si el proyecto es un componente dentro de un cluster o agrupador | Opcional |
+| `locations` | list[LocationBase] | Ubicaciones geográficas donde se ubica o ejecuta el proyecto | Opcional |
+| `paragraphs` | list[int] | Números de párrafos donde se menciona el nombre del proyecto o datos para identificarlo | Obligatorio (al menos uno) |
+
+### Estructura de `LocationBase` (usado en `project_full`, `impacts` y `events`):
+
+| Campo | Tipo | Descripción | Notas |
+|-------|------|-------------|-------|
+| `state_str` | StateEnum \| None | Nombre del estado según el catálogo StateEnum | Obligatorio si se menciona |
+| `municipality_text` | string \| None | Nombre del municipio (si está explícitamente mencionado) | Opcional |
+| `locality_text` | string \| None | Nombre de la localidad, comisaría o pueblo (si aparece) | Opcional |
+| `details` | string \| None | Otros detalles de ubicación como colonia, ejido, zona, referencias geográficas que ayuden a localizar el proyecto | Opcional |
+
+---
+
+## 3. ATRIBUTO `status_history` (lista)
+
+Identifica si la nota menciona algún cambio en la etapa o estatus del proyecto. Para cada cambio identificado:
+
+| Campo | Tipo | Descripción | Notas |
+|-------|------|-------------|-------|
+| `status_project_text` | string | El nombre del estatus: activo, ampliación, cancelado, clausurado, construcción, planeación, suspensión, u otro cambio identificado | Obligatorio |
+| `date` | string \| None | Fecha aproximada del cambio (deducida de la fecha de la nota o contexto) en formato YYYY-MM-DD si es posible | Opcional |
+| `paragraphs` | list[int] | Números de párrafos donde se menciona este estatus | Obligatorio |
+
+---
+
+## 4. ATRIBUTO `impacts` (lista)
+
+Afectaciones **negativas** que sean **consecuencia directa** de la construcción, ampliación u operación del proyecto.
+
+### Qué incluir y qué descartar:
+
+**Afectaciones sociales a INCLUIR:**
+- Desplazamiento (físico o forzado)
+- Afectación a la salud pública
+- Pérdida o deterioro de medios de vida (ingresos, actividades económicas)
+- Violación de derechos humanos (consulta, participación, privacidad)
+- Pérdida o deterioro de patrimonio cultural o arqueológico
+
+**Afectaciones sociales a DESCARTAR:**
+- Impactos macroeconómicos (inflación, fluctuaciones de inversión)
+- Afectaciones internas ajenas al proyecto (inseguridad laboral dentro de una terminal)
+- Accidentes circunstanciales (accidentes automovilísticos en una carretera)
+
+**Afectaciones ecológicas a INCLUIR:**
+- Contaminación del agua, suelo o aire
+- Deforestación o pérdida de cobertura vegetal
+- Pérdida de biodiversidad, especies en riesgo
+
+**Afectaciones ecológicas a DESCARTAR:**
+- Cuando el proyecto es la solución a una afectación ambiental preexistente
+- Desastres naturales que afectan al proyecto externamente (incendios, huracanes, sequías no causados por el proyecto)
+
+### Estructura de cada impacto:
+
+| Campo | Tipo | Descripción | Notas |
+|-------|------|-------------|-------|
+| `impact_group_str` | ImpactGroupEnum | social o ecological | Obligatorio |
+| `impact_type_str` | string | Categoría específica según el catálogo del modelo (ej: "desplazamiento", "contaminación hídrica") | Obligatorio |
+| `description` | string (máx. 300 caracteres) | Descripción breve de la afectación. **No incluir:** nombre del proyecto, ubicación específica de la afectación, nombres de actores afectados | Obligatorio |
+| `is_potential` | boolean | true si es algo que podría ocurrir; false si ya ocurrió | Obligatorio |
+| `locations` | list[LocationBase] | Ubicaciones donde ocurrió la afectación, **solo si es diferente a la ubicación principal del proyecto** | Opcional |
+| `paragraphs` | list[int] | Números de párrafos que mencionan la afectación | Obligatorio |
+
+---
+
+## 5. ATRIBUTO `actors` (lista)
+
+Hasta 20 actores individuales, colectivos o institucionales que se relacionan **directamente** con el proyecto (a favor, en contra o como mediadores).
+
+**A DESCARTAR:**
+- Actores cuya mención no se relaciona directamente con el proyecto (ej: bomberos que atienden un incendio, protección civil en evacuación)
+- Trabajadores entrevistados que no se oponen explícitamente
+- Actores mencionados de manera incidental sin rol relevante
+
+### Estructura de cada actor: (lista)
+
+| Campo | Tipo | Descripción | Notas |
+|-------|------|-------------|-------|
+| `uid` | integer (1-20) | Número consecutivo del actor en la lista | Obligatorio |
+| `name` | string | Nombre del actor (persona, comunidad, organización, institución) | Obligatorio |
+| `sector_text` | string | Sector o ámbito al que pertenecen: personas, comunidades, ejidos, organizaciones sociales, empresas estatales, institución federal, empresa privada internacional, poder legislativo, academia, etc. | Obligatorio |
+| `belongs_str` | list[string] | Grupos especiales a los que pertenecen (seleccionar del catálogo BelongEnum cuando esté disponible): Trabajador, Afectado, Habitante, Indígena, Campesino, Urbano, Líder, Participación sobresaliente de mujeres, Organización de mujeres, Tiene Protección | Opcional |
+| `position_str` | PositionEnum | oppose (en contra), support (a favor) o neutral (mediador) | Obligatorio |
+| `interest_text` | string (máx. 200 caracteres) | Descripción breve del interés o posición del actor respecto al proyecto | Obligatorio |
+| `paragraphs` | list[int] | Números de párrafos donde se menciona al actor o sus datos | Obligatorio |
+
+---
+
+## 6. ATRIBUTO `events` (lista)
+
+Eventos relevantes narrados en la nota que afecten o busquen afectar al proyecto o a los actores involucrados.
+
+### Grupos de eventos (`event_group_str`):
+
+**`collective_actions` — Acciones colectivas**
+Estrategias y movilizaciones de comunidades y movimientos sociales para resistir impactos negativos y defender derechos humanos, ambientales y formas de vida tradicionales. También incluye acciones directas contra el proyecto.
+
+*Incluir:* Tomas de instalaciones, bloqueos de vialidades, protestas, manifestaciones, conferencias de prensa, comunicados, actividades simbólicas, denuncias públicas contra el proyecto.
+
+*Descartar:* Conflictos laborales sin relación con el proyecto, protestas por inseguridad ajena al proyecto, invasiones a espacios por motivos no relacionados.
+
+---
+
+**`acts_of_violence` — Violencias**
+Hechos, estrategias o mecanismos intencionales dirigidos a generar daño contra opositores del proyecto, con el objetivo de impulsar su implementación o continuación.
+
+*Incluir:* Amenazas, intimidación, agresiones físicas, criminalización de activistas, demandas legales contra opositores, asesinatos de defensores.
+
+*Condición:* La violencia debe estar **dirigida directamente contra personas u grupos identificados como opositores**. No incluir violencia circunstancial sin relación con la oposición al proyecto.
+
+---
+
+**`spoliation_acts` — Mecanismos legales de despojo**
+Uso del marco legal y estrategias jurídicas que facilitan el acceso y control de tierras y recursos naturales por actores privados o estatales: normativas, vacíos legales, interpretaciones legales que permiten el despojo.
+
+---
+
+**`defense_acts` — Mecanismos legales de defensa**
+Uso del marco legal y estrategias jurídicas empleadas para la defensa de comunidades y pueblos: amparos, demandas, recursos administrativos, consulta previa, procesos legales que restrinjan, cancelen o disminuyan el proyecto.
+
+---
+
+### Estructura de cada evento:
+
+| Campo | Tipo | Descripción | Notas |
+|-------|------|-------------|-------|
+| `event_group_str` | EventGroupEnum | Categoría del evento | Obligatorio |
+| `description` | string (máx. 300 caracteres) | Descripción breve del qué sucedió. **No incluir:** nombres de actores específicos | Obligatorio |
+| `involvements` | list[InvolvementBase] | Actores involucrados en el evento y sus roles | Obligatorio (al menos uno) |
+| `locations` | list[LocationBase] | Ubicaciones donde ocurrió el evento, **solo si es diferente a la ubicación principal del proyecto** | Opcional |
+| `paragraphs` | list[int] | Números de párrafos que mencionan el evento | Obligatorio |
+
+### Estructura de `InvolvementBase`: (lista)
+
+| Campo | Tipo | Descripción | Notas |
+|-------|------|-------------|-------|
+| `actor_uid` | integer (1-20) | UID del actor involucrado (debe corresponder a un actor en la lista `actors`) | Obligatorio |
+| `role_text` | string (máx. 80 caracteres) | Rol del actor en el evento (ej: "líder de la protesta", "demandante", "mediador en negociación") | Obligatorio |
+
+---
+
+## 7. ENUMERACIÓN DE ESTADOS Y UBICACIONES
+
+### Estados válidos (StateEnum):
+Aguascalientes, Baja California, Baja California Sur, Campeche, Coahuila de Zaragoza, Colima, Chiapas, Chihuahua, Ciudad de México, Durango, Guanajuato, Guerrero, Hidalgo, Jalisco, México, Michoacán de Ocampo, Morelos, Nayarit, Nuevo León, Oaxaca, Puebla, Querétaro, Quintana Roo, San Luis Potosí, Sinaloa, Sonora, Tabasco, Tamaulipas, Tlaxcala, Veracruz de Ignacio de la Llave, Yucatán, Zacatecas.
+
+### Grupos de impacto (ImpactGroupEnum):
+- `social` — Afectaciones sociales
+- `ecological` — Afectaciones ambientales/ecológicas
+
+### Posiciones de actores (PositionEnum):
+- `oppose` — En contra del proyecto
+- `support` — A favor del proyecto
+- `neutral` — Mediador o neutral
+
+### Grupos de eventos (EventGroupEnum):
+- `collective_actions` — Acciones colectivas
+- `acts_of_violence` — Violencias
+- `spoliation_acts` — Mecanismos legales de despojo
+- `defense_acts` — Mecanismos legales de defensa
+
+---
+
+## 8. CRITERIOS DE RIGOR
+
+- **Solo información en la nota:** No inferir ni agregar información no mencionada en el artículo.
+- **Rigor en afectaciones:** Incluir solo afectaciones que sean consecuencia **directa** del proyecto, no efectos indirectos ni circunstanciales.
+- **Actores relevantes:** Solo incluir actores cuya relación con el proyecto sea explícita y significativa.
+- **Párrafos:** Registrar los números de párrafos donde se encuentra la información, comenzando desde 1.
+- **Campos opcionales vacíos:** Si una lista (locations, involvements, etc.) no tiene elementos que cumplan los criterios, dejarla vacía, no incluir elementos por completitud.
+
+---
+
+## 9. MODELOS BASE (Pydantic)
+
+```python
+import enum
+from pydantic import BaseModel, Field
+
+class StateEnum(enum.Enum):
+    aguascalientes = "Aguascalientes"
+    baja_california = "Baja California"
+    baja_california_sur = "Baja California Sur"
+    campeche = "Campeche"
+    coahuila_de_zaragoza = "Coahuila de Zaragoza"
+    colima = "Colima"
+    chiapas = "Chiapas"
+    chihuahua = "Chihuahua"
+    ciudad_de_mexico = "Ciudad de México"
+    durango = "Durango"
+    guanajuato = "Guanajuato"
+    guerrero = "Guerrero"
+    hidalgo = "Hidalgo"
+    jalisco = "Jalisco"
+    mexico = "México"
+    michoacan_de_ocampo = "Michoacán de Ocampo"
+    morelos = "Morelos"
+    nayarit = "Nayarit"
+    nuevo_leon = "Nuevo León"
+    oaxaca = "Oaxaca"
+    puebla = "Puebla"
+    queretaro = "Querétaro"
+    quintana_roo = "Quintana Roo"
+    san_luis_potosi = "San Luis Potosí"
+    sinaloa = "Sinaloa"
+    sonora = "Sonora"
+    tabasco = "Tabasco"
+    tamaulipas = "Tamaulipas"
+    tlaxcala = "Tlaxcala"
+    veracruz_de_ignacio_de_la_llave = "Veracruz de Ignacio de la Llave"
+    yucatan = "Yucatán"
+    zacatecas = "Zacatecas"
+
+class EventGroupEnum(enum.Enum):
+    collective_actions = "Acciones colectivas"
+    acts_of_violence = "Violencias"
+    spoliation_acts = "Mecanismos legales de despojo"
+    defense_acts = "Mecanismos legales de defensa"
+
+class PositionEnum(enum.Enum):
+    oppose = "En contra del proyecto"
+    support = "A favor del proyecto"
+    neutral = "Mediador"
+
+class ImpactGroupEnum(enum.Enum):
+    social = "Social"
+    ecological = "Ambiental"
+
+class LocationBase(BaseModel):
+    state_str: StateEnum | None = None
+    municipality_text: str | None = None
+    locality_text: str | None = None
+    details: str | None = None
+
+class ProjectDataBase(BaseModel):
+    name: str
+    alternative_name: str | None = None
+    project_type_text: str
+    parent_project_text: str | None = None
+    locations: list[LocationBase] = []
+    paragraphs: list[int] = []
+
+class StatusHistoryBase(BaseModel):
+    date: str | None = None
+    status_project_text: str
+    paragraphs: list[int] = []
+
+class ImpactBase(BaseModel):
+    impact_group_str: ImpactGroupEnum
+    impact_type_str: str
+    description: str = Field(max_length=300)
+    is_potential: bool
+    locations: list[LocationBase] = []
+    paragraphs: list[int] = []
+
+class ActorBase(BaseModel):
+    uid: int = Field(gt=0, lt=21)
+    name: str
+    sector_text: str
+    belongs_str: list[str] = []
+    position_str: PositionEnum
+    interest_text: str = Field(max_length=200)
+    paragraphs: list[int] = []
+
+class InvolvementBase(BaseModel):
+    actor_uid: int = Field(gt=0, lt=21)
+    role_text: str = Field(max_length=80)
+
+class EventBase(BaseModel):
+    event_group_str: EventGroupEnum
+    description: str = Field(max_length=300)
+    involvements: list[InvolvementBase] = []
+    locations: list[LocationBase] = []
+    paragraphs: list[int] = []
+
+class MentionBase(BaseModel):
+    project_full: ProjectDataBase
+    status_history: list[StatusHistoryBase] = []
+    impacts: list[ImpactBase] = []
+    actors: list[ActorBase] = []
+    events: list[EventBase] = []
+
+class NoteBase(BaseModel):
+    mentions: list[MentionBase] = []
+```
+
+---
+
+---
+
+# OBSERVACIONES, RECOMENDACIONES Y CORRECCIONES
+
+## 1. **Reorganización estructural del documento**
+   - **Observación:** El prompt original mezclaba explicaciones narrativas con estructuras de código sin jerarquía clara, lo que dificultaba seguimiento.
+   - **Corrección:** Se reorganizó en secciones numeradas con una estructura clara: primero instrucciones generales, luego cada atributo con tabla de referencia, y finalmente los modelos Pydantic.
+   - **Beneficio:** Facilita la consulta rápida y reduces ambigüedades.
+
+---
+
+## 2. **Clarificación sobre numeración de párrafos**
+   - **Observación:** El original no especificaba si los párrafos comienzan en 0 o 1, ni qué constituye un párrafo.
+   - **Corrección:** Se añadió en instrucciones generales: párrafos comienzan en 1 y se define que un párrafo es cada bloque separado por saltos de línea.
+   - **Importancia:** Evita inconsistencias en la extracción de datos.
+
+---
+
+## 3. **Inconsistencia: campo `alternative_name` sin explicación**
+   - **Observación:** Existe en el modelo `ProjectDataBase` pero no se menciona en la explicación original.
+   - **Corrección:** Se añadió en la tabla de `project_full` explicando su uso para siglas y otros nombres del proyecto.
+   - **Impacto:** El usuario sabe ahora cuándo y cómo usarlo.
+
+---
+
+## 4. **Falta de límites de caracteres para campos `description`**
+   - **Observación:** En `ImpactBase` y `EventBase` hay campo `description`, el modelo especifica `max_length=300` pero la explicación original no lo mencionaba.
+   - **Corrección:** Se añadió en las tablas de cada atributo: `string (máx. 300 caracteres)`.
+   - **Razón:** Mantener consistencia entre lo que se pide verbalmente y lo que valida el código.
+
+---
+
+## 5. **Aclaración: LocationBase solo para ubicaciones distintas a la del proyecto**
+   - **Observación:** La explicación original decía "registrar solo cuando se trate de lugares distintos" en impactos y eventos, pero no estaba claro si el proyecto debe incluir su propia ubicación.
+   - **Corrección:** Se clarificó en cada sección que los `locations` en impacts y events son solo para ubicaciones **diferentes** a la del proyecto, mientras que en `project_full` sí incluye la ubicación principal.
+   - **Beneficio:** Evita duplicación de información y deja explícito cuándo incluir ubicación secundaria.
+
+---
+
+## 6. **Campos opcionales vs. obligatorios**
+   - **Observación:** No había claridad sobre cuáles campos eran verdaderamente opcionales y cuáles obligatorios.
+   - **Corrección:** Se añadió columna "Notas" en todas las tablas especificando "Obligatorio" u "Opcional" para cada campo.
+   - **Ventaja:** El usuario sabe exactamente qué puede dejar vacío y qué debe incluir siempre.
+
+---
+
+## 7. **Reducción de redundancia en descripción de eventos colectivos**
+   - **Observación:** La explicación original de `collective_actions` tenía definición general muy similar a los ejemplos, sin separación clara.
+   - **Corrección:** Se restructuró en dos partes: definición conceptual concisa + viñetas de "Incluir" y "Descartar".
+   - **Mejora:** Más legible y enfocado.
+
+---
+
+## 8. **Desambiguación de "violencia"**
+   - **Observación:** La definición original de `acts_of_violence` podría interpretarse como violencia general; no estaba claro que debe ser contra opositores específicamente.
+   - **Corrección:** Se añadió una subsección "Condición" en la explicación de `acts_of_violence` especificando que la violencia debe estar **dirigida contra opositores identificados**.
+   - **Importancia:** Evita incluir violencia circunstancial sin conexión al proyecto.
+
+---
+
+## 9. **Ejemplos de roles en `InvolvementBase`**
+   - **Observación:** El campo `role_text` no tenía ejemplos de qué roles incluir.
+   - **Corrección:** Se añadieron ejemplos entre paréntesis: "líder de la protesta", "demandante", "mediador en negociación".
+   - **Utilidad:** Guía al usuario en la generación de valores consistentes.
+
+---
+
+## 10. **Criterios de rigor como sección separada**
+   - **Observación:** Había criterios dispersos en las definiciones pero sin enfatizar la importancia del rigor.
+   - **Corrección:** Se creó una sección 8 "Criterios de rigor" centralizando: solo información en la nota, afectaciones directas, actores relevantes, párrafos correctos, evitar listas vacías por completitud.
+   - **Beneficio:** Enfatiza la necesidad de precisión y coherencia en toda la sistematización.
+
+---
+
+## 11. **Aclaración sobre `belongs_str` siendo lista**
+   - **Observación:** En la explicación original se presentaba como si fuera un valor singular, pero el modelo indica `list[str]`.
+   - **Corrección:** Se especificó claramente que es una lista seleccionable con "(seleccionar del catálogo BelongEnum cuando esté disponible)".
+   - **Claridad:** El usuario entiende que puede incluir múltiples categorías por actor.
+
+---
+
+## 12. **Campos de defecto en modelos Pydantic**
+   - **Observación:** Algunos campos no tenían `= None` explícito aunque fueran opcionales, causando potencial confusión.
+   - **Corrección:** Se actualizaron todos los modelos para incluir valores por defecto (`= None` o `= []`), asegurando que campos opcionales sean verdaderamente opcionales.
+   - **Ejemplo:** `state_str: StateEnum | None = None` en lugar de solo `StateEnum | None`.
+
+---
+
+## 13. **Consistencia en terminología**
+   - **Observación:** Se usaban términos intercambiables: "ambiental" vs "ecológico", "impacto" vs "afectación".
+   - **Corrección:** Se estandarizó: usar "ambiental" en ImpactGroupEnum pero mantener "afectaciones ecológicas" en la descripción conceptual para coherencia con la sección de criterios. Usar consistentemente "afectación" en la explicación y "impact" en el código.
+   - **Beneficio:** Reduce confusión en términos.
+
+---
+
+## 14. **Especificación explícita del catálogo BelongEnum**
+   - **Observación:** Se menciona que existe pero no se incluye en el prompt (como solicitaste ignorar por ahora).
+   - **Corrección:** Se añadió una nota aclaratoria: "(seleccionar del catálogo BelongEnum cuando esté disponible)" y se incluyó la lista de valores esperados.
+   - **Preparación:** Facilita la posterior integración cuando el catálogo esté completo.
+
+---
+
+## 15. **Adición de tabla de enumeraciones**
+   - **Observación:** Los valores posibles de enums estaban dispersos en el código.
+   - **Corrección:** Se creó sección 7 "Enumeración de estados y ubicaciones" que lista todos los valores válidos de forma legible.
+   - **Utilidad:** Referencia rápida sin necesidad de ir al código Python.
+
+---
+
+## 16. **Claridad sobre afectaciones "potenciales"**
+   - **Observación:** El campo `is_potential` estaba poco explicado: ¿qué significa exactamente?
+   - **Corrección:** Se reformuló como: "true si es algo que **podría ocurrir**; false si **ya ocurrió**" (explícitamente dicotómico).
+   - **Ventaja:** Elimina ambigüedad sobre cómo interpretar afectaciones mencionadas en modo condicional.
+
+---
+
+## 17. **Mejora en la estructura de ejemplos de `project_type_text`**
+   - **Observación:** Los ejemplos estaban en línea sin separación clara; difícil de seguir.
+   - **Corrección:** Mantiene los ejemplos pero reorganizados en contexto de la tabla para mejor legibilidad.
+   - **Nota:** Este cambio es menor pero mejora la presentación.
+
+---
+
+## 18. **Instrucción explícita sobre "no completar por completitud"**
+   - **Observación:** No estaba claro si debía incluir elementos vacíos en listas solo para que tengan estructura.
+   - **Corrección:** Añadida en "Criterios de rigor": "Si una lista (locations, involvements, etc.) no tiene elementos que cumplan los criterios, dejarla vacía, no incluir elementos por completitud."
+   - **Beneficio:** Evita ruido en los datos y asegura calidad.
+
+---
+
+## 19. **Separación clara de "Incluir" vs "Descartar" en todas las categorías**
+   - **Observación:** Algunos eventos y impactos no tenían viñetas de "Descartar" claras.
+   - **Corrección:** Se uniformó la estructura de todos los criterios con viñetas consistentes de *Incluir* y *Descartar* (o *Condición* donde aplique).
+   - **Resultado:** Estructura predecible y fácil de seguir.
+
+---
+
+## 20. **Adición de tabla comparativa para LocationBase**
+   - **Observación:** LocationBase aparece en tres contextos distintos (project_full, impacts, events) pero no se aclaró qué campos aplican en cada caso.
+   - **Corrección:** Se especificó que la estructura es idéntica en los tres contextos pero con reglas diferentes sobre cuándo incluirlos (solo cuando difieren de la ubicación principal en impacts y events).
+   - **Claridad:** Evita confusión sobre si hay tres estructuras diferentes.
+
+---
+
+## RESUMEN DE CAMBIOS PRINCIPALES
+
+| Aspecto | Antes | Después |
+|---------|-------|---------|
+| Estructura | Narrativa mixta | Secciones numeradas con tablas |
+| Párrafos | No especificado | Comienzan en 1, definición clara |
+| Campos opcionales | Implícito | Explícito con columna "Notas" |
+| Límites de caracteres | Solo en código | Visibles en tablas de referencia |
+| Criterios de inclusión | Dispersos | Sección centralizada 8 |
+| Enumeraciones | Solo en código | Sección 7 legible |
+| Rigor | Implícito | Sección 8 explícita |
+| Modelos Pydantic | Valores por defecto faltantes | Todos con `= None` o `= []` |

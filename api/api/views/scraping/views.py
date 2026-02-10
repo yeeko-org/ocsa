@@ -1,33 +1,28 @@
 import threading
-
+from api.views.common_views import BaseGenericViewSet
 from django.db import connection
+from django_filters import FilterSet, DateFilter
 from django.db.models import Count
-from django_filters import DateFilter, FilterSet
-from rest_framework import permissions, status
-from rest_framework.decorators import action
+
+from rest_framework import status, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework.decorators import action
 from api.permissions import IsFullEditorOrReadOnly
-from api.views.article.source_serializers import (
-    ScrapedRecordSerializer,
-    ScrapedRecordSimpleSerializer,
-    ScrapingDateSerializer,
-)
-from api.views.common_views import BaseGenericViewSet
-from source.models import Article, ScrapedRecord
-from source.scraper.criteria import ManagerCriteria
+from api.views.article.source_serializers import ScrapedRecordSimpleSerializer, ScrapedRecordSerializer, \
+    ScrapingDateSerializer
+from source.models import ScrapedRecord, Article
 from source.scraper.jornada import JornadaManagerScraper
 from source.scraper.reforma import ReformaManagerScraper
+from source.scraper.criteria import ManagerCriteria
 
 
 def get_manager_scraper_class(source):
     from source.models import Source
-
     if isinstance(source, int):
         source = Source.objects.get(pk=source).name.lower()
-    if source == "jornada" or source == "la jornada":
+    if source == 'jornada' or source == 'la jornada':
         return JornadaManagerScraper
     elif source == "reforma":
         return ReformaManagerScraper
@@ -39,18 +34,18 @@ def get_manager_scraper_class(source):
         raise ValidationError("Invalid source")
 
 
-def full_scrape_articles(source, scraped_record: ScrapedRecord):
+def full_scrape_articles(scraped_record: ScrapedRecord):
     from django.utils import timezone
     # connection.close()  # TODO: revisar funcionamiento
 
-    manager_scraper_class = get_manager_scraper_class(source)
-    manager_scraper = manager_scraper_class("", "", recover_record=scraped_record)
+    manager_scraper_class = get_manager_scraper_class(scraped_record.source)
+    manager_scraper = manager_scraper_class(
+        "", "", recover_record=scraped_record)
     scraped_record.last_updated = timezone.now()
     scraped_record.save()
     manager_scraper.scrape_articles(update=True)
     manager_criteria = ManagerCriteria(
-        recover_record=scraped_record, ai_engine="gemini-3-flash-preview"
-    )
+        recover_record=scraped_record, ai_engine="gemini-3-flash-preview")
 
     manager_criteria.build_first_criteria()
     manager_criteria.build_second_criteria()
@@ -61,13 +56,14 @@ class ScrapingDatesView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+
         serializer = ScrapingDateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        from_date = serializer.validated_data["from_date"]  # type: ignore
-        to_date = serializer.validated_data["to_date"]  # type: ignore
-        source = serializer.validated_data["source"]  # type: ignore
+        from_date = serializer.validated_data['from_date']  # type: ignore
+        to_date = serializer.validated_data['to_date']  # type: ignore
+        source = serializer.validated_data['source']  # type: ignore
         print(f"Scraping from {from_date} to {to_date} for source {source}")
 
         manager_scraper_class = get_manager_scraper_class(source)
@@ -76,13 +72,10 @@ class ScrapingDatesView(APIView):
         manager_scraper = manager_scraper_class(from_date, to_date or from_date)
 
         if manager_scraper.errors or manager_scraper.overlapping_dates:
-            return Response(
-                {
-                    "errors": manager_scraper.errors,
-                    "overlapping_dates": manager_scraper.overlapping_dates,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({
+                "errors": manager_scraper.errors,
+                "overlapping_dates": manager_scraper.overlapping_dates
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         manager_scraper.scrape_sections()
 
@@ -91,43 +84,37 @@ class ScrapingDatesView(APIView):
         scraped_record = manager_scraper.scraped_record
         scraped_data = ScrapedRecordSimpleSerializer(scraped_record).data
         response_data = {
-            "articles_count": Article.objects.filter(scraped=scraped_record).count(),
+            "articles_count": Article.objects.filter(
+                scraped=scraped_record).count(),
             "scraped_record": scraped_data,
             "errors": manager_scraper.errors,
         }
 
         thread = threading.Thread(
-            target=full_scrape_articles,
-            args=(
-                source,
-                scraped_record,
-            ),
-        )
+            target=full_scrape_articles, args=(scraped_record,))
         thread.start()
 
         return Response(response_data)
 
 
 class ScrapedRecordFilter(FilterSet):
-    from_date = DateFilter(field_name="from_date", lookup_expr="gte")
-    to_date = DateFilter(field_name="to_date", lookup_expr="lte")
-
+    from_date = DateFilter(field_name='from_date', lookup_expr='gte')
+    to_date = DateFilter(field_name='to_date', lookup_expr='lte')
     class Meta:
         model = ScrapedRecord
         fields = {
-            "source": ["exact"],
+            'source': ['exact'],
         }
 
 
 class ScrapedRecordView(BaseGenericViewSet):
-    queryset = (
-        ScrapedRecord.objects.all()
-        .select_related("source")
-        .annotate(articles_count=Count("articles"))
-    )
+
+    queryset = ScrapedRecord.objects.all()\
+        .select_related('source')\
+        .annotate(articles_count=Count('articles'))
     serializer_class = ScrapedRecordSerializer
     permission_classes = [IsFullEditorOrReadOnly]
-    ordering = ["-from_date"]
+    ordering = ['-from_date']
 
     filterset_class = ScrapedRecordFilter
 
@@ -149,19 +136,18 @@ class ScrapedRecordView(BaseGenericViewSet):
         serializer.instance.user = request.user
         serializer.instance.save()
         return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=True, methods=["post"], permission_classes=[IsFullEditorOrReadOnly])
+    @action(detail=True, methods=["post"],
+            permission_classes=[IsFullEditorOrReadOnly])
     def reprocess(self, request, pk=None):
-        from datetime import timedelta
-
         from django.utils import timezone
+        from datetime import timedelta
 
         scraped_record = self.get_object()
         source = scraped_record.source.id
         dates = []
-        fields = ["date_start", "last_updated"]
+        fields = ['date_start', 'last_updated']
         for field in fields:
             date_value = getattr(scraped_record, field)
             if date_value:
@@ -176,7 +162,7 @@ class ScrapedRecordView(BaseGenericViewSet):
             if not request.user.is_superuser:
                 return Response(
                     {"detail": "Cannot reprocess a recently updated scraped record."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
         # last_update = min(scraped_record.date_end, scraped_record.last_update)
@@ -184,14 +170,14 @@ class ScrapedRecordView(BaseGenericViewSet):
             if scraped_record.date_start + timedelta(days=1) < time_now:
                 return Response(
                     {"detail": "Cannot reprocess an ongoing scraped record."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_400_BAD_REQUEST
                 )
         thread = threading.Thread(
-            target=full_scrape_articles,
-            args=(
-                source,
-                scraped_record,
-            ),
-        )
+            target=full_scrape_articles, args=(scraped_record, ))
         thread.start()
-        return Response({"detail": "Reprocessing started."}, status=status.HTTP_200_OK)
+        return Response(
+            {"detail": "Reprocessing started."},
+            status=status.HTTP_200_OK
+        )
+
+

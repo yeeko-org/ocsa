@@ -3,11 +3,12 @@
 {
   "mentions": [
     {      
-      "project_data": {
+      "project_full": {
         "_project_id": null,
+        "index": 0,
         "name": "Desarrollo inmobiliario Aztecas 215",
-        "alternative_name": null,
-        "extractivism_types_str": ["urbano"],
+        // "alternative_name": null,
+        "_extractivism_types_str": ["urbano"],
         "_extractivism_types": [1],
         "project_type_text": "Desarrollo inmobiliario",
         "parent_project_text": "Conjunto ciudad futura",
@@ -39,7 +40,7 @@
           "impact_group_str": "enviromental",  // según catálogo ImpactGroup
           "_impact_group": 1,
           "impact_type_str": "agua",
-          "_impact_type_id": null,
+          "_impact_type": null,
           "description": "Derrame de agua potable al drenaje",
           "is_potential": false,
           "locations": [],  // campo opcional
@@ -68,18 +69,20 @@
           "_discarded": false,
           "_event_id": null,
           "event_group_str": "Violencia", // Mec. legal a favor o en contra
-          "_event_group_id": 2,
-          "_purpose_id": null,
+          "_event_group": 2,
+          "_purpose": null,
           "description": "Denuncia pública - Denuncia",
-//          "involvements_str": [
-//            {
-//              "❓actor_uid": 2009,
-//              "role": "Participante" // CAT
-//            }
-//          ],
-          "involvements_str": [
-            "Luisa Medina fue la firmante de la denuncia pública"
+          "involvements": [
+            {
+              "_discarded": false,
+              "_involvement_id": null,
+              "❓actor_uid": 2009,
+              "role_text": "Participante" // CAT
+            }
           ],
+          // "involvements_text": [
+          //   "Luisa Medina fue la firmante de la denuncia pública"
+          // ],
           // Nota: Ubicaciones distintas al proyecto
           "locations": [],
           "paragraphs": [],

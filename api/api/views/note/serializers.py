@@ -3,18 +3,18 @@ from rest_framework import serializers
 from api.views.project.list_serializers import (
     ImpactSerializer, ParticipantFullSerializer)
 from api.views.project.retrieve_serializers import ConflictSerializer
-# from api.views.space_time.serializers import LocationSerializer
 from api.views.event.serializers import EventSerializer
-# from api.views.article.serializers import ArticleDetailSerializer
+from api.views.common_serializers import (
+    ConditionalFieldsMixin, MunicipalitySimpleSerializer,
+    LocalitySimpleSerializer)
+
 from project.models import Project, ProjectFile
 from source.models import Mention, Note, NoteFile, StatusHistory, Article
 from event.models import Event, Involved
 from actor.models import Participant, Interest
 from impact.models import Impact
 from df.models import Displacement
-# from impact.models import Impact
-from space_time.models import Location
-from api.views.common_serializers import ConditionalFieldsMixin
+from space_time.models import Location, Municipality, Locality
 
 
 # class ConditionalFieldsSerializerMixin:
@@ -44,11 +44,19 @@ class DisplacementSimpleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class LocationSmallSerializer(ConditionalFieldsMixin):
+class LocationSemiFullSerializer(ConditionalFieldsMixin):
+    municipality_full = MunicipalitySimpleSerializer(
+        source='municipality', read_only=True)
+    locality_full = LocalitySimpleSerializer(
+        source='locality', read_only=True)
 
     class Meta:
         model = Location
-        exclude = ['geojson', 'ubicacion_id_ref']
+        # exclude = ['geojson', 'ubicacion_id_ref']
+        fields = [
+            "id", "project", "state", "municipality", "municipality_full",
+            "locality", "locality_full", "details",
+            "type_location", "status_location"]
 
 
 class ProjectSerializer(ConditionalFieldsMixin):
@@ -73,7 +81,7 @@ class ProjectSemiFullSerializer(ConditionalFieldsMixin):
         read_only=True, source='parent_project')
     conflict_full = ConflictSerializer(read_only=True, source='conflict')
     extractivism_type = serializers.SerializerMethodField()
-    locations = LocationSmallSerializer(many=True, read_only=True)
+    locations = LocationSemiFullSerializer(many=True, read_only=True)
 
     def get_extractivism_type(self, obj):
         return None
@@ -242,3 +250,10 @@ class InterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Interest
         fields = '__all__'
+
+
+class PreMentionSerializer(serializers.Serializer):
+    path = serializers.CharField(required=True)
+    discarded = serializers.BooleanField(required=True)
+    element_id = serializers.IntegerField(required=False)
+

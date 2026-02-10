@@ -104,22 +104,9 @@ class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
         article = self.get_object()
         context = self.get_serializer_context()
 
-        # print("article", article.id)
-        # request.data["id"] = pk
-        # print("request.data", request.data)
         serializer = self.get_serializer(data=request.data)
-        # print("name of serializer:", serializer.__class__.__name__)
         serializer.is_valid(raise_exception=True)
-        # print("serializer.validated_data", serializer.validated_data)
-        # article.is_selected = serializer.validated_data["is_selected"]
-        # article.discarded_reason = serializer.validated_data.get(
-        #     "discarded_reason", None)
-        # if other_reason := serializer.validated_data.get(
-        #         "other_discarded_reason"):
-        #     article.other_discarded_reason = other_reason
-
         serializer.update(article, serializer.validated_data)
-
 
         self.save_click_action(request, article, force=True)
 
@@ -142,67 +129,10 @@ class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
             return Response(
                 ArticleStatusSerializer(article, context=context).data)
 
-        try:
-            # for reforma
-            pages = article.get_meta("pagina").get("texto")
-        except:
-            pages = None
-
-        note = Note.objects.create(
-            title=article.title,
-            subtitle=article.subtitle,
-            author=article.author,
-            source=article.source,
-            section=article.section,
-            pages=pages,
-            link=article.url,
-            date=article.published_date,
-            status_register_id="ia_selected",
-        )
-
-        file_url = get_url_file_reforma(article)
-
-        if file_url:
-            note_file = NoteFile()
-            note_file.note = note
-            note_file.save_file_from_url(file_url, f"{pages}.pdf")
-            note_file.save()
-
-        article.note = note
-        article.save()
+        article.create_note_from_article()
         context["status"] = "selected"
         return Response(
             ArticleStatusSerializer(article, context=context).data)
-
-
-def get_url_file_reforma(article: Article):
-    try:
-        pages = (article.get_meta("pagina") or {}).get("texto")
-    except:
-        return
-
-    if not pages or not article.published_date:
-        return
-
-    published_str = article.published_date.strftime("%Y%m%d")
-    reforma_url = f"https://hemeroteca.reforma.com/{published_str}/pdfs/{pages}.PDF"
-
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-
-    }
-
-    response = requests.post(
-        "https://www.reforma.com/edicionimpresa/aplicacionei/webview/GeneraUrl.aspx/PathCDN",
-        json={"Url": reforma_url}, headers=headers
-    )
-    if response.status_code == 200:
-        try:
-            return response.json().get("d")
-        except:
-            pass
 
 
 class SourceViewSet(BaseStatusViewSet):

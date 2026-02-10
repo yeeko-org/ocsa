@@ -10,13 +10,54 @@ class SourceSimpleSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
+class ScrapedRecordRealSimpleSerializer(serializers.ModelSerializer):
+    all_counts = serializers.SerializerMethodField()
+
+    def get_all_counts(self, obj):
+        # return obj.articles\
+        #     .values("certainty_degree", "second_certainty_degree", "is_selected")\
+        #     .annotate(count=Count('id'))
+        from django.db.models import (
+            Count, Q, Case, When, IntegerField, Value, CharField, F,
+            BooleanField, ExpressionWrapper)
+
+        return obj.articles \
+            .annotate(
+                first_pre_selected=ExpressionWrapper(
+                    Q(certainty_degree__gt=100, certainty_degree__isnull=False),
+                    output_field=BooleanField()
+                ),
+                second_pre_selected=Case(
+                    When(second_certainty_degree__gt=100, then=Value(True)),
+                    When(second_certainty_degree__lte=100, then=Value(False)),
+                    default=Value(False),
+                    output_field=BooleanField()
+                ),
+                is_ready=ExpressionWrapper(
+                    Q(is_selected__isnull=False),
+                    output_field=BooleanField()
+                )
+
+            ) \
+            .values("first_pre_selected", "second_pre_selected", "is_ready") \
+            .annotate(count=Count('id'))
+
+    class Meta:
+        model = ScrapedRecord
+        fields = [
+            "id", "from_date", "to_date", "source", "all_counts"
+        ]
+
+
 class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
     articles_count = serializers.SerializerMethodField()
     scraped_count = serializers.SerializerMethodField()
     analyzed_count = serializers.SerializerMethodField()
-    pre_selected_count = serializers.SerializerMethodField()
+    first_pre_selected_count = serializers.SerializerMethodField()
     pre_filtered_count = serializers.SerializerMethodField()
+    second_pre_selected_count = serializers.SerializerMethodField()
     pending_count = serializers.SerializerMethodField()
+    ready_count = serializers.SerializerMethodField()
     errors_count = serializers.SerializerMethodField()
 
     def get_articles_count(self, obj):
@@ -28,7 +69,7 @@ class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
     def get_analyzed_count(self, obj):
         return obj.articles.filter(certainty_degree__isnull=False).count()
 
-    def get_pre_selected_count(self, obj):
+    def get_first_pre_selected_count(self, obj):
         return obj.articles\
             .filter(certainty_degree__gt=100).count()
 
@@ -36,9 +77,18 @@ class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
         return obj.articles\
             .filter(second_certainty_degree__isnull=False).count()
 
+    def get_second_pre_selected_count(self, obj):
+        return obj.articles\
+            .filter(second_certainty_degree__gt=100).count()
+
     def get_pending_count(self, obj):
         return obj.articles\
             .filter(is_selected__isnull=True)\
+            .filter(second_certainty_degree__gt=100).count()
+
+    def get_ready_count(self, obj):
+        return obj.articles\
+            .filter(is_selected__isnull=False)\
             .filter(second_certainty_degree__gt=100).count()
 
     def get_errors_count(self, obj):
@@ -49,10 +99,12 @@ class ScrapedRecordSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScrapedRecord
         fields = [
-            "id", "from_date", "to_date", "source", "errors_count",
+            "id", "from_date", "to_date", "source",
             "articles_count", 'scraped_count',
-            "analyzed_count", "pre_selected_count",
-            "pre_filtered_count", "pending_count"
+            "analyzed_count", "first_pre_selected_count",
+            "pre_filtered_count", "second_pre_selected_count",
+            "pending_count", "ready_count", "errors_count",
+            # "all_counts"
         ]
 
 

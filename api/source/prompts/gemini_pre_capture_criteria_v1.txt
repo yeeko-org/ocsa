@@ -1,0 +1,107 @@
+Deberás evaluar, con mucha rigurosidad y con base el artículo periodístico que el usuario te proporciona, los siguientes elementos relacionados con los proyectos que enlistará el usuario:
+
+### 1. Características de cada mención Proyectos
+
+En primer lugar, recibirás una lista de proyectos identificados como megaproyectos extractivistas (obras, actividades o instalaciones físicas y tangibles de gran escala que ocupan o transforman un territorio específico).
+
+Cada proyecto de la lista tiene su ID y su nombre, deberás generar una mención (`mention`), dentro, habrá varios atributos:
+
+## Atributos de `project_full`:
+
+En el campo `name` intenta dejar solo el nombre oficial (si viene mencionado) o bien, construye el nombre más claro que ayude a identificarlo.
+
+En el campo `project_type_text` deberás poner qué tipo de proyecto es, algunos ejemplos son: presa hidroeléctrica, mina de plata, desarrollo inmobiliario, monocultivo de soya, puerto, gasoducto, tren, línea de metro, gasoductos, centro comercial, planta de amoniaco, relleno sanitario, tala ilegal, autopista urbana, parque eólico, granja porcícola, etc.
+
+En `paragraphs` incluye solo los números de párrafos de la nota en los que se menciona el nombre del proyecto o donde se mencionan datos para su identificación.
+
+El campo `parent_project_text` solo si el proyecto es parte de un “cluster” o agrupador, es decir, un proyecto más grande en el cual se desarrolla.
+
+Adicionalmente, de cada proyecto se deberán extraer las siguientes listas de características (cualquiera de las lista puede estar vacía si es que no se identifica ninguna característica en la nota)
+** Lista `locations`: Ubicaciones que se mencionan donde se ubica el proyecto **
+
+---
+
+** Lista de `status_history`: Identifica si la nota menciona algún estatus o cambio en la etapa del proyecto. Para cada elemento que identifiques de `status_history`, deberás darme los siguientes campos:
+`status_project_text`: El nombre del status identificado en la nota: activo, ampliación, cancelado, clausurado, construcción, planeación, suspensión o cualquier otro cambio
+`date`: Fecha aproximada de ese cambio (basado en la fecha de la nota).
+`paragraphs`: La lista de párrafos de la nota donde se menciona ese estatus.
+
+---
+
+## **Atributo `impacts`** Lista de las afectaciones sociales (social) y ecológicas (ecological), considera solo las negativas que son consecuencia directa del proyecto, de su construcción o su implementación.
+Para las afectaciones sociales:
+* *Incluir:* Desplazamiento, afectación a la salud, pérdida de medios de vida, violación de derechos humanos, pérdida/deterioro de patrimonio cultural.
+* *Descartar:* Impactos macroeconómicos (inflación, inversiones), afectaciones internas (inseguridad dentro de una terminal) o accidentes no relacionados con la implementación del proyecto (accidentes automovilísticos en el proyecto carretero).
+**Para las afectaciones ambientales:**
+* *Incluir:* Contaminación (agua/suelo/aire), deforestación, pérdida de biodiversidad.
+* *Descartar:* Cuando el proyecto es la solución a una afectación, o cuando un desastre natural (incendio, huracán, sequía) afecta al proyecto externamente.
+
+Para cada impact, deberás identificar los siguientes campos:
+
+`impact_group_str`: El grupo de afectación (social/ecological)
+`impact_type_str`: El tipo de afectación según el catálogo del modelo ImpactTypeEnum
+`description`: Describe brevemente cuál fue la afectación, sin mencionar datos como nombre del proyecto, la ubicación de la afectación o el nombre de los actores.
+`is_potential`: Define si en la nota se menciona si ya ocurrió o es algo que podría potencialmente ocurrir.
+`locations`: Lista de ubicaciones en las que ocurrió la afectación, siempre y cuando haya sido en un lugar distinto a la ubicación del proyecto.
+`paragraphs`: La lista de párrafos de la nota donde se menciona la afectación.
+
+---
+
+## **Atributo `actors`** Lista de hasta 20 actores individuales y colectivos relacionados directamente con el proyecto, ya sea para oponerse (oppose), para apoyarlo, ejecutarlo o promoverlo (support) o los que ayudan a resolver alguna controversia entre opositores y promotores (neutral). Omite aquellos actores que su mención en la nota no se relaciona directamente con el proyecto como: los bomberos que atienden un incendio del proyecto, protección civil que evacuó a heridos, los trabajadores que no se oponen y que fueron entrevistados, etc.
+
+`uid`: Número consecutivo (comenzando con 1 y hasta 20) del actor.
+`name`: Nombre del actor individual, colectivo o institucional.
+`sector_text`: A qué sector poblacional o institucional pertenecen los actores: ejemplo: personas, comunidades, ejidos, organizaciones, empresas estatales, institución federal, empresa privada internacional,  poder legislativo, etc.
+`belongs_str`: Si tiene alguno o algunos de los grupos especiales, los cuales pueden ser: Trabajador, Afectado, Habitante, Indígena, Campesino, Urbano, Líder, Participación sobresaliente de mujeres, Organización de mujeres, Tiene Protección (definidio en el modelo BelongEnum).
+`position_str`: oppose, support o neutral
+`interest_text`: Descripción breve de cuál es el interés del actor respecto al proyecto.
+`paragraphs`: Lista de IDs de párrafos donde se menciona al actor o sus datos.
+
+---
+
+## **Atributo events`** Lista de los eventos relevantes que se relatan que afectan o buscan afectar al proyecto o a los actores que están a favor o contra del mismo proyecto.
+
+Dentro de cada objeto `event`, se deberá agregar los siguientes atributos:
+
+**`event_group_str`** Este es el grupo de evento dentro de las siguientes 4 opciones:
+
+*`collective_actions`*
+Las acciones colectivas incluyen estrategias y movilizaciones que las comunidades y movimientos sociales emplean para resistir y enfrentar los impactos negativos de las actividades extractivas, así como para defender los derechos humanos, el medio ambiente y las formas de vida tradicionales frente a la explotación de recursos naturales. También incluyen las acciones realizadas directamente contra el proyecto (denunciar impactos, oponerse a construcción/ampliación/operación).
+* *Incluir:* Solo las acciones que se realicen directamente contra el proyecto: Toma de instalaciones, bloqueo de vialidades, protestas, manifestaciones, conferencias de prensa, comunicados, actividades simbólicas.
+* *Descartar:* Acciones que suceden alrededor del proyecto pero no son contra él (ej. invasión a un parque industrial por conflictos laborales, protestas por inseguridad ajena al proyecto).
+
+*`acts_of_violence`*
+Se refiere a aquellos hechos, estrategias o mecanismos intencionales que tienen el objetivo de generar un daño a los opositores. Con ellos, se busca impulsar la implementación o continuación de los proyectos extractivos.
+* *Incluir:* Amenazas, intimidación, agresiones físicas, criminalización, demandas legales contra opositores, asesinatos.
+* *Condición:* La violencia debe estar dirigida directamente contra las personas o grupos identificados como opositores al proyecto. No considerar violencia circunstancial sin relación directa con la oposición al  proyecto.
+
+*`spoliation_acts`*
+El uso del marco legal y estrategias jurídicas para el despojo: Uso de normativas, vacíos legales o interpretaciones que facilitan el acceso y control de tierras y recursos naturales por actores privados o estatales.
+
+*`defense_acts`*
+Uso de marco legal y estrategias jurídicas empleadas para la defensa de comunidades y pueblos. Todos los mecanismos legales que ayuden a los opositores o ayuden a restringir, cancelar, disminuir el proyecto.
+
+**`description`**: Descripción breve explicativa del evento, que ayude a entender qué fue lo que se hizo (sin mencionar el nombre de los actores).
+
+**`involvements`**: Lista de los actores involucrados (solo de la lista de actores) en el evento y el rol que llevaron a cabo en el evento, los atributos específicos de cada involvement son:
+
+*`actor_uid`*: El uid asignado al actor
+*`role_text`*: El rol que desempeñó en el evento.
+`locations`: Lista de ubicaciones en las que ocurrió el evento. Registrar solo cuando se trate de lugares distintos a la ubicación del proyecto.
+`paragraphs`: Lista de IDs de párrafos que mencionan al evento.
+
+---
+
+Atributos de las listas de `locations` (En `project_full`, `impacts` y `events`):
+
+`state_str`: Nombre del estado, según catálogo del modelo StateEnum.
+`municipality_text`: Nombre del municipio (si está explícito, opcional)
+`locality_text`: Nombre de la localidad (si es que aparece)
+`details`: Otros detalles como colonia o referencias que ayuden a localizar la ubicación del proyecto, evento o afectación.
+
+
+
+
+
+
+

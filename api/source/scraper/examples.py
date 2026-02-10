@@ -8,11 +8,11 @@ from source.scraper.proceso import ProcesoManagerScraper
 
 
 def examples_base():
+
     # manager_scraper = JornadaManagerScraper(
     #     "2022/10/01", "2022/12/31", ai_engine="gpt-4o-mini")
     manager_scraper = JornadaManagerScraper(
-        "2022/02/01", "2023/02/28", ai_engine="gpt-4o-mini"
-    )
+        "2022/02/01", "2023/02/28", ai_engine="gpt-4o-mini")
 
     # print(manager_scraper.scraped_record)
     manager_scraper.scrape_sections()
@@ -26,11 +26,11 @@ def examples_base():
     # tambien podemos recuperar el record desde donde lo dejamos usando el record como referencia
 
     manager_scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.last(), ai_engine="gpt-4o-mini"
-    )
+        "", "", recover_record=ScrapedRecord.objects.last(),
+        ai_engine="gpt-4o-mini")
     manager_scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=10), ai_engine="gpt-4o-mini"
-    )
+        "", "", recover_record=ScrapedRecord.objects.get(pk=10),
+        ai_engine="gpt-4o-mini")
 
     # record articles genera los registros de los articulos con get_or_create
     # basado en el uid y el source, tambien genera los datos de las listas
@@ -40,6 +40,7 @@ def examples_base():
     manager_scraper.scrape_articles()
 
     manager_scraper.build_first_criteria()
+
 
     # python manage.py articles_json "2022-10-01" "2022-12-31" 4
     # python manage.py articles_json "2023-05-05" "2023-05-05" 4
