@@ -1,5 +1,4 @@
 <script setup>
-import {computed} from 'vue'
 import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";

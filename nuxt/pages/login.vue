@@ -1,6 +1,5 @@
 <script setup>
 
-import { ref, computed } from 'vue'
 // import SectionTitle from "@/components/dashboard/organization/SectionTitle.vue";
 // import ResetPassword from "@/components/dashboard/profile/ResetPassword.vue";
 import authMix from "~/components/login/auth_mix.js";

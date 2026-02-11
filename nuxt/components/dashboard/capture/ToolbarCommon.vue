@@ -1,6 +1,9 @@
 <script setup>
-import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
+import {useMainStore} from "~/store/index.js";
+import {useDashboardStore} from "~/store/dash.js";
+const mainStore = useMainStore()
+const dashboardStore = useDashboardStore()
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 import { useSaveElements } from "~/composables/save_elements.js";
@@ -56,12 +59,11 @@ const record_to_delete = ref({})
 const saving = ref(false)
 const index_in_edit = ref(null)
 const elem_to_save = ref(null)
-const snackbar = ref(false)
 const selectGroupRef = ref(null)
 
-const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { deleteSimple, saveSimple } = mainStore
+const { showSnackbar } = dashboardStore
 
 const emits = defineEmits(['add-item'])
 defineExpose({ resetInitialData, validateAllForms })
@@ -103,13 +105,20 @@ provide('toolbar-unregister-validator', unregisterChildValidator)
 const parentRegister = inject('toolbar-register-validator', null)
 const parentUnregister = inject('toolbar-unregister-validator', null)
 
-function showValidationErrors(msg="Formulario no válido") {
-  save_errors.value = [msg]
+const element_errors = ref({})
+
+function showValidationErrors(msg="Formulario no válido", index=null) {
+  if (index !== null)
+    element_errors.value[index] = msg
+  else
+    save_errors.value = [msg]
   return false
 }
 
 async function validateAllForms(index=null, only_current=false) {
-  // console.log("Validating main form(s)...\n", mainForm.value)
+  console.log("Validating main form(s)...\n", mainForm.value)
+  console.log("Index:", index, "Only current:", only_current)
+  element_errors.value = {}
   if (mainForm.value && mainForm.value.length > 0) {
     if (index === null){
       const validations = await Promise.all(
@@ -124,15 +133,17 @@ async function validateAllForms(index=null, only_current=false) {
         "Completa todos los campos requeridos")
     }
     else {
-      // console.log("validating form at index", index)
+      console.log("validating form at index", index)
       const formRef = mainForm.value[index]
-      // console.log("formRef", formRef)
+      console.log("formRef", formRef)
       if (!formRef)
-        return showValidationErrors("Formulario no encontrado")
+        return showValidationErrors(
+          "Formulario no encontrado", index)
       const { valid } = await formRef.validate()
       // console.log("valid formRef", valid)
       if (!valid)
-        return showValidationErrors("Revisa el formulario, no es válido")
+        return showValidationErrors(
+          "Revisa el formulario, no es válido", index)
     }
   }
   if (only_current){
@@ -158,7 +169,7 @@ async function validateAllForms(index=null, only_current=false) {
     if (childValidate){
       const isValid = await childValidate()
       if (!isValid) return showValidationErrors(
-        "Revisa los elementos dependientes, alguno no es válido")
+        "Revisa los elementos dependientes, alguno no es válido", index)
     }
   }
   save_errors.value = []
@@ -176,8 +187,6 @@ onBeforeUnmount(() => {
     parentUnregister(validateAllForms)
   }
 })
-
-const element_errors = ref({})
 
 async function saveItem(item, index) {
   // console.log("saveItem", index, item)
@@ -215,7 +224,7 @@ async function allFinished(pre_data=null, index=null) {
     resetInitialData()
     return
   }
-  snackbar.value = true
+  showSnackbar(`${child_collection.value.name} guardado`)
   saving.value = false
   main_array.value.splice(index_in_edit.value, 1, mixed_res)
   resetInitialData()
@@ -255,6 +264,7 @@ async function acceptItem(pre_item, index) {
   const child_name = child_collection.value.snake_name
   const new_item = await savePreItem(
     pre_item.path, child_name, final_note_id.value, params)
+    showSnackbar(`${child_collection.value.name} aceptado`)
 
   main_array.value.splice(index, 1, new_item)
   resetInitialData()
@@ -264,7 +274,9 @@ async function discardRecord(pre_item, index) {
   const child_name = child_collection.value.snake_name
   const new_pre_item = await discardPreItem(
     pre_item.path, child_name, final_note_id.value)
-  main_array.value.splice(index, 1, new_pre_item)
+  main_array.value.splice(index, 1)
+  main_array.value.push(new_pre_item)
+  showSnackbar(`${child_collection.value.name} descartado`)
 }
 
 const show_all_discarded = ref(false)
@@ -545,24 +557,6 @@ const color_child_card = computed(() => {
       <slot name="footer">
       </slot>
     </v-card>
-    <v-snackbar
-      v-model="snackbar"
-      color="success"
-      location="right bottom"
-      location-strategy="connected"
-      timeout="3500"
-    >
-      {{ `${child_collection.name} guardado` }}
-      <template v-slot:actions>
-        <v-btn
-          color="accent"
-          variant="text"
-          @click="snackbar = false"
-        >
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
     <DialogDelete
       v-model="dialog_delete"
       v-model:delete_text="delete_text"

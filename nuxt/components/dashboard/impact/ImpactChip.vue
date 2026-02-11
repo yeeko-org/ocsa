@@ -2,7 +2,6 @@
 
 import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
 
-import {computed} from "vue";
 import {useMainStore} from "~/store/index.js"
 import {storeToRefs} from "pinia"
 

@@ -1,5 +1,4 @@
 <script setup>
-import {defineComponent, ref, computed} from 'vue'
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'
 import {useAuthStore} from "~/store/auth.js";

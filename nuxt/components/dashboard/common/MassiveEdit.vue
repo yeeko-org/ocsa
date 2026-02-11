@@ -2,7 +2,6 @@
 
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
-import {ref} from "vue";
 import { saveElement } from "~/composables/save_elements.js";
 
 import {useMainStore} from "~/store/index.js";

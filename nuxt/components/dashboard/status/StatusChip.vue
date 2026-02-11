@@ -1,5 +1,4 @@
 <script setup>
-import { computed } from 'vue';
 import { useMainStore } from '~/store'
 import { storeToRefs } from 'pinia'
 import {status_filters} from "~/composables/filters.js";

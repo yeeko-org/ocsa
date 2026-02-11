@@ -1,20 +1,21 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue'
-
 const menu_drawer = ref(false)
 import {useMainStore} from "~/store/index.js";
+import {useDashboardStore} from "~/store/dash.js";
 import {useAuthStore} from "~/store/auth.js";
 const router = useRouter()
 const config = useRuntimeConfig();
 
 const mainStore = useMainStore()
+const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
 const { schemas, current_collection_data } = storeToRefs(mainStore)
+const { global_snackbar, global_snackbar_message } = storeToRefs(dashboardStore)
 const { is_full_editor } = storeToRefs(authStore);
 // const { fetchCatalogs } = mainStore
 const { logout } = authStore
 const admin_url = config.public.adminUrl
-console.log('ADMIN URL:', config.public.adminUrl, admin_url)
+// console.log('ADMIN URL:', config.public.adminUrl, admin_url)
 // const route = useRoute()
 
 // onBeforeMount(() => {
@@ -238,6 +239,24 @@ watch(
           </client-only>
         </v-layout>
       </v-container>
+      <v-snackbar
+        v-model="global_snackbar"
+        color="success"
+        location="right bottom"
+        location-strategy="connected"
+        timeout="4000"
+      >
+        {{ global_snackbar_message || 'Cambios guardados' }}
+        <template v-slot:actions>
+          <v-btn
+            color="accent"
+            variant="text"
+            @click="global_snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
     </v-main>
   </v-app>
 </template>

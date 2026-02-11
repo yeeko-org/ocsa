@@ -1,5 +1,4 @@
 <script setup>
-import {computed, nextTick, watch} from "vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import CommentIcon from "~/components/dashboard/common/utils/CommentIcon.vue";
 import TitleCommon from "~/components/dashboard/common/utils/TitleCommon.vue";

@@ -1,5 +1,4 @@
 <script setup>
-import { ref, computed } from 'vue'
 import { useMainStore } from '~/store/index'
 import * as d3 from 'd3'
 import dayjs from 'dayjs'

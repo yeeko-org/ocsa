@@ -2,7 +2,6 @@
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import {computed, nextTick} from "vue";
 import LocationType from "~/components/dashboard/custom_filters/LocationType.vue";
 import LocationMapDialog from "~/components/dashboard/space_time/LocationMapDialog.vue";
 import {location_types} from "~/composables/location_types.js";

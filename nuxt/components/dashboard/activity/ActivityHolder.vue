@@ -1,5 +1,4 @@
 <script setup>
-import { nextTick } from 'vue'
 import {storeToRefs} from "pinia";
 import { useMainStore } from '~/store/index'
 import {useAuthStore} from '~/store/auth.js'

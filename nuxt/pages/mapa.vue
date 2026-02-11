@@ -2,7 +2,6 @@
 import mapboxgl from 'mapbox-gl';
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
-import {onMounted, onUnmounted, ref, watch} from 'vue';
 import ProjectCardMap from "~/components/map/ProjectCardMap.vue";
 import MainFilterMap from "~/components/map/MainFilterMap.vue";
 import { useMapData } from "~/components/map/useMapData.js";

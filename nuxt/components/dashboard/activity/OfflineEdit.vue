@@ -1,5 +1,4 @@
 <script setup>
-import { ref, computed } from 'vue'
 import { useMainStore } from '~/store/index'
 import { useRules } from '~/composables/useRules'
 import UserSelect from "~/components/dashboard/custom_filters/UserSelect.vue";

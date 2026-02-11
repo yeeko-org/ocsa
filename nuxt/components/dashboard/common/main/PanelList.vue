@@ -2,7 +2,7 @@
 
 import PanelCommon from "~/components/dashboard/common/main/PanelCommon.vue";
 
-import {ref, computed, shallowRef, nextTick, defineEmits} from 'vue'
+import {shallowRef, nextTick} from 'vue'
 
 const props = defineProps({
   results: Array,

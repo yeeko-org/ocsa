@@ -1,16 +1,18 @@
 <script setup>
 
-import {useMainStore} from "~/store/index";
 import {storeToRefs} from "pinia";
+import {useMainStore} from "~/store/index";
+import {useDashboardStore} from "~/store/dash.js";
 
-import {show_details} from "~/composables/fetch.js";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 import FilesToolbar from "~/components/dashboard/capture/FilesToolbar.vue";
 import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
-import {watch} from "vue";
+import {show_details} from "~/composables/fetch.js";
 const mainStore = useMainStore()
+const dashboardStore = useDashboardStore()
 const { schemas } = storeToRefs(mainStore)
 const { saveSimple } = mainStore
+const { showSnackbar } = dashboardStore
 
 const props = defineProps({
   full_main: {
@@ -34,7 +36,6 @@ const project_fields = [
 const total_requests = ref(0)
 const resolved_requests = ref(0)
 const saving_locations = ref(false)
-const snackbar = ref(false)
 const locations = ref([])
 const files = ref([])
 
@@ -133,7 +134,7 @@ function saveLocations() {
       props.full_main.locations.splice(idx, 1, res)
       if (resolved_requests.value === total_requests.value){
         saving_locations.value = false
-        snackbar.value = true
+        showSnackbar('Se guardaron las ubicaciones')
       }
     })
   })
@@ -262,23 +263,6 @@ const children_projects = computed(() => {
     </v-card-text>
   </v-card>
 
-  <v-snackbar
-    v-model="snackbar"
-    color="success"
-    location="right bottom"
-    location-strategy="connected"
-  >
-    Se guardaron las ubicaciones
-    <template v-slot:actions>
-      <v-btn
-        color="accent"
-        variant="text"
-        @click="snackbar = false"
-      >
-        Cerrar
-      </v-btn>
-    </template>
-  </v-snackbar>
 </template>
 
 <style scoped>

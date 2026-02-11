@@ -4,7 +4,6 @@ import CriteriaChip from "~/components/dashboard/capture/CriteriaChip.vue";
 import { useMainStore } from "~/store/index.js";
 import ProjectsCriteria from "~/components/dashboard/source/article/ProjectsCriteria.vue";
 import {storeToRefs} from "pinia";
-import {watch} from "vue";
 import Paragraph from "~/components/dashboard/capture/Paragraph.vue";
 
 const mainStore = useMainStore()

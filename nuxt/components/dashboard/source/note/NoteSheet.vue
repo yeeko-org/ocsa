@@ -1,19 +1,22 @@
 <script setup>
 
-import {computed, ref, watch} from 'vue'
-
-import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
+import {useDashboardStore} from "~/store/dash.js";
+const mainStore = useMainStore()
+const dashboardStore = useDashboardStore()
+
+import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import FilesToolbar from "~/components/dashboard/capture/FilesToolbar.vue";
 import ParagraphsContent from "~/components/dashboard/capture/ParagraphsContent.vue";
-const mainStore = useMainStore()
+import ParagraphsProjectsContent from "~/components/dashboard/capture/ParagraphsProjectsContent.vue";
+
 const { saveSimple, sendPreCapture, savePreCapture } = mainStore
 const { schemas } = storeToRefs(mainStore)
+const { showSnackbar } = dashboardStore
 import { useSaveElements } from "~/composables/save_elements.js";
 import { orderMix, savePreItem } from "~/composables/mix_pre_capture.js";
-import ParagraphsProjectsContent from "~/components/dashboard/capture/ParagraphsProjectsContent.vue";
 const { saveComplex } = useSaveElements()
 
 const props = defineProps({
@@ -36,9 +39,6 @@ const note_files = ref([])
 const project_collection = computed(() => {
   return schemas.value.collections_dict['project']
 })
-
-const snackbar_message = ref('')
-const snackbar = ref(false)
 
 const dialog_search = ref(false)
 const addMention = () => {
@@ -119,10 +119,7 @@ function discardPreMention(pre_item) {
     discarded: true,
   }
   savePreCapture({data, note_id: props.full_main.id}).then((res) => {
-    snackbar.value = true
-    snackbar_message.value = 'Se ha descartado la mención preliminar'
-    // console.log("res", res)
-    // allCopyFinished()
+    showSnackbar('Se ha descartado la mención preliminar')
   })
 }
 
@@ -135,8 +132,7 @@ async function changePreMention(pre_item, project) {
     item.path === pre_item.path)
   const mixed_mention = await savePreItem(
     pre_item.path, 'mention', props.full_main.id, params)
-  snackbar.value = true
-  snackbar_message.value = 'Se ha aceptado la mención preliminar'
+  showSnackbar('Se ha aceptado la mención preliminar')
   all_mentions.value.splice(index, 1, mixed_mention)
 }
 
@@ -144,8 +140,7 @@ function saveMention(mention) {
   const index = all_mentions.value.findIndex(
     item => item.id === mention.id)
   all_mentions.value.splice(index, 1, mention)
-  snackbar.value = true
-  snackbar_message.value = 'Se ha guardado la mención'
+  showSnackbar('Se ha guardado la mención')
 }
 
 function deleteMention(mention_id) {
@@ -154,8 +149,7 @@ function deleteMention(mention_id) {
   if (index > -1) {
     all_mentions.value.splice(index, 1)
   }
-  snackbar.value = true
-  snackbar_message.value = 'Se ha eliminado la mención'
+  showSnackbar('Se ha eliminado la mención')
 }
 
 function allCopyFinished(mention_id=null) {
@@ -371,24 +365,6 @@ const two_columns = ref(true)
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-snackbar
-      v-model="snackbar"
-      color="success"
-      location="right bottom"
-      location-strategy="connected"
-      timeout="3500"
-    >
-      {{ snackbar_message || 'Cambios guardados' }}
-      <template v-slot:actions>
-        <v-btn
-          color="accent"
-          variant="text"
-          @click="snackbar = false"
-        >
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
   </v-row>
 <!--  <v-card class="my-3" elevation="3">-->
 <!--    <v-card-title>-->

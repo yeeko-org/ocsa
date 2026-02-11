@@ -2,7 +2,6 @@
 
 import ParagraphsProjectsContent from "~/components/dashboard/capture/ParagraphsProjectsContent.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
-import {computed} from "vue";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import CardComponent from "~/components/dashboard/common/CardComponent.vue";

@@ -1,6 +1,5 @@
 <script setup>
 
-import {computed, nextTick} from "vue";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import GenericSelect from "~/components/dashboard/common/select/GenericSelect.vue";

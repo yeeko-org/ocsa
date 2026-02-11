@@ -2,11 +2,15 @@
 
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
-import { saveElement, deleteElement } from "~/composables/save_elements.js";
+import {useDashboardStore} from "~/store/dash.js";
 import EditCommonFields from "~/components/dashboard/common/generic/EditCommonFields.vue";
 import AlertInfo from "~/components/dashboard/common/utils/AlertInfo.vue";
+
 const mainStore = useMainStore()
+const dashboardStore = useDashboardStore()
+import { saveElement, deleteElement } from "~/composables/save_elements.js";
 const { schemas, status_dict } = storeToRefs(mainStore)
+const { showSnackbar } = dashboardStore
 import {status_filters} from "~/composables/filters.js";
 
 const props = defineProps({
@@ -72,13 +76,9 @@ async function saveRecord() {
   })
 }
 
-const snackbar = ref(false)
-const snackbar_text = ref('Se ha guardado el registro')
-
 function finishSave(snackbar_msg='Se ha guardado el registro'){
   saving.value = false
-  snackbar.value = true
-  snackbar_text.value = snackbar_msg
+  showSnackbar(snackbar_msg)
 }
 
 function updateStatus({status_group, new_status, res}){
@@ -197,24 +197,6 @@ function deleteRecord() {
         </v-btn>
       </v-card-actions>
     </v-form>
-    <v-snackbar
-      v-model="snackbar"
-      color="success"
-      location="right bottom"
-      location-strategy="connected"
-      timeout="3500"
-    >
-      {{ snackbar_text }}
-      <template v-slot:actions>
-        <v-btn
-          color="accent"
-          variant="text"
-          @click="snackbar = false"
-        >
-          Cerrar
-        </v-btn>
-      </template>
-    </v-snackbar>
     <v-dialog
       v-model="dialog_delete"
       max-width="500"

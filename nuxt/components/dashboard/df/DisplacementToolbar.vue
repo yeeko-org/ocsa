@@ -6,7 +6,6 @@ import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import LocationMex from "~/components/dashboard/space_time/location/LocationMex.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
-import {computed} from "vue";
 const mainStore = useMainStore()
 
 const {

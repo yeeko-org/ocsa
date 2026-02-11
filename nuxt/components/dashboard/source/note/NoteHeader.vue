@@ -1,7 +1,5 @@
 <script setup>
 
-import {computed} from "vue";
-
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import ImpactChip from "~/components/dashboard/impact/ImpactChip.vue";
 import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";

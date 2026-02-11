@@ -2,7 +2,6 @@
 
 import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
 import CriteriaChip from "~/components/dashboard/capture/CriteriaChip.vue";
-import {computed} from "vue";
 import dayjs from "dayjs";
 
 import {useMainStore} from "~/store/index.js";

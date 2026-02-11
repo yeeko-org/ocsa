@@ -1,6 +1,5 @@
 <script setup>
 
-import { computed, ref } from 'vue'
 import {useMainStore} from '~/store/index'
 
 import {storeToRefs} from "pinia";

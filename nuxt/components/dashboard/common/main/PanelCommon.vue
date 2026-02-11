@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed, nextTick, shallowRef} from 'vue'
+import {shallowRef} from 'vue'
 import { getElement } from "~/composables/save_elements.js";
 import EditCommon from "~/components/dashboard/common/generic/EditCommon.vue";
 import { patchElement } from "~/composables/save_elements.js";

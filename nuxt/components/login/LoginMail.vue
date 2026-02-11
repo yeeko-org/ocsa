@@ -1,7 +1,5 @@
 <script setup>
 
-import { ref } from 'vue'
-
 import authMix from "~/components/login/auth_mix.js";
 const { rules } = authMix;
 

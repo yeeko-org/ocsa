@@ -1,7 +1,7 @@
 <script setup>
 
 import EditCommon from "~/components/dashboard/common/generic/EditCommon.vue";
-import {computed, shallowRef} from "vue";
+import {shallowRef} from "vue";
 
 const props = defineProps({
   collection_data: Object,

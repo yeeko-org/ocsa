@@ -3,7 +3,6 @@ import HeaderChip from '~/components/dashboard/common/utils/HeaderChip.vue'
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import ImpactChip from "~/components/dashboard/impact/ImpactChip.vue";
 
-import { computed } from 'vue'
 
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";

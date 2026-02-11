@@ -1,5 +1,4 @@
 <script setup>
-import { ref, computed } from 'vue'
 import { actorCounter } from "~/composables/actor_counter.js";
 
 const props = defineProps({

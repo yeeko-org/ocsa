@@ -1,7 +1,6 @@
 <script setup>
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import {nextTick} from "vue";
 
 const mainStore = useMainStore()
 const { full_geo, cats } = storeToRefs(mainStore)
@@ -69,7 +68,6 @@ function changeGeoValue(level, value) {
 
 nextTick(() => {
   setTimeout(() => {
-    // console.log("full_main nextTick")
     getGeoUnities()
   }, 10)
 })

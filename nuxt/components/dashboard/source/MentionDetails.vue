@@ -1,21 +1,22 @@
 <script setup>
+import {storeToRefs} from "pinia";
+import {useMainStore} from "~/store/index.js";
+
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import ParticipantsToolbar from "~/components/dashboard/source/ParticipantsToolbar.vue";
 import EventToolbar from "~/components/dashboard/event/event/EventToolbar.vue";
 import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
-
-import {storeToRefs} from "pinia";
-import {useMainStore} from "~/store/index.js";
-import {computed, nextTick} from "vue";
-const mainStore = useMainStore()
-const { schemas } = storeToRefs(mainStore)
-const { saveSimple, getRelatedActors, deleteSimple, patchSimple } = mainStore
-import { useSaveElements } from "~/composables/save_elements.js";
 import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
 import StatusHistoryToolbar from "~/components/dashboard/project/status_history/StatusHistoryToolbar.vue";
-import {savePreItem, saveItemMixed, discardPreItem, mixOrigins} from "~/composables/mix_pre_capture.js";
 import DialogSearch from "~/components/dashboard/common/dialog/DialogSearch.vue";
 import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
+
+const mainStore = useMainStore()
+const { schemas } = storeToRefs(mainStore)
+const { showSnackbar } = mainStore
+const { saveSimple, getRelatedActors, deleteSimple, patchSimple } = mainStore
+import {savePreItem, saveItemMixed, discardPreItem, mixOrigins} from "~/composables/mix_pre_capture.js";
+import { useSaveElements } from "~/composables/save_elements.js";
 const { saveComplex, save_errors } = useSaveElements()
 
 const props = defineProps({
@@ -40,8 +41,6 @@ defineExpose({ allFinished })
 const all_saving = ref(false)
 
 const participantsToolbarRef = ref(null)
-// const snackbar_message = ref('')
-// const snackbar = ref(false)
 
 async function allFinished(mention_id=null, pre_data=null) {
   if (mention_id && mention_id !== mention.value.id)
@@ -165,7 +164,6 @@ async function discardParticipant([pre_item, index]) {
   const new_pre_item = await discardPreItem(
     pre_item.path, 'participant', props.note_id)
   console.log("new_pre_item Participant", new_pre_item)
-  // main_array.value.splice(index, 1, new_pre_item)
   mention.value.participants.splice(index, 1)
   mention.value.participants.push(new_pre_item)
 }
@@ -219,8 +217,7 @@ function deleteMention() {
     emits('mention-deleted', mention.value.id)
     all_saving.value = false
     dialog_delete.value = false
-    // snackbar.value = true
-    // snackbar_message.value = 'Se ha eliminado la mención'
+    showSnackbar('Se ha eliminado la mención')
   })
 }
 

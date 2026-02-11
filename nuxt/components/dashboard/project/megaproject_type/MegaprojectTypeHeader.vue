@@ -1,8 +1,6 @@
 <script setup>
-import StatusChip from '~/components/dashboard/status/StatusChip.vue'
 import HeaderChip from '~/components/dashboard/common/utils/HeaderChip.vue'
 
-import { computed } from 'vue'
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
 

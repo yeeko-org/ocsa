@@ -1,5 +1,4 @@
 <script setup>
-import { ref } from "vue";
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const props = defineProps({

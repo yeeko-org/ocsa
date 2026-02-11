@@ -1,7 +1,7 @@
 <script setup>
 
 import PanelList from "~/components/dashboard/common/main/PanelList.vue";
-import {ref, computed, shallowRef, nextTick} from 'vue'
+import {shallowRef} from 'vue'
 import SummaryList from "~/components/dashboard/common/main/SummaryList.vue";
 import EditCommon from "~/components/dashboard/common/generic/EditCommon.vue";
 import MassiveActions from "~/components/dashboard/common/utils/MassiveActions.vue";

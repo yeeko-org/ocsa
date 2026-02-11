@@ -1,5 +1,4 @@
 <script setup>
-import {computed, onMounted, ref, onBeforeMount, watch, nextTick } from "vue";
 import {useMainStore} from '~/store/index'
 const mainStore = useMainStore()
 import FiltersList from "~/components/dashboard/common/select/FiltersList.vue";

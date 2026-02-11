@@ -4,10 +4,9 @@ import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import {computed} from "vue";
 import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
 const mainStore = useMainStore()
-const { schemas, all_nodes } = storeToRefs(mainStore)
+const { all_nodes } = storeToRefs(mainStore)
 
 const props = defineProps({
   main: Object,

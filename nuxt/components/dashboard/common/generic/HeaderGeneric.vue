@@ -1,6 +1,5 @@
 <script setup>
 
-import { computed } from 'vue'
 import { useMainStore } from '~/store/index.js'
 import { storeToRefs } from 'pinia'
 import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
