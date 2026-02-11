@@ -17,6 +17,10 @@ const props = defineProps({
     type: String,
     default: 'generic',
   },
+  btn_size: {
+    type: String,
+    default: 'small',
+  },
 })
 
 const paragraphs_active = computed(() => {
@@ -48,7 +52,7 @@ function filterParagraphs() {
   <v-btn
     v-if="paragraphs.length > 0"
     icon
-    size="small"
+    :size="btn_size"
     color="accent"
     :variant="paragraphs_active ? 'elevated' : 'text'"
     @click="filterParagraphs"

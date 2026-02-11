@@ -49,10 +49,6 @@ const final_collection_data = computed(() => {
 </script>
 
 <template>
-<!--  <v-dialog-->
-<!--    v-model="dialog_visible"-->
-<!--    max-width="920"-->
-<!--  >-->
   <v-card>
     <v-card-text class="py-0 px-0">
       <v-row
@@ -63,7 +59,7 @@ const final_collection_data = computed(() => {
         <v-col
           v-if="base_element"
           cols="5"
-          class="scroll-column px-2 mx-0"
+          class="scroll-column px-2 mx-0 pt-3"
         >
           <v-card
             class="d-flex align-center px-3"
@@ -103,7 +99,6 @@ const final_collection_data = computed(() => {
       </v-row>
     </v-card-text>
   </v-card>
-<!--  </v-dialog>-->
 </template>
 
 

@@ -6,6 +6,7 @@ import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.v
 import EventDetails from "~/components/dashboard/event/event/EventDetails.vue";
 import ActorCard from "~/components/dashboard/actor/actor/ActorCard.vue";
 import { useRules } from '~/composables/useRules'
+import PreActorCard from "~/components/dashboard/event/PreActorCard.vue";
 const props = defineProps({
   parent_id: Number,
   all_actors: {
@@ -108,6 +109,7 @@ const registered_actors = computed(() => {
                   <ActorCard
                     :full_main="item.raw"
                     :title="item.title"
+                    is_simple
                   />
                 </template>
               </v-list-item>
@@ -123,13 +125,10 @@ const registered_actors = computed(() => {
 
         </template>
         <template #rows="{item}">
-          <div v-if="item.path && !item.id">
-            {{all_actors.find(actor =>
-            (actor.uid || actor.pre_data?.uid) === item.actor_uid)?.name
-            || 'Desconocido'}}
-            <br/>
-            ({{item.role_text}})
-          </div>
+          <PreActorCard
+            :item="item"
+            :all_actors="all_actors"
+          />
         </template>
         <template #footer v-if="false">
           <v-card

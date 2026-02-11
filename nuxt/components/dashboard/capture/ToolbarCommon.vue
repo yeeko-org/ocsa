@@ -60,6 +60,7 @@ const saving = ref(false)
 const index_in_edit = ref(null)
 const elem_to_save = ref(null)
 const selectGroupRef = ref(null)
+// const touched_index = ref({})
 
 const { schemas } = storeToRefs(mainStore)
 const { deleteSimple, saveSimple } = mainStore
@@ -257,25 +258,33 @@ const final_note_id = computed(() => {
 })
 
 async function acceptItem(pre_item, index) {
+  saving.value = true
+  index_in_edit.value = index
   const is_valid = await validateAllForms(index, true)
   // console.log("is_valid", is_valid)
-  if (!is_valid) return
+  if (!is_valid) {
+    saving.value = false
+    return
+  }
   const params = {...pre_item, ...parent_object.value}
   const child_name = child_collection.value.snake_name
   const new_item = await savePreItem(
     pre_item.path, child_name, final_note_id.value, params)
     showSnackbar(`${child_collection.value.name} aceptado`)
-
+  saving.value = false
   main_array.value.splice(index, 1, new_item)
   resetInitialData()
 }
 
 async function discardRecord(pre_item, index) {
+  saving.value = true
+  index_in_edit.value = index
   const child_name = child_collection.value.snake_name
   const new_pre_item = await discardPreItem(
     pre_item.path, child_name, final_note_id.value)
   main_array.value.splice(index, 1)
   main_array.value.push(new_pre_item)
+  saving.value = false
   showSnackbar(`${child_collection.value.name} descartado`)
 }
 
@@ -423,6 +432,7 @@ const color_child_card = computed(() => {
                     :forced_level="forced_level"
                     :required="required_full_category"
                   >
+<!--                    @touched="touched_index[index] = true"-->
                     <template #chip>
                       <slot
                         name="rows_init"
@@ -459,6 +469,7 @@ const color_child_card = computed(() => {
                           icon="save"
                           color="success"
                           variant="outlined"
+                          :loading="saving && index_in_edit === index"
                           :class="{'mt-n2 ml-2': !vertical_actions}"
                           v-tooltip:top="`Guardar ${child_collection?.name || 'cambios'}`"
                         >
@@ -469,6 +480,7 @@ const color_child_card = computed(() => {
                         :discarded="item.discarded"
                         :can_edit_pre_save="!!parent_id"
                         :vertical_actions="vertical_actions"
+                        :loading="saving && index_in_edit === index"
                         @discard-record="discardRecord(item, index)"
                         @accept-record="acceptItem(item, index)"
                       />

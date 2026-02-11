@@ -66,10 +66,9 @@ function mixMentions(pre_mentions=null) {
     props.full_main.pre_mentions = pre_mentions
   }
   const mixed_mentions = orderMix(
-    'mentions',
     props.full_main.mentions || [],
     props.full_main.pre_mentions || [],
-    1, props.full_main.id
+    1
   )
   console.log("mixed_mentions\n", mixed_mentions)
   all_mentions.value = mixed_mentions
@@ -117,10 +116,7 @@ async function discardPreMention(pre_item, index) {
   const saved_pre_item = await discardPreItem(
     pre_item.path, 'mention', props.full_main.id)
   all_mentions.value.splice(index, 1)
-  all_mentions.value.push({
-    ...saved_pre_item,
-    hide_mention: true,
-  })
+  all_mentions.value.push(saved_pre_item)
   showSnackbar('Se ha descartado la mención preliminar')
 }
 
@@ -256,7 +252,7 @@ const two_columns = ref(true)
               :key="idx"
             >
               <v-card
-                v-if="mention.hide_mention"
+                v-if="mention.hide_mention && mention.discarded === true"
                 class="pa-3 d-flex align-center"
                 variant="tonal"
                 color="red-lighten-4"

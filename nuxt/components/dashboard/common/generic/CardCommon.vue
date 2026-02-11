@@ -192,7 +192,7 @@ function closeSearchDialog(new_item) {
       <ParagraphFilter
         :paragraphs="full_main?.paragraphs"
         :note_id="note_id"
-        :path="full_main?.path || full_main?.sub_path"
+        :path="full_main?.path"
       />
     </div>
 <!--    <v-dialog-->

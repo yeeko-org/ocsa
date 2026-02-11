@@ -412,8 +412,11 @@ function changeValue(level_name, value){
   main_object.value[level_names.value[level_name]] = value
 }
 
+// const emits = defineEmits(['touched'])
+
 function changeSubtypeValue(value){
   // console.log("changeSubtypeValue", value)
+  // emits('touched')
   if (filter_group_data.value?.open_search){
     // console.log("loaded.value", loaded.value)
     loaded.value = false

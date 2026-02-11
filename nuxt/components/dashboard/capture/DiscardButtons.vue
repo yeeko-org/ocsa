@@ -14,6 +14,7 @@ defineProps({
     default: 'default',
   },
   vertical_actions: Boolean,
+  loading: Boolean,
 })
 
 const emits = defineEmits(['accept-record', 'discard-record'])
@@ -40,6 +41,7 @@ const emits = defineEmits(['accept-record', 'discard-record'])
       :size="btn_size"
       v-tooltip="'Aceptar y guardar'"
       :disabled="!can_edit_pre_save"
+      :loading="loading"
       @click="emits('accept-record')"
     >
       <v-icon
@@ -55,6 +57,7 @@ const emits = defineEmits(['accept-record', 'discard-record'])
       variant="outlined"
       :size="btn_size"
       v-tooltip="'Descartar'"
+      :loading="loading"
       :disabled="!can_edit_pre_save"
       @click="emits('discard-record')"
     >

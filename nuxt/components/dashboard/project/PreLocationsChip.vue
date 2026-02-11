@@ -1,6 +1,7 @@
 <script setup>
 
 import DescriptionIcon from "~/components/dashboard/common/utils/DescriptionIcon.vue";
+import ParagraphFilter from "~/components/dashboard/capture/ParagraphFilter.vue";
 
 const props = defineProps({
   locations: {
@@ -11,6 +12,7 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  note_id: Number,
 })
 
 const emits = defineEmits(['discard-location'])
@@ -65,6 +67,13 @@ const discarded_count = computed(() => {
         icon_size="large"
       />
       <v-spacer> </v-spacer>
+      <ParagraphFilter
+        :paragraphs="location?.paragraphs"
+        :note_id="note_id"
+        :path="location?.path"
+        btn_size="30"
+      />
+
       <v-btn
         v-if="!location.discarded"
         color="success"

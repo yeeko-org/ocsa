@@ -21,6 +21,7 @@ const props = defineProps({
 })
 
 const emits = defineEmits(['show-all'])
+const show_image = ref(false)
 
 const show_paragraph = computed(() => {
   if (props.show_all)
@@ -41,7 +42,6 @@ const show_paragraph = computed(() => {
     variant="outlined"
     class="mb-1"
     color="grey-lighten-1"
-
     style="width: 100%;"
   >
     <v-card-text class="pb-1 pt-2 text-black">
@@ -60,12 +60,12 @@ const show_paragraph = computed(() => {
         <v-btn
           variant="text"
           size="small"
-          @click="paragraph.show_image = !paragraph.show_image"
+          @click="show_image = !show_image"
         >
           [IMAGEN]
         </v-btn>
         <v-img
-          v-if="paragraph.show_image"
+          v-if="show_image"
           :src="paragraph.image"
           class="my-2"
           max-height="400"

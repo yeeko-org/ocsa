@@ -51,7 +51,7 @@ function buildParagraph(idx, text="", image=null){
   if (image){
     paragraph.image = image.src
     paragraph.show_image = false
-    paragraph.text = `${image.caption} (pie de foto)`
+    paragraph.text = `${image.caption || 'SIN TEXTO'} (pie de foto)`
   }
   else
     paragraph.text = text
@@ -66,11 +66,10 @@ const hydrated_data = computed(() => {
   criteria_fields.forEach((field) => {
     full_criteria[field] = new Set()
   })
-  let image_idx = paragraphs.length + 1
+  let image_idx = paragraphs.length
   const images = props.full_main.images || []
   images.forEach((image, idx) => {
-    if (image.caption)
-      paragraphs.push(buildParagraph(image_idx + idx, null, image))
+    paragraphs.push(buildParagraph(image_idx + idx, null, image))
   })
   const projects = props.full_main.second_criteria?.projects || []
   projects.forEach((project, idx) => {
@@ -197,7 +196,7 @@ watch(content_paragraphs, (new_content) => {
     return
   if (new_content.is_active === false)
     return
-  console.log("Applying external paragraphs filter", new_content)
+  // console.log("Applying external paragraphs filter", new_content)
   external_paragraphs.value = new_content.paragraphs
   openExternalParagraphs()
   // selected_fields.value = []
@@ -281,6 +280,7 @@ watch(content_paragraphs, (new_content) => {
         :external_paragraphs="external_paragraphs"
         :active_external="content_paragraphs.is_active"
         :loading="sending_link"
+        :show_all="show_all"
         @show-all="showAll(true)"
       >
       </Paragraph>
@@ -290,7 +290,7 @@ watch(content_paragraphs, (new_content) => {
         color="accent"
         @click="showAll(false)"
       >
-        Ocultar párrafos
+        Ocultar párrafos sin relevancia
       </v-btn>
     </v-card-text>
   </v-card>

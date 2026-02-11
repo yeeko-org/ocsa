@@ -1,35 +1,5 @@
 import {useMainStore} from "~/store/index.js";
 
-function hydrateActor(actor_data) {
-  const {
-    name, belongs, sector_text, participant_group, paragraphs, uid,
-    interest_text, ...participant
-  } = actor_data
-  return {
-    ...participant,
-    participant_group,
-    paragraphs,
-    init_filters: {q: name, participant_group},
-    actor_full : {
-      uid,
-      name,
-      belongs,
-      sector_text,
-      sub_path: participant.path,
-      status_validation: 'yk_proposed',
-      paragraphs
-    }
-  }
-}
-
-function hydratePreMention(mention, note_id=null) {
-  mention.participants = mention.actors.map(hydrateActor)
-  mention.note = note_id
-  mention.project_full.sub_path = mention.path
-  mention.hide_mention = mention.discarded === true
-  return mention
-}
-
 const init_fields = {
   1: [ "participants", "events", "impacts", "status_history" ],
   2: [ "locations", "involvements", "interests" ]
@@ -59,23 +29,16 @@ export function mixOrigins(saved_mention, pre_mention, level=1) {
     const pre_data = pre_mention[field] || []
     if (!saved_data)
       return
-    mixed_mention[field] = orderMix(field, saved_data, pre_data, level + 1)
+    mixed_mention[field] = orderMix(saved_data, pre_data, level + 1)
   })
   return mixed_mention
 }
 
-export function orderMix(field, saved_data, pre_data, level=1, note_id=null) {
-  // let want_print = false
-  // if (level === 1 && field === 'mentions'){
-  //   want_print = true
-  // }
+export function orderMix(saved_data, pre_data, level=1) {
   let mixed_data = []
   let discarded_data = []
   let used_ids = new Set()
   pre_data.forEach(pre_item => {
-    if (field === 'mentions')
-      pre_item = hydratePreMention(pre_item, note_id)
-
     if (pre_item.discarded === false){
       const saved_item = saved_data.find(
         sd => sd.id === pre_item.element_id)
@@ -113,13 +76,9 @@ export async function savePreItem(path, collection_name, note_id, params) {
     element_id: saved_item.id,
     discarded: false,
   }
-  // console.log("savePreItem - data", data)
   const res_pre_item = await savePreCapture({data, note_id})
-  const pre_item = is_mention
-    ? hydratePreMention(res_pre_item.content, note_id)
-    : res_pre_item.content
   const level = is_mention ? 1 : 2
-  return mixOrigins(saved_item, pre_item, level)
+  return mixOrigins(saved_item, res_pre_item.content, level)
 }
 
 export async function saveItemMixed(
@@ -133,27 +92,17 @@ export async function saveItemMixed(
   if (!pre_capture)
     return saved_item
 
-  let level = 2
-  if (collection_name === 'participant')
-    pre_capture = hydrateActor(pre_capture)
-  else if (collection_name === 'mention'){
-    pre_capture = hydratePreMention(pre_capture)
-    level = 1
-  }
+  const is_mention = collection_name === 'mention'
+  let level = is_mention ? 1 : 2
   return mixOrigins(saved_item, pre_capture, level)
 }
 
 export async function discardPreItem(path, collection_name, note_id) {
   const mainStore = useMainStore()
   const { savePreCapture } = mainStore
-  const is_mention = collection_name === 'mention'
 
   const data = {path, discarded: true}
   const res_pre_item = await savePreCapture({data, note_id})
-  return is_mention
-    ? hydratePreMention(res_pre_item.content, note_id)
-    : collection_name === 'participant'
-      ? hydrateActor(res_pre_item.content)
-      : res_pre_item.content
+  return res_pre_item.content
 }
 

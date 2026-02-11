@@ -56,7 +56,12 @@ function validate(){
         :full_main="item.actor_full"
         @edited-item="emits('edited-item', [item, $event])"
         indirect_get
-        :init_filters="!item.id ? item.init_filters : {}"
+        :init_filters="!item.id && item.path
+          ? {
+            q: item.actor_full.name,
+            participant_group: item.participant_group,
+          }
+          : {}"
         :note_id="note_id"
         :disabled_discard_buttons="!parent_id"
         collection_name="actor"

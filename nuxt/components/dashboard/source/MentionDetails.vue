@@ -268,6 +268,7 @@ async function discardLocation(pre_item) {
               :final_collection_data="final_collection_data"
               :full_main="mention.project_full"
               @discard-location="discardLocation"
+              :note_id="note_id"
             />
 
           </template>

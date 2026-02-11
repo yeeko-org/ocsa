@@ -56,6 +56,12 @@ const parent_project = computed(() => {
         chip_variant="outlined"
         left_label
       />
+      <div
+        v-if="full_main.project_type_text"
+        class="mt-n1 font-weight-bold"
+      >
+        {{ full_main.project_type_text }}
+      </div>
 
     </div>
     <div>
@@ -98,6 +104,7 @@ const parent_project = computed(() => {
     <PreLocationsChip
       v-if="full_main.locations"
       :locations="full_main.locations"
+      :note_id="note_id"
       horizontal
       :can_edit_pre_save="!!full_main.id"
       @discard-location="emits('discard-location', $event)"
