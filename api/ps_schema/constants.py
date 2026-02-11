@@ -9,7 +9,7 @@ all_collections = {
             "model_name": "Note",
             "level": "primary",
             "color": "deep-purple",
-            "icon": "news",
+            "icon": "newsmode",
             "all_filters": [
                 {"filter_name": "source_types", "hidden": False},
                 {
@@ -47,6 +47,7 @@ all_collections = {
         {
             "snake_name": "status_history",
             "name": "Cambio al status",
+            "icon": "history_toggle_off",
             "plural_name": "Cambios de status",
             "model_name": "StatusHistory",
             "level": "secondary",
@@ -134,8 +135,12 @@ all_collections = {
                     "component": "UserSelect", "hidden": True,
                 },
                 {
-                    "title": "Tiene ubicaciones", "field": "has_locations",
+                    "title": "Con ubicaciones", "field": "has_locations",
                     "component": "TripleBooleanFilter", "hidden": True
+                },
+                {
+                    "title": "Conflictos", "field": "is_grouper",
+                    "component": "ConflictFilter", "hidden": True
                 },
             ],
             "xls_export": True,
@@ -180,6 +185,14 @@ all_collections = {
             "icon": 'local_fire_department',
             "color": 'pink',
             "available_actions": ["merge"],
+            "all_filters": [
+                {"filter_name": "states", "hidden": True},
+                {"filter_name": "project_types", "hidden": True},
+                {
+                    "title": "Tiene proyectos", "field": "has_projects",
+                    "component": "TripleBooleanFilter", "hidden": False
+                },
+            ],
         },
         {
             "snake_name": "project_file",

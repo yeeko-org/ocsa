@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 django.setup()
 
-from source.scraper.scraper_base import close_pressreader_sessions
+from source.scraper.scraper_base import close_all_pressreader_sessions
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     print()
 
     try:
-        close_pressreader_sessions()
+        close_all_pressreader_sessions()
         print("\n" + "=" * 60)
         print("✓ SESIONES CERRADAS EXITOSAMENTE")
         print("=" * 60)

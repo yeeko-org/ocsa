@@ -375,7 +375,7 @@ class Article(models.Model):
             pages=pages,
             link=self.url,
             date=self.published_date,
-            status_register_id="ia_selected",
+            status_register_id="pre_captured",
         )
 
         file_url = get_url_file_reforma(self)

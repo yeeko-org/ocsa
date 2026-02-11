@@ -3,16 +3,17 @@ import json
 
 
 # def first_test(article_id: int) -> None:
-article_id = 60967
 from source.criteria.pre_capture import PreCaptureManager
 from source.models import Article, Note
 
+article_id = 42865
 article = Article.objects.get(pk=article_id)
 
 manager = PreCaptureManager(
     ai_engine="gemini-3-flash-preview",
 )
 manager.build_direct_criteria(article)
+
 manager.save_criteria_results([], article.pre_capture, article)
 
 

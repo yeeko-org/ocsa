@@ -64,8 +64,8 @@ class ParticipantSerializer(serializers.ModelSerializer):
 
 
 class ParticipantFullSerializer(serializers.ModelSerializer):
-    actor_full = ActorFullSerializer(source='actor')
-    interests = InterestFullSerializer(many=True)
+    actor_full = ActorFullSerializer(source='actor', read_only=True)
+    interests = InterestFullSerializer(many=True, read_only=True)
 
     class Meta:
         model = Participant
@@ -90,7 +90,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['event_type', 'date', 'description']
+        fields = ['event_type', 'description', 'purpose']
 
 
 class MentionSerializer(serializers.ModelSerializer):

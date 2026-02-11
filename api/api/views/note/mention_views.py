@@ -17,7 +17,7 @@ from api.views.project.list_serializers import (
 from api.views.note.serializers import (
     ImpactFullSerializer, EventFullNoteSerializer)
 from api.views.event.serializers import (
-    EventExportSerializer, ImpactExportSerializer)
+    EventExportSerializer, ImpactExportSerializer, EventMediumSerializer)
 from api.views.common_views import MassiveEdit, ClickHistoryMixin
 from api.views.common_views import BaseGenericViewSet
 
@@ -68,21 +68,30 @@ class MentionViewSet(ClickHistoryMixin, viewsets.ModelViewSet):
 class ParticipantViewSet(ClickHistoryMixin, viewsets.ModelViewSet):
     queryset = Participant.objects.all()
 
-    serializer_class = ParticipantSimpleSerializer
+    serializer_class = ParticipantFullSerializer
     is_mention_child = True
 
-    def create(self, request, *args, **kwargs):
+    # def get_serializer_class(self):
+    #     action_serializer = {
+    #         'retrieve': ParticipantFullSerializer,
+    #         'create': ParticipantFullSerializer,
+    #         'update': ParticipantFullSerializer,
+    #         # 'export_xls': EventExportSerializer,
+    #     }
+    #     return action_serializer.get(self.action, self.serializer_class)
 
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-
-            new_serializer = ParticipantFullSerializer(
-                serializer.instance)
-            return Response(
-                new_serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def create(self, request, *args, **kwargs):
+    #
+    #     serializer_class = self.get_serializer_class()
+    #     serializer = serializer_class(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #
+    #         new_serializer = ParticipantFullSerializer(
+    #             serializer.instance)
+    #         return Response(
+    #             new_serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ImpactViewSet(
@@ -279,8 +288,8 @@ class EventViewSet(
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': EventFullNoteSerializer,
-            'create': EventFullNoteSerializer,
-            'update': EventFullNoteSerializer,
+            'create': EventMediumSerializer,
+            'update': EventMediumSerializer,
             'export_xls': EventExportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)

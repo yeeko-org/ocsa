@@ -83,8 +83,8 @@ class StateEnum(enum.Enum):
 
 
 event_group_mapping = {
-    "collective_actions": {"event_group": 1},
-    "acts_of_violence": {"event_group": 2},
+    "acts_of_violence": {"event_group": 1},
+    "collective_actions": {"event_group": 2},
     "spoliation_acts": {"event_group": 3, "purpose": 1},
     "defense_acts": {"event_group": 3, "purpose": 2},
 }
@@ -102,8 +102,8 @@ class EventGroupEnum(enum.Enum):
 
 position_mapping = {
     "oppose": 1,
-    "support": 2,
-    "neutral": 3,
+    "support": 3,
+    "neutral": 2,
 }
 
 
@@ -166,6 +166,7 @@ class LocationBase(BaseModel):
     municipality_text: str | None = None
     locality_text: str | None = None
     details: str | None
+    paragraphs: list[int] = []
 
 
 class CommonFull(BaseModel, PathMixin):
@@ -266,6 +267,7 @@ class EventFull(EventBase, CommonFull):
     event_group: int | None = None
     purpose: int | None = None
     locations: list[LocationFull] = []
+    involvements: list[InvolvementFull] = []
 
 
 class MentionBase(BaseModel):
@@ -288,7 +290,7 @@ class NoteBase(RootModel):
     root: list[MentionBase] = []
 
 
-class NoteFull(RootModel, PathMixin):
+class NoteHydrated(RootModel, PathMixin):
     root: list[MentionFull] = []
 
     # @classmethod
@@ -298,7 +300,7 @@ class NoteFull(RootModel, PathMixin):
     #     return cls(root=data_with_paths)
 
     @classmethod
-    def model_validate_with_paths(cls, data: list) -> 'NoteFull':
+    def model_validate_with_paths(cls, data: list) -> 'NoteHydrated':
         """Valida y añade paths en un solo paso"""
         if isinstance(data, list):
             data = cls._set_paths_recursive(data, "$")

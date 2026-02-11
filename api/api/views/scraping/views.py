@@ -78,7 +78,6 @@ class ScrapingDatesView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         manager_scraper.scrape_sections()
-
         manager_scraper.record_articles()
 
         scraped_record = manager_scraper.scraped_record

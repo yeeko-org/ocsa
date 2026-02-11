@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from bs4.element import PageElement, Tag
 from django.conf import settings
 
-from source.models import Article, ArticleQualify, QualifySchema, ScrapedRecord, Source
+from source.models import Article
 
 REQUESTS_DEFAULT_HEADERS = {"User-Agent": "Mozilla/4.0"}
 
@@ -50,13 +50,15 @@ def get_json_content(
     else:
         if attempts <= 3:
             print(
-                f"Intento {attempts} fallido para {url}. Status: {response.status_code}"
+                f"Intento {attempts} fallido para {url}. "
+                f"Status: {response.status_code}"
             )
             time.sleep(2**attempts)
             return get_json_content(url, with_proxy, attempts + 1, custom_headers)
         else:
             raise Exception(
-                f"Error al acceder a la API: {response.status_code} - {response.text[:200]}"
+                f"Error al acceder a la API: {response.status_code} "
+                f"- {response.text[:200]}"
             )
 
 
@@ -71,7 +73,8 @@ def get_content(
             "http": f"http://{proxy_key}",
             "https": f"https://{proxy_key}",
         }
-        response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS, proxies=proxies)
+        response = requests.get(
+            url, headers=REQUESTS_DEFAULT_HEADERS, proxies=proxies)
     else:
         response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS)
     if response.status_code == 200:
@@ -82,7 +85,8 @@ def get_content(
             time.sleep(2**attempts)
             return get_content(url, parser, with_proxy, attempts + 1)
         else:
-            raise Exception(f"Error al acceder a la página: {response.status_code}")
+            raise Exception(
+                f"Error al acceder a la página: {response.status_code}")
 
 
 def get_clean_text(elem: PageElement) -> str:
@@ -120,13 +124,28 @@ class MainScraper(ABC):
     scraper_date: str
     parser = "html.parser"
     need_proxy = False
+    date_format = "%Y/%m/%d"
 
     def __init__(self, scraper_date: date | str):
-        self.scraper_date = date_in_str(scraper_date)
-        self.soup_content = get_content(self.main_url(), self.parser, self.need_proxy)
+        self.scraper_date = self.date_in_str(scraper_date)
+        # self.soup_content = get_content(
+        #     self.main_url(), self.parser, self.need_proxy)
 
         self.get_sections()
         self.get_articles()
+
+    def date_in_str(self, date_: date | str) -> str:
+        if isinstance(date_, date):
+            return date_.strftime(self.date_format)
+
+        pattern = r"^\d{4}/\d{2}/\d{2}$"
+        pattern2 = r"^\d{4}\d{2}\d{2}$"
+        if not re.match(pattern, date_) and not re.match(pattern2, date_):
+            raise ValueError("Invalid date format. Must be YYYY/MM/DD or YYYYMMDD")
+        elif re.match(pattern2, date_):
+            date_ = datetime.strptime(date_, "%Y%m%d").strftime(self.date_format)
+
+        return date_
 
     @abstractmethod
     def main_url(self) -> str:
@@ -151,8 +170,10 @@ class ArticleScraper(ABC):
     content: str
     images: List[dict[str, Any]] | None
     ai_engine: str | None
+    pages: str | None = None
     parser = "html.parser"
     need_proxy: bool = False
+    paragraphs: List[str] = []
 
     def __init__(self, article: Article, update: bool = False):
         self.article = article
@@ -160,7 +181,9 @@ class ArticleScraper(ABC):
             self.soup_content = BeautifulSoup(article.html_content, self.parser)
             self.get_article_data()
             return
-        self.soup_content = get_content(self.article.url, self.parser, self.need_proxy)
+        if self.parser != "json":
+            self.soup_content = get_content(
+                self.article.url, self.parser, self.need_proxy)
         try:
             self.get_article_data()
         except Exception as e:
@@ -172,6 +195,7 @@ class ArticleScraper(ABC):
         article.author = self.author or article.author
         article.content = self.content or article.content
         article.paragraphs = self.get_paragraphs(article.content)
+        article.pages = self.pages or article.pages  # type: ignore
         # article.paragraps = self.content.split("\n") if self.content else []
         article.html_content = str(self.get_main_body()) or article.html_content
         article.images = self.images or article.images  # type: ignore
@@ -202,8 +226,6 @@ class ArticleScraper(ABC):
 
     def get_reduced_content_text(self):
         body = self.get_main_body()
-        if not body:
-            return
         title = self.title
         # print("Body1:", body)
         # if title not in body.get_text():
@@ -311,15 +333,3 @@ class ArticleScraper(ABC):
         # self.article.content = body.get_text(separator="\n")
         # self.article.paragraphs = self.get_paragraphs(self.article.content)
         self.article.save()
-
-
-def date_in_str(date_: date | str) -> str:
-    if isinstance(date_, date):
-        return date_.strftime("%Y/%m/%d")
-
-    pattern = r"^\d{4}/\d{2}/\d{2}$"
-    pattern2 = r"^\d{4}\d{2}\d{2}$"
-    if not re.match(pattern, date_) and not re.match(pattern2, date_):
-        raise ValueError("Invalid date format. Must be YYYY/MM/DD or YYYYMMDD")
-
-    return date_

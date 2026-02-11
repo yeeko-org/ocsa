@@ -37,7 +37,8 @@ from source.scraper.articles import ArticleScraper, MainScraper, ManagerScraper
 from source.scraper.scraper_base import get_json_content
 
 # URL base de la API de PressReader
-PRESSREADER_API_BASE = "https://ingress.pressreader.com/se2skyservices"
+# PRESSREADER_API_BASE = "https://ingress.pressreader.com/se2skyservices"
+PRESSREADER_API_BASE = "https://ingress.pressreader.com/services"
 
 # CID de Proceso en PressReader (se puede obtener dinámicamente)
 PROCESO_CID = "24em"
@@ -182,7 +183,7 @@ def get_pressreader_token() -> str:
         raise ValueError("No se pudo obtener token anónimo de PressReader")
 
     # Paso 3: Hacer signin con las credenciales
-    signin_url = "https://ingress.pressreader.com/services/auth/Signin"
+    signin_url = f"{PRESSREADER_API_BASE}/auth/Signin"
     signin_headers = {
         **base_headers,
         "Authorization": f"Bearer {anon_token}",
@@ -207,7 +208,8 @@ def get_pressreader_token() -> str:
 
     if signin_response.status_code != 200:
         raise ValueError(
-            f"Error en signin: {signin_response.status_code} - {signin_response.text[:200]}"
+            f"Error en signin: {signin_response.status_code} "
+            f"- {signin_response.text[:200]}"
         )
 
     signin_data = signin_response.json()
@@ -243,7 +245,8 @@ def get_pressreader_token() -> str:
 
     try:
         complete_response = session.post(
-            complete_url, headers=complete_headers, json=complete_body, timeout=30
+            complete_url, headers=complete_headers,
+            json=complete_body, timeout=30
         )
     except Exception as e:
         raise ValueError(f"Error al completar signin: {e}")
@@ -295,7 +298,7 @@ def signout_with_token(token: str) -> bool:
         "Referer": "https://proceso.pressreader.com/proceso",
     }
 
-    signout_url = "https://ingress.pressreader.com/services/auth/SignOut"
+    signout_url = f"{PRESSREADER_API_BASE}/auth/SignOut"
 
     try:
         response = requests.post(
@@ -364,9 +367,6 @@ def get_pressreader_headers(bearer_token: str) -> dict:
     }
 
 
-# SCRAPER DE PROCESO
-
-
 class ProcesoManagerScraper(ManagerScraper):
     """
     IMPORTANTE: Para evitar el error status dos (demasiadas sesiones)
@@ -389,8 +389,8 @@ class ProcesoManagerScraper(ManagerScraper):
         super().__init__(
             from_date,
             to_date,
-            ProcesoMainScraper,
-            ProcesoArticleScraper,
+            main_scraper_class=ProcesoMainScraper,
+            article_scraper_class=ProcesoArticleScraper,
             recover_record=recover_record,
         )
 
@@ -417,7 +417,8 @@ class ProcesoManagerScraper(ManagerScraper):
         bearer_token = get_pressreader_token()
 
         # Consultar calendario para obtener fechas reales con issues
-        str_dates = self.get_available_issues(from_date, to_date, bearer_token)
+        str_dates = self.get_available_issues(
+            from_date, to_date, bearer_token)
 
         if not str_dates:
             print(f"No se encontraron issues disponibles entre {from_date} y {to_date}")
@@ -432,6 +433,7 @@ class ProcesoManagerScraper(ManagerScraper):
         for date_ in str_dates:
             try:
                 sections_dict = self.main_scraper_class(date_).sections_dict
+                print(f"✓ Secciones obtenidas para fecha {date_}: {list(sections_dict.keys())}")
             except Exception as e:
                 sections_dict = {
                     "error": f"Error getting sections for date {date_}",
@@ -461,7 +463,7 @@ class ProcesoManagerScraper(ManagerScraper):
 
         # El endpoint del calendario no usa /se2skyservices
         calendar_url = (
-            f"https://ingress.pressreader.com/services/calendar/get?cid={PROCESO_CID}"
+            f"{PRESSREADER_API_BASE}/calendar/get?cid={PROCESO_CID}"
         )
 
         try:
@@ -518,28 +520,14 @@ class ProcesoMainScraper(MainScraper):
     def __init__(self, scraper_date: date | str):
         """
         Inicializa el scraper para una fecha específica.
-        No llamamos a super().__init__() porque usamos API JSON en lugar de HTML.
-
         Args:
             scraper_date: Fecha en formato YYYYMMDD o date object
         """
-        # Convertir fecha al formato esperado (NO llamar a super para evitar get_content HTML)
-        from source.scraper.scraper_base import date_in_str
-
-        if isinstance(scraper_date, date):
-            self.scraper_date = scraper_date.strftime("%Y%m%d")
-        else:
-            # Limpiar formato - puede venir como YYYY/MM/DD o YYYYMMDD
-            self.scraper_date = scraper_date.replace("/", "")
-
-        # Obtener token antes de hacer peticiones
         self.bearer_token = get_pressreader_token()
         self.issue_id = None
         self.sections_dict = {}
-
-        # Obtener estructura del issue desde la API JSON
-        self.get_sections()
-        self.get_articles()
+        self.date_format = "%Y%m%d"
+        super().__init__(scraper_date)
 
     def main_url(self) -> str:
         """URL para obtener información del issue."""
@@ -552,262 +540,121 @@ class ProcesoMainScraper(MainScraper):
         """Headers con autenticación para la API."""
         return get_pressreader_headers(self.bearer_token)
 
+    def set_issue_info(self):
+        """
+        Obtiene y almacena la información del issue para la fecha dada,
+        incluyendo el issue_id necesario para consultas posteriores.
+        """
+        headers = self.get_headers()
+
+        try:
+            issue_response = get_json_content(
+                self.main_url(), custom_headers=headers)
+            if not issue_response or "Issue" not in issue_response:
+                print(f"No se encontró issue para la fecha {self.scraper_date}")
+                return None
+            self.issue_id = issue_response["Issue"].get("Issue")
+            if not self.issue_id:
+                print(f"No se pudo obtener el ID del issue para la fecha {self.scraper_date}")
+                return None
+        except Exception as e:
+            print(f"Error al obtener información del issue: {e}")
+            return None
+        return self.issue_id
+
     def get_sections(self):
         """
         Obtiene la estructura del issue desde PressReader.
         Las "secciones" en Proceso son las páginas de la revista.
         """
-        headers = self.get_headers()
-
-        # Paso 1: Obtener información del issue
-        try:
-            issue_response = get_json_content(self.main_url(), custom_headers=headers)
-        except Exception as e:
-            self.sections_dict = {"error": f"Error al obtener issue: {str(e)}"}
+        issue_id = self.set_issue_info()
+        if not issue_id:
             return
 
-        if not issue_response or "Issue" not in issue_response:
-            self.sections_dict = {
-                "error": f"No se encontró issue para la fecha {self.scraper_date}"
-            }
-            return
-
-        self.issue_id = issue_response["Issue"].get("Issue")
-
-        if not self.issue_id:
-            self.sections_dict = {"error": "No se pudo obtener el ID del issue"}
-            return
-
-        # Paso 2: Obtener metadata de páginas
+        # Paso 2: Obtener los títulos por RootArticleId
         pages_url = f"{PRESSREADER_API_BASE}/pagesMetadata/?issue={self.issue_id}"
-
+        headers = self.get_headers()
+        titles_dict = {}
         try:
             pages_response = get_json_content(pages_url, custom_headers=headers)
         except Exception as e:
-            self.sections_dict = {"error": f"Error al obtener páginas: {str(e)}"}
+            print(f"Error 1 al obtener páginas: {e}")
+            return
+        for page in pages_response:
+            for article in page.get("Articles", []):
+                root_article_id = article.get("RootArticleId")
+                str_article_id = str(root_article_id)
+                titles_dict[str_article_id] = {
+                    "title":  article.get("Title", ""),
+                    "subtitle": article.get("Subtitle", ""),
+                }
+
+        # Paso 2: Obtener metadata de páginas
+        section_pages_url = (f"https://s.prcdn.co/services/layout/"
+                     f"?issue={self.issue_id}&version=3")
+
+        try:
+            section_pages_response = get_json_content(section_pages_url)
+        except Exception as e:
+            print(f"Error 2 al obtener páginas: {e}")
             return
 
         # Paso 3: Organizar por páginas (secciones)
         self.sections_dict = {}
 
         # La API retorna una lista directamente, no un dict con "Pages"
-        pages_list = pages_response if isinstance(pages_response, list) else []
+        pages_list = section_pages_response.get("Pages", [])
+        exclude_sections = ["PORTADA", "CONTENTS", "ÍNDICE"]
+        ready_articles = set()
+        base_url = (f"https://proceso.pressreader.com/proceso"
+                    f"/{self.scraper_date}/page")
 
         for page in pages_list:
+            section_name = page.get("SectionName", "").upper()
+            if section_name in exclude_sections:
+                continue
             page_number = page.get("PageNumber", 0)
-            page_title = f"Página {page_number}"
+            # page_title = f"Página {page_number}"
 
             # Extraer IDs de artículos de esta página
-            article_ids = []
-            for article_meta in page.get("Articles", []):
-                article_id = article_meta.get("ArticleId")
-                if article_id:
-                    article_ids.append(
-                        {
-                            "uid": str(article_id),
-                            "title": article_meta.get("Title", ""),
-                            "metadata": {
-                                "article_id": str(article_id),
-                                "page_number": page_number,
-                                "issue_id": self.issue_id,
-                            },
-                        }
-                    )
+            self.sections_dict.setdefault(section_name, {"articles": {}})
 
-            if article_ids:
-                self.sections_dict[page_title] = {
-                    "page_number": page_number,
-                    "issue_id": self.issue_id,
-                    "articles": article_ids,
+            def append_page(article_str, page_n):
+                self.sections_dict[section_name]["articles"][article_str]\
+                    ["metadata"]["pages"].append(page_n)
+
+            for article_data in page.get("Articles", []):
+                root_article_id = article_data.get("RootArticleId")
+                if not root_article_id:
+                    continue
+                str_uid = str(root_article_id)
+                if root_article_id in ready_articles:
+                    append_page(str_uid, page_number)
+                    continue
+                ready_articles.add(root_article_id)
+                title_data = titles_dict.get(str_uid, {})
+
+                self.sections_dict[section_name]["articles"][str_uid] = {
+                    "uid": str_uid,
+                    "url": f"{base_url}/{page_number}/textview",
+                    "title": title_data.get("title", ""),
+                    "subtitle": title_data.get("subtitle", ""),
+                    "metadata": {
+                        "article_id": str_uid,
+                        "issue_id": self.issue_id,
+                        "pages": [],
+                    }
                 }
+                append_page(str_uid, page_number)
 
     def get_articles(self):
         """
         Obtiene el contenido completo de los artículos desde la API.
         """
-        if not self.issue_id:
-            print("  ⚠ No hay issue_id, saltando get_articles")
-            return
-
-        headers = self.get_headers()
-        print(f"  Obteniendo contenido de artículos para issue {self.issue_id}")
 
         for section_name, section_data in self.sections_dict.items():
-            if "articles" not in section_data:
-                continue
-
-            article_ids = [art["uid"] for art in section_data["articles"]]
-
-            if not article_ids:
-                continue
-
-            print(f"    Sección '{section_name}': {len(article_ids)} artículos")
-
-            # La API tiene un límite de artículos por request, procesar en lotes
-            batch_size = 50
-            for i in range(0, len(article_ids), batch_size):
-                batch_ids = article_ids[i : i + batch_size]
-
-                # Construir URL con múltiples IDs
-                # formato correcto: articles=id1%2Cid2%2Cid3 (IDs separados por %2C que es comma URL-encoded)
-                articles_ids_str = "%2C".join(batch_ids)
-                articles_url = f"https://ingress.pressreader.com/services/articles/GetItems?comment=LatestByAll&viewType=text&articles={articles_ids_str}&IsHyphenated=true&options=1"
-
-                # Debug: mostrar la primera URL y los IDs
-                if i == 0:
-                    print(f"      URL (primeros 200 chars): {articles_url[:200]}")
-                    print(f"      IDs enviados: {batch_ids[:3]}...")
-
-                try:
-                    articles_response = get_json_content(
-                        articles_url, custom_headers=headers
-                    )
-                    # La API puede retornar "Items" o "Articles"
-                    items_count = len(
-                        articles_response.get("Items")
-                        or articles_response.get("Articles", [])
-                    )
-                    print(
-                        f"      Batch {i // batch_size + 1}: {items_count} artículos obtenidos"
-                    )
-
-                    # Debug: mostrar respuesta si está vacía
-                    if items_count == 0 and i == 0:
-                        print(
-                            f"      ⚠ Respuesta vacía. Keys: {list(articles_response.keys())}"
-                        )
-                        if "Items" in articles_response:
-                            print(f"         Items es: {articles_response['Items']}")
-                        if "Articles" in articles_response:
-                            articles_list = articles_response["Articles"]
-                            print(
-                                f"         Articles count: {len(articles_list) if isinstance(articles_list, list) else 'not a list'}"
-                            )
-                        if "Pages" in articles_response:
-                            pages_list = articles_response["Pages"]
-                            print(
-                                f"         Pages count: {len(pages_list) if isinstance(pages_list, list) else 'not a list'}"
-                            )
-                except Exception as e:
-                    print(f"      ✗ Error en batch: {str(e)[:100]}")
-                    section_data["error"] = str(e)
-                    continue
-
-                self._process_articles_response(articles_response, section_data)
-
-        # Actualizar UIDs al final para que sean únicos globalmente (formato: YYYYMMDD/articleid)
-        total_with_url = 0
-        total_articles = 0
-        for section_name, section_data in self.sections_dict.items():
-            if "articles" in section_data:
-                for article in section_data["articles"]:
-                    total_articles += 1
-                    if article.get("url"):
-                        total_with_url += 1
-                    # Solo agregar prefijo si no lo tiene ya
-                    if "/" not in article["uid"]:
-                        article["uid"] = f"{self.scraper_date}/{article['uid']}"
-
-        print(
-            f"  ✓ Total: {total_articles} artículos, {total_with_url} con URL completa"
-        )
-
-    def _process_articles_response(self, articles_response: dict, section_data: dict):
-        """Procesa la respuesta de la API de artículos y actualiza section_data."""
-
-        # Mapear respuesta a los artículos
-        # La API puede retornar "Items" o "Articles" dependiendo del endpoint
-        articles_data = articles_response.get("Items") or articles_response.get(
-            "Articles", []
-        )
-        matched = 0
-
-        # Debug: ver estructura de la respuesta
-        if articles_data and len(articles_data) > 0:
-            first_article = articles_data[0]
-            print(
-                f"      Debug: Primer artículo de API - Keys: {list(first_article.keys())}"
-            )
-            print(
-                f"      Debug: Id={first_article.get('Id')}, BookmarkId={first_article.get('BookmarkId')}"
-            )
-            print(f"      Debug: ¿Tiene Blocks? {bool(first_article.get('Blocks'))}")
-            if first_article.get("Blocks"):
-                print(
-                    f"      Debug: Blocks count: {len(first_article.get('Blocks', []))}"
-                )
-
-        # Debug: mostrar UIDs locales para comparar
-        if "articles" in section_data:
-            local_uids = [art["uid"].split("/")[-1] for art in section_data["articles"]]
-            print(f"      Debug: UIDs locales en section: {local_uids[:3]}...")
-
-        for api_article in articles_data:
-            # La API retorna Id como número, convertir a string para comparar
-            article_id = str(api_article.get("Id", ""))
-
-            # Debug: ver IDs que intentamos matchear
-            if not article_id:
-                print(f"      ⚠ Artículo sin ID en respuesta API")
-                continue
-
-            # Buscar el artículo en nuestra lista (uid puede tener o no el prefijo de fecha)
-            for article in section_data["articles"]:
-                # Extraer el ID sin el prefijo de fecha si existe
-                article_uid = article["uid"].split("/")[-1]
-
-                if article_uid == article_id:
-                    matched += 1
-                    # Actualizar con datos completos
-                    article["title"] = api_article.get("Title") or article["title"]
-                    article["subtitle"] = api_article.get("Subhead", "")
-
-                    # El contenido está en Blocks, no en Text
-                    blocks = api_article.get("Blocks", [])
-                    text_content = ""
-                    if blocks:
-                        for block in blocks:
-                            block_text = block.get("Text", "")
-                            if block_text:
-                                text_content += block_text + "\n\n"
-                    article["content"] = text_content.strip()
-
-                    article["url"] = self._build_article_url(article_id)
-
-                    # Guardar datos completos de la API en metadata
-                    article["metadata"]["api_data"] = {
-                        "Title": api_article.get("Title"),
-                        "Subhead": api_article.get("Subhead"),
-                        "Byline": api_article.get("Byline"),
-                        "Bylines": api_article.get("Bylines"),
-                        "Page": api_article.get("Page"),
-                        "Blocks": blocks[:2]
-                        if blocks
-                        else [],  # Guardar solo los primeros 2 bloques como muestra
-                    }
-
-                    # Extraer imágenes si las hay
-                    article["images"] = []
-                    if api_article.get("ImageUrl"):
-                        article["images"].append(
-                            {
-                                "src": api_article.get("ImageUrl"),
-                                "caption": api_article.get("ImageCaption", ""),
-                            }
-                        )
-
-                    break
-
-        if matched < len(articles_data):
-            print(
-                f"        ⚠ Solo se emparejaron {matched} de {len(articles_data)} artículos de la API"
-            )
-
-    def _build_article_url(self, article_id: str) -> str:
-        """Construye URL de acceso al artículo en PressReader."""
-        return (
-            f"https://www.pressreader.com/mexico/proceso/{self.issue_id}/{article_id}"
-        )
+            articles = section_data.get("articles", {})
+            self.sections_dict[section_name]["articles"] = list(articles.values())
 
 
 class ProcesoArticleScraper(ArticleScraper):
@@ -820,26 +667,57 @@ class ProcesoArticleScraper(ArticleScraper):
     parser = "json"  # We don't use Beautiful Soup
 
     def get_article_data(self):
+
         """
         Extrae datos del artículo.
         La mayoría ya viene en metadata.api_data de la API de PressReader.
         """
-        api_data = {}
-        if self.article.metadata:
-            api_data = self.article.metadata.get("api_data", {})
+        import json
+        articles_url = (f"{PRESSREADER_API_BASE}/articles/"
+                        f"GetItems?comment=LatestByAll"
+                        f"&viewType=text&articles={self.article.uid}"
+                        f"&IsHyphenated=true&options=1")
+        bearer_token = get_pressreader_token()
+        headers = get_pressreader_headers(bearer_token)
+        articles_response = get_json_content(
+            articles_url, custom_headers=headers
+        )
+        articles_data = articles_response.get("Articles", [])
+        if len(articles_data) > 1:
+            print(
+                f"      ⚠ Más de un artículo retornado para {self.article.uid}"
+            )
+        api_article = articles_data[0] if articles_data else {}
+        metadata = self.article.metadata or {}
+        self.title = api_article.get("Title") or self.article.title or ""
+        self.subtitle = api_article.get("Subhead") or self.article.subtitle
+        self.author = api_article.get("Byline")
+        pages = metadata.get("pages", [])
+        self.pages = ", ".join(str(p) for p in pages)
+        self.images = []
+        photos = api_article.get("Images", []) or []
+        for photo in photos:
+            self.images.append(
+                {
+                    "src": photo.get("Url"),
+                    "caption": photo.get("Title", ""),
+                }
+            )
+        blocks = api_article.get("Blocks", [])
+        if blocks:
+            self.article.html_content = json.dumps(blocks)
+        text_content = ""
+        self.paragraphs = []
+        if blocks:
+            for block in blocks:
+                block_text = block.get("Text", "")
+                if block_text:
+                    text_content += block_text + "\n\n"
+                    self.paragraphs.append(block_text.strip())
+        self.content = text_content.strip()
 
-        self.title = api_data.get("Title") or self.article.title or ""
-        self.subtitle = api_data.get("Subhead") or self.article.subtitle
-        self.author = api_data.get("Author") or api_data.get("Byline")
-        self.content = self.article.basic_content or ""
-
-        # Debug
-        print(f"    [{self.article.uid}] Content length: {len(self.content)}")
-        if not self.content:
-            print(f"      ⚠ Sin contenido. api_data keys: {list(api_data.keys())}")
-
-        # Imágenes ya vienen procesadas
-        self.images = self.article.images or []
+    def get_paragraphs(self, content: str | None = None) -> List[str]:
+        return self.paragraphs
 
     def get_main_body(self):
         """
@@ -847,6 +725,9 @@ class ProcesoArticleScraper(ArticleScraper):
         El contenido de texto plano ya está en self.content.
         """
         return None
+
+    def get_reduced_content_text(self):
+        self.article.save()
 
     def special_cleanup(self, body):
         """

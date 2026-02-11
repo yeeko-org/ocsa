@@ -36,7 +36,7 @@ class ArticleFilter(FilterSet):
 
     def custom_filter_status(self, queryset, name, value):
         from django.db.models import Q
-        print(f"Name: {name}, Value: {value}")
+        # print(f"Name: {name}, Value: {value}")
         if not value:
             return queryset
 
@@ -101,6 +101,7 @@ class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
 
     @action(detail=True, methods=["patch"])
     def select(self, request, pk=None):
+        from source.criteria.pre_capture import PreCaptureManager
         article = self.get_object()
         context = self.get_serializer_context()
 
@@ -129,7 +130,9 @@ class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
             return Response(
                 ArticleStatusSerializer(article, context=context).data)
 
-        article.create_note_from_article()
+        manager = PreCaptureManager(ai_engine="gemini-3-flash-preview")
+        manager.build_direct_criteria(article)
+
         context["status"] = "selected"
         return Response(
             ArticleStatusSerializer(article, context=context).data)

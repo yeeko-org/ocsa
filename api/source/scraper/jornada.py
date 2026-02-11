@@ -35,6 +35,9 @@ class JornadaMainScraper(MainScraper):
     need_proxy = False
 
     def __init__(self, scraper_date: date | str):
+        self.soup_content = get_content(
+            self.main_url(), self.parser, self.need_proxy)
+
         super().__init__(scraper_date)
 
         for _, section_data in self.sections_dict.items():

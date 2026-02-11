@@ -3,7 +3,7 @@ import json
 from source.models import (
     Article, ScrapedRecord, Note)
 from source.base_models import (
-    NoteBase, NoteFull, MentionBase, EventBase, ImpactBase, ProjectDataBase,
+    NoteBase, NoteHydrated, MentionBase, EventBase, ImpactBase, ProjectDataBase,
     ActorBase, StatusHistoryBase, LocationFull, InterestFull)
 from source.criteria import BaseCriteriaManager
 
@@ -113,12 +113,17 @@ class PreCaptureManager(BaseCriteriaManager):
         states_dict = {st.short_name: st.id for st in State.objects.all()}
         # position_dict = {pm.name: pm.id for pm in ParticipantGroup.objects.all()}
         impact_types_dict = {it.name: it.id for it in ImpactType.objects.all()}
-        status_project_dict = {sp.name: sp.id for sp in StatusProject.objects.all()}
+        status_project_dict = {
+            sp.name.lower(): sp.id for sp in StatusProject.objects.all()}
 
         # full_pre_capture = NoteFull(root=json_criteria)
-        if not json_criteria:
+
+        if json_criteria:
+            article.pre_capture = json_criteria
+            article.save()
+        else:
             json_criteria = article.pre_capture
-        full_pre_capture = NoteFull(**json_criteria)
+        full_pre_capture = NoteHydrated(root=json_criteria)
         # print("full_pre_capture\n", full_pre_capture.model_dump_json())
 
         def map_locations(locations: List[LocationFull]) -> List[LocationFull]:
@@ -181,8 +186,8 @@ class PreCaptureManager(BaseCriteriaManager):
                 event.locations = map_locations(event.locations)
 
             for status_history in mention.status_history:
-                if status_his := status_project_dict.get(
-                        status_history.status_project_text):
+                status_text = status_history.status_project_text.lower()
+                if status_his := status_project_dict.get(status_text):
                     status_history.status_project = status_his
 
             mention.project_full.locations = map_locations(
@@ -190,11 +195,9 @@ class PreCaptureManager(BaseCriteriaManager):
 
         # print("full_pre_capture\n", full_pre_capture.model_dump_json())
         json_final = self.get_json_data(full_pre_capture)
-        full_pre_capture = NoteFull.model_validate_with_paths(json_final)
+        full_pre_capture = NoteHydrated.model_validate_with_paths(json_final)
 
         json_pre_capture = self.get_json_data(full_pre_capture)
-        # article.pre_capture = json_pre_capture
-        # article.save()
         self.save_related_note(article, json_pre_capture)
 
     def save_related_note(self, article: Article, json_pre_capture: list) -> None:

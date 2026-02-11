@@ -4,7 +4,7 @@ from pprint import pprint
 
 from source.models import Article, ScrapedRecord
 from source.scraper.jornada import JornadaManagerScraper
-from source.scraper.proceso import ProcesoManagerScraper
+from source.scraper.proceso import ProcesoManagerScraper, close_all_pressreader_sessions
 
 
 def examples_base():
@@ -64,7 +64,9 @@ def examples_proceso():
 
     # Scrapear un rango de fechas
     # Formato de fecha: "YYYY/MM/DD" o date object
-    manager_scraper = ProcesoManagerScraper("2025/02/01", "2025/02/07")
+    manager_scraper = ProcesoManagerScraper("2025/09/01", "2025/09/30")
+    manager_scraper = ProcesoManagerScraper(
+        "", "", recover_record=ScrapedRecord.objects.get(id=82))
 
     # Paso 1: Obtener secciones y artículos de la API
     manager_scraper.scrape_sections()
@@ -107,3 +109,15 @@ def examples_proceso():
         print(f"Sección: {article.section}")
         print(f"Grado de certeza: {article.certainty_degree}")
         print(f"URL: {article.url}")
+
+
+def direct_article():
+    from source.scraper.proceso import ProcesoArticleScraper, close_all_pressreader_sessions
+    from source.models import Article, ScrapedRecord
+    article = Article.objects.get(pk=45293)
+    scraper = ProcesoArticleScraper(article, update=True)
+    scraper.get_reduced_content_text()
+
+    close_all_pressreader_sessions()
+
+

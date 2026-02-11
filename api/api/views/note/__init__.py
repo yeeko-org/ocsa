@@ -99,6 +99,7 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
             # 'update': NoteCreateSerializer,
             'update': NoteFullSerializer,
             'add_file': NoteFileSerializer,
+            'start_pre_capture': NoteFullSerializer,
             # 'patch': NoteCreateSerializer,
 
         }
@@ -130,6 +131,21 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
             return Response(new_serializer.data)
 
         return Response(serializer.errors, status=400)
+
+    @action(detail=True, methods=['post'])
+    def start_pre_capture(self, request, pk=None):
+        from source.criteria.pre_capture import PreCaptureManager
+        note = self.get_object()
+        if note.frozen_pre_capture:
+            return Response(
+                {'detail': 'Pre-capture is already frozen for this note.'},
+                status=400)
+        manager = PreCaptureManager(ai_engine="gemini-3-flash-preview")
+        manager.build_direct_criteria(note.articles.first())
+        note_saved = Note.objects.get(pk=note.id)
+        serializer = self.get_serializer(
+            note_saved, context=self.get_serializer_context())
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def edit_pre_capture(self, request, pk=None):

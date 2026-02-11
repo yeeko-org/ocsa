@@ -43,16 +43,36 @@ class ProjectFilter(FilterSet):
     # extractivism_type = NumberFilter(
     #     field_name='megaproject_type__extractivism_types',
     #     lookup_expr='exact')
+    conflict_criteria = BooleanFilter(method='custom_conflict_criteria')
+    has_conflict = BooleanFilter(
+        field_name='conflict', lookup_expr='isnull', exclude=True)
     extractivism_type = CharFilter(method='filter_extractivism_type')
     has_locations = BooleanFilter(
         field_name='locations', lookup_expr='isnull', exclude=True)
 
     def filter_extractivism_type(self, queryset, name, value):
-        print("Filtering by extractivism_type:", value)
+        # print("Filtering by extractivism_type:", value)
         if value == 0:
             return queryset.filter(
                 megaproject_type__extractivism_types__isnull=True)
         return queryset.filter(megaproject_type__extractivism_types=value)
+
+    def custom_conflict_criteria(self, queryset, name, value):
+        from django.db.models import Q
+        print(f"Name: {name}, Value: {value}")
+        if value:
+            return queryset.filter(
+                Q(mentions__events__event_type__event_group__id=1)
+                | Q(mentions__impacts__isnull=False),
+                mentions__events__event_type__event_group__id=2
+            )
+        else:
+            return queryset.exclude(
+                Q(mentions__events__event_type__event_group__id=1)
+                | Q(mentions__impacts__isnull=False),
+                mentions__events__event_type__event_group__id=2
+            )
+
 
     class Meta:
         model = Project
@@ -465,10 +485,29 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
         })
 
 
+class ConflictFilter(FilterSet):
+    state = NumberFilter(
+        field_name='projects__locations__state', lookup_expr='exact')
+    has_projects = BooleanFilter(
+        field_name='projects', lookup_expr='isnull', exclude=True)
+    extractivism_type = NumberFilter(
+        field_name='projects__megaproject_type__extractivism_types',
+        lookup_expr='exact')
+    megaproject_type = NumberFilter(
+        field_name='projects__megaproject_type', lookup_expr='exact')
+
+    class Meta:
+        model = Conflict
+        fields = {
+            'status_validation': ['exact'],
+        }
+
 class ConflictViewSet(BaseStatusViewSet):
     queryset = Conflict.objects.all()\
         .prefetch_related("projects")
     serializer_class = ConflictFullSerializer
+    filterset_class = ConflictFilter
+    search_fields = ['name', 'projects__name']
 
     def get_serializer_class(self):
         action_serializer = {

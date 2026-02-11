@@ -3,6 +3,11 @@ from classify.models import Sector, ParticipantType
 from django.contrib.admin import AdminSite, register
 
 
-@register(Sector, ParticipantType)
+@register(Sector)
 class ClassifyAdmin(admin.ModelAdmin):
     pass
+
+
+@register(ParticipantType)
+class ParticipantTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'order', 'position')

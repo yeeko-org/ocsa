@@ -2,9 +2,12 @@ from rest_framework import serializers
 from event.models import Event, Involved, EventType
 
 from api.views.actor.serializers import MentionBaseSerializer
-from api.views.common_serializers import BaseExportSerializer
+from api.views.common_serializers import (
+    BaseExportSerializer, ConditionalFieldsMixin)
 from project.models import Conflict
 from impact.models import ImpactType, Impact
+from space_time.models import Location
+from df.models import Displacement
 
 
 class InvolvedSerializer(serializers.ModelSerializer):
@@ -13,22 +16,31 @@ class InvolvedSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class EventSerializer(serializers.ModelSerializer):
+class LocationSimpleSerializer(ConditionalFieldsMixin):
+    class Meta:
+        model = Location
+        fields = '__all__'
+
+
+class DisplacementSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Displacement
+        fields = '__all__'
+
+
+class EventMediumSerializer(serializers.ModelSerializer):
     involvements = InvolvedSerializer(many=True, read_only=True)
+    locations = LocationSimpleSerializer(many=True, read_only=True)
+    displacements = DisplacementSimpleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Event
+        fields = '__all__'
+
+
+class EventSerializer(EventMediumSerializer):
     mention_full = MentionBaseSerializer(read_only=True, source='mention')
 
-    class Meta:
-        model = Event
-        fields = '__all__'
-
-
-class EventFullSerializer(serializers.ModelSerializer):
-    involvements = InvolvedSerializer(many=True)
-    mention = MentionBaseSerializer()
-
-    class Meta:
-        model = Event
-        fields = '__all__'
 
 
 class EventTypeSerializer(serializers.ModelSerializer):

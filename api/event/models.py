@@ -15,6 +15,7 @@ class EventGroup(models.Model):
     help_text = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=2)
     color = models.CharField(max_length=255, blank=True, null=True)
+    is_conflict_related = models.BooleanField(default=False)
     show_position = models.BooleanField(default=False)
 
     class Meta:
@@ -66,6 +67,8 @@ class EventSubtype(models.Model):
 class Purpose(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    icon = models.CharField(max_length=255, blank=True, null=True)
+    color = models.CharField(max_length=255, blank=True, null=True)
     order = models.SmallIntegerField(default=10)
 
     def __str__(self):
@@ -101,6 +104,7 @@ class Event(models.Model):
         return str(self.mention)
 
     class Meta:
+        ordering = ["event_type__event_group__order", "event_type__order", "id"]
         verbose_name = 'Evento'
         verbose_name_plural = 'Eventos'
 

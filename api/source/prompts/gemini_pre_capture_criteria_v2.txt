@@ -13,7 +13,7 @@ El usuario te dará una lista de proyectos con su ID. Por cada proyecto, deberá
 
 **`project_type_text`** Tipo de proyecto, algunos ejemplos son: presa hidroeléctrica, mina de plata, desarrollo inmobiliario, monocultivo de soya, puerto, gasoducto, tren, línea de metro, gasoductos, centro comercial, planta de amoniaco, relleno sanitario, tala ilegal, autopista urbana, parque eólico, granja porcícola, etc.
 
-**`paragraphs`**: Números de párrafos donde se menciona el nombre del proyecto o datos para identificarlo
+**`paragraphs`**: Lista con los números de párrafos donde se menciona el nombre del proyecto o datos para identificarlo
 
 **`parent_project_text`**: Nombre del proyecto más grande del cual forma parte este (si aplica). Úsalo solo si el proyecto es un componente dentro de un cluster o agrupador
 
@@ -28,6 +28,7 @@ Atributos para cada `location`:
 **`municipality_text`**: Nombre del municipio (si está explícitamente mencionado)
 **`locality_text`**: Nombre de la localidad (si es que aparece)
 **`details`**: Otros detalles de ubicación como colonia, ejido, zona, referencias geográficas que ayuden a localizar el proyecto, el evento o la afectación.
+**`paragraphs`**: Lista con los números de párrafos donde se menciona esta ubicación
 
 
 ---
@@ -38,7 +39,7 @@ Identifica si la nota menciona algún cambio en la etapa o estatus del proyecto.
 
 `status_project_text`: El nombre del status: activo, ampliación, cancelado, clausurado, construcción, planeación, suspensión u otro cambio identificado (máx. 100 caracteres).
 `date`: Fecha aproximada de ese cambio (deducida de la fecha de la nota o contexto).
-`paragraphs`: La lista de párrafos de la nota donde se menciona este estatus.
+`paragraphs`: Lista con los números de párrafos donde se menciona este estatus.
 
 ---
 
@@ -79,7 +80,7 @@ Para cada impact, identifica los siguientes campos:
 **`description`**: Descripción breve de la afectación. **No incluir:** nombre del proyecto, ubicación específica de la afectación, nombres de actores afectados (máx. 300 caracteres)
 **`is_potential`**: Define si en la nota se menciona si ya ocurrió o está ocurriendo (false) o es algo que podría potencialmente ocurrir (true)
 **`locations`**: Lista de ubicaciones donde ocurrió la afectación, **solo si es diferente a la ubicación principal del proyecto**
-**`paragraphs`**: Lista de párrafos de la nota donde se menciona la afectación.
+**`paragraphs`**: Lista con los números de párrafos donde se menciona la afectación.
 
 ---
 
@@ -100,7 +101,7 @@ Dentro de cada objeto `actor`, se deberán agregar los siguientes campos:
 **`belongs_str`**: Lista de grupos especiales a los que pertenecen, los cuales pueden ser: Trabajador, Afectado, Habitante, Indígena, Campesino, Urbano, Líder, Participación sobresaliente de mujeres, Organización de mujeres, Tiene Protección (definidio en el modelo BelongEnum).
 **`position_str`**: oppose, support o neutral
 **`interest_text`**: Descripción breve del interés o posición del actor respecto al proyecto. (máx. 300 caracteres)
-**`paragraphs`**: Números de párrafos donde se menciona al actor o sus datos
+**`paragraphs`**: Lista con los números de párrafos donde se menciona al actor o sus datos
 
 ---
 
@@ -134,7 +135,7 @@ Dentro de cada objeto `event`, se deberá agregar los siguientes atributos:
   *`role_text`*: El rol que desempeñó el actor en el evento. (máx. 80 caracteres)
 
 `locations`: Ubicaciones donde ocurrió el evento, **solo si es diferente a la ubicación principal del proyecto**
-`paragraphs`: Números de párrafos que mencionan el evento
+`paragraphs`: Lista con los números de párrafos que mencionan el evento
 
 ---
 

@@ -75,10 +75,14 @@ class ReformaManagerScraper(ManagerScraper):
 
 
 class ReformaMainScraper(MainScraper):
-    parser = "xml"
+
     need_proxy = True
+    parser = "xml"
 
     def __init__(self, scraper_date: date | str):
+        self.parser = "xml"
+        self.soup_content = get_content(
+            self.main_url(), self.parser, self.need_proxy)
         super().__init__(scraper_date)
 
         for _, section_data in self.sections_dict.items():
