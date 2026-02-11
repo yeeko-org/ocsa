@@ -16,7 +16,7 @@ const { saveSimple, sendPreCapture, savePreCapture } = mainStore
 const { schemas } = storeToRefs(mainStore)
 const { showSnackbar } = dashboardStore
 import { useSaveElements } from "~/composables/save_elements.js";
-import { orderMix, savePreItem } from "~/composables/mix_pre_capture.js";
+import {discardPreItem, orderMix, savePreItem} from "~/composables/mix_pre_capture.js";
 const { saveComplex } = useSaveElements()
 
 const props = defineProps({
@@ -109,18 +109,19 @@ function closeDialog(event) {
 
 const dialog_copy = ref(false)
 
-function discardPreMention(pre_item) {
+async function discardPreMention(pre_item, index) {
   if (pre_item.discarded === true) {
-    pre_item.hide_mention = true
+    all_mentions.value[index].hide_mention = true
     return
   }
-  const data = {
-    path: pre_item.path,
-    discarded: true,
-  }
-  savePreCapture({data, note_id: props.full_main.id}).then((res) => {
-    showSnackbar('Se ha descartado la mención preliminar')
+  const saved_pre_item = await discardPreItem(
+    pre_item.path, 'mention', props.full_main.id)
+  all_mentions.value.splice(index, 1)
+  all_mentions.value.push({
+    ...saved_pre_item,
+    hide_mention: true,
   })
+  showSnackbar('Se ha descartado la mención preliminar')
 }
 
 async function changePreMention(pre_item, project) {
@@ -252,7 +253,7 @@ const two_columns = ref(true)
             <v-col
               cols="12"
               v-for="(mention, idx) in all_mentions"
-              :key="mention.id"
+              :key="idx"
             >
               <v-card
                 v-if="mention.hide_mention"
@@ -285,7 +286,7 @@ const two_columns = ref(true)
                 @mention-saved="saveMention"
                 @mention-deleted="deleteMention"
                 @mention-accepted="changePreMention(mention, $event)"
-                @mention-discarded="discardPreMention(mention)"
+                @mention-discarded="discardPreMention(mention, idx)"
               />
             </v-col>
           </v-row>

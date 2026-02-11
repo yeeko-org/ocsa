@@ -2,7 +2,7 @@ import {useMainStore} from "~/store/index.js";
 
 function hydrateActor(actor_data) {
   const {
-    name, belongs, sector_text, participant_group, paragraphs,
+    name, belongs, sector_text, participant_group, paragraphs, uid,
     interest_text, ...participant
   } = actor_data
   return {
@@ -11,6 +11,7 @@ function hydrateActor(actor_data) {
     paragraphs,
     init_filters: {q: name, participant_group},
     actor_full : {
+      uid,
       name,
       belongs,
       sector_text,

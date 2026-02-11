@@ -36,11 +36,9 @@ const emits = defineEmits(
     'mention-discarded'])
 defineExpose({ allFinished })
 
-// const mention_id = computed(() => mention.value.id)
-
 const all_saving = ref(false)
 
-const participantsToolbarRef = ref(null)
+const participantsRef = ref(null)
 
 async function allFinished(mention_id=null, pre_data=null) {
   if (mention_id && mention_id !== mention.value.id)
@@ -48,13 +46,20 @@ async function allFinished(mention_id=null, pre_data=null) {
   const res = await saveItemMixed('mention', mention.value, pre_data)
   emits('mention-saved', res)
   all_saving.value = false
-  participantsToolbarRef.value.resetInitialData()
-  eventsToolbarRef.value.resetInitialData()
+  participantsRef.value.resetInitialData()
+  eventsRef.value.resetInitialData()
 }
 
-// const mentionForm = ref(null)
+const impactsRef = ref(null)
+const statusHistoryRef = ref(null)
+const eventsRef = ref(null)
 async function saveMention() {
-  // const { valid } = await mentionForm.value.validate()
+  const valid = await Promise.all([
+    participantsRef.value.validate(),
+    eventsRef.value.validate(),
+    impactsRef.value.validate(),
+    statusHistoryRef.value.validate(),
+  ]).then(results => results.every(res => res))
   // console.log("saveMention valid", valid)
   if (!valid){
     save_errors.value = [{
@@ -76,7 +81,6 @@ async function saveMention() {
 
 const dialog_search_actor = ref(false)
 const actor_display = ref(null)
-const eventsToolbarRef = ref(null)
 const participant_group_selected = ref(null)
 
 
@@ -237,51 +241,49 @@ async function discardLocation(pre_item) {
     :variant="mention.discarded ? 'tonal' : 'outlined'"
     :color="mention.discarded ? 'red-lighten-3' : 'indigo-lighten-1'"
   >
+    <v-row class="py-3 mx-0" v-if="mention.id || mention.path">
+      <v-col cols="7">
+        <v-card
+          v-if="project_errors"
+          class="my-2 px-3 py-2"
+          elevation="2"
+          color="red-lighten-3"
+        >
+          Errores: {{project_errors}}
+        </v-card>
 
-<!--      <v-form ref="mentionForm">-->
-      <v-row class="py-3 mx-0" v-if="mention.id || mention.path">
-        <v-col cols="7">
-          <v-card
-            v-if="project_errors"
-            class="my-2 px-3 py-2"
-            elevation="2"
-            color="red-lighten-3"
+        <CardCommon
+          v-if="mention.project_full"
+          :full_main="mention.project_full"
+          collection_name="project"
+          :note_id="note_id"
+          :init_filters="project_init_filters"
+          indirect_get
+          class="py-3"
+          @selected-item="changeProject($event)"
+          @discard-item="emits('mention-discarded')"
+        >
+          <template #card="{ final_collection_data }">
+            <ProjectCard
+              :final_collection_data="final_collection_data"
+              :full_main="mention.project_full"
+              @discard-location="discardLocation"
+            />
+
+          </template>
+          <template
+            v-if="mention.project_full?.paragraphs && full_article"
+            #dialog="{ closeSearchDialog }"
           >
-            Errores: {{project_errors}}
-          </v-card>
-
-          <CardCommon
-            v-if="mention.project_full"
-            :full_main="mention.project_full"
-            collection_name="project"
-            :note_id="note_id"
-            :init_filters="project_init_filters"
-            indirect_get
-            class="py-3"
-            @selected-item="changeProject($event)"
-            @discard-item="emits('mention-discarded')"
-          >
-            <template #card="{ final_collection_data }">
-              <ProjectCard
-                :final_collection_data="final_collection_data"
-                :full_main="mention.project_full"
-                @discard-location="discardLocation"
-              />
-
-            </template>
-            <template
-              v-if="mention.project_full?.paragraphs && full_article"
-              #dialog="{ closeSearchDialog }"
-            >
-              <DialogSearch
-                collection_name="project"
-                :full_main="mention.project_full"
-                :full_article="full_article"
-                :note_id="note_id"
-                :show_base="true"
-                :init_filters="project_init_filters"
-                @selected-item="closeSearchDialog"
-              />
+            <DialogSearch
+              collection_name="project"
+              :full_main="mention.project_full"
+              :full_article="full_article"
+              :note_id="note_id"
+              :show_base="true"
+              :init_filters="project_init_filters"
+              @selected-item="closeSearchDialog"
+            />
 <!--                <v-btn-->
 <!--                  color="red"-->
 <!--                  variant="text"-->
@@ -289,76 +291,77 @@ async function discardLocation(pre_item) {
 <!--                >-->
 <!--                  Descartar mención-->
 <!--                </v-btn>-->
-            </template>
-          </CardCommon>
-        </v-col>
-        <StatusHistoryToolbar
-          v-model="mention.status_history"
-          :parent_id="mention.id"
-          :note_id="note_id"
-          class="mt-2"
-        />
-        <ImpactToolbar
-          v-model="mention.impacts"
-          :parent_id="mention.id"
-          :note_id="note_id"
-          class="mt-2"
-        />
-        <ParticipantsToolbar
-          v-model="mention.participants"
-          :parent_id="mention.id"
-          :note_id="note_id"
-          ref="participantsToolbarRef"
-          @search-item="searchActor($event)"
-          @selected-item="saveParticipant($event)"
-          @discard-participant="discardParticipant"
-        />
-        <EventToolbar
-          v-model="mention.events"
-          :all_actors="all_actors"
-          :parent_id="mention.id"
-          :note_id="note_id"
-          ref="eventsToolbarRef"
-        />
-        <v-row v-if="save_errors.length > 0">
-          <v-col
-            v-for="(error, index) in save_errors"
-            :key="index"
-            cols="12"
-            class="d-flex justify-end px-6 py-1"
+          </template>
+        </CardCommon>
+      </v-col>
+      <StatusHistoryToolbar
+        v-model="mention.status_history"
+        :parent_id="mention.id"
+        :note_id="note_id"
+        ref="statusHistoryRef"
+        class="mt-2"
+      />
+      <ImpactToolbar
+        v-model="mention.impacts"
+        :parent_id="mention.id"
+        :note_id="note_id"
+        ref="impactsRef"
+        class="mt-2"
+      />
+      <ParticipantsToolbar
+        v-model="mention.participants"
+        :parent_id="mention.id"
+        :note_id="note_id"
+        ref="participantsRef"
+        @search-item="searchActor($event)"
+        @selected-item="saveParticipant($event)"
+        @discard-participant="discardParticipant"
+      />
+      <EventToolbar
+        v-model="mention.events"
+        :all_actors="all_actors"
+        :parent_id="mention.id"
+        :note_id="note_id"
+        ref="eventsRef"
+      />
+      <v-row v-if="save_errors.length > 0">
+        <v-col
+          v-for="(error, index) in save_errors"
+          :key="index"
+          cols="12"
+          class="d-flex justify-end px-6 py-1"
+        >
+          <v-alert
+            type="error"
           >
-            <v-alert
-              type="error"
-            >
-              Error al guardar {{ error.field }}: {{ error.errors }}
-              <v-code v-if="error.item">
-                {{ error.item }}
-              </v-code>
-            </v-alert>
-          </v-col>
-        </v-row>
-        <v-col cols="12" class="d-flex justify-end px-6">
-          <v-btn
-            color="red"
-            variant="outlined"
-            class="mr-4"
-            :disabled="all_saving"
-            @click="dialog_delete = true"
-          >
-            Eliminar mención
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="accent"
-            variant="elevated"
-            :loading="all_saving"
-            @click="saveMention"
-          >
-            Guardar cambios
-          </v-btn>
+            Error al guardar {{ error.field }}: {{ error.errors }}
+            <v-code v-if="error.item">
+              {{ error.item }}
+            </v-code>
+          </v-alert>
         </v-col>
       </v-row>
-<!--      </v-form>-->
+      <v-col cols="12" class="d-flex justify-end px-6">
+        <v-btn
+          color="red"
+          variant="outlined"
+          class="mr-4"
+          :disabled="all_saving"
+          @click="dialog_delete = true"
+        >
+          Eliminar mención
+        </v-btn>
+        <v-spacer></v-spacer>
+        <v-btn
+          color="accent"
+          variant="elevated"
+          :loading="all_saving"
+          @click="saveMention"
+        >
+          Guardar cambios
+        </v-btn>
+      </v-col>
+    </v-row>
     <v-dialog
       v-model="dialog_search_actor"
       max-width="920"

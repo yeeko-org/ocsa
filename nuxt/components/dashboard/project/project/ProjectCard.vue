@@ -4,7 +4,6 @@ import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
 import FullLocationsChip from "~/components/dashboard/project/FullLocationsChip.vue";
 import PreLocationsChip from "~/components/dashboard/project/PreLocationsChip.vue";
-import {discardPreItem} from "~/composables/mix_pre_capture.js";
 
 const props = defineProps({
   full_main: Object,

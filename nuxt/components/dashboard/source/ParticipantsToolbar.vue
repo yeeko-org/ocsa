@@ -15,13 +15,19 @@ const secondToolbarRef = ref(null)
 
 const emits = defineEmits([
   'selected-item', 'search-item', 'edited-item', 'discard-participant'])
-defineExpose({ resetInitialData })
+defineExpose({ resetInitialData, validate })
 
 function resetInitialData(){
   if (mainToolbarRef.value)
     mainToolbarRef.value.resetInitialData()
   if (secondToolbarRef.value)
     secondToolbarRef.value.resetInitialData()
+}
+
+function validate(){
+  if (mainToolbarRef.value)
+    return mainToolbarRef.value.validateAllForms()
+  return true
 }
 
 </script>

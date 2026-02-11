@@ -116,8 +116,8 @@ function showValidationErrors(msg="Formulario no válido", index=null) {
 }
 
 async function validateAllForms(index=null, only_current=false) {
-  console.log("Validating main form(s)...\n", mainForm.value)
-  console.log("Index:", index, "Only current:", only_current)
+  // console.log("Validating main form(s)...\n", mainForm.value)
+  // console.log("Index:", index, "Only current:", only_current)
   element_errors.value = {}
   if (mainForm.value && mainForm.value.length > 0) {
     if (index === null){
@@ -133,7 +133,7 @@ async function validateAllForms(index=null, only_current=false) {
         "Completa todos los campos requeridos")
     }
     else {
-      console.log("validating form at index", index)
+      // console.log("validating form at index", index)
       const formRef = mainForm.value[index]
       console.log("formRef", formRef)
       if (!formRef)

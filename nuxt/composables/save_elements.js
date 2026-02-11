@@ -122,7 +122,7 @@ export function useSaveElements() {
       field => field.relation_type === 'one_to_many')
 
     one_to_many_fields.forEach(field => {
-      console.log("Processing field", field.name, "of collection", snake_name)
+      // console.log("Processing field", field.name, "of collection", snake_name)
       if (!normal_save.value){
         const is_actor = ['participants', 'interests'].includes(field.name)
         if (first_special.value && !is_actor)

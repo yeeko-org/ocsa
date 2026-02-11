@@ -19,11 +19,17 @@ const { rules } = useRules()
 const events = defineModel({type: Array, required: true})
 
 const mainToolbarRef = ref(null)
-defineExpose({ resetInitialData })
+defineExpose({ resetInitialData, validate })
 
 function resetInitialData(){
   if (mainToolbarRef.value)
     mainToolbarRef.value.resetInitialData()
+}
+
+function validate(){
+  if (mainToolbarRef.value)
+    return mainToolbarRef.value.validateAllForms()
+  return true
 }
 
 const registered_actors = computed(() => {

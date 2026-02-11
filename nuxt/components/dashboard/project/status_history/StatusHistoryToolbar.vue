@@ -7,13 +7,21 @@ const props = defineProps({
   note_id: Number,
 })
 const status_history = defineModel({type: Array, required: true})
+const mainRef = ref(null)
+defineExpose({ validate })
 
+function validate(){
+  if (mainRef.value)
+    return mainRef.value.validateAllForms()
+  return true
+}
 </script>
 
 <template>
   <ToolbarCommon
     :cols="5"
     v-model="status_history"
+    ref="mainRef"
     filter_group_name="status_projects"
     child_relation_name="status_history"
     required_field="status_project"

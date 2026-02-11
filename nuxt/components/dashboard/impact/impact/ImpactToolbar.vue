@@ -9,12 +9,20 @@ const props = defineProps({
   parent_id: Number,
   note_id: Number,
 })
+const mainRef = ref(null)
+defineExpose({ validate })
 
+function validate(){
+  if (mainRef.value)
+    return mainRef.value.validateAllForms()
+  return true
+}
 </script>
 
 <template>
   <ToolbarCommon
     v-model="impacts"
+    ref="mainRef"
     filter_group_name="impact_types"
     child_relation_name="impact"
     two_columns
