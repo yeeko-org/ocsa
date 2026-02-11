@@ -21,6 +21,8 @@ const props = defineProps({
     default: false,
   },
   emit_add: Boolean,
+  additional_fields: Object,
+  main_collection_name: String,
 });
 
 const emits = defineEmits(['add-item', 'unshift-item'])
@@ -32,10 +34,10 @@ const addItem = (group=null) => {
   }
   let new_child = {...props.parent_object}
   if (group){
-    const f_group = filter_group.value
+    const f_group = props.filter_group
     new_child[f_group.category_group || f_group.special_group] = group.id
   }
-  const fields = child_collection.value?.fields || []
+  const fields = props.child_collection?.fields || []
   fields.forEach(field => {
     if (field.relation_type === 'one_to_many')
       return

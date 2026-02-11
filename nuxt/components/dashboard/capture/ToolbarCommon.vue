@@ -177,6 +177,8 @@ onBeforeUnmount(() => {
   }
 })
 
+const element_errors = ref({})
+
 async function saveItem(item, index) {
   // console.log("saveItem", index, item)
   const is_valid = await validateAllForms(index)
@@ -184,8 +186,10 @@ async function saveItem(item, index) {
   elem_to_save.value = item
   saving.value = true
   index_in_edit.value = index
+  save_errors.value = null
+  element_errors.value[index] = null
   saveComplex(child_collection.value.snake_name, item)
-    .then(() => allFinished(item.pre_data))
+    .then(() => allFinished(item.pre_data, index))
     .catch(errors => {
       console.error("Errores al guardar:", errors)
       save_errors.value = errors
@@ -194,7 +198,7 @@ async function saveItem(item, index) {
     })
 }
 
-async function allFinished(pre_data=null) {
+async function allFinished(pre_data=null, index=null) {
   if (!elem_to_save.value) {
     console.error("No elem_to_save")
     saving.value = false
@@ -202,6 +206,15 @@ async function allFinished(pre_data=null) {
   }
   const mixed_res = await saveItemMixed(
     child_collection.value.snake_name, elem_to_save.value, pre_data)
+  if (mixed_res.errors){
+    if (index !== null)
+      element_errors.value[index] = mixed_res.errors
+    else
+      save_errors.value = [mixed_res.errors]
+    saving.value = false
+    resetInitialData()
+    return
+  }
   snackbar.value = true
   saving.value = false
   main_array.value.splice(index_in_edit.value, 1, mixed_res)
@@ -322,6 +335,7 @@ const color_child_card = computed(() => {
     >
       <ToolbarHeader
         :child_collection="child_collection"
+        :main_collection_name="main_collection_name"
         :total_count="total_count"
         :filter_group="filter_group"
         :color="`${color}-lighten-${second_level ? 2 : 1}`"
@@ -357,6 +371,14 @@ const color_child_card = computed(() => {
           variant="flat"
           :color="item.discarded ? 'red-lighten-5' : color_child_card"
         >
+          <v-card
+            v-if="element_errors[index]"
+            class="ma-2"
+            elevation="2"
+            color="red-lighten-3"
+          >
+            Errores: {{element_errors[index]}}
+          </v-card>
           <v-row
             no-gutters
             class="d-flex flex-wrap"

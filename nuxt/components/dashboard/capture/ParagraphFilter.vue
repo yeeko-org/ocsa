@@ -39,7 +39,7 @@ function filterParagraphs() {
     path: props.path,
     is_active: true,
   }
-  console.log("filterParagraphs", content_paragraphs.value)
+  // console.log("filterParagraphs", content_paragraphs.value)
 }
 
 </script>

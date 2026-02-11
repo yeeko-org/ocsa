@@ -36,9 +36,10 @@ const init_fields = {
 
 const full_fields = ['project_full', 'actor_full']
 
-function mixOrigins(saved_mention, pre_mention, level=1) {
+export function mixOrigins(saved_mention, pre_mention, level=1) {
   let mixed_mention = {
-    ...saved_mention, pre_data: pre_mention,
+    ...saved_mention,
+    pre_data: pre_mention,
     path: pre_mention.path,
     paragraphs: pre_mention.paragraphs
   }
@@ -105,7 +106,7 @@ export async function savePreItem(path, collection_name, note_id, params) {
   const { saveSimple, savePreCapture } = mainStore
   const is_mention = collection_name === 'mention'
   const saved_item = await saveSimple([collection_name, params])
-  console.log("savePreItem - saved_item", saved_item)
+  // console.log("savePreItem - saved_item", saved_item)
   const data = {
     path,
     element_id: saved_item.id,
@@ -126,6 +127,8 @@ export async function saveItemMixed(
   const mainStore = useMainStore()
   const { saveSimple } = mainStore
   const saved_item = await saveSimple([collection_name, params])
+  if (saved_item.errors)
+    return saved_item
   if (!pre_capture)
     return saved_item
 

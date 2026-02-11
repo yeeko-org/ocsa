@@ -113,13 +113,20 @@ const related_actors = computed(() => {
   return actors_list
 })
 
+const save_errors = ref(null)
 function saveLocations() {
   saving_locations.value = true
   total_requests.value = props.full_main.locations.length
   resolved_requests.value = 0
+  save_errors.value = null
   props.full_main.locations.forEach(location => {
-    // total_requests.value += 1
     saveSimple(['location', location]).then((res) => {
+      if (res.errors){
+        console.log("Error saving location", res.errors)
+        saving_locations.value = false
+        save_errors.value = res.errors
+        return
+      }
       resolved_requests.value += 1
       const idx = props.full_main.locations.findIndex(
         loc => loc.id === res.id)
@@ -157,6 +164,15 @@ const children_projects = computed(() => {
       :parent_id="full_main.id"
       main_collection_name="project"
     />
+    <v-card
+      v-if="save_errors"
+      class="ma-2 px-3 py-2"
+      elevation="2"
+      color="red-lighten-3"
+    >
+      Errores en el guardado: {{save_errors}}
+    </v-card>
+
     <v-col cols="12" class="d-flex justify-end px-3 py-3">
       <v-btn
         color="accent"

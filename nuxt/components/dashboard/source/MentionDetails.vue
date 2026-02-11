@@ -9,11 +9,11 @@ import {useMainStore} from "~/store/index.js";
 import {computed, nextTick} from "vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
-const { saveSimple, getRelatedActors, deleteSimple } = mainStore
+const { saveSimple, getRelatedActors, deleteSimple, patchSimple } = mainStore
 import { useSaveElements } from "~/composables/save_elements.js";
 import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
 import StatusHistoryToolbar from "~/components/dashboard/project/status_history/StatusHistoryToolbar.vue";
-import {savePreItem, saveItemMixed, discardPreItem} from "~/composables/mix_pre_capture.js";
+import {savePreItem, saveItemMixed, discardPreItem, mixOrigins} from "~/composables/mix_pre_capture.js";
 import DialogSearch from "~/components/dashboard/common/dialog/DialogSearch.vue";
 import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
 const { saveComplex, save_errors } = useSaveElements()
@@ -176,14 +176,25 @@ function closeChangeDialog(actor_data) {
   else
     dialog_search_actor.value = false
 }
-
-function changeProject(project) {
+const project_errors = ref(null)
+async function changeProject(project) {
+  project_errors.value = null
   if (mention.value.path && mention.value.discarded === null){
     emits('mention-accepted', project)
   }
   else{
+    const params = {project: project.id, note: mention.value.note}
+    const res = await patchSimple(['mention', mention.value.id, params])
+    if (res.errors){
+      project_errors.value = res.errors
+      return
+    }
     mention.value.project = project.id
-    mention.value.project_full = project
+    const pre_data = mention.value.project_full.pre_data
+    if (pre_data)
+      mention.value.project_full = mixOrigins(project, pre_data, 2)
+    else
+      mention.value.project_full = project
   }
 }
 
@@ -233,6 +244,15 @@ async function discardLocation(pre_item) {
 <!--      <v-form ref="mentionForm">-->
       <v-row class="py-3 mx-0" v-if="mention.id || mention.path">
         <v-col cols="7">
+          <v-card
+            v-if="project_errors"
+            class="my-2 px-3 py-2"
+            elevation="2"
+            color="red-lighten-3"
+          >
+            Errores: {{project_errors}}
+          </v-card>
+
           <CardCommon
             v-if="mention.project_full"
             :full_main="mention.project_full"

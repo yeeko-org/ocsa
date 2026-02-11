@@ -492,6 +492,7 @@ export const useMainStore = defineStore('main', {
         return response.data
       } catch (error) {
         console.error(error);
+        return {errors: error.response.data}
       }
     },
     async patchCatalog([collection_data, id, data]) {

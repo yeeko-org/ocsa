@@ -185,7 +185,7 @@ function changeActiveFilter(){
 }
 
 watch(content_paragraphs, (new_content) => {
-  console.log("Watching content_paragraphs", new_content)
+  // console.log("Watching content_paragraphs", new_content)
   if (new_content.is_reset){
     closeExternalParagraphs(true)
     return
