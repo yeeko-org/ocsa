@@ -250,6 +250,7 @@ class Article(models.Model):
     paragraphs = models.JSONField(blank=True, null=True)
     images = models.JSONField(blank=True, null=True)
     published_date = models.DateField(blank=True, null=True)
+    pages = models.CharField(max_length=80, blank=True, null=True)
 
     criteria = models.JSONField(blank=True, null=True)
     certainty_degree = models.IntegerField(
@@ -361,10 +362,13 @@ class Article(models.Model):
     def create_note_from_article(self) -> Note:
         if self.note:
             return self.note
-        try:
-            pages = self.get_meta("pagina").get("texto")
-        except:
-            pages = None
+        if self.pages:
+            pages = self.pages
+        else:
+            try:
+                pages = self.get_meta("pagina").get("texto")
+            except:
+                pages = None
 
         note = Note.objects.create(
             title=self.title,

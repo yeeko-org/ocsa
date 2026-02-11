@@ -161,18 +161,18 @@ class ImpactGroupEnum(enum.Enum):
     ecological = "ecological"
 
 
+class CommonFull(BaseModel, PathMixin):
+    element_id: int | None = None
+    discarded: bool | None = None
+    path: str | None = None
+
+
 class LocationBase(BaseModel):
     state_str: StateEnum
     municipality_text: str | None = None
     locality_text: str | None = None
     details: str | None
     paragraphs: list[int] = []
-
-
-class CommonFull(BaseModel, PathMixin):
-    element_id: int | None = None
-    discarded: bool | None = None
-    path: str | None = None
 
 
 class LocationFull(LocationBase, CommonFull):
@@ -192,10 +192,12 @@ class ProjectDataBase(BaseModel):
     paragraphs: list[int] = []
 
 
-class ProjectDataFull(ProjectDataBase):
+class ProjectDataFull(ProjectDataBase, PathMixin):
     extractivism_types_str: list[str] = []
     extractivism_types: list[int] = []
     locations: list[LocationFull] = []
+    hide_mention: bool = True
+    path: str | None = None
 
 
 class StatusHistoryBase(BaseModel):
@@ -231,18 +233,35 @@ class InterestFull(CommonFull):
 
 class ActorBase(BaseModel):
     uid: int = Field(gt=0, lt=21)
-    position_str: PositionEnum
-    interest_text: str = Field(max_length=300)
     name: str
     sector_text: str = Field(max_length=100)
     belongs_str: list[str] = []
+    position_str: PositionEnum
+    interest_text: str = Field(max_length=300)
     paragraphs: list[int] = []
 
 
-class ActorFull(ActorBase, CommonFull):
-    participant_group: int | None = None
+# class ActorFull(ActorBase, CommonFull):
+#     participant_group: int | None = None
+#     belongs: list[int] = []
+#     interests: list[InterestFull] = []
+
+
+class FinalActorFull(BaseModel, PathMixin):
+    uid: int = Field(gt=0, lt=21)
+    name: str
+    sector_text: str = Field(max_length=100)
     belongs: list[int] = []
+    path: str | None = None
+    status_validation: str = 'yk_proposed'
+    paragraphs: list[int] = []
+
+
+class ParticipantFull(CommonFull):
+    participant_group: int | None = None
     interests: list[InterestFull] = []
+    actor_full: FinalActorFull | None = None
+    paragraphs: list[int] = []
 
 
 class InvolvementBase(BaseModel):
@@ -282,8 +301,10 @@ class MentionFull(MentionBase, CommonFull):
     project_full: ProjectDataFull
     status_history: list[StatusHistoryFull] = []
     impacts: list[ImpactFull] = []
-    actors: list[ActorFull] = Field(max_length=20, default=[])
+    # actors: list[ActorFull] = Field(max_length=20, default=[])
+    participants: list[ParticipantFull] = []
     events: list[EventFull] = []
+    note: int | None = None
 
 
 class NoteBase(RootModel):
@@ -301,10 +322,8 @@ class NoteHydrated(RootModel, PathMixin):
 
     @classmethod
     def model_validate_with_paths(cls, data: list) -> 'NoteHydrated':
-        """Valida y añade paths en un solo paso"""
         if isinstance(data, list):
             data = cls._set_paths_recursive(data, "$")
-        print("Todo en orden, creando instancia...")
         # return cls.model_validate(
         #     { "root": data } if isinstance(data, list) else data)
         return cls.model_validate(data)

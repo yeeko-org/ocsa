@@ -4,7 +4,8 @@ from source.models import (
     Article, ScrapedRecord, Note)
 from source.base_models import (
     NoteBase, NoteHydrated, MentionBase, EventBase, ImpactBase, ProjectDataBase,
-    ActorBase, StatusHistoryBase, LocationFull, InterestFull)
+    ActorBase, StatusHistoryBase, LocationFull, InterestFull,
+    ParticipantFull, FinalActorFull)
 from source.criteria import BaseCriteriaManager
 
 
@@ -104,25 +105,24 @@ class PreCaptureManager(BaseCriteriaManager):
     ) -> None:
         from source.base_models import (
             position_mapping, event_group_mapping, impact_group_mapping)
-        from classify.models import Belong, ParticipantGroup
+        from classify.models import Belong
         from space_time.models import State, Municipality, Locality
         from impact.models import ImpactType
         from project.models import StatusProject
 
         belongs_dict = {b.name: b.id for b in Belong.objects.all()}
         states_dict = {st.short_name: st.id for st in State.objects.all()}
-        # position_dict = {pm.name: pm.id for pm in ParticipantGroup.objects.all()}
         impact_types_dict = {it.name: it.id for it in ImpactType.objects.all()}
         status_project_dict = {
             sp.name.lower(): sp.id for sp in StatusProject.objects.all()}
-
-        # full_pre_capture = NoteFull(root=json_criteria)
 
         if json_criteria:
             article.pre_capture = json_criteria
             article.save()
         else:
             json_criteria = article.pre_capture
+        note: Note = article.create_note_from_article()
+
         full_pre_capture = NoteHydrated(root=json_criteria)
         # print("full_pre_capture\n", full_pre_capture.model_dump_json())
 
@@ -162,13 +162,27 @@ class PreCaptureManager(BaseCriteriaManager):
             return locations
 
         for mention in full_pre_capture.root:
+            mention.note = note.id
+
             for actor in mention.actors:
-                actor.belongs = [
-                    belongs_dict.get(b_str) for b_str in actor.belongs_str
-                ]
-                actor.participant_group = position_mapping.get(
+                belongs = [
+                    belongs_dict.get(b_str) for b_str in actor.belongs_str]
+                participant_group = position_mapping.get(
                     actor.position_str.name, None)
-                actor.interests = [InterestFull(text=actor.interest_text)]
+                actor_full = FinalActorFull(
+                    uid=actor.uid,
+                    name=actor.name,
+                    sector_text=actor.sector_text,
+                    belongs=belongs,
+                    paragraphs=actor.paragraphs,
+                )
+                participant_full = ParticipantFull(
+                    participant_group=participant_group,
+                    interests=[InterestFull(text=actor.interest_text)],
+                    actor_full=actor_full,
+                    paragraphs=actor.paragraphs,
+                )
+                mention.participants.append(participant_full)
 
             for impact in mention.impacts:
                 impact.impact_type = impact_types_dict.get(
@@ -187,8 +201,8 @@ class PreCaptureManager(BaseCriteriaManager):
 
             for status_history in mention.status_history:
                 status_text = status_history.status_project_text.lower()
-                if status_his := status_project_dict.get(status_text):
-                    status_history.status_project = status_his
+                if status_project := status_project_dict.get(status_text):
+                    status_history.status_project = status_project
 
             mention.project_full.locations = map_locations(
                 mention.project_full.locations)
@@ -198,10 +212,10 @@ class PreCaptureManager(BaseCriteriaManager):
         full_pre_capture = NoteHydrated.model_validate_with_paths(json_final)
 
         json_pre_capture = self.get_json_data(full_pre_capture)
-        self.save_related_note(article, json_pre_capture)
+        self.save_related_note(note, json_pre_capture)
 
-    def save_related_note(self, article: Article, json_pre_capture: list) -> None:
-        note: Note = article.create_note_from_article()
+    def save_related_note(self, note: Note, json_pre_capture: list) -> None:
+        # note: Note = article.create_note_from_article()
         if not note.mentions.exists() and not note.frozen_pre_capture:
             print("Saving pre_capture to note id:", note.id)
             note.pre_mentions = json_pre_capture

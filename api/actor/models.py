@@ -5,14 +5,12 @@ from django.db.models import JSONField
 from work_flux.models import StatusControl, CommentsMixin
 from classify.models import (
     InterestSubtype, ParticipantType, Belong, IndigenousGroup, Sector, Country)
-# from work_flux.models import StatusRegister
 
 
 def default_list():
     return []
 
 
-# Tablas origen: Capital, Estado, Opositores, Poblaciones, GruposApoyo
 class Actor(CommentsMixin, models.Model):
     GEO_REACH_CHOICES = (
         ('local', 'Local'),
@@ -27,8 +25,6 @@ class Actor(CommentsMixin, models.Model):
         ('woman', 'Mujer'),
     )
 
-    # El nombre viene del campo "nombre", excepto:
-    # Estado, que tiene 3 campos y su comportamiento se explica arrriba
     name = models.CharField(max_length=255)
     std_name = models.CharField(
         max_length=255, blank=True, null=True)
@@ -47,7 +43,6 @@ class Actor(CommentsMixin, models.Model):
     is_only_related = models.BooleanField(
         blank=True, null=True, verbose_name='Se creó solo por relación')
 
-    # Capital.nacionalidad
     countries = models.ManyToManyField(
         Country, blank=True, related_name='actors')
     sector = models.ForeignKey(
@@ -62,7 +57,6 @@ class Actor(CommentsMixin, models.Model):
         related_name='actors')
 
     capital_extension = JSONField(blank=True, null=True)
-    # True cuando Opositor.mujer tiene valor y su id es mayor o igual a 2
     sex = models.CharField(
         max_length=10, choices=SEX_CHOICES, blank=True, null=True)
     status_validation = models.ForeignKey(
@@ -143,13 +137,6 @@ class Participant(models.Model):
         verbose_name = 'Participante'
         verbose_name_plural = 'Participantes'
 
-
-# En algunos casos, esto provendrá de una relación 1:1, a veces M:1,
-# pero vamos a estandarizar siempre a M:1 a través de Interest
-# Los campos origen de Actor tienen esto:
-# Capital.interes, PoblacionesAfectadas.interes, GruposApoyo.interes
-# Opositores a través de InteresesOpositores (m:m), parece algo complejo!!
-# Estado no tiene interés
 
 class Interest(models.Model):
     participant = models.ForeignKey(

@@ -373,7 +373,7 @@ all_collections = {
             "model_name": "Country",
             "level": "category_subtype",
             "open_insertion": True,
-            "available_actions": ["merge"],
+            # "available_actions": ["merge"],
         },
     ],
     "event": [

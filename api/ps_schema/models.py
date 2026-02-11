@@ -60,7 +60,7 @@ class Collection(models.Model):
     optional_category = models.BooleanField(
         default=False, verbose_name="Colección opcional")
     all_filters = models.JSONField(
-        default=list, verbose_name="Grupos de filtros")
+        default=list, verbose_name="Grupos de filtros", blank=True)
 
     open_insertion = models.BooleanField(blank=True, null=True)
     xls_export = models.BooleanField(
