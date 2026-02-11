@@ -1,13 +1,13 @@
 <script setup>
 import {computed} from 'vue'
-import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
+import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
 import BelongIcons from "~/components/dashboard/classify/BelongIcons.vue";
 
 import { useMainStore } from '~/store/index.js'
 import { storeToRefs } from 'pinia'
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 const mainStore = useMainStore()
 const { cats } = storeToRefs(mainStore)
 
@@ -88,12 +88,11 @@ const participants = computed(() => {
     :collection_data="collection_data"
   >
     <template #icon>
-      <SelectGroup
+      <DisplayGroup
         :main_object="main"
         filter_group_name="sectors"
         main_collection_name="actor"
         forced_level="subtype"
-        is_display
       />
     </template>
     <template #title>
@@ -141,7 +140,7 @@ const participants = computed(() => {
       <HeaderChip
         v-if="actor.children_actors && actor.children_actors.length"
         :count="actor.children_actors.length"
-        icon="hub"
+        icon="graph_7"
         label="actor hijo"
         label_plural="actores hijos"
         collection_name="actor"

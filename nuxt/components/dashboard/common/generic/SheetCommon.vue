@@ -2,7 +2,7 @@
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
+import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 
 const mainStore = useMainStore()

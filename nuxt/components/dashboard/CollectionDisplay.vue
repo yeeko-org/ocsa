@@ -3,13 +3,13 @@ import {computed, onMounted, ref, onBeforeMount, watch, nextTick } from "vue";
 import {useMainStore} from '~/store/index'
 const mainStore = useMainStore()
 import FiltersList from "~/components/dashboard/common/select/FiltersList.vue";
-import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
+import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
 // import { status_filters } from "~/composables/filters.js";
 
 import {storeToRefs} from "pinia";
-import ExportButton from "~/components/dashboard/generic/ExportButton.vue";
+import ExportButton from "~/components/dashboard/common/utils/ExportButton.vue";
 import _debounce from "lodash/debounce.js";
-import QuestionMark from "~/components/dashboard/generic/QuestionMark.vue";
+import QuestionMark from "~/components/dashboard/common/utils/QuestionMark.vue";
 
 
 const {
@@ -209,8 +209,9 @@ function initFilters() {
 
   if (props.is_mini) {
     if (props.init_filters?.q) {
+      console.log("current_filters", current_filters.value)
       visible_filters.value = current_filters.value.filter(
-        f => f.key_name === 'states'
+        f => f.key_name === 'states' || f.key_name === 'participant_types'
       )
       final_filters.value = {
         ...final_filters.value,
@@ -282,7 +283,11 @@ function selectItem(item) {
 </script>
 
 <template>
-  <v-card class="pt-3" flat style="width: 100%;">
+  <v-card
+    class="pt-3"
+    flat
+    style="width: 100%;"
+  >
     <template v-if="is_mini">
       <v-card-title class="text-h5 d-flex align-center">
         Busca y elige un {{ collection_data.name }}
@@ -323,7 +328,7 @@ function selectItem(item) {
       </v-col>
       <FiltersList
         v-if="!simplified_filters"
-        :final_filters="final_filters"
+        v-model="final_filters"
         :visible_filters="visible_filters"
       />
     </v-row>
@@ -373,7 +378,7 @@ function selectItem(item) {
         <v-spacer></v-spacer>
         <FiltersList
           v-if="simplified_filters && !direct_sheet"
-          :final_filters="final_filters"
+          v-model="final_filters"
           :visible_filters="visible_filters"
         />
 <!--        <v-btn-->

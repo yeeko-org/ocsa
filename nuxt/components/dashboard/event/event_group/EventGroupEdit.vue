@@ -1,13 +1,10 @@
 <script setup>
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   is_massive_edit: Boolean,
   is_edit: Boolean,
 })
+const full_main = defineModel({type: Object, required: true})
 </script>
 
 <template>

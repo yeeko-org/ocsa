@@ -1,7 +1,7 @@
 <script setup>
 
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
+import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
 
 const props = defineProps({
   main: Object,

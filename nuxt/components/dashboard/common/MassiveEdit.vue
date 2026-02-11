@@ -11,11 +11,11 @@ const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 
 const props = defineProps({
-  full_main: Object,
   collection_data: Object,
   collection_name: String,
   ids_to_edit: Array,
 })
+const full_main = defineModel({type: Object, required: true})
 
 const active_fields = ref([])
 const saving = ref(false)
@@ -57,7 +57,7 @@ const merged_params = computed(() => {
       if (!field.related_snake_name || field.relation_type === 'one_to_many')
         return
       if (models.includes(field.related_snake_name))
-        params[field.name] = props.full_main[field.name]
+        params[field.name] = full_main.value[field.name]
     })
   })
   // console.log("params", params)
@@ -129,8 +129,8 @@ function sendMassiveEdit() {
             class="pr-3 pl-0 py-1 d-flex"
           >
             <SelectGroup
+              v-model="full_main"
               :filter_group_name="field.key_name"
-              :main_object="full_main"
               :category_group_value="field.category_group_value"
               :forced_level="field.forced_level || 'other'"
             />

@@ -19,21 +19,6 @@ const calculate_status = (status_control) => {
   }, {})
 }
 
-const build_positions = () => {
-  return {
-    "oppose": {
-      icon: "record_voice_over", color: "lime", order: 1, name: "En contra"},
-    "neutral": {
-      icon: "gavel", color: "blue-grey", order: 2, name: "Neutral"},
-    "support": {
-      icon: "thumb_up", color: "teal", order: 3, name: "A favor"},
-    "undefined": {
-      icon: "help", color: "black", order: 4, name: "No definido"},
-    "other": {
-      icon: "help", color: "black", order: 5, name: "Otro"}
-  }
-}
-
 const calculateSchemas = (data) => {
   let filter_groups = data.filter_groups.map(fg => {
     return {...fg, ...fg.addl_config}
@@ -46,7 +31,7 @@ const calculateSchemas = (data) => {
     "comments", "description", "help_text", "order", "color", "icon"]
   // const name_fields = ["name", "title", "description"]
   const name_fields = ["name", "title"]
-  let collections = data.collections.map(coll => {
+  let collections_dict = data.collections.reduce((obj, coll) => {
     coll.catalog_groups = filter_groups.reduce((arr, new_fg) => {
       if (new_fg.main_collection !== coll.snake_name)
         return arr
@@ -169,16 +154,12 @@ const calculateSchemas = (data) => {
 
     coll.collection_filters = collection_filters
     coll.available_sorts = available_sorts
-    return coll
-  })
 
-  let collections_dict = collections.reduce((obj, coll) => {
     obj[coll.snake_name] = coll
-    // obj[coll.model_name] = coll
     return obj
   }, {})
   return {
-    "collections": collections,
+    // "collections": collections,
     "collections_dict": collections_dict,
     "filter_groups": filter_groups,
     "levels": data.levels,
@@ -349,7 +330,6 @@ export const useMainStore = defineStore('main', {
     all_nodes: {},
     schemas: {},
     cats_ready: false,
-    positions: build_positions(),
     status: {},
     impact_groups: {social: [], environmental: []},
     current_filter_group: null,
@@ -696,9 +676,18 @@ export const useMainStore = defineStore('main', {
         return {errors: error.response.data}
       }
     },
+    async sendPreCapture(note_id) {
+      const { $api } = useNuxtApp()
+      try {
+        let response = await $api.post(`note/${note_id}/start_pre_capture/`);
+        return response.data
+      } catch (error) {
+        console.error(error);
+        return {errors: error.response.data}
+      }
+    },
     async savePreCapture({data, note_id}) {
       const { $api } = useNuxtApp()
-      // this.setHeader()
       try {
         let response = await $api.post(`note/${note_id}/edit_pre_capture/`, data);
         return response.data
@@ -706,7 +695,6 @@ export const useMainStore = defineStore('main', {
         console.error(error);
         return {errors: error.response.data}
       }
-
     },
     async saveSelected([id, data]) {
       const { $api } = useNuxtApp()
@@ -826,6 +814,16 @@ export const useMainStore = defineStore('main', {
       // console.log("mp_types_dict", mp_types_dict)
       return mp_types_dict
     },
+    event_types_dict(state) {
+      if (!state.all_nodes)
+        return {}
+      let event_types_dict = {}
+      // console.log("leaves", state.all_nodes.event_types.leaves())
+      state.all_nodes.event_types.leaves().forEach(et => {
+        event_types_dict[et.data.id] = et.parent.data.id
+      })
+      return event_types_dict
+    },
     collections_summary(state) {
       return state.schemas.collections.reduce((obj, coll) => {
         obj[coll.snake_name] = {
@@ -842,12 +840,12 @@ export const useMainStore = defineStore('main', {
     event_group_violence(state) {
       if (!state.cats)
         return {}
-      return state.cats.event_group.find(eg => eg.name === 'Violencia')
+      return state.cats.event_group.find(eg => eg.name.toLowerCase().includes('violencia') )
     },
     event_group_legal(state) {
       if (!state.cats)
         return {}
-      return state.cats.event_group.find(eg => eg.name === 'Mecanismos legales')
+      return state.cats.event_group.find(eg => eg.name.toLowerCase().includes('legal') )
     },
     displacement_event_types(state) {
       if (!state.cats)

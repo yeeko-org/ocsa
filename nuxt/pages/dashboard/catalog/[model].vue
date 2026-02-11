@@ -5,8 +5,8 @@ import {useMainStore} from '~/store/index'
 
 import {storeToRefs} from "pinia";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
-import PanelList from "~/components/dashboard/common/PanelList.vue";
-import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
+import PanelList from "~/components/dashboard/common/main/PanelList.vue";
+import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
 
 definePageMeta({
   middleware: 'dashboard',

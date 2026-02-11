@@ -8,10 +8,19 @@ const { all_nodes } = storeToRefs(mainStore)
 const props = defineProps({
   project: Object,
   megaproject_type: Object,
-  is_small: Boolean,
+  small_icons: Boolean,
   show_name: {
     type: Boolean,
     default: false,
+  },
+  chip_variant: {
+    type: String,
+    default: 'flat',
+    options: ['flat', 'elevated', 'tonal', 'outlined', 'text'],
+  },
+  chip_size: {
+    type: [String, Number],
+    default: 'small',
   },
 })
 
@@ -37,12 +46,30 @@ const original_types = computed(() => {
 
 <template>
   <div class="d-flex">
+    <div
+      v-for="text_type in original_types"
+      :key="text_type.id"
+    >
+      <v-icon
+        :color="text_type.color"
+        :class="small_icons ? '' : 'mr-1'"
+        :size="small_icons ? '16' : 'default'"
+      >
+        {{ text_type.icon }}
+      </v-icon>
+      <v-tooltip
+        activator="parent"
+        location="bottom"
+      >
+        {{ text_type.name }}
+      </v-tooltip>
+    </div>
     <v-chip
       v-if="show_name && megaproject_type_node"
       class="mr-1"
       :color="megaproject_type_node.parent.data.color"
-      size="small"
-      variant="flat"
+      :size="chip_size"
+      :variant="chip_variant"
     >
       {{ megaproject_type_node.data.name }}
     </v-chip>
@@ -54,24 +81,7 @@ const original_types = computed(() => {
 <!--    >-->
 <!--      ???? {{show_name}}-->
 <!--    </v-chip>-->
-    <div
-      v-for="text_type in original_types"
-      :key="text_type.id"
-    >
-      <v-icon
-        :color="text_type.color"
-        :class="is_small ? '' : 'mr-1'"
-        :size="is_small ? '16' : 'default'"
-      >
-        {{ text_type.icon }}
-      </v-icon>
-      <v-tooltip
-        activator="parent"
-        location="bottom"
-      >
-        {{ text_type.name }}
-      </v-tooltip>
-    </div>
+
   </div>
 
 </template>

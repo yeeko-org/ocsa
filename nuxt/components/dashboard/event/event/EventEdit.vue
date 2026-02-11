@@ -5,12 +5,8 @@ import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 const props = defineProps({
   is_edit: Boolean,
   is_massive_edit: Boolean,
-  full_main: {
-    type: Object,
-    required: true,
-  },
 })
-
+const full_main = defineModel({type: Object, required: true})
 
 
 </script>

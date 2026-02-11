@@ -4,7 +4,6 @@ import {computed, onMounted, ref, watch} from 'vue'
 const menu_drawer = ref(false)
 import {useMainStore} from "~/store/index.js";
 import {useAuthStore} from "~/store/auth.js";
-import {storeToRefs} from "pinia";
 const router = useRouter()
 const config = useRuntimeConfig();
 
@@ -44,8 +43,9 @@ const collection_data = computed(() => {
   // let main_collections = data.collections.filter(
   //   coll => ['primary', 'secondary'].includes(coll.level))
 const main_collections = computed(() => {
-  if (!schemas.value.collections) return []
-  return schemas.value.collections.filter(
+  if (!schemas.value.collections_dict)
+    return []
+  return Object.values(schemas.value.collections_dict).filter(
     coll => ['primary', 'secondary'].includes(coll.level))
 })
 // const icon = computed(() => group.value.icon || group.parent ?

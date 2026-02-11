@@ -1,11 +1,11 @@
 <script setup>
 
 import {computed} from "vue";
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
 
-import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
+import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 
 const props = defineProps({
   main: Object,
@@ -65,12 +65,11 @@ const final_event_types = computed(() => {
         variant="outlined"
         class="mx-2 d-flex flex-column"
       >
-        <SelectGroup
+        <DisplayGroup
           :main_object="main"
           filter_group_name="event_types"
           main_collection_name="event"
           :width="160"
-          is_display
         />
       </v-card>
     </template>

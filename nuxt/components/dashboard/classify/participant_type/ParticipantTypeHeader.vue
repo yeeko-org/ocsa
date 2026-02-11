@@ -1,8 +1,8 @@
 <script setup>
 
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
+import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 
 const props = defineProps({
   main: Object,
@@ -22,11 +22,10 @@ const props = defineProps({
     :collection_data="collection_data"
   >
     <template #icon>
-      <SelectGroup
+      <DisplayGroup
         filter_group_name="participant_types"
         :main_object="main"
         main_collection_name="participan_type"
-        is_display
         forced_level="subtype"
       />
     </template>

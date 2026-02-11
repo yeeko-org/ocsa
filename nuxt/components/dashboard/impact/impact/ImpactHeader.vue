@@ -1,7 +1,7 @@
 <script setup>
 
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 
 const props = defineProps({
   main: Object,
@@ -21,13 +21,12 @@ const props = defineProps({
     :collection_data="collection_data"
   >
     <template #icon>
-      <SelectGroup
+      <DisplayGroup
         :main_object="main"
         filter_group_name="impact_types"
         main_collection_name="impact"
         field="impact_type"
         forced_level="subtype"
-        is_display
       />
     </template>
     <template #title>

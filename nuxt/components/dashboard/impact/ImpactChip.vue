@@ -1,6 +1,6 @@
 <script setup>
 
-import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
+import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
 
 import {computed} from "vue";
 import {useMainStore} from "~/store/index.js"
@@ -53,16 +53,26 @@ const all_counts = computed(() => {
 </script>
 
 <template>
-  <HeaderChip
-    v-for="group in Object.values(all_counts)"
-    :count="group.current_types.length"
-    :icon="group.icon"
-    :label="`Afectación ${group.name}`"
-    :label_plural="`Afectaciones ${group.name}es`"
-    :color="group.color"
-    :tooltip_complement="group.complement.join('<br>')"
-    class="mr-1"
-  />
+  <v-card
+    color="indigo-lighten-3"
+    class="d-flex ga-1"
+    rounded="lg"
+    bg-color="lime"
+    variant="outlined"
+    style="border-width: 2px; padding: 3px;"
+  >
+
+    <HeaderChip
+      v-for="group in Object.values(all_counts)"
+      :count="group.current_types.length"
+      :icon="group.icon"
+      :label="`Afectación ${group.name}`"
+      :label_plural="`Afectaciones ${group.name}es`"
+      :color="group.color"
+      :tooltip_complement="group.complement.join('<br>')"
+      inside_group
+    />
+  </v-card>
 </template>
 
 <style scoped>

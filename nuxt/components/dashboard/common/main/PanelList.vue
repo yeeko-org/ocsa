@@ -1,6 +1,6 @@
 <script setup>
 
-import PanelCommon from "~/components/dashboard/common/PanelCommon.vue";
+import PanelCommon from "~/components/dashboard/common/main/PanelCommon.vue";
 
 import {ref, computed, shallowRef, nextTick, defineEmits} from 'vue'
 
@@ -15,10 +15,6 @@ const props = defineProps({
   parent: String,
   is_simple: Boolean,
   main_action: String,
-  is_map_viz: {
-    type: Boolean,
-    default: false,
-  }
 })
 
 const open_panels = ref([])
@@ -39,7 +35,7 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${header_n
     header_component.value = module.default
   })
   .catch(e => {
-    import(`~/components/dashboard/generic/HeaderGeneric.vue`).then(module => {
+    import(`~/components/dashboard/common/generic/HeaderGeneric.vue`).then(module => {
       header_component.value = module.default
     })
   })
@@ -49,7 +45,8 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${sheet_na
     sheet_component.value = module.default
   })
   .catch(e => {
-    import(`~/components/dashboard/generic/SheetCommon.vue`).then(module => {
+    // console.log("No specific sheet, loading generic", e)
+    import(`~/components/dashboard/common/generic/SheetCommon.vue`).then(module => {
       sheet_component.value = module.default
     })
   })
@@ -102,7 +99,6 @@ const elem_id = computed(() => props.collection_data.pk)
       :main="elem"
       :sel="sel"
       :main_action="main_action"
-      :is_map_viz="is_map_viz"
       @finish-open="changeShowDetails"
       @item-saved="addItem"
       @item-deleted="deleteItem"
@@ -119,13 +115,12 @@ const elem_id = computed(() => props.collection_data.pk)
           :show_details="show_details"
           @open-panel="openMain"
           :parent="parent"
-          :is_simple="is_simple || is_map_viz"
-          :is_map_viz="is_map_viz"
+          :is_simple="is_simple"
         />
       </template>
       <template
-        #sheet="{full_main}"
         v-if="sheet_component"
+        #sheet="{ full_main }"
       >
         <component
           :is="sheet_component"

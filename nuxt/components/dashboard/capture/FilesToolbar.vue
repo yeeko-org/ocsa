@@ -1,24 +1,22 @@
 <script setup>
 
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
+import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 
-import {useMainStore} from '~/store/index'
+import {useMainStore} from '~/store/index.js'
 const mainStore = useMainStore()
 const { saveFile } = mainStore
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   main_collection_name: String,
   child_relation_name: {
     type: String,
     default: 'note_file',
   },
   second_level: Boolean,
+  parent_id: Number,
+  note_id: Number,
 })
-
+const files = defineModel({type: Array, required: true})
 // const ready_files = ref(0)
 const pdf = ref()
 const main_file = ref(null)
@@ -28,9 +26,9 @@ const show_img = ref(false)
 // const { pdf } = usePDF(/
 
 function uploadFile(e){
-  let files = e.target.files || e.dataTransfer.files;
+  let new_files = e.target.files || e.dataTransfer.files;
   // console.log("files", files)
-  const first_file = files[0]
+  const first_file = new_files[0]
   main_file.value = {file: first_file, url: URL.createObjectURL(first_file)}
   sendFile()
 }
@@ -38,12 +36,12 @@ function uploadFile(e){
 function sendFile(){
   let formData = new FormData();
   formData.append("file", main_file.value.file, main_file.value.file.name);
-  const elem_id = props.full_main.id
-  const params = [elem_id, formData, props.main_collection_name]
+  // const elem_id = full_main.value.id
+  const params = [props.parent_id, formData, props.main_collection_name]
   saveFile(params).then(res=>{
     // ready_files.value += 1
     saving.value = false
-    props.full_main.files.push(res)
+    files.value.push(res)
     main_file.value = null
   })
 }
@@ -56,15 +54,16 @@ function trashFile(file){
 
 <template>
   <ToolbarCommon
-    :main_object="full_main"
+    v-model="files"
     :cols="12"
     filter_group_name="states"
     :main_collection_name="main_collection_name"
     :child_relation_name="child_relation_name"
-    field="files"
     color="brown"
     forced_level="group"
+    :parent_object="{ [main_collection_name]: parent_id }"
     :second_level="second_level"
+    :note_id="note_id"
   >
     <template #main_buttons>
       <v-file-input

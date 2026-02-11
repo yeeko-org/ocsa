@@ -11,11 +11,8 @@ const { all_nodes } = storeToRefs(mainStore)
 
 const props = defineProps({
   is_edit: Boolean,
-  full_main: {
-    type: Object,
-    required: true,
-  },
 })
+const full_main = defineModel({type: Object, required: true})
 
 const extractivism_types = computed(() => {
     return all_nodes.value.project_types.children.reduce((acc, pt) => {

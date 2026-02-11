@@ -17,6 +17,9 @@ const props = defineProps({
   is_simple: Boolean,
   horizontal: Boolean,
   is_reverse: Boolean,
+  height: [Number, String],
+  inside_group: Boolean,
+  is_purpose: Boolean,
 })
 
 const collection_data = computed(() => {
@@ -39,20 +42,34 @@ const final_icon = computed(() => {
   return props.icon || collection_data.value.icon || 'dashboard'
 })
 
+const final_height = computed(() => {
+  if (props.height)
+    return props.height
+  return props.inside_group
+    ? props.horizontal ? 34 : 52
+    : props.horizontal ? 38 : 56
+
+})
+
 </script>
 
 <template>
   <v-card
     variant="tonal"
     :color="final_color"
-    class="text-body-2 px-2"
-    :class="horizontal ? 'py-2' : 'py-1'"
+    class="text-body-2 d-flex align-center justify-center"
+    :height="final_height"
+    :class="horizontal ? 'py-2 px-3' : 'py-1 px-2'"
   >
     <div
       class="d-flex align-center justify-center"
       :class="horizontal ? 'flex-row' : 'flex-column'"
     >
-      <div class="px-1">
+      <div
+        :class="{'pr-2': horizontal}"
+        style="height: 20px;"
+        class="d-flex align-center justify-center"
+      >
         <v-icon
           v-if="!count && is_reverse"
           size="18"
@@ -60,16 +77,18 @@ const final_icon = computed(() => {
         >
           check_circle
         </v-icon>
-        <v-icon
-          v-else-if="!count"
-          size="18"
-          color="warning"
-        >
-          warning_amber
-        </v-icon>
-        <div
-          v-else
-        >
+        <template v-else-if="!count">
+
+          <span v-if="is_purpose">0</span>
+          <v-icon
+            v-else
+            size="18"
+            color="warning"
+          >
+            warning_amber
+          </v-icon>
+        </template>
+        <div v-else :class="{'text-subtitle-1': horizontal}">
           {{count}}
           <span v-if="is_simple">
             /&nbsp;∞

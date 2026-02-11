@@ -1,6 +1,6 @@
 <script setup>
 
-import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
+import TitleCommon from "~/components/dashboard/common/utils/TitleCommon.vue";
 import {computed} from "vue";
 import dayjs from "dayjs";
 import {storeToRefs} from "pinia";

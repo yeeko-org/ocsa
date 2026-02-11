@@ -4,6 +4,10 @@ const props = defineProps({
     type: String,
     required: false,
   },
+  icon_size: {
+    type: String,
+    default: 'default',
+  },
 })
 
 </script>
@@ -16,6 +20,7 @@ const props = defineProps({
   >
     <v-icon
       color="grey-darken-1"
+      :size="icon_size"
     >
       subject
     </v-icon>

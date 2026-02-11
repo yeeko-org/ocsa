@@ -8,10 +8,6 @@ const { full_geo, cats } = storeToRefs(mainStore)
 const { getGeo } = mainStore
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   state_field: {
     type: String,
     default: 'state',
@@ -25,6 +21,7 @@ const props = defineProps({
     default: 'locality',
   },
 })
+const full_main = defineModel({type: Object, required: true})
 
 const init_loaded = ref(false)
 const loading_geo = ref(false)
@@ -33,8 +30,8 @@ const resolved_geo_requests = ref(0)
 
 
 onMounted(() => {
-  // console.log("full_main onMounted", props.full_main)
-  if (props.full_main.locations) {
+  // console.log("full_main onMounted", full_main.value)
+  if (full_main.value.locations) {
     getGeoUnities()
   }
 })
@@ -48,7 +45,7 @@ function getGeoUnities(forced = false) {
     init_loaded.value = true
     const levels = ['state', 'municipality']
     levels.forEach(level => {
-      updateGeo([level, props.full_main[level]])
+      updateGeo([level, full_main.value[level]])
     })
   }
 }

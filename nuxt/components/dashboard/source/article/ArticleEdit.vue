@@ -1,26 +1,23 @@
 <script setup>
 
 import {useMainStore} from "~/store/index.js";
-import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
-import ParagraphsContent from "~/components/dashboard/source/ParagraphsContent.vue";
-import PanelList from "~/components/dashboard/common/PanelList.vue";
+import CriteriaChip from "~/components/dashboard/capture/CriteriaChip.vue";
+import ParagraphsContent from "~/components/dashboard/capture/ParagraphsContent.vue";
+import PanelList from "~/components/dashboard/common/main/PanelList.vue";
 import { storeToRefs } from "pinia";
 import ProjectsCriteria from "~/components/dashboard/source/article/ProjectsCriteria.vue";
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
-import ParagraphsProjectsContent from "~/components/dashboard/source/ParagraphsProjectsContent.vue";
+import ParagraphsProjectsContent from "~/components/dashboard/capture/ParagraphsProjectsContent.vue";
 
 const mainStore = useMainStore()
 const { saveSelected, valid_options } = mainStore
 const { schemas, other_discarded_reason } = storeToRefs(mainStore)
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   is_massive_edit: Boolean,
   is_edit: Boolean,
 })
+const full_main = defineModel({type: Object, required: true})
 
 const emits = defineEmits(['item-saved'])
 const errors = ref(null)
@@ -37,11 +34,11 @@ const rules = ref({
 
 
 const pre_valid = computed(() => {
-  return props.full_main.certainty_degree > 100
+  return full_main.value.certainty_degree > 100
 })
 
 const pre_valid_value = computed(() => {
-  const degree = props.full_main.certainty_degree
+  const degree = full_main.value.certainty_degree
   if (degree === undefined || degree === null)
     return null
   if (degree <= 100)
@@ -56,9 +53,9 @@ async function changeSelected(){
   errors.value = null
   // const { valid } = await linkForm.value.validate()
   // if (!valid) return
-  const is_selected = props.full_main.is_selected
-  const discarded_reason = props.full_main.discarded_reason
-  const other_reason = props.full_main.other_discarded_reason
+  const is_selected = full_main.value.is_selected
+  const discarded_reason = full_main.value.discarded_reason
+  const other_reason = full_main.value.other_discarded_reason
   // console.log("other_reason", other_reason)
   // if (is_selected === false && !other_reason && pre_valid.value) {
   //   errors.value = ["Debes escribir una razón de descarte."]
@@ -74,11 +71,10 @@ async function changeSelected(){
     return
   }
 
-  const params = {is_selected, discarded_reason, "other_discarded_reason": other_reason}
+  const params = {
+    is_selected, discarded_reason, other_discarded_reason: other_reason}
   sending_link.value = true
-  // console.log("params", params)
-  saveSelected([props.full_main.id, params]).then(response => {
-    // console.log("response", response)
+  saveSelected([full_main.value.id, params]).then(response => {
     if (response.errors)
       errors.value = response.errors
 
@@ -86,23 +82,21 @@ async function changeSelected(){
       note_full.value = response.note_full
 
     emits('item-saved', {'res': response, is_new: false})
-    // props.full_main = {...props.full_main, ...response}
     sending_link.value = false
-    // note_content.value = response
   })
 }
 
 const need_manual_discard = computed(() => {
   // full_main.discarded_reason && full_main.discarded_reason === other_discarded_reason.id
-  if (props.full_main.is_selected !== false)
+  if (full_main.value.is_selected !== false)
     return false
   if (!pre_valid.value)
     return false
   if (!other_discarded_reason.value)
     return true
-  if (!props.full_main.discarded_reason)
+  if (!full_main.value.discarded_reason)
     return false
-  return props.full_main.discarded_reason === other_discarded_reason.value.id
+  return full_main.value.discarded_reason === other_discarded_reason.value.id
 })
 
 const label_other_reason = computed(() => {
@@ -195,6 +189,7 @@ const label_other_reason = computed(() => {
           border
           divided
           color="grey-lighten-3"
+
           @update:model-value="changeSelected"
         >
           <v-btn
@@ -203,6 +198,7 @@ const label_other_reason = computed(() => {
             :color="option.color"
             :value="option.value"
             :prepend-icon="option.icon"
+            :loading="sending_link"
             class="text-caption"
           >
             {{option.name}}
@@ -212,7 +208,7 @@ const label_other_reason = computed(() => {
       </v-input>
       <SelectGroup
         v-if="full_main.is_selected === false && pre_valid"
-        :main_object="full_main"
+        v-model="full_main"
         filter_group_name="discarded_reasons"
         main_collection_name="article"
         :width="220"

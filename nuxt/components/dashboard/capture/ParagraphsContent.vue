@@ -1,6 +1,6 @@
 <script setup>
 
-import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
+import CriteriaChip from "~/components/dashboard/capture/CriteriaChip.vue";
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
 import { useMainStore } from "~/store/index.js";
 

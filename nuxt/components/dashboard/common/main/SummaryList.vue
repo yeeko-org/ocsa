@@ -1,6 +1,6 @@
 <script setup>
 
-import CardCommon from "~/components/dashboard/common/CardCommon.vue";
+import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
 
 const props = defineProps({
   results: Array,
@@ -24,20 +24,19 @@ const elem_id = computed(() => {
 </script>
 
 <template>
-  <v-card
-    v-for="result in results"
-    :key="result[elem_id]"
-    class="my-2 d-flex align-center px-3"
-    :color="collection_data.color"
-    variant="tonal"
+  <div
+    class="my-2"
   >
     <CardCommon
+      v-for="result in results"
+      :key="result[elem_id]"
       :collection_data="collection_data"
+      class="my-2"
       :full_main="result"
       is_select
       @selected-item="selectItem"
     />
-  </v-card>
+  </div>
 </template>
 
 <style scoped>

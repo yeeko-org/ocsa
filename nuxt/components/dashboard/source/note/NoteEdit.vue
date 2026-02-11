@@ -5,40 +5,16 @@ import UserSelect from "~/components/dashboard/custom_filters/UserSelect.vue";
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
-  full_main: {
-    type: Object,
-    required: true,
-  },
 })
-
+const full_main = defineModel({type: Object, required: true})
 const emits = defineEmits(['item-saved'])
-
-// const addMention = () => {
-//   console.log("add mention")
-//   if (!props.full_main.mentions) {
-//     props.full_main.mentions = []
-//   }
-//   props.full_main.mentions.push({})
-// }
 
 </script>
 
 <template>
-  <div v-if="false" class="d-flex" style="width: 100%;">
-    <v-textarea
-
-      v-model="full_main.title"
-      label="Título de la nota"
-      variant="outlined"
-      rows="1"
-      auto-grow
-      _style="width: 100%;"
-    >
-    </v-textarea>
-  </div>
   <div class="d-flex" style="width: 100%;">
     <SelectGroup
-      :main_object="full_main"
+      v-model="full_main"
       filter_group_name="source_types"
       :width="160"
     />

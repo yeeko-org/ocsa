@@ -2,34 +2,40 @@
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import ParticipantsToolbar from "~/components/dashboard/source/ParticipantsToolbar.vue";
 import EventToolbar from "~/components/dashboard/event/event/EventToolbar.vue";
-import CardCommon from "~/components/dashboard/common/CardCommon.vue";
+import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
 
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
-import {nextTick} from "vue";
+import {computed, nextTick} from "vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { saveSimple, getRelatedActors, deleteSimple } = mainStore
 import { useSaveElements } from "~/composables/save_elements.js";
 import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
 import StatusHistoryToolbar from "~/components/dashboard/project/status_history/StatusHistoryToolbar.vue";
+import {savePreItem, saveItemMixed, discardPreItem} from "~/composables/mix_pre_capture.js";
+import DialogSearch from "~/components/dashboard/common/dialog/DialogSearch.vue";
+import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
 const { saveComplex, save_errors } = useSaveElements()
 
 const props = defineProps({
-  mention: Object,
   note_id: Number,
   is_full: {
     type: Boolean,
     default: false,
   },
+  full_article: Object,
+  two_columns: Boolean,
 })
+const mention = defineModel({type: Object, required: true})
+
 
 const emits = defineEmits(
   ['mention-saved', 'mention-deleted', 'mention-accepted',
     'mention-discarded'])
 defineExpose({ allFinished })
 
-// const mention_id = computed(() => props.mention.id)
+// const mention_id = computed(() => mention.value.id)
 
 const all_saving = ref(false)
 
@@ -37,22 +43,19 @@ const participantsToolbarRef = ref(null)
 // const snackbar_message = ref('')
 // const snackbar = ref(false)
 
-function allFinished(mention_id=null) {
-  if (mention_id && mention_id !== props.mention.id)
+async function allFinished(mention_id=null, pre_data=null) {
+  if (mention_id && mention_id !== mention.value.id)
     return
-
-  saveSimple(['mention', props.mention]).then(res => {
-    emits('mention-saved', res)
-    all_saving.value = false
-    // console.log("participantsToolbarRef", participantsToolbarRef.value)
-    participantsToolbarRef.value.resetInitialData()
-    eventsToolbarRef.value.resetInitialData()
-  })
+  const res = await saveItemMixed('mention', mention.value, pre_data)
+  emits('mention-saved', res)
+  all_saving.value = false
+  participantsToolbarRef.value.resetInitialData()
+  eventsToolbarRef.value.resetInitialData()
 }
 
-const mentionForm = ref(null)
+// const mentionForm = ref(null)
 async function saveMention() {
-  const { valid } = await mentionForm.value.validate()
+  // const { valid } = await mentionForm.value.validate()
   // console.log("saveMention valid", valid)
   if (!valid){
     save_errors.value = [{
@@ -62,9 +65,9 @@ async function saveMention() {
     return
   }
   all_saving.value = true
-  saveComplex('mention', props.mention)
+  saveComplex('mention', mention.value)
     .then(() => {
-      allFinished()
+      allFinished(null, mention.value.pre_data)
     })
     .catch(errors => {
       console.error("Errores al guardar:", errors)
@@ -72,16 +75,23 @@ async function saveMention() {
     })
 }
 
-const dialog_search = ref(false)
+const dialog_search_actor = ref(false)
 const actor_display = ref(null)
 const eventsToolbarRef = ref(null)
 const participant_group_selected = ref(null)
 
+
+const all_actors = computed(() => {
+  return mention.value.participants.map(participant => {
+    return {...participant.actor_full, ...participant}
+  })
+})
+
 function searchActor(group) {
   // console.log("group to search", group)
-  getRelatedActors(props.mention.project, group.id).then(actors => {
+  getRelatedActors(mention.value.project, group.id).then(actors => {
     actors = actors.filter(actor => {
-      return !props.mention.participants.some(
+      return !mention.value.participants.some(
         part => part.actor === actor.id)
     })
     actors = actors.map(actor => {
@@ -93,63 +103,96 @@ function searchActor(group) {
     })
     if (group)
       participant_group_selected.value = group.id
-    dialog_search.value = true
+    dialog_search_actor.value = true
     nextTick(() => {
       actor_display.value.setInitResults(actors)
     })
   })
 }
 
-function saveParticipant([elem_in_edition, actor]) {
-  const part_idx = props.mention.participants.findIndex(
-    part => part.id === elem_in_edition.id)
-  props.mention.participants.splice(part_idx, 1, {
-    ...elem_in_edition,
-    actor: actor.id,
-    actor_full: actor,
-  })
+async function saveParticipant([elem_in_edition, part_idx, actor]) {
+  if (!elem_in_edition.id && elem_in_edition.path){
+    await saveNewParticipant(actor, elem_in_edition, part_idx)
+  }
+  else{
+    mention.value.participants.splice(part_idx, 1, {
+      ...elem_in_edition,
+      actor: actor.id,
+      actor_full: actor,
+    })
+  }
 }
 
-function saveNewParticipant(actor) {
+async function saveNewParticipant(actor, participant=null, part_idx=null) {
   const params = {
-    mention: props.mention.id,
+    mention: mention.value.id,
     actor: actor.id,
   }
   // console.log("actor to save", actor)
-  if (actor.participant_type)
+  if (participant && participant.participant_type)
+    params.participant_types = [participant.participant_type]
+  else if (actor.participant_type)
     params.participant_types = [actor.participant_type]
-  saveSimple(['participant', params]).then(response => {
-    if (!actor.participant_type && participant_group_selected.value)
-      response.participant_group = participant_group_selected.value
-    else if (actor.participant_group)
-      response.participant_group = actor.participant_group
-    props.mention.participants.unshift(response)
-    dialog_search.value = false
-  })
+  let response = null
+  if (participant){
+    response = await savePreItem(
+      participant.path, 'participant', props.note_id, params)
+  }
+  else{
+    response = await saveSimple(['participant', params])
+  }
+
+  if (!actor.participant_type && participant_group_selected.value)
+    response.participant_group = participant_group_selected.value
+  else if (participant && participant.participant_group)
+    response.participant_group = participant.participant_group
+  else if (actor.participant_group)
+    response.participant_group = actor.participant_group
+  if (participant && part_idx !== null){
+    mention.value.participants.splice(part_idx, 1, {
+      ...response,
+      actor: actor.id,
+      actor_full: actor,
+    })
+  }
+  else{
+    mention.value.participants.unshift(response)
+  }
+  dialog_search_actor.value = false
 }
 
-function closeChangeDialog(event) {
-  if (event)
-    saveNewParticipant(event)
-  dialog_search.value = false
+async function discardParticipant([pre_item, index]) {
+  const new_pre_item = await discardPreItem(
+    pre_item.path, 'participant', props.note_id)
+  console.log("new_pre_item Participant", new_pre_item)
+  // main_array.value.splice(index, 1, new_pre_item)
+  mention.value.participants.splice(index, 1)
+  mention.value.participants.push(new_pre_item)
+}
+
+function closeChangeDialog(actor_data) {
+  if (actor_data)
+    saveNewParticipant(actor_data)
+  else
+    dialog_search_actor.value = false
 }
 
 function changeProject(project) {
-  if (props.mention.path && props.mention.discarded === null){
+  if (mention.value.path && mention.value.discarded === null){
     emits('mention-accepted', project)
   }
   else{
-    props.mention.project = project.id
-    props.mention.project_full = project
+    mention.value.project = project.id
+    mention.value.project_full = project
   }
 }
 
 const project_init_filters = computed(() => {
-  if (props.mention.path && props.mention.project_full.locations.length > 0) {
-    const first_location = props.mention.project_full.locations[0]
+  if (mention.value.path && mention.value.project_full.locations.length > 0) {
+    const first_location = mention.value.project_full.locations[0]
     return {
       state: first_location.state || null,
-      q: props.mention.project_full.name || null,
+      q: mention.value.project_full.name || null,
     }
   }
   return {}
@@ -158,11 +201,11 @@ const project_init_filters = computed(() => {
 
 const dialog_delete = ref(false)
 function deleteMention() {
-  if (!props.mention.id)
+  if (!mention.value.id)
     return
   all_saving.value = true
-  deleteSimple(['mention', props.mention.id]).then(() => {
-    emits('mention-deleted', props.mention.id)
+  deleteSimple(['mention', mention.value.id]).then(() => {
+    emits('mention-deleted', mention.value.id)
     all_saving.value = false
     dialog_delete.value = false
     // snackbar.value = true
@@ -170,91 +213,137 @@ function deleteMention() {
   })
 }
 
+async function discardLocation(pre_item) {
+  const index = mention.value.project_full.locations.findIndex(
+    loc => loc.path === pre_item.path)
+  const new_pre_item = await discardPreItem(
+    pre_item.path, 'location', props.note_id)
+  mention.value.project_full.locations.splice(index, 1, new_pre_item)
+}
+
+
 </script>
 
 <template>
-  <v-col
-    cols="12"
-    _md="is_full ? 6 : 12"
+  <v-card
+    :variant="mention.discarded ? 'tonal' : 'outlined'"
+    :color="mention.discarded ? 'red-lighten-3' : 'indigo-lighten-1'"
   >
-    <v-card variant="outlined" color="indigo-lighten-1">
 
-      <v-form ref="mentionForm">
-        <v-row class="py-3 mx-0" v-if="mention.id || mention.path">
-          <v-col cols="7">
-            <CardCommon
-              v-if="mention.project_full"
-              :full_main="mention.project_full"
-              :collection_data="schemas.collections_dict['project']"
-              :note_id="note_id"
-              :project_id="mention.project"
-              :init_filters="project_init_filters"
-              indirect_get
-              class="py-3"
-              @selected-item="changeProject($event)"
-              @discard-item="emits('mention-discarded')"
-            />
-          </v-col>
-          <StatusHistoryToolbar
-            :mention="mention"
-            class="mt-2"
-          />
-          <ImpactToolbar
-            :mention="mention"
-            class="mt-2"
-          />
-          <ParticipantsToolbar
-            ref="participantsToolbarRef"
-            :mention="mention"
-            @search-item="searchActor($event)"
-            @selected-item="saveParticipant($event)"
-          />
-          <EventToolbar
-            ref="eventsToolbarRef"
-            :mention="mention"
-          />
-          <v-row v-if="save_errors.length > 0">
-            <v-col
-              v-for="(error, index) in save_errors"
-              :key="index"
-              cols="12"
-              class="d-flex justify-end px-6 py-1"
+<!--      <v-form ref="mentionForm">-->
+      <v-row class="py-3 mx-0" v-if="mention.id || mention.path">
+        <v-col cols="7">
+          <CardCommon
+            v-if="mention.project_full"
+            :full_main="mention.project_full"
+            collection_name="project"
+            :note_id="note_id"
+            :init_filters="project_init_filters"
+            indirect_get
+            class="py-3"
+            @selected-item="changeProject($event)"
+            @discard-item="emits('mention-discarded')"
+          >
+            <template #card="{ final_collection_data }">
+              <ProjectCard
+                :final_collection_data="final_collection_data"
+                :full_main="mention.project_full"
+                @discard-location="discardLocation"
+              />
+
+            </template>
+            <template
+              v-if="mention.project_full?.paragraphs && full_article"
+              #dialog="{ closeSearchDialog }"
             >
-              <v-alert
-                type="error"
-              >
-                Error al guardar {{ error.field }}: {{ error.errors }}
-                <v-code v-if="error.item">
-                  {{ error.item }}
-                </v-code>
-              </v-alert>
-            </v-col>
-          </v-row>
-          <v-col cols="12" class="d-flex justify-end px-6">
-            <v-btn
-              color="red"
-              variant="outlined"
-              class="mr-4"
-              :disabled="all_saving"
-              @click="dialog_delete = true"
+              <DialogSearch
+                collection_name="project"
+                :full_main="mention.project_full"
+                :full_article="full_article"
+                :note_id="note_id"
+                :show_base="true"
+                :init_filters="project_init_filters"
+                @selected-item="closeSearchDialog"
+              />
+<!--                <v-btn-->
+<!--                  color="red"-->
+<!--                  variant="text"-->
+<!--                  @click="closeSearchDialog(); newTest"-->
+<!--                >-->
+<!--                  Descartar mención-->
+<!--                </v-btn>-->
+            </template>
+          </CardCommon>
+        </v-col>
+        <StatusHistoryToolbar
+          v-model="mention.status_history"
+          :parent_id="mention.id"
+          :note_id="note_id"
+          class="mt-2"
+        />
+        <ImpactToolbar
+          v-model="mention.impacts"
+          :parent_id="mention.id"
+          :note_id="note_id"
+          class="mt-2"
+        />
+        <ParticipantsToolbar
+          v-model="mention.participants"
+          :parent_id="mention.id"
+          :note_id="note_id"
+          ref="participantsToolbarRef"
+          @search-item="searchActor($event)"
+          @selected-item="saveParticipant($event)"
+          @discard-participant="discardParticipant"
+        />
+        <EventToolbar
+          v-model="mention.events"
+          :all_actors="all_actors"
+          :parent_id="mention.id"
+          :note_id="note_id"
+          ref="eventsToolbarRef"
+        />
+        <v-row v-if="save_errors.length > 0">
+          <v-col
+            v-for="(error, index) in save_errors"
+            :key="index"
+            cols="12"
+            class="d-flex justify-end px-6 py-1"
+          >
+            <v-alert
+              type="error"
             >
-              Eliminar mención
-            </v-btn>
-            <v-spacer></v-spacer>
-            <v-btn
-              color="accent"
-              variant="elevated"
-              :loading="all_saving"
-              @click="saveMention"
-            >
-              Guardar cambios
-            </v-btn>
+              Error al guardar {{ error.field }}: {{ error.errors }}
+              <v-code v-if="error.item">
+                {{ error.item }}
+              </v-code>
+            </v-alert>
           </v-col>
         </v-row>
-      </v-form>
-    </v-card>
+        <v-col cols="12" class="d-flex justify-end px-6">
+          <v-btn
+            color="red"
+            variant="outlined"
+            class="mr-4"
+            :disabled="all_saving"
+            @click="dialog_delete = true"
+          >
+            Eliminar mención
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="accent"
+            variant="elevated"
+            :loading="all_saving"
+            @click="saveMention"
+          >
+            Guardar cambios
+          </v-btn>
+        </v-col>
+      </v-row>
+<!--      </v-form>-->
     <v-dialog
-      v-model="dialog_search"
+      v-model="dialog_search_actor"
       max-width="920"
     >
       <v-card height="800">
@@ -298,7 +387,7 @@ function deleteMention() {
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-col>
+  </v-card>
 </template>
 
 <style scoped>

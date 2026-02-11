@@ -1,6 +1,6 @@
 <script setup>
 
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
 
 import {useMainStore} from '~/store/index.js'
 const mainStore = useMainStore()

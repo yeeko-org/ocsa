@@ -25,7 +25,7 @@ const props = defineProps({
         v-tooltip="'Pertenece a un agrupador de proyectos.'"
         color="light-blue"
       >
-        device_hub
+        graph_4
       </v-icon>
     </div>
     <div>
@@ -39,6 +39,10 @@ const props = defineProps({
         v-if="!from_parent_project && full_main.parent_project_full && false"
         class="text-caption"
       >
+        <v-icon
+          size="small"
+          color="deep-purple"
+        >hub</v-icon>
         <span class="text-grey-darken-1">
           Agrupador:
         </span>

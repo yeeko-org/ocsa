@@ -1,13 +1,13 @@
 <script setup>
 
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
-import Comments from "~/components/dashboard/utils/Comments.vue";
+import Comments from "~/components/dashboard/common/utils/Comments.vue";
 import { patchElement } from "~/composables/save_elements.js";
 
 const props = defineProps({
-  full_main: Object,
   final_collection_data: Object,
 })
+const full_main = defineModel({type: Object, required: true})
 
 const rules = ref({
   required: value => !!value || "Campo requerido",
@@ -27,12 +27,12 @@ const loading_edition = ref(false)
 const emits = defineEmits(['update-status', 'update-comments'])
 
 function saveStatus(new_status, status_group) {
-  if (!props.full_main.id)
+  if (!full_main.value.id)
     return
 
   loading_edition.value = true
   let params = {[status_group]: new_status}
-  patchElement(props.final_collection_data, props.full_main.id, params)
+  patchElement(props.final_collection_data, full_main.value.id, params)
     .then((res)=>{
       emits('update-status', {status_group, new_status, res})
       setTimeout(() => {
@@ -123,7 +123,7 @@ function saveStatus(new_status, status_group) {
         </template>
       </v-text-field>
     </v-col>
-    <slot name="edit" :full_main="full_main">
+    <slot name="edit">
       EDICIÓN 2 (REVISAR PORQUE NO ES NORMAL)
     </slot>
     <v-col

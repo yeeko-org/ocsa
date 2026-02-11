@@ -12,39 +12,35 @@ const mainStore = useMainStore()
 const { full_geo } = storeToRefs(mainStore)
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   is_massive_edit: Boolean,
   is_edit: Boolean,
   second_level: Boolean,
 })
-
+const full_main = defineModel({type: Object, required: true})
 
 const show_map = ref(false)
 
 const location_type_full = computed(() => location_types.find(
-    loc => loc.id === props.full_main.type_location))
+    loc => loc.id === full_main.value.type_location))
 
 
 const close_position = computed(() => {
-  // console.log("full_main", props.full_main)
+  // console.log("full_main", full_main.value)
   // console.log("full_geo", full_geo.value)
   let close_position = false
-  if (full_geo.value.municipality && props.full_main.locality) {
-    const mun = full_geo.value.municipality[props.full_main.municipality]
+  if (full_geo.value.municipality && full_main.value.locality) {
+    const mun = full_geo.value.municipality[full_main.value.municipality]
     if (mun)
       close_position = mun.find(
-        loc => loc.id === props.full_main.locality)
+        loc => loc.id === full_main.value.locality)
   }
   if (close_position)
     return close_position
-  if (full_geo.value.state && props.full_main.municipality) {
-    const state = full_geo.value.state[props.full_main.state]
+  if (full_geo.value.state && full_main.value.municipality) {
+    const state = full_geo.value.state[full_main.value.state]
     if (state){
       close_position = state.find(
-        mun => mun.id === props.full_main.municipality)
+        mun => mun.id === full_main.value.municipality)
     }
   }
   return close_position
@@ -53,12 +49,12 @@ const close_position = computed(() => {
 function handleLocationUpdate(locationData) {
   // console.log("handleLocationUpdate", locationData)
   // Update the location data based on map editor results
-  if (props.full_main.type_location === 'point' && locationData.geometry?.coordinates) {
-    props.full_main.longitude = locationData.geometry.coordinates[0]
-    props.full_main.latitude = locationData.geometry.coordinates[1]
+  if (full_main.value.type_location === 'point' && locationData.geometry?.coordinates) {
+    full_main.value.longitude = locationData.geometry.coordinates[0]
+    full_main.value.latitude = locationData.geometry.coordinates[1]
   }
   else{
-    props.full_main.geojson = locationData
+    full_main.value.geojson = locationData
   }
 }
 
@@ -70,7 +66,7 @@ function handleLocationUpdate(locationData) {
     <v-col :cols="show_map && !second_level ? 6 : 12">
       <div class="d-flex align-center flex-wrap">
         <LocationMex
-          :full_main="full_main"
+          v-model="full_main"
         />
         <LocationType
           :full_main="full_main"

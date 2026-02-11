@@ -1,5 +1,5 @@
 <script setup>
-import PanelList from "~/components/dashboard/common/PanelList.vue";
+import PanelList from "~/components/dashboard/common/main/PanelList.vue";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import CalendarDisplay from "~/components/dashboard/source/CalendarDisplay.vue";

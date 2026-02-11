@@ -1,8 +1,8 @@
 <script setup>
 
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
-import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
+import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 
 const props = defineProps({
   main: Object,
@@ -27,14 +27,12 @@ const props = defineProps({
         variant="outlined"
         class="mx-2 d-flex _flex-column align-center"
       >
-        <SelectGroup
-          v-if="true"
+        <DisplayGroup
           :main_object="main"
           filter_group_name="impact_types"
           main_collection_name="impact_subtype"
           field="impact_type"
           forced_level="subtype"
-          is_display
         />
       </v-card>
     </template>

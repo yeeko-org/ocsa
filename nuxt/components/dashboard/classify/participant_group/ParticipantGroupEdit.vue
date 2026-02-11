@@ -3,12 +3,9 @@
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
-  full_main: {
-    type: Object,
-    required: true,
-  },
-})
 
+})
+const full_main = defineModel({type: Object, required: true})
 const rules = ref({
   required: value => !!value || "Campo requerido",
 })

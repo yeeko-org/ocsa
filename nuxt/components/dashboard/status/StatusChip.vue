@@ -21,11 +21,6 @@ const props = defineProps({
     required: false,
     default: 'flex-column',
   },
-  small: {
-    type: Boolean,
-    required: false,
-    default: true,
-  },
   x_small: Boolean,
   disabled: Boolean,
   only_icon: Boolean,
@@ -33,6 +28,16 @@ const props = defineProps({
     type: Boolean,
     required: false,
     default: true,
+  },
+  chip_variant: {
+    type: String,
+    required: false,
+    default: 'flat',
+  },
+  chip_size: {
+    type: String,
+    required: false,
+    default: 'default',
   },
 });
 const mainStore = useMainStore();
@@ -105,17 +110,16 @@ const label = computed(() => {
     <v-chip
       v-else
       :color="item_built.color || 'grey'"
-      :size="(props.disabled || props.small) ? 'small' : 'default'"
+      :size="props.disabled ? 'small' : chip_size"
       :disabled="props.disabled"
       :icon="props.only_icon"
       :class="`${item_built.back_text} ${props.bold_text ? 'font-weight-bold' : ''}`"
-      variant="flat"
+      :variant="props.chip_variant"
     >
       <v-icon
         v-if="props.show_icon"
         :color="item_built.color_text"
         class="mr-1"
-        :size="(props.disabled || props.small) ? 'small' : 'default'"
       >
         {{(!item_built.icon || item_built.icon === 'check_circle')
           ? 'fiber_manual_record'

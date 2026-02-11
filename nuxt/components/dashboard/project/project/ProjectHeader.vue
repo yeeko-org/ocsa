@@ -1,18 +1,15 @@
 <script setup>
-import HeaderChip from '~/components/dashboard/common/HeaderChip.vue'
+import HeaderChip from '~/components/dashboard/common/utils/HeaderChip.vue'
 import ActorsChip from "~/components/dashboard/actor/ActorsChip.vue";
 import ImpactChip from "~/components/dashboard/impact/ImpactChip.vue";
 
 import { computed } from 'vue'
-import { useMainStore } from '~/store/index.js'
-import { storeToRefs } from 'pinia'
-import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import LocationsChip from "~/components/dashboard/project/LocationsChip.vue";
-import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
 
-const mainStore = useMainStore()
-const { cats } = storeToRefs(mainStore)
+import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
+import LocationsChip from "~/components/dashboard/project/LocationsChip.vue";
+import TitleCommon from "~/components/dashboard/common/utils/TitleCommon.vue";
+import EventGroupsChip from "~/components/dashboard/event/EventGroupsChip.vue";
 
 const props = defineProps({
   main: Object,
@@ -27,12 +24,10 @@ const project = computed(() => {
   return props.main
 })
 
-// const emits = defineEmits(['open-panel'])
-
 const mention_counts = computed(() => {
-  // console.log('project', project.value)
   return project.value.mentions.length
 })
+
 </script>
 
 <template>
@@ -41,6 +36,7 @@ const mention_counts = computed(() => {
     :show_details="show_details"
     :collection_data="collection_data"
     :height="70"
+    min_width_status="210"
   >
     <template #icon>
       <div
@@ -70,18 +66,34 @@ const mention_counts = computed(() => {
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
         <div class="ml-2 text-caption" v-if="main.parent_project_full">
+          <v-icon
+            size="small"
+            color="deep-purple"
+          >hub</v-icon>
           <span class="text-grey-darken-1">
-            Grouper:
+            Agrupador:
           </span>
           <span class="text-blue-darken-1 ml-1">
             {{main.parent_project_full.name}}
           </span>
         </div>
-          <TitleCommon
-            :title_text="main.name"
-            :title_width="300"
-            card_class="ml-2 text-body-1"
-          />
+        <div v-else-if="main.is_grouper" class="ml-2 text-caption">
+          <v-icon
+            class="mr-1"
+            color="deep-purple"
+            v-tooltip="'Este proyecto es un agrupador de otros proyectos.'"
+          >
+            hub
+          </v-icon>
+          <span class="text-grey-darken-1">
+            Proyecto agrupador
+          </span>
+        </div>
+        <TitleCommon
+          :title_text="main.name"
+          :title_width="300"
+          card_class="ml-2 text-body-1"
+        />
       </div>
     </template>
 
@@ -93,22 +105,30 @@ const mention_counts = computed(() => {
         label="proyecto hijo"
         label_plural="proyectos hijos"
         collection_name="actor"
-        class="ml-2"
-        :horizontal="false"
       />
       <HeaderChip
         :count="mention_counts"
-        icon="newspaper"
+        icon="newsmode"
         label="nota"
         label_plural="notas"
         color="deep-purple"
-        class="mr-1 ml-2"
         :is_simple="is_simple"
       />
       <template v-if="!is_simple">
         <LocationsChip
           :project="main"
-          class="mr-2"
+        />
+        <v-divider
+          vertical
+          class="mx-1"
+        />
+        <EventGroupsChip
+          :mentions="main.mentions"
+        />
+        <v-divider
+          v-if="false"
+          vertical
+          inset
         />
         <ImpactChip
           :main_array="main.mentions"
@@ -116,10 +136,13 @@ const mention_counts = computed(() => {
           child_field="impacts"
         />
       </template>
+      <v-divider
+        vertical
+        class="mx-1"
+      />
       <ActorsChip
         :main="main"
         :is_simple="is_simple"
-        class="mx-1"
       />
       <HeaderChip
         v-if="main.others_parents && main.others_parents.length"

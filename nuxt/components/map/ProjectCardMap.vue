@@ -190,7 +190,7 @@ function openChildProjectCard(child_project){
               class="mr-2"
               :color="child_project.id === childProject?.id ? 'white' : 'light-blue'"
             >
-              device_hub
+              graph_4
 <!--              subdirectory_arrow_right-->
             </v-icon>
             <ProjectMiniCard

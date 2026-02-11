@@ -5,14 +5,11 @@ import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import GenericSelect from "~/components/dashboard/common/select/GenericSelect.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
+
 const mainStore = useMainStore()
 const { schemas, all_nodes } = storeToRefs(mainStore)
 
 const props = defineProps({
-  main_object: {
-    type: Object,
-    required: true,
-  },
   filter_group_name: {
     type: String,
     required: true,
@@ -28,12 +25,12 @@ const props = defineProps({
   special_multiple: Boolean,
   width: Number,
   subtype_class: String,
-  is_display: Boolean,
   required: Boolean,
   forced_clearable: Boolean,
   show_console: Boolean,
-  can_edit_pre_save: Boolean,
+
 })
+const main_object = defineModel({type: Object, required: true})
 
 const collection_display = ref(null)
 const loaded = ref(false)
@@ -42,9 +39,6 @@ const main_action = ref("click")
 const level_dialog = ref(null)
 const init_filters = ref(null)
 const init_in_edition = ref(null)
-
-const emits = defineEmits(
-  ['delete-record', 'accept-record', 'discard-record'])
 
 defineExpose({ externalSetInitialData })
 
@@ -82,6 +76,13 @@ const category_is_multiple = computed(() => {
   if (props.forced_level === 'subtype')
     return is_multiple.value
   return false
+})
+
+const collections = computed(() => {
+  return Object.entries(level_names.value).reduce((acc, [level, cat_name]) => {
+    acc[level] = schemas.value.collections_dict[cat_name]
+    return acc
+  }, {})
 })
 
 const subcategory_is_multiple = computed(() => {
@@ -134,16 +135,9 @@ const level_final_names = computed(() => {
   return final_names
 })
 
-const collections = computed(() => {
-  return Object.entries(level_names.value).reduce((acc, [level, cat_name]) => {
-    acc[level] = schemas.value.collections_dict[cat_name]
-    return acc
-  }, {})
-})
-
 const category_values = computed(() => {
   return Object.entries(level_final_names.value).reduce((acc, [level, cat_name]) => {
-    let value = props.main_object[cat_name]
+    let value = main_object.value[cat_name]
     if (!value && level === 'group' && props.category_group_value)
       value = props.category_group_value
     try{
@@ -159,7 +153,7 @@ const category_values = computed(() => {
       console.log("error", error)
       console.log("level", level)
       console.log("cat_name", cat_name)
-      console.log("main_object", props.main_object)
+      console.log("main_object", main_object.value)
       console.log("category_group_value", props.category_group_value)
       console.log("value", value)
     }
@@ -201,11 +195,6 @@ const nodes = computed(() => {
 })
 
 const group_object = computed(() => {
-  // console.log("nodes.value", nodes.value)
-  // console.log("level_names", level_names.value)
-  // console.log("category_values", category_values.value)
-  // console.log("category_group_value", props.category_group_value)
-  // console.log("collections", collections.value)
   return nodes.value.group
     ? nodes.value.group.data
     : {name: "Todos", color: "primary", icon: "category"}
@@ -256,11 +245,11 @@ const subtype_items = computed(() => {
 onMounted(() => {
   // TODO: revisar con calma esto:
   const levels = level_names.value
-  if (!props.main_object[levels.type] && nodes.value.type)
-    props.main_object[levels.type] = nodes.value.type.data.id
-  // if (props.main_object[levels.subtype] && !props.main_object[levels.type]){
+  if (!main_object.value[levels.type] && nodes.value.type)
+    main_object.value[levels.type] = nodes.value.type.data.id
+  // if (main_object.value[levels.subtype] && !main_object.value[levels.type]){
   //   if (nodes.value.subtype)
-  //     props.main_object[levels.type] = nodes.value.subtype.parent.data.id
+  //     main_object.value[levels.type] = nodes.value.subtype.parent.data.id
   // }
 
 })
@@ -293,7 +282,7 @@ const display_type = computed(() => {
   if (!level_names.value.type)
     return false
   return props.forced_level
-    ? (props.main_object[level_names.value.type] || type_items.value)
+    ? (main_object.value[level_names.value.type] || type_items.value)
     : true
 })
 
@@ -328,21 +317,20 @@ function setInitialData() {
   if (loaded.value)
     return
   loaded.value = true
-  // if (props.is_filter || props.is_toolbar)
   if (props.is_filter)
     return
   const levels = level_final_names.value
-  if (props.main_object[levels.subtype]
-      && !props.main_object[levels.type]){
+  if (main_object.value[levels.subtype]
+      && !main_object.value[levels.type]){
     if (nodes.value.subtype){
       // console.log("nodes.value.subtype", nodes.value.subtype)
-      props.main_object[levels.type] = nodes.value.subtype.parent.data.id
+      main_object.value[levels.type] = nodes.value.subtype.parent.data.id
     }
   }
-  if (props.main_object[levels.type]
-      && !props.main_object[levels.group]){
+  if (main_object.value[levels.type]
+      && !main_object.value[levels.group]){
     if (nodes.value.type)
-      props.main_object[levels.group] = nodes.value.type.parent.data.id
+      main_object.value[levels.group] = nodes.value.type.parent.data.id
   }
 }
 
@@ -364,7 +352,7 @@ function openDialog(level_name, is_add=true){
       if (level === level_name)
         done = true
       if (!done){
-        let new_value = props.main_object[new_cat_name]
+        let new_value = main_object.value[new_cat_name]
         if (is_multiple && new_value.length)
           new_value = new_value[0]
         acc[cat_name] = new_value
@@ -373,11 +361,11 @@ function openDialog(level_name, is_add=true){
     }, {})
   let real_value = null
   if (level_name === 'group')
-    real_value = props.main_object[level_names.value['group']]
+    real_value = main_object.value[level_names.value['group']]
   else if (level_name === 'type')
-    real_value = props.main_object[type_field.value]
+    real_value = main_object.value[type_field.value]
   else if (level_name === 'subtype')
-    real_value = props.main_object[subtype_field.value]
+    real_value = main_object.value[subtype_field.value]
   if (real_value){
     if (typeof real_value === 'object')
       init_in_edition.value = real_value
@@ -397,32 +385,32 @@ function selectItem(item){
   // console.log("item", item)
   // console.log("level_dialog", level_dialog.value)
   // console.log("level_names", level_names.value)
-  // console.log("main_object", props.main_object)
+  // console.log("main_object", main_object.value)
   const elem_id = item.id || item.key_nme
   Object.entries(level_names.value).forEach(([level, cat_name]) => {
     const [is_multiple, new_cat_name] = isLevelMultiple(level, cat_name)
     if (level === level_dialog.value)
-      props.main_object[new_cat_name] = is_multiple
+      main_object.value[new_cat_name] = is_multiple
         ? [elem_id]
         : elem_id
     else
-      props.main_object[new_cat_name] = is_multiple
+      main_object.value[new_cat_name] = is_multiple
         ? []
         : null
   })
   loaded.value = false
   setInitialData()
-  // console.log("main_object", props.main_object)
+  // console.log("main_object", main_object.value)
   // console.log("main_node", all_nodes.value[props.filter_group_name])
   dialog_add.value = false
 }
 
 function changeValue(level_name, value){
   if (level_name === 'group'){
-    props.main_object[type_field.value] = null
+    main_object.value[type_field.value] = null
   }
-  props.main_object[subtype_field.value] = null
-  props.main_object[level_names.value[level_name]] = value
+  main_object.value[subtype_field.value] = null
+  main_object.value[level_names.value[level_name]] = value
 }
 
 function changeSubtypeValue(value){
@@ -439,103 +427,49 @@ function changeSubtypeValue(value){
 
 <template>
   <template v-if="is_toolbar">
-    <v-col cols="12" class="d-flex px-0 pt-1">
-      <div
-        v-if="main_object.path"
-        class="d-flex xflex-column pr-2 ga-1"
-      >
-        <v-btn
-          color="success"
-          icon
-          variant="outlined"
-          size="small"
-          v-tooltip="'Aceptar'"
-          :disabled="!can_edit_pre_save"
-          @click="emits('accept-record')"
-        >
-          <v-icon>
-            done_outline
-          </v-icon>
-        </v-btn>
-        <v-btn
-          color="error"
-          icon
-          variant="outlined"
-          size="small"
-          v-tooltip="'Rechazar'"
-          :disabled="!can_edit_pre_save"
-          @click="emits('discard-record')"
-        >
-          <v-icon>
-            close
-          </v-icon>
-        </v-btn>
-      </div>
-      <v-btn
-        v-else
-        @click="emits('delete-record')"
-        icon="delete"
-        color="error"
-        variant="text"
-        class="mr-2 mt-n2 ml-n2"
-      >
-      </v-btn>
+    <v-col cols="12" class="d-flex align-start px-0 pt-1">
       <slot name="chip">
-        <div
-          v-if="collections.group && is_toolbar"
-          class="d-flex mr-2 flex-column"
+        <v-chip
+          v-if="collections.group"
+          class="mr-3"
+          :color="group_object.color"
+          min-width="150"
+          :prepend-icon="group_object.icon"
         >
-          <v-chip
-            class="mr-1"
-            :color="group_object.color"
-            min-width="150"
-            :prepend-icon="group_object.icon"
-          >
-            {{ group_object.name }}
-          </v-chip>
-  <!--        <v-btn-->
-  <!--          size="x-small"-->
-  <!--          color="error"-->
-  <!--          variant="outlined"-->
-  <!--          class="mt-1"-->
-  <!--          @click="emits('delete-record')"-->
-  <!--        >-->
-  <!--          Eliminar-->
-  <!--        </v-btn>-->
-        </div>
+          {{ group_object.name }}
+        </v-chip>
         <v-chip v-else variant="outlined" color="grey" min-width="150" label>
           {{ final_main_collection.name }}
         </v-chip>
+      </slot>
+      <v-spacer></v-spacer>
+      <slot name="actions">
       </slot>
     </v-col>
   </template>
   <GenericSelect
     v-else-if="collections.group && (forced_level || true)"
-    :main_object="main_object"
-    level="group"
+    v-model="main_object"
     :level_name="level_names.group"
     :is_filter="is_filter"
     :main_width="width || 200"
     :items="filter_group_data.category_groups"
     :label="collections.group.name"
-    :class="{'mr-2': !is_display}"
-    :is_display="is_display"
+    class="mr-2"
     :required="required"
     :forced_clearable="forced_clearable"
     @update-value="changeValue('group', $event)"
   />
   <GenericSelect
     v-if="display_type"
-    :main_object="main_object"
-    level="type"
+    v-model="main_object"
     :level_name="type_field"
     :is_filter="is_filter"
     :main_width="main_width"
     :items="type_items"
     :label="type_label"
-    :is_display="is_display"
     :is_multiple="category_is_multiple"
-    :class="{'mr-2': !is_display}"
+    class="mr-2"
     :required="type_required"
     :collection_data="collections.type"
     :forced_clearable="forced_clearable || is_open_search"
@@ -544,14 +478,12 @@ function changeSubtypeValue(value){
   />
   <GenericSelect
     v-if="subtype_items && level_names.subtype"
-    :main_object="main_object"
-    level="subtype"
+    v-model="main_object"
     :level_name="subtype_field"
     :is_filter="is_filter"
     :main_width="main_width"
     :item_value="subtype_key"
     :items="subtype_items"
-    :is_display="is_display"
     :class="subtype_class"
     :is_multiple="subcategory_is_multiple"
     :label="collections.subtype[subcategory_is_multiple
@@ -600,7 +532,3 @@ function changeSubtypeValue(value){
     </v-card>
   </v-dialog>
 </template>
-
-<style scoped>
-
-</style>

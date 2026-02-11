@@ -1,19 +1,19 @@
 <script setup>
 
-import {computed, ref} from 'vue'
+import {computed, ref, watch} from 'vue'
 
 import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
-import FilesToolbar from "~/components/dashboard/utils/FilesToolbar.vue";
-import ParagraphsContent from "~/components/dashboard/source/ParagraphsContent.vue";
+import FilesToolbar from "~/components/dashboard/capture/FilesToolbar.vue";
+import ParagraphsContent from "~/components/dashboard/capture/ParagraphsContent.vue";
 const mainStore = useMainStore()
-const { saveSimple, getSimple, savePreCapture } = mainStore
+const { saveSimple, sendPreCapture, savePreCapture } = mainStore
 const { schemas } = storeToRefs(mainStore)
 import { useSaveElements } from "~/composables/save_elements.js";
-import { mixOrigins, orderMix} from "~/composables/pre_capture.js";
-import ParagraphsProjectsContent from "~/components/dashboard/source/ParagraphsProjectsContent.vue";
+import { orderMix, savePreItem } from "~/composables/mix_pre_capture.js";
+import ParagraphsProjectsContent from "~/components/dashboard/capture/ParagraphsProjectsContent.vue";
 const { saveComplex } = useSaveElements()
 
 const props = defineProps({
@@ -27,9 +27,11 @@ const props = defineProps({
   },
   collection_data: Object,
 })
+// const full_main = defineModel({type: Object, required: true})
 
 const mentionDetailsRef = ref([])
 const all_mentions = ref([])
+const note_files = ref([])
 
 const project_collection = computed(() => {
   return schemas.value.collections_dict['project']
@@ -43,14 +45,38 @@ const addMention = () => {
   // console.log("add mention 2")
   dialog_search.value = true
 }
+const loading_precapture = ref(false)
 
-onMounted(() => {
+async function preCapture() {
+  console.log("preCapture")
+  loading_precapture.value = true
+  const res = await sendPreCapture(props.full_main.id)
+  loading_precapture.value = false
+  mixMentions(res.pre_mentions)
+}
+
+watch(
+  props.full_main.files, (newVal) => {
+    note_files.value = newVal || []
+  }, {immediate: true}
+)
+
+function mixMentions(pre_mentions=null) {
+  if (pre_mentions) {
+    props.full_main.pre_mentions = pre_mentions
+  }
   const mixed_mentions = orderMix(
     'mentions',
     props.full_main.mentions || [],
-    props.full_main.pre_mentions || [])
-  console.log("mixed_mentions", mixed_mentions)
+    props.full_main.pre_mentions || [],
+    1, props.full_main.id
+  )
+  console.log("mixed_mentions\n", mixed_mentions)
   all_mentions.value = mixed_mentions
+}
+
+onMounted(() => {
+  mixMentions()
 })
 
 const mention_created = ref(null)
@@ -84,6 +110,10 @@ function closeDialog(event) {
 const dialog_copy = ref(false)
 
 function discardPreMention(pre_item) {
+  if (pre_item.discarded === true) {
+    pre_item.hide_mention = true
+    return
+  }
   const data = {
     path: pre_item.path,
     discarded: true,
@@ -91,33 +121,23 @@ function discardPreMention(pre_item) {
   savePreCapture({data, note_id: props.full_main.id}).then((res) => {
     snackbar.value = true
     snackbar_message.value = 'Se ha descartado la mención preliminar'
-    console.log("res", res)
+    // console.log("res", res)
     // allCopyFinished()
   })
 }
 
-function changePreMention(pre_item, project) {
+async function changePreMention(pre_item, project) {
   const params = {
     project: project.id,
     note: props.full_main.id,
   }
-  saveSimple(['mention', params]).then(saved_item => {
-    const path = pre_item.path
-    const index = all_mentions.value.findIndex(item => (item.path === path))
-    const data = {
-      path,
-      element_id: saved_item.id,
-      discarded: false,
-    }
-    savePreCapture({data, note_id: props.full_main.id}).then((res) => {
-      snackbar.value = true
-      snackbar_message.value = 'Se ha aceptado la mención preliminar'
-      // console.log("res", res)
-      // allCopyFinished(saved_item.id)
-      const mixed_item = mixOrigins(saved_item, res.content, 1)
-      all_mentions.value.splice(index, 1, mixed_item)
-    })
-  })
+  const index = all_mentions.value.findIndex(item =>
+    item.path === pre_item.path)
+  const mixed_mention = await savePreItem(
+    pre_item.path, 'mention', props.full_main.id, params)
+  snackbar.value = true
+  snackbar_message.value = 'Se ha aceptado la mención preliminar'
+  all_mentions.value.splice(index, 1, mixed_mention)
 }
 
 function saveMention(mention) {
@@ -126,7 +146,6 @@ function saveMention(mention) {
   all_mentions.value.splice(index, 1, mention)
   snackbar.value = true
   snackbar_message.value = 'Se ha guardado la mención'
-
 }
 
 function deleteMention(mention_id) {
@@ -146,7 +165,6 @@ function allCopyFinished(mention_id=null) {
 }
 
 function copyMention(mention_to_copy) {
-
   // console.log("mention_to_copy", mention_to_copy)
   const new_mention = {...mention_to_copy}
   saveComplex('mention', new_mention, mention_created.value)
@@ -156,7 +174,7 @@ function copyMention(mention_to_copy) {
     })
 }
 
-const two_columns = ref(false)
+const two_columns = ref(true)
 
 </script>
 
@@ -171,7 +189,6 @@ const two_columns = ref(false)
   ></v-switch>
 
   <v-row :class="{ 'dual-scroll-layout': two_columns }">
-
     <v-col
       :cols="two_columns ? 4 : 12"
       :class="[two_columns ? 'pa-0' : '', { 'scroll-column': two_columns }]"
@@ -184,7 +201,8 @@ const two_columns = ref(false)
         color="brown-lighten-4"
       >
         <FilesToolbar
-          :full_main="full_main"
+          v-model="note_files"
+          :parent_id="full_main.id"
           child_relation_name="note_file"
           main_collection_name="note"
         />
@@ -195,6 +213,7 @@ const two_columns = ref(false)
           :note_id="full_main.id"
           class="ma-2 px-2"
           :show_init="false"
+          :two_columns="two_columns"
         />
 
         <ParagraphsContent
@@ -216,28 +235,65 @@ const two_columns = ref(false)
             {{ all_mentions.length }} menciones de proyectos
             <v-spacer></v-spacer>
             <v-btn
+              v-if="all_mentions.length === 0"
+              @click="preCapture"
+              color="accent"
+              class="text-none mr-2"
+              variant="elevated"
+              :loading="loading_precapture"
+              append-icon="wand_shine"
+              text="Precapturar con IA"
+            ></v-btn>
+            <v-btn
               @click="addMention"
               color="accent"
               variant="outlined"
-              prepend-icon="add"
+              append-icon="add"
               text="Agregar mención"
             ></v-btn>
           </div>
         </v-card-title>
         <v-card-text>
           <v-row>
-            <MentionDetails
-              v-for="mention in all_mentions"
+            <v-col
+              cols="12"
+              v-for="(mention, idx) in all_mentions"
               :key="mention.id"
-              :mention="mention"
-              :note_id="full_main.id"
-              ref="mentionDetailsRef"
-              is_full
-              @mention-saved="saveMention"
-              @mention-deleted="deleteMention"
-              @mention-accepted="changePreMention(mention, $event)"
-              @mention-discarded="discardPreMention(mention)"
-            />
+            >
+              <v-card
+                v-if="mention.hide_mention"
+                class="pa-3 d-flex align-center"
+                variant="tonal"
+                color="red-lighten-4"
+              >
+                <div class="text-h6">
+                  Mención de "{{mention.project_full.name}}" descartada
+                </div>
+                <v-spacer></v-spacer>
+                <v-btn
+                  class="ml-3"
+                  color="accent "
+                  variant="outlined"
+                  @click="mention.hide_mention = false"
+                >
+                  Mostrar mención
+                </v-btn>
+              </v-card>
+
+              <MentionDetails
+                v-else
+                v-model="all_mentions[idx]"
+                ref="mentionDetailsRef"
+                :full_article="full_main.articles.length > 0 ? full_main.articles[0] : null"
+                :note_id="full_main.id"
+                is_full
+                :two_columns="two_columns"
+                @mention-saved="saveMention"
+                @mention-deleted="deleteMention"
+                @mention-accepted="changePreMention(mention, $event)"
+                @mention-discarded="discardPreMention(mention)"
+              />
+            </v-col>
           </v-row>
         </v-card-text>
         <v-card-actions v-if="all_mentions.length">

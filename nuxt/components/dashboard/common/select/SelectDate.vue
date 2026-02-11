@@ -69,7 +69,7 @@ function editDate(date) {
         :variant="is_filter ? 'underlined' : 'outlined'"
         class="ml-2"
         :style="`max-width: ${max_width}`"
-        :hide-details="is_filter"
+        :hide-details="is_filter || hide_details"
         :clearable="is_filter"
         :density="is_filter ? 'compact' : 'default'"
         clear-icon="close"

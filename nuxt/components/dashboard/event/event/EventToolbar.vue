@@ -1,41 +1,41 @@
 <script setup>
 
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
+import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
-
-import {computed} from "vue";
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 import EventDetails from "~/components/dashboard/event/event/EventDetails.vue";
-import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import ActorCard from "~/components/dashboard/actor/actor/ActorCard.vue";
-
+import { useRules } from '~/composables/useRules'
 const props = defineProps({
-  mention: Object,
+  parent_id: Number,
+  all_actors: {
+    type: Array,
+    default: () => []
+  },
+  note_id: Number,
 })
+const { rules } = useRules()
+// const mention = defineModel({type: Object, required: true})
+const events = defineModel({type: Array, required: true})
 
 const mainToolbarRef = ref(null)
 defineExpose({ resetInitialData })
-
-const all_actors = computed(() => {
-  return props.mention.participants.map(participant => {
-    return {...participant.actor_full, ...participant}
-  })
-})
-
 
 function resetInitialData(){
   if (mainToolbarRef.value)
     mainToolbarRef.value.resetInitialData()
 }
 
+const registered_actors = computed(() => {
+  return props.all_actors.filter(actor => actor.id)
+})
 
 </script>
 
 <template>
   <ToolbarCommon
     ref="mainToolbarRef"
-    :main_object="mention"
-    main_collection_name="mention"
+    v-model="events"
     filter_group_name="event_types"
     child_relation_name="event"
     field="events"
@@ -44,13 +44,15 @@ function resetInitialData(){
     color="lime"
     required_field="event_type"
     required_full_category
+    :parent_id="parent_id"
+    :note_id="note_id"
     :additional_fields="{
       'involvements': [], 'locations': [], 'displacements': []}"
     required
   >
-    <template #rows="{ item }">
+    <template #rows="{ item, index }">
       <EventDetails
-        :full_main="item"
+        v-model="events[index]"
         :is_edit="false"
       />
       <div
@@ -58,43 +60,36 @@ function resetInitialData(){
         class="mx-n2"
       >
         <DisplacementToolbar
-          :full_main="item"
+          v-model="events[index].displacements"
+          :parent_id="item.id"
           main_collection_name="event"
           second_level
           is_event
         />
       </div>
     </template>
-    <template #second-column="{ item }">
+    <template #second-column="{ item, second_index }">
       <ToolbarCommon
-        :main_object="item"
+        v-model="events[second_index].involvements"
         main_collection_name="event"
         filter_group_name="involved_roles"
         child_relation_name="involved"
-        field="involvements"
         second_level
+        :parent_id="item.id"
+        :note_id="note_id"
+        required_full_category
         color="blue"
         required
       >
-        <template v-if="false" #rdows="{ item }">
-          <v-select
-            v-model="item.participant"
-            :items="all_actors"
-            item-title="name"
-            item-value="id"
-            label="Participante"
-            variant="outlined"
-          >
-          </v-select>
-        </template>
         <template #rows_init="{ item }">
           <v-select
             v-model="item.participant"
-            :items="all_actors"
+            :items="registered_actors"
             item-title="name"
             item-value="id"
             label="Participante"
             variant="outlined"
+            :rules="[rules.required]"
           >
             <template #item="{ item, props: {onClick, title, value} }">
               <v-list-item
@@ -106,7 +101,7 @@ function resetInitialData(){
                 >
                   <ActorCard
                     :full_main="item.raw"
-                    :title="item.name"
+                    :title="item.title"
                   />
                 </template>
               </v-list-item>
@@ -119,8 +114,18 @@ function resetInitialData(){
               />
             </template>
           </v-select>
+
         </template>
-        <template #footer>
+        <template #rows="{item}">
+          <div v-if="item.path && !item.id">
+            {{all_actors.find(actor =>
+            (actor.uid || actor.pre_data?.uid) === item.actor_uid)?.name
+            || 'Desconocido'}}
+            <br/>
+            ({{item.role_text}})
+          </div>
+        </template>
+        <template #footer v-if="false">
           <v-card
             class="ma-2"
             elevation="2"
@@ -133,7 +138,9 @@ function resetInitialData(){
       </ToolbarCommon>
       <LocationsToolbar
         v-if="item"
-        :full_main="item"
+        v-model="events[second_index].locations"
+        :parent_id="item.id"
+        :note_id="parent_id"
         main_collection_name="event"
         second_level
       />

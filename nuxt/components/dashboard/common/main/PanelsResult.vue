@@ -1,10 +1,10 @@
 <script setup>
 
-import PanelList from "~/components/dashboard/common/PanelList.vue";
+import PanelList from "~/components/dashboard/common/main/PanelList.vue";
 import {ref, computed, shallowRef, nextTick} from 'vue'
-import SummaryList from "~/components/dashboard/common/SummaryList.vue";
-import EditCommon from "~/components/dashboard/common/EditCommon.vue";
-import MassiveActions from "~/components/dashboard/utils/MassiveActions.vue";
+import SummaryList from "~/components/dashboard/common/main/SummaryList.vue";
+import EditCommon from "~/components/dashboard/common/generic/EditCommon.vue";
+import MassiveActions from "~/components/dashboard/common/utils/MassiveActions.vue";
 import {useMainStore} from "~/store/index.js";
 import MassiveEdit from "~/components/dashboard/common/MassiveEdit.vue";
 
@@ -25,10 +25,6 @@ const props = defineProps({
   in_sheet: Boolean,
   hide_actions: Boolean,
   main_action: String,
-  is_map_viz: {
-    type: Boolean,
-    default: false,
-  }
 })
 
 const group_actions_enabled = ref(true)
@@ -65,7 +61,7 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_nam
     edit_component.value = module.default
   })
   .catch(e => {
-    import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
+    import(`~/components/dashboard/common/generic/EditGeneric.vue`).then(module => {
       edit_component.value = module.default
     })
     // edit_component.value = null
@@ -197,7 +193,7 @@ function selectItem(item) {
       </slot>
     </span>
     <v-card
-      v-if="group_actions_enabled && !is_mini && !is_map_viz  && !hide_actions"
+      v-if="group_actions_enabled && !is_mini && !hide_actions"
       class="px-2 py-1 d-flex align-center justify-space-between flex-grow-1"
       variant="tonal"
       color="secondary"
@@ -288,7 +284,6 @@ function selectItem(item) {
         :is_simple="is_simple"
         :main_action="final_main_action"
         @select-item="selectItem"
-        :is_map_viz="is_map_viz"
       />
       <v-card-actions
         v-if="in_sheet && showing < results.length"
@@ -326,7 +321,6 @@ function selectItem(item) {
     ></v-empty-state>
   </v-card>
   <v-dialog
-    v-if="!is_map_viz"
     v-model="dialog_edit"
     max-width="1200"
   >
@@ -337,7 +331,7 @@ function selectItem(item) {
       <v-card-text>
         <MassiveEdit
           v-if="edit_type.key === 'massive_edit'"
-          :full_main="element_to_edit"
+          v-model="element_to_edit"
           :collection_data="collection_data"
           @massive-finish="massiveFinish"
           ref="editRef"
@@ -346,17 +340,17 @@ function selectItem(item) {
         </MassiveEdit>
         <EditCommon
           v-else
-          :full_main="element_to_edit"
+          v-model="element_to_edit"
           :collection_data="collection_data"
           @item-saved="saveNewElement"
           :edit_type="edit_type"
           @merge-items="mergeItems"
           ref="editRef"
         >
-          <template #edit="{ full_main }">
+          <template #edit>
             <component
               :is="edit_component"
-              :full_main="element_to_edit"
+              v-model="element_to_edit"
               :is_massive_edit="false"
             ></component>
           </template>

@@ -2,12 +2,12 @@
 
 import {useMainStore} from "~/store/index";
 import {storeToRefs} from "pinia";
-import PanelList from "~/components/dashboard/common/PanelList.vue";
 
 import {show_details} from "~/composables/fetch.js";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
-import FilesToolbar from "~/components/dashboard/utils/FilesToolbar.vue";
-import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
+import FilesToolbar from "~/components/dashboard/capture/FilesToolbar.vue";
+import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
+import {watch} from "vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { saveSimple } = mainStore
@@ -23,6 +23,8 @@ const props = defineProps({
   },
   collection_data: Object,
 })
+// const full_main = defineModel({type: Object, required: true})
+
 
 const project_fields = [
   'id', 'name', 'alternative_name', 'conflict', 'megaproject_type',
@@ -33,6 +35,17 @@ const total_requests = ref(0)
 const resolved_requests = ref(0)
 const saving_locations = ref(false)
 const snackbar = ref(false)
+const locations = ref([])
+const files = ref([])
+
+watch(props.full_main.files, (newVal) => {
+    files.value = newVal || []
+  }, {immediate: true}
+)
+watch(props.full_main.locations, (newVal) => {
+    locations.value = newVal || []
+  }, {immediate: true}
+)
 
 const note_collection = computed(() => {
   return schemas.value.collections_dict['note']
@@ -42,16 +55,16 @@ const actor_collection = computed(() => {
   return schemas.value.collections_dict['actor']
 })
 
-const full_project = computed(() => {
-  return props.full_main
-})
+// const full_main = computed(() => {
+//   return props.full_main
+// })
 
 const related_notes = computed(() => {
-  return full_project.value.mentions.map(mention => {
+  return props.full_main.mentions.map(mention => {
     const full_mention = {
       ...mention,
-      project_full: full_project.value,
-      project: full_project.value.id,
+      project_full: props.full_main,
+      project: props.full_main.id,
     }
     return {
       ...mention.note_full,
@@ -62,10 +75,10 @@ const related_notes = computed(() => {
 
 const related_actors = computed(() => {
   const project_full = project_fields.reduce((obj, field) => {
-    obj[field] = full_project.value[field]
+    obj[field] = props.full_main[field]
     return obj
   }, {})
-  const actors_dict = full_project.value.mentions.reduce((dict, mention) => {
+  const actors_dict = props.full_main.mentions.reduce((dict, mention) => {
     mention.participants.forEach(participant => {
       const participant_data = {
         ...participant,
@@ -102,15 +115,15 @@ const related_actors = computed(() => {
 
 function saveLocations() {
   saving_locations.value = true
-  total_requests.value = full_project.value.locations.length
+  total_requests.value = props.full_main.locations.length
   resolved_requests.value = 0
-  full_project.value.locations.forEach(location => {
+  props.full_main.locations.forEach(location => {
     // total_requests.value += 1
     saveSimple(['location', location]).then((res) => {
       resolved_requests.value += 1
-      const idx = full_project.value.locations.findIndex(
+      const idx = props.full_main.locations.findIndex(
         loc => loc.id === res.id)
-      full_project.value.locations.splice(idx, 1, res)
+      props.full_main.locations.splice(idx, 1, res)
       if (resolved_requests.value === total_requests.value){
         saving_locations.value = false
         snackbar.value = true
@@ -140,7 +153,8 @@ const children_projects = computed(() => {
 <template>
   <v-card class="mb-4" elevation="4" variant="elevated" color="blue-grey-lighten-4">
     <LocationsToolbar
-      :full_main="full_project"
+      v-model="locations"
+      :parent_id="full_main.id"
       main_collection_name="project"
     />
     <v-col cols="12" class="d-flex justify-end px-3 py-3">
@@ -161,7 +175,8 @@ const children_projects = computed(() => {
     color="brown-lighten-4"
   >
     <FilesToolbar
-      :full_main="full_main"
+      v-model="files"
+      :parent_id="full_main.id"
       child_relation_name="project_file"
       main_collection_name="project"
     />
@@ -186,7 +201,7 @@ const children_projects = computed(() => {
     </v-card-text>
   </v-card>
 
-  <v-card v-if="full_project.mentions">
+  <v-card v-if="full_main.mentions">
     <v-card-text>
       <PanelsResult
         :results="related_notes"
@@ -197,9 +212,22 @@ const children_projects = computed(() => {
         hide_actions
       >
         <template #title>
-          {{ full_project.mentions.length }} Notas:
+          {{ full_main.mentions.length }} Notas:
         </template>
       </PanelsResult>
+    </v-card-text>
+  </v-card>
+  <v-card class="my-3">
+    <v-card-text>
+      Eventos registrados
+    </v-card-text>
+  </v-card>
+  <v-card class="my-3">
+    <v-card-text>
+
+
+      Afectaciones registradas
+
     </v-card-text>
   </v-card>
   <v-card class="my-3">
@@ -217,6 +245,7 @@ const children_projects = computed(() => {
       </PanelsResult>
     </v-card-text>
   </v-card>
+
   <v-snackbar
     v-model="snackbar"
     color="success"

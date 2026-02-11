@@ -25,6 +25,8 @@ const actor_by_position = computed(() => {
     const final_mentions = props.mentions || props.main.mentions
     all_participants = final_mentions.flatMap(mention => mention.participants)
   }
+  // console.log('all_participants', all_participants)
+  // console.log('field and subfield', props.field, props.subfield)
   return actorCounter(all_participants, props.field, props.subfield)
 })
 
@@ -33,9 +35,11 @@ const actor_by_position = computed(() => {
 <template>
   <v-card
     :color="actor_by_position.length ? 'blue' : 'warning'"
-    class="d-flex pa-1"
+    class="d-flex pa-1 align-center justify-center"
     rounded
     variant="outlined"
+    height="52"
+    style="background-color: rgba(255,255,255,0.4); border-width: 2px;"
   >
     <div
       v-for="position in actor_by_position"

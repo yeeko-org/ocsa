@@ -1,6 +1,5 @@
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import {mixOrigins} from "~/composables/pre_capture.js";
 
 function final_snake_name(collection_data) {
   const is_category = collection_data.is_category
@@ -123,6 +122,7 @@ export function useSaveElements() {
       field => field.relation_type === 'one_to_many')
 
     one_to_many_fields.forEach(field => {
+      console.log("Processing field", field.name, "of collection", snake_name)
       if (!normal_save.value){
         const is_actor = ['participants', 'interests'].includes(field.name)
         if (first_special.value && !is_actor)
@@ -143,8 +143,16 @@ export function useSaveElements() {
       //   // return
       // }
       const snake_name2 = related_collection.snake_name
+      const item_list = main_item[field.name]
+      if (!item_list){
+        console.warn(`No items to save for field ${field.name}`)
+        console.warn("main_item:", main_item)
+        return
+      }
 
-      main_item[field.name].forEach(item => {
+      item_list.forEach(item => {
+        if (item.path && !item.id)
+          return
         const new_item = {...item}
 
         if (!normal_save.value) {
@@ -190,26 +198,3 @@ export function useSaveElements() {
     save_errors
   }
 }
-
-
-// const index = all_mentions.value.findIndex(item => (item.path === path))
-export async function savePreItem(path, params, collection_name, note_id) {
-  const mainStore = useMainStore()
-  const { saveSimple, savePreCapture } = mainStore
-
-  // const params = {
-  //   project: project.id,
-  //   note: props.full_main.id,
-  // }
-  const saved_item = await saveSimple([collection_name, params])
-    // const path = pre_item.path
-
-  const data = {
-    path,
-    element_id: saved_item.id,
-    discarded: false,
-  }
-  const res = await savePreCapture({data, note_id})
-  return mixOrigins(saved_item, res.content, 2)
-}
-

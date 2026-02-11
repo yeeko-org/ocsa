@@ -1,15 +1,12 @@
 <script setup>
 
-import EditCommon from "~/components/dashboard/common/EditCommon.vue";
-import {shallowRef} from "vue";
+import EditCommon from "~/components/dashboard/common/generic/EditCommon.vue";
+import {computed, shallowRef} from "vue";
 
 const props = defineProps({
   collection_data: Object,
-  full_main: {
-    type: Object,
-    required: true,
-  },
 })
+const full_main = defineModel({type: Object, required: true})
 
 const edit_component = shallowRef('')
 const sheet_component = shallowRef('')
@@ -19,13 +16,12 @@ const snake_name = computed(() => props.collection_data.snake_name)
 const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
 const sheet_name = computed(() => `${props.collection_data.model_name}Sheet`)
 
-
 import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
   .then(module => {
     edit_component.value = module.default
   })
   .catch(e => {
-    import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
+    import(`~/components/dashboard/common/generic/EditGeneric.vue`).then(module => {
       edit_component.value = module.default
     })
   })
@@ -35,7 +31,7 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${sheet_na
     sheet_component.value = module.default
   })
   .catch(e => {
-    import(`~/components/dashboard/generic/SheetCommon.vue`).then(module => {
+    import(`~/components/dashboard/common/generic/SheetCommon.vue`).then(module => {
       sheet_component.value = module.default
     })
   })
@@ -66,15 +62,15 @@ function saveItem({res, is_new}) {
     </v-card-title>
     <v-card-text class="py-0 px-2">
       <EditCommon
-        :full_main="full_main"
+        v-model="full_main"
         :collection_name="collection_data.snake_name"
         @item-saved="saveItem"
         in_dialog
       >
-        <template #edit="{ full_main }" v-if="edit_component">
+        <template #edit v-if="edit_component">
           <component
             :is="edit_component"
-            :full_main="full_main"
+            v-model="full_main"
             is_edit
           />
         </template>

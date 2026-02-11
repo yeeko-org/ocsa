@@ -24,7 +24,6 @@ const debounceApplyFilters = _debounce(() => {
   applyFilters()
 }, 600)
 
-
 watch(
   final_filters, (val) => {
     // console.log("final_filters", val)

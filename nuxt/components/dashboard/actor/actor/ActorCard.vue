@@ -2,7 +2,7 @@
 
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import BelongIcons from "~/components/dashboard/classify/BelongIcons.vue";
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 
 const props = defineProps({
   full_main: Object,
@@ -12,6 +12,8 @@ const props = defineProps({
     default: false,
   },
 })
+
+// const full_main = defineModel({type: Object, required: true})
 
 const full_belongs = computed(() => {
   return {belongs: props.full_main.belongs.map(b => ({"key_name": b}))}
@@ -39,13 +41,13 @@ const full_belongs = computed(() => {
           <BelongIcons :actor="full_belongs"/>
         </div>
 
-        <SelectGroup
+
+        <DisplayGroup
           v-else
           :main_object="full_main"
           filter_group_name="sectors"
           main_collection_name="actor"
           :width="160"
-          is_display
         />
       </v-card>
       <div v-if="full_main.belongs.length" class="my-n1">
@@ -80,10 +82,9 @@ const full_belongs = computed(() => {
       <span class="text-accent mr-3">
         Agregar sugerencia como:
       </span>
-      <SelectGroup
+      <DisplayGroup
         filter_group_name="participant_types"
         :main_object="full_main"
-        is_display
       />
     </v-card>
   </div>

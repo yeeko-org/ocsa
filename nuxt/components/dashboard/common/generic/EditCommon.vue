@@ -3,14 +3,14 @@
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import { saveElement, deleteElement } from "~/composables/save_elements.js";
-import EditCommonFields from "~/components/dashboard/common/EditCommonFields.vue";
-import AlertInfo from "~/components/dashboard/common/AlertInfo.vue";
+import EditCommonFields from "~/components/dashboard/common/generic/EditCommonFields.vue";
+import AlertInfo from "~/components/dashboard/common/utils/AlertInfo.vue";
 const mainStore = useMainStore()
 const { schemas, status_dict } = storeToRefs(mainStore)
 import {status_filters} from "~/composables/filters.js";
 
 const props = defineProps({
-  full_main: Object,
+  // full_main: Object,
   collection_data: Object,
   collection_name: String,
   can_delete: Boolean,
@@ -20,6 +20,7 @@ const props = defineProps({
     default: () => ({key: 'edit', title: 'Agregar Registro', btn: 'Guardar'})
   },
 })
+const full_main = defineModel({type: Object, required: true})
 
 const saving = ref(false)
 const deleting = ref(false)
@@ -41,31 +42,22 @@ async function saveRecord() {
   errors.value = null
   const { valid } = await editForm.value.validate()
   if (!valid) return
-  if (!props.full_main.id && !props.full_main.comments){
+  if (!full_main.value.id && !full_main.value.comments){
     const coll = final_collection_data.value
     if (coll.is_category && coll.has.comments) {
       errors.value = "Cuando creas una categoría, debes añadir un comentario " +
         "para explicar la razón de su creación"
       return
     }
-    // errors.value = "Cuando creas una categoría, debes añadir un comentario " +
-    //     "para explicar la razón de su creación"
-    // return
   }
   saving.value = true
-  // const elem_id = props.full_main.id ? 'id' : 'key_name'
   const elem_id = final_collection_data.value.pk
-  // let is_new = true
-  // if (props.full_main.id)
-  //   is_new = false
-  // else if (props.full_main.key_name)
-  //   is_new = props.full_main.is_new === true
   let is_new = true
   if (elem_id === 'id')
-    is_new = !props.full_main.id
+    is_new = !full_main.value.id
   else if (elem_id === 'key_name')
-    is_new = props.full_main.is_new === true
-  saveElement(final_collection_data.value, props.full_main).then((res) => {
+    is_new = full_main.value.is_new === true
+  saveElement(final_collection_data.value, full_main.value).then((res) => {
     if (res.errors) {
       errors.value = res.errors
       saving.value = false
@@ -110,7 +102,7 @@ function updateComments(res){
 function deleteRecord() {
   errors.value = null
   deleting.value = true
-  const id_to_delete = props.full_main[props.collection_data.pk]
+  const id_to_delete = full_main.value[props.collection_data.pk]
   deleteElement(final_collection_data.value, id_to_delete)
     .then((res) => {
       if (res.errors) {
@@ -153,13 +145,13 @@ function deleteRecord() {
       ref="editForm"
     >
       <EditCommonFields
-        :full_main="full_main"
+        v-model="full_main"
         :final_collection_data="final_collection_data"
         @update-status="updateStatus($event)"
         @update-comments="updateComments($event)"
       >
-        <template #edit="{ full_main }">
-          <slot name="edit" :full_main="full_main">
+        <template #edit>
+          <slot name="edit">
             EDICIÓN 1 (REPORTAR SI APARECE PORQUE PORQUE NO ES NORMAL)
           </slot>
         </template>

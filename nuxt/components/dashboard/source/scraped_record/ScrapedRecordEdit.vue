@@ -12,19 +12,16 @@ dayjs.extend(relativeTime)
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
-  full_main: {
-    type: Object,
-    required: true,
-  },
 })
+const full_main = defineModel({type: Object, required: true})
 
 const emits = defineEmits(['item-saved'])
 
 const { sendReprocessScrapedRecord } = mainStore
 
 const total_days = computed(() => {
-  const from_date = dayjs(props.full_main.from_date)
-  const to_date = dayjs(props.full_main.to_date)
+  const from_date = dayjs(full_main.value.from_date)
+  const to_date = dayjs(full_main.value.to_date)
   return to_date.diff(from_date, 'day') + 1
 })
 
@@ -33,26 +30,26 @@ function humanDate(date) {
 }
 
 const from_date = computed(() => {
-  return humanDate(props.full_main.from_date)
+  return humanDate(full_main.value.from_date)
 })
 
 const to_date = computed(() => {
-  return humanDate(props.full_main.to_date)
+  return humanDate(full_main.value.to_date)
 })
 
 const ai_completed = computed(() => {
-  return props.full_main.articles_count === props.full_main.scraped_count
+  return full_main.value.articles_count === full_main.value.scraped_count
 })
 
 const avg_per_day = computed(() => {
   if (total_days.value > 0) {
-    return (props.full_main.articles_count / total_days.value).toFixed(0)
+    return (full_main.value.articles_count / total_days.value).toFixed(0)
   }
   return 0
 })
 
 function sendReprocess() {
-  sendReprocessScrapedRecord(props.full_main.id).then(response => {
+  sendReprocessScrapedRecord(full_main.value.id).then(response => {
     // console.log("response sendReprocess", response)
   })
 }

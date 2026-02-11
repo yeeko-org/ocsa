@@ -1,7 +1,7 @@
 <script setup >
 
 import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
-import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
+import CriteriaChip from "~/components/dashboard/capture/CriteriaChip.vue";
 
 const props = defineProps({
   paragraph: {
@@ -13,9 +13,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  active_external: Boolean,
   external_paragraphs: {
     type: Array,
-    default: () => [],
+    required: true,
   },
 })
 
@@ -24,7 +25,7 @@ const emits = defineEmits(['show-all'])
 const show_paragraph = computed(() => {
   if (props.show_all)
     return true
-  if (props.external_paragraphs.length)
+  if (props.active_external && props.external_paragraphs.length)
     return props.external_paragraphs.includes(props.paragraph.idx)
   if (!props.selected_fields.length)
     return !!props.paragraph.projects.length

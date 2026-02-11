@@ -2,15 +2,10 @@
 
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import { VSelect, VAutocomplete } from "vuetify/components"
-import {shallowRef} from "vue";
-
+import {useRules} from "~/composables/useRules.js";
+const { rules } = useRules()
 
 const props = defineProps({
-  main_object: {
-    type: Object,
-    required: true,
-  },
-  level: String,
   level_name: String,
   collection_data: Object,
 
@@ -31,13 +26,12 @@ const props = defineProps({
     type: Array,
     required: true,
   },
-  is_display: Boolean,
   is_multiple: Boolean,
   required: Boolean,
   forced_clearable: Boolean,
   is_autocomplete: Boolean,
 })
-
+const main_object = defineModel({type: Object, required: true})
 const emits = defineEmits(['open-dialog', 'update-value'])
 
 const searchQuery = ref('')
@@ -87,25 +81,14 @@ const sortedItems = computed(() => {
   })
 })
 
-const final_value = computed(() => {
-  if (props.is_multiple){
-    // console.log("is_multiple", props.main_object[props.level_name])
-    return props.main_object[props.level_name].map(
-        item1 => props.items.find(
-            item2 => item2[props.item_value] === item1))
-  }
-  return props.items.find(
-    item => item[props.item_value] === props.main_object[props.level_name])
-})
-
 const show_add = computed(() => {
   if (!props.collection_data)
     return false
   return props.collection_data.open_insertion
 })
 
-const rules = computed(() => {
-  const rules = []
+const final_rules = computed(() => {
+  const calc_rules = []
   // has_content: value => (value && value.length > 0) || "Debes seleccionar al menos una opción",
   // has_content: (value) => {
   //   if (Array.isArray(value)) {
@@ -115,30 +98,32 @@ const rules = computed(() => {
   // },
   if (props.required){
     if (props.is_multiple)
-      rules.push(
-        value => (Array.isArray(value) && value.length > 0) || 'Campo requerido')
+      calc_rules.push(rules.some_in_array)
     else
-      rules.push(value => !!value || 'Campo requerido')
+      calc_rules.push(rules.required)
   }
-  return rules
+  // console.log("rules", rules)
+  // if (props.collection_data.snake_name === 'interest_subtype'){
+  //   console.log("props.collection_data.name", props.collection_data.snake_name)
+  //   console.log("calc_rules", calc_rules)
+  // }
+  return calc_rules
 })
 
 const selectComponent = computed(() => {
-  // if (props.is_filter)
-  //   return VSelect
   return props.is_autocomplete ? VAutocomplete : VSelect
 })
 
 function changeValue(val){
-  console.log('changeValue', val)
-  console.log('collection_data', props.collection_data)
-  props.main_object[`${props.level_name}_null`] = null
+  // console.log('changeValue', val)
+  // console.log('collection_data', props.collection_data)
+  main_object.value[`${props.level_name}_null`] = null
   emits('update-value', val)
 }
 
 function sendNull(){
-  props.main_object[props.level_name] = null
-  props.main_object[`${props.level_name}_null`] = true
+  main_object.value[props.level_name] = null
+  main_object.value[`${props.level_name}_null`] = true
 }
 
 function openDialog(is_add=true){
@@ -148,61 +133,7 @@ function openDialog(is_add=true){
 </script>
 
 <template>
-  <div
-    v-if="is_display"
-    class="mr-0 px-2"
-    style="border-right: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0;"
-  >
-    <template v-if="final_value && is_multiple">
-      <template v-if="level === 'group'">
-        <v-icon
-          v-for="item in final_value"
-          class="mr-1"
-          :color="item.color || 'primary'"
-          v-tooltip="item[item_title]"
-        >
-          {{ item.icon }}
-        </v-icon>
-      </template>
-      <div v-else>
-        <div
-          v-for="item in final_value"
-          class="mr-1"
-        >
-          {{ item[item_title] }}
-        </div>
-      </div>
-    </template>
-
-    <template v-else-if="final_value">
-      <v-icon
-        v-if="['group', 'type'].includes(level) && final_value.icon"
-        class="mr-1"
-        :color="final_value.color || 'primary'"
-        v-tooltip="final_value[item_title]"
-      >
-        {{ final_value.icon }}
-      </v-icon>
-      <v-chip
-        v-else-if="final_value.color"
-        :color="final_value.color"
-        :prepend-icon="final_value.icon"
-        size="small"
-      >
-        {{ final_value[item_title] }}
-      </v-chip>
-      <span
-        v-else
-      >
-        {{ final_value[item_title] }}
-      </span>
-    </template>
-    <span v-else>
-      !?
-    </span>
-  </div>
   <component
-    v-else
     :is="selectComponent"
     v-model="main_object[level_name]"
     :items="sortedItems"
@@ -215,7 +146,7 @@ function openDialog(is_add=true){
     :density="is_filter ? 'compact' : 'default'"
     :style="`max-width: ${main_width}px; min-width: ${main_width}px;`"
     :multiple="is_multiple || filter_multiple"
-    :rules="rules"
+    :rules="final_rules"
     @update:model-value="changeValue"
     @update:search="searchQuery = $event"
   >

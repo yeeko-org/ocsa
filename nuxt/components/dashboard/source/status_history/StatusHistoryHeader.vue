@@ -3,10 +3,10 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/es'
 dayjs.locale('es')
 
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
+import TitleCommon from "~/components/dashboard/common/utils/TitleCommon.vue";
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 const props = defineProps({
   main: {
     type: Object,
@@ -46,12 +46,11 @@ const props = defineProps({
           variant="outlined"
           class="mx-2 d-flex flex-column"
         >
-          <SelectGroup
+          <DisplayGroup
             :main_object="main"
             filter_group_name="status_projects"
             main_collection_name="status_history"
             :width="160"
-            is_display
           />
         </v-card>
       </div>

@@ -3,22 +3,17 @@
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   is_massive_edit: Boolean,
   is_edit: Boolean,
 })
-
-const emits = defineEmits(['item-saved'])
+const full_main = defineModel({type: Object, required: true})
 
 </script>
 
 <template>
   <SelectGroup
     filter_group_name="sectors"
-    :main_object="full_main"
+    v-model="full_main"
     main_collection_name="sector"
     :width="360"
     forced_level="subtype"

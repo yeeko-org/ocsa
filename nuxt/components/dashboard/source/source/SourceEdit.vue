@@ -3,11 +3,8 @@
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
-  full_main: {
-    type: Object,
-    required: true,
-  },
 })
+const full_main = defineModel({type: Object, required: true})
 </script>
 
 <template>
@@ -15,7 +12,7 @@ const props = defineProps({
     <v-switch
       v-model="full_main.is_news"
       label="Es una fuente de noticias"
-      append-icon="newspaper"
+      append-icon="newsmode"
       hide-details
       color="primary"
       class="mr-6"

@@ -5,12 +5,8 @@ import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 const props = defineProps({
   is_edit: Boolean,
   is_massive_edit: Boolean,
-  full_main: {
-    type: Object,
-    required: true,
-  },
 })
-
+const full_main = defineModel({type: Object, required: true})
 const massive_edit_fields = [
     "impact_group",
     "status_validation",
@@ -56,8 +52,8 @@ const merge_fields = ref([])
       >
       </v-text-field>
       <SelectGroup
+        v-model="full_main"
         filter_group_name="impact_types"
-        :main_object="full_main"
         forced_level="type"
         main_collection_name="impact_type"
         subtype_class="ml-6"

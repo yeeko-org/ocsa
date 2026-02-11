@@ -71,8 +71,8 @@ const final_mentions = computed(() => {
     :mentions="final_mentions"
     :show_full="show_full"
     :selected_projects="selected_projects"
+    show_checkboxes
     @update:selected_projects="$emit('update:selected_projects', $event)"
-
   />
 
 </template>

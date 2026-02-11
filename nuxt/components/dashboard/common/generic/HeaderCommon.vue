@@ -1,9 +1,9 @@
 <script setup>
 import {computed, nextTick, watch} from "vue";
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
-import CommentIcon from "~/components/dashboard/utils/CommentIcon.vue";
-import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
-import DescriptionIcon from "~/components/dashboard/utils/DescriptionIcon.vue";
+import CommentIcon from "~/components/dashboard/common/utils/CommentIcon.vue";
+import TitleCommon from "~/components/dashboard/common/utils/TitleCommon.vue";
+import DescriptionIcon from "~/components/dashboard/common/utils/DescriptionIcon.vue";
 
 const props = defineProps({
   main: Object,
@@ -17,10 +17,10 @@ const props = defineProps({
     default: 64,
   },
   width: Number,
-  is_map_viz: {
-    type: Boolean,
-    default: false,
-  },
+  min_width_status: {
+    type: [Number, String],
+    default: null,
+  }
 })
 const expansionHeader = ref(null);
 const is_active = ref(false)
@@ -124,7 +124,11 @@ const emits = defineEmits(['open-panel'])
       </div>
     </v-toolbar-title>
     <template v-if="real_show_details" >
-      <template v-if="collection_data.status_groups && !is_map_viz">
+      <div
+        v-if="collection_data.status_groups"
+        class="d-flex align-center justify-center"
+        :style="min_width_status ? `min-width: ${min_width_status}px;` : ''"
+      >
         <div
           v-for="status_group in collection_data.status_groups"
           :key="status_group"
@@ -133,25 +137,27 @@ const emits = defineEmits(['open-panel'])
             v-if="status_group !== 'status_retro' || main[status_group]"
             :main="main"
             :collection="status_group"
-            small
+            chip_size="small"
             class="ml-1"
             :bold_text="false"
           />
         </div>
-      </template>
+      </div>
       <div
-        v-if="collection_data.has.comments && !is_map_viz"
-        style="width: 35px;"
+        v-if="collection_data.has.comments"
+        style="min-width: 15px;"
       >
         <CommentIcon
           v-if="main.comments"
           :main="main"
-          class="ml-1"
+          class="ml-1 mr-3"
         />
       </div>
-      <slot  name="details">
-        ----
-      </slot>
+      <div class="d-flex ga-1 align-center ml-1">
+        <slot name="details">
+          ----
+        </slot>
+      </div>
     </template>
     <v-btn
       v-else

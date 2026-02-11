@@ -1,13 +1,11 @@
 <script setup>
 
-import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
-import ProjectMiniList from "~/components/dashboard/project/ProjectMiniList.vue";
+import CriteriaChip from "~/components/dashboard/capture/CriteriaChip.vue";
 import { useMainStore } from "~/store/index.js";
 import ProjectsCriteria from "~/components/dashboard/source/article/ProjectsCriteria.vue";
 import {storeToRefs} from "pinia";
 import {watch} from "vue";
-import mapboxgl from "mapbox-gl";
-import Paragraph from "~/components/dashboard/source/Paragraph.vue";
+import Paragraph from "~/components/dashboard/capture/Paragraph.vue";
 
 const mainStore = useMainStore()
 const { criteria, ai_extractivism_types } = mainStore
@@ -26,7 +24,8 @@ const props = defineProps({
   show_init: {
     type: Boolean,
     default: true,
-  }
+  },
+  two_columns: Boolean,
 })
 
 const criteria_fields = [
@@ -43,32 +42,26 @@ const selected_projects = ref([])
 const forced_show = ref(false)
 const external_paragraphs = ref([])
 
-function showAll(value){
-  external_paragraphs.value = []
-  show_all.value = value
-  if (value)
-    selected_fields.value = []
+function buildParagraph(idx, text="", image=null){
+  let paragraph = {
+    "idx": idx,
+    "criteria": [],
+    "criteria_set": new Set(),
+    "projects": [],
+  }
+  if (image){
+    paragraph.image = image.src
+    paragraph.show_image = false
+    paragraph.text = `${image.caption} (pie de foto)`
+  }
+  else
+    paragraph.text = text
+  return paragraph
 }
-
-function setSelectedProjects(){
-  selected_projects.value = props.full_main.second_criteria?.projects
-    .filter(p => p.degrees >= 100)
-    .map((p, idx) => p.id || idx) || []
-}
-
-onMounted(() => {
-  setSelectedProjects()
-})
 
 const hydrated_data = computed(() => {
-  let paragraphs = props.full_main.paragraphs.map((p, idx) => {
-    return {
-      "idx": idx + 1,
-      "text": p,
-      "criteria": [],
-      "criteria_set": new Set(),
-      "projects": [],
-    }
+  let paragraphs = props.full_main.paragraphs.map((pg, idx) => {
+    return buildParagraph(idx + 1, pg)
   })
   let full_criteria = {}
   criteria_fields.forEach((field) => {
@@ -77,17 +70,8 @@ const hydrated_data = computed(() => {
   let image_idx = paragraphs.length + 1
   const images = props.full_main.images || []
   images.forEach((image, idx) => {
-    if (image.caption) {
-      paragraphs.push({
-        "image": image.src,
-        "show_image": false,
-        "idx": image_idx + idx,
-        "text": `${image.caption} (pie de foto)`,
-        "criteria": [],
-        "criteria_set": new Set(),
-        "projects": [],
-      })
-    }
+    if (image.caption)
+      paragraphs.push(buildParagraph(image_idx + idx, null, image))
   })
   const projects = props.full_main.second_criteria?.projects || []
   projects.forEach((project, idx) => {
@@ -151,6 +135,24 @@ const hydrated_data = computed(() => {
   return {full_paragraphs: paragraphs, full_criteria: final_criteria}
 })
 
+function showAll(value){
+  // external_paragraphs.value = []
+  content_paragraphs.value.is_active = false
+  show_all.value = value
+  if (value)
+    selected_fields.value = []
+}
+
+function setSelectedProjects(){
+  selected_projects.value = props.full_main.second_criteria?.projects
+    .filter(p => p.degrees >= 100)
+    .map((p, idx) => p.id || idx) || []
+}
+
+onMounted(() => {
+  setSelectedProjects()
+})
+
 function addField(field) {
   if (selected_fields.value.includes(field)){
     const index = selected_fields.value.indexOf(field)
@@ -161,15 +163,31 @@ function addField(field) {
   showAll(false)
 }
 
-function closeExternalParagraphs(){
+function closeExternalParagraphs(is_reset=false){
   setSelectedProjects()
-  content_paragraphs.value = {}
-  external_paragraphs.value = []
+  content_paragraphs.value.is_active = false
+  if (is_reset)
+    external_paragraphs.value = []
+}
+
+function openExternalParagraphs(){
+  content_paragraphs.value.is_active = true
+  selected_fields.value = []
+  selected_projects.value = []
+}
+
+function changeActiveFilter(){
+  if (content_paragraphs.value.is_active)
+    closeExternalParagraphs()
+  else{
+    openExternalParagraphs()
+  }
 }
 
 watch(content_paragraphs, (new_content) => {
+  console.log("Watching content_paragraphs", new_content)
   if (new_content.is_reset){
-    closeExternalParagraphs()
+    closeExternalParagraphs(true)
     return
   }
   if (!new_content.paragraphs || !new_content.note_id)
@@ -178,10 +196,14 @@ watch(content_paragraphs, (new_content) => {
     return
   if (new_content.note_id !== props.note_id)
     return
-  selected_fields.value = []
-  selected_projects.value = []
-  forced_show.value = true
+  if (new_content.is_active === false)
+    return
+  console.log("Applying external paragraphs filter", new_content)
   external_paragraphs.value = new_content.paragraphs
+  openExternalParagraphs()
+  // selected_fields.value = []
+  // selected_projects.value = []
+  // forced_show.value = true
 });
 
 </script>
@@ -211,21 +233,33 @@ watch(content_paragraphs, (new_content) => {
       />
       <v-btn
         v-if="external_paragraphs.length"
-        variant="elevated"
+        :variant="content_paragraphs.is_active ? 'elevated' : 'outlined'"
         color="accent"
-        @click="closeExternalParagraphs"
+        @click="changeActiveFilter"
         icon
         size="x-small"
       >
         <v-icon
           size="large"
         >filter_list</v-icon>
-
+        <v-tooltip
+          activator="parent"
+          position="left"
+        >
+          <span v-if="!content_paragraphs.is_active">
+            Activar filtro de elemento específico
+          </span>
+          <span v-else>
+            Filtro de elemento:
+            <br> {{ content_paragraphs.path }}
+            <br> (Haz clic para desactivar)
+          </span>
+        </v-tooltip>
       </v-btn>
       <v-spacer></v-spacer>
 
       <v-btn
-        v-if="!show_init"
+        v-if="!show_init && !external_paragraphs.length && !two_columns"
         variant="outlined"
         color="accent"
         @click="forced_show = !forced_show"
@@ -238,7 +272,7 @@ watch(content_paragraphs, (new_content) => {
 
     <v-card-text
       class="px-0 d-flex flex-wrap"
-      v-if="show_init || forced_show"
+      v-if="show_init || forced_show || two_columns"
     >
       <Paragraph
         v-for="paragraph in hydrated_data.full_paragraphs"
@@ -246,6 +280,7 @@ watch(content_paragraphs, (new_content) => {
         :paragraph="paragraph"
         :selected_fields="selected_fields"
         :external_paragraphs="external_paragraphs"
+        :active_external="content_paragraphs.is_active"
         :loading="sending_link"
         @show-all="showAll(true)"
       >

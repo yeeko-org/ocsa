@@ -1,13 +1,12 @@
 <script setup>
 
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
-import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
-import TitleCommon from "~/components/dashboard/generic/TitleCommon.vue";
+import TitleCommon from "~/components/dashboard/common/utils/TitleCommon.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 const mainStore = useMainStore()
 const { collections_summary, cats } = storeToRefs(mainStore)
 
@@ -43,13 +42,12 @@ const final_state = computed(() => {
     :collection_data="collection_data"
   >
     <template #icon v-if="false">
-      <SelectGroup
+      <DisplayGroup
         :main_object="main"
         filter_group_name="impact_types"
         main_collection_name="impact"
         field="impact_type"
         forced_level="subtype"
-        is_display
       />
     </template>
     <template #title>

@@ -1,11 +1,6 @@
 <script setup>
 
-const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
-})
+const full_main = defineModel({type: Object, required: true})
 </script>
 
 <template>

@@ -2,23 +2,24 @@
 
 import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
 
-const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
-})
+const full_main = defineModel({type: Object, required: true})
+const impacts = ref([])
 
-const artificial_mention = computed(() => {
-  return {"impacts": [props.full_main]}
-})
+// const artificial_mention = computed(() => {
+//   return {"impacts": [full_main.value]}
+// })
+watch(
+  full_main, (newVal) => {
+    impacts.value = [newVal]
+  }, {immediate: true}
+)
 
 </script>
 
 <template>
   <v-card class="mb-4 pa-0">
     <ImpactToolbar
-      :mention="artificial_mention"
+      v-model="impacts"
     />
   </v-card>
 </template>

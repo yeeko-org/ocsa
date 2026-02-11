@@ -1,26 +1,21 @@
 <script setup>
 
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
-import CardCommon from "~/components/dashboard/common/CardCommon.vue";
-import {storeToRefs} from "pinia";
-import {useMainStore} from "~/store/index.js";
-
-const mainStore = useMainStore()
-const { schemas } = storeToRefs(mainStore)
+import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
+import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
 
 const props = defineProps({
-  mention: Object,
+  parent_id: Number,
+  note_id: Number,
 })
+// const mention = defineModel({type: Object, required: true})
+const participants = defineModel({type: Array, required: true})
 
 const mainToolbarRef = ref(null)
 const secondToolbarRef = ref(null)
 
-const emits = defineEmits(['selected-item', 'search-item', 'edited-item'])
+const emits = defineEmits([
+  'selected-item', 'search-item', 'edited-item', 'discard-participant'])
 defineExpose({ resetInitialData })
-
-const actor_collection_data = computed(() => {
-  return schemas.value.collections_dict['actor']
-})
 
 function resetInitialData(){
   if (mainToolbarRef.value)
@@ -34,38 +29,45 @@ function resetInitialData(){
 <template>
   <ToolbarCommon
     ref="mainToolbarRef"
-    :main_object="mention"
-    main_collection_name="mention"
+    v-model="participants"
+    :parent_id="parent_id"
+    :note_id="note_id"
     filter_group_name="participant_types"
     child_relation_name="participant"
-    field="participants"
     two_columns
     :additional_fields="{'interests': []}"
     color="blue"
     special_multiple
     emit_add
     required_full_category
+    vertical_actions
+    hide_pre_buttons
     @add-item="emits('search-item', $event)"
     required
   >
-    <template #rows_init="{ item }">
+    <template #rows_init="{ item, index }">
       <CardCommon
         :full_main="item.actor_full"
         @edited-item="emits('edited-item', [item, $event])"
-        @selected-item="emits('selected-item', [item, $event])"
         indirect_get
-        :collection_data="actor_collection_data"
+        :init_filters="!item.id ? item.init_filters : {}"
+        :note_id="note_id"
+        :disabled_discard_buttons="!parent_id"
+        collection_name="actor"
+        @selected-item="emits('selected-item', [item, index, $event])"
+        @discard-item="emits('discard-participant', [item, index])"
       />
     </template>
-    <template #second-column="{ item }">
+    <template #second-column="{ item, second_index }">
       <ToolbarCommon
         ref="secondToolbarRef"
-        :main_object="item"
+        v-model="participants[second_index].interests"
         main_collection_name="participant"
         filter_group_name="interest_types"
         child_relation_name="interest"
         required_full_category
-        field="interests"
+        :note_id="note_id"
+        :parent_id="item.id"
         second_level
         color="cyan"
       >

@@ -1,33 +1,33 @@
 <script setup>
 
-import Comments from "~/components/dashboard/utils/Comments.vue";
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
+import Comments from "~/components/dashboard/common/utils/Comments.vue";
+import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 import StatusDetail from "~/components/dashboard/status/StatusDetail.vue";
 
 import LocationEdit from "~/components/dashboard/space_time/location/LocationEdit.vue";
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   main_collection_name: String,
   second_level: Boolean,
+  parent_id: Number,
+  note_id: Number,
 })
-
+// const full_main = defineModel({type: Object, required: true})
+const locations = defineModel({type: Array, required: true})
 </script>
 
 <template>
   <ToolbarCommon
-    :main_object="full_main"
+    v-model="locations"
     :cols="12"
     filter_group_name="states"
     :main_collection_name="main_collection_name"
     child_relation_name="location"
-    field="locations"
     color="blue-grey"
     forced_level="group"
     :second_level="second_level"
+    :parent_id="parent_id"
+    :note_id="note_id"
     :additional_fields="{'status_location': 'empty', 'type_location': 'point'}"
   >
     <template #rows_init="{item}">
@@ -56,9 +56,9 @@ const props = defineProps({
         />
       </div>
     </template>
-    <template #rows="{item}">
+    <template #rows="{item, index}">
       <LocationEdit
-        :full_main="item"
+        v-model="locations[index]"
         :second_level="second_level"
       />
     </template>

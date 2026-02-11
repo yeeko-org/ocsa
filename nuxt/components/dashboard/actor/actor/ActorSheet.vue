@@ -1,6 +1,6 @@
 <script setup>
 
-import PanelsResult from "~/components/dashboard/common/PanelsResult.vue";
+import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";

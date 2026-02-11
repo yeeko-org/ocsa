@@ -1,6 +1,6 @@
 <script setup>
 
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
+import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import LocationMex from "~/components/dashboard/space_time/location/LocationMex.vue";
@@ -14,21 +14,21 @@ const {
 } = storeToRefs(mainStore)
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   main_collection_name: String,
   second_level: Boolean,
   is_event: Boolean,
+  parent_id: Number,
+  event_type: Number,
+  impact_type: Number,
+  note_id: Number,
 })
-
+const displacements = defineModel({type: Array, required: true})
 
 
 const show_displacement = computed(() => {
   return props.is_event
-    ? displacement_event_types.value.includes(props.full_main.event_type)
-    : displacement_impact_types.value.includes(props.full_main.impact_type)
+    ? displacement_event_types.value.includes(props.event_type)
+    : displacement_impact_types.value.includes(props.impact_type)
 })
 
 </script>
@@ -36,18 +36,19 @@ const show_displacement = computed(() => {
 <template>
   <ToolbarCommon
     v-if="show_displacement"
-    :main_object="full_main"
+    v-model="displacements"
+    :parent_id="parent_id"
+    :note_id="note_id"
     :main_collection_name="main_collection_name"
     filter_group_name="dimensions"
     child_relation_name="displacement"
-    field="displacements"
     :second_level="second_level"
     color="orange"
     required
   >
-    <template #rows="{ item }">
+    <template #rows="{ item, index }">
       <SelectGroup
-        :main_object="item"
+        v-model="displacements[index]"
         filter_group_name="population_sizes"
         main_collection_name="displacement"
         :width="400"
@@ -55,14 +56,14 @@ const show_displacement = computed(() => {
       />
       <div class="d-flex">
         <SelectGroup
-          :main_object="item"
+          v-model="displacements[index]"
           filter_group_name="temporalities"
           main_collection_name="displacement"
           subtype_class="ml-2"
           forced_clearable
         />
         <v-select
-          v-model="item.rithm"
+          v-model="displacements[index].rhythm"
           :items="['Paulatino', 'Repentino']"
           label="Ritmo"
           variant="outlined"
@@ -77,26 +78,29 @@ const show_displacement = computed(() => {
       </div>
       <div class="d-flex flex-wrap">
         <LocationMex
-          :full_main="item"
+          v-model="displacements[index]"
           state_field="origin_state"
           municipality_field="origin_municipality"
           locality_field="origin_locality"
         />
       </div>
-      <div class="mt-2 text-subtitle-1" v-if="item.dimension">
+      <div
+        v-if="item.dimension"
+        class="mt-2 text-subtitle-1"
+      >
         Destino del desplazamiento:
       </div>
       <div class="d-flex flex-wrap">
         <LocationMex
           v-if="item.dimension === internal_displacement.id"
-          :full_main="item"
+          v-model="displacements[index]"
           state_field="destination_state"
           municipality_field="destination_municipality"
           locality_field="destination_locality"
         />
         <SelectGroup
           v-else-if="item.dimension"
-          :main_object="item"
+          v-model="displacements[index]"
           filter_group_name="countries"
           main_collection_name="displacement"
           forced_clearable

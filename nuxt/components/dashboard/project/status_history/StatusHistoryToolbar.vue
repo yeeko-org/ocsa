@@ -1,49 +1,52 @@
   <script setup>
 
-import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
-import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
+import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
-
 const props = defineProps({
-  mention: Object,
+  parent_id: Number,
+  note_id: Number,
 })
+const status_history = defineModel({type: Array, required: true})
 
 </script>
 
 <template>
   <ToolbarCommon
     :cols="5"
-    :main_object="mention"
-    main_collection_name="mention"
+    v-model="status_history"
     filter_group_name="status_projects"
     child_relation_name="status_history"
-    field="status_history"
+    required_field="status_project"
+    required_full_category
     color="purple"
-    :note_id="mention.id ? mention.note : null"
-    :parent_object="{ mention: mention.id }"
+    :note_id="note_id"
+    :parent_id="parent_id"
   >
     <template #rows_init="{item}">
-      <div>
-        <v-chip variant="outlined" color="grey" min-width="150" label>
-          Status
-        </v-chip>
-        <div
-          v-if="!item.status_project && item.status_project_text && !item.id"
-          class="mt-3 ml-n16"
+      <div class="d-flex align-center mt-2">
+        <v-icon
+          variant="outlined"
+          color="purple"
+          size="x-large"
+          class="mb-3 mx-1"
         >
-          <b>Pre-registro:</b>
-          {{ item.status_project_text }}
-        </div>
+          history_toggle_off
+        </v-icon>
+        <SelectDate
+          :init_date="item.date"
+          @update-date="item.date = $event"
+          label="Fecha de cambio"
+          hide_details
+        />
       </div>
-      <v-spacer></v-spacer>
-      <SelectDate
-        :init_date="item.date"
-        @update-date="item.date = $event"
-        label="Fecha de cambio"
-        class="mb-n6"
-        hide_details
-      />
+    </template>
+    <template #rows="{item}">
+      <div
+        v-if="item.status_project_text && !item.id"
+      >
+        <b>Pre-registro:</b>
+        {{ item.status_project_text }}
+      </div>
     </template>
   </ToolbarCommon>
 </template>

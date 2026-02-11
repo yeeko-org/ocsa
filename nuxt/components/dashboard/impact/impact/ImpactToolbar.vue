@@ -2,30 +2,30 @@
 
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
-import ToolbarCommon from "~/components/dashboard/generic/ToolbarCommon.vue";
+import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 
+const impacts = defineModel({type: Array, required: true})
 const props = defineProps({
-  mention: Object,
+  parent_id: Number,
+  note_id: Number,
 })
 
 </script>
 
 <template>
   <ToolbarCommon
-    :main_object="mention"
-    main_collection_name="mention"
+    v-model="impacts"
     filter_group_name="impact_types"
     child_relation_name="impact"
-    field="impacts"
     two_columns
     required
     partial_save
     required_field="impact_type"
-    :note_id="mention.id ? mention.note : null"
-    :parent_object="{ mention: mention.id }"
+    :parent_id="parent_id"
+    :note_id="note_id"
     :additional_fields="{'locations': [], 'displacements': []}"
   >
-    <template #rows="{ item }">
+    <template #rows="{ item, index }">
       <v-switch
         v-model="item.is_potential"
         label="Se trata de una afectación potencial"
@@ -44,17 +44,22 @@ const props = defineProps({
         style="max-width: 600px;"
       ></v-textarea>
       <DisplacementToolbar
-        v-if="item"
-        :full_main="item"
+        v-if="impacts[index].displacements"
+        v-model="impacts[index].displacements"
+        :event_type="impacts[index].impact_type"
+        :impact_type="impacts[index].impact_type"
+        :parent_id="item.id"
         main_collection_name="impact"
         second_level
         class="px-0"
       />
     </template>
-    <template #second-column="{ item }">
+    <template #second-column="{ second_index, index }">
       <LocationsToolbar
-        v-if="item"
-        :full_main="item"
+        v-if="impacts[second_index]"
+        v-model="impacts[second_index].locations"
+        :parent_id="impacts[second_index].id"
+        :note_id="parent_id"
         main_collection_name="impact"
         second_level
       />

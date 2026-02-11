@@ -1,9 +1,9 @@
 <script setup>
 
 import { computed } from 'vue'
-import { useMainStore } from '~/store'
+import { useMainStore } from '~/store/index.js'
 import { storeToRefs } from 'pinia'
-import HeaderCommon from "~/components/dashboard/generic/HeaderCommon.vue";
+import HeaderCommon from "~/components/dashboard/common/generic/HeaderCommon.vue";
 
 const mainStore = useMainStore()
 const { cats } = storeToRefs(mainStore)

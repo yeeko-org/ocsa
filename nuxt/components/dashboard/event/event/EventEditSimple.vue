@@ -2,27 +2,33 @@
 
 import EventToolbar from "~/components/dashboard/event/event/EventToolbar.vue";
 
-const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
+const full_main = defineModel({type: Object, required: true})
+const events = ref([])
+// const artificial_mention = computed(() => {
+//   if (!full_main.value.involvements)
+//     return []
+//   const participants = full_main.value.involvements.map(
+//       involvement => involvement.participant_full)
+//   return {"events": [full_main.value], participants: participants}
+// })
+const all_actors = computed(() => {
+  return full_main.value.involvements.map(involvement => {
+    return {...involvement.participant_full}
+  })
 })
-
-const artificial_mention = computed(() => {
-  if (!props.full_main.involvements)
-    return []
-  const participants = props.full_main.involvements.map(
-      involvement => involvement.participant_full)
-  return {"events": [props.full_main], participants: participants}
-})
-
+watch(
+  full_main, (newVal) => {
+    events.value = [newVal]
+  }, {immediate: true}
+)
 </script>
 
 <template>
   <v-card class="mb-4 pa-0">
     <EventToolbar
-      :mention="artificial_mention"
+      v-model="events"
+      :parent_id="full_main.id"
+      :all_actors="all_actors"
     />
   </v-card>
 </template>

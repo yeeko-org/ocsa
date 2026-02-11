@@ -1,6 +1,6 @@
 <script setup>
 
-import HeaderChip from "~/components/dashboard/common/HeaderChip.vue";
+import HeaderChip from "~/components/dashboard/common/utils/HeaderChip.vue";
 import {computed} from "vue";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
@@ -27,7 +27,7 @@ const states_tooltip = computed(() => {
   }, [])
   const names = full_states.map(state => state.name)
   const text_names = names.join(", ")
-  return `${all_states.length} estados: ${text_names}`
+  return `${full_states.length} estados: ${text_names}`
 })
 
 const locations_count = computed(() => {
@@ -43,7 +43,6 @@ const locations_count = computed(() => {
     label_plural="ubicaciones"
     color="indigo"
     :tooltip_complement="states_tooltip"
-    class="mx-1"
     :horizontal="horizontal"
   />
 </template>

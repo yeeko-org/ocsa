@@ -10,17 +10,13 @@ const {
 } = storeToRefs(mainStore)
 
 const props = defineProps({
-  full_main: {
-    type: Object,
-    required: true,
-  },
   is_edit: {
     type: Boolean,
     default: false,
     required: false,
   },
 })
-
+const full_main = defineModel({type: Object, required: true})
 
 </script>
 
@@ -76,7 +72,7 @@ const props = defineProps({
     <div class="text-subtitle-1 mt-4" v-if="false">Intencionalidad:</div>
     <div class="d-flex mr-8 mt-5">
       <SelectGroup
-        :main_object="full_main"
+        v-model="full_main"
         filter_group_name="purposes"
         main_collection_name="event"
       />

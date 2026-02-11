@@ -1,7 +1,7 @@
 <script setup>
 import {ref, computed, nextTick, shallowRef} from 'vue'
 import { getElement } from "~/composables/save_elements.js";
-import EditCommon from "~/components/dashboard/common/EditCommon.vue";
+import EditCommon from "~/components/dashboard/common/generic/EditCommon.vue";
 import { patchElement } from "~/composables/save_elements.js";
 
 const props = defineProps({
@@ -15,10 +15,6 @@ const props = defineProps({
     type: String,
     default: 'checkbox',
   },
-  is_map_viz: {
-    type: Boolean,
-    default: false,
-  }
 })
 
 const full_main = ref(null)
@@ -37,7 +33,7 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_nam
     edit_component.value = module.default
   })
   .catch(e => {
-    import(`~/components/dashboard/generic/EditGeneric.vue`).then(module => {
+    import(`~/components/dashboard/common/generic/EditGeneric.vue`).then(module => {
       edit_component.value = module.default
     })
   })
@@ -99,7 +95,6 @@ const saveOrder = (val) => {
 <template>
   <v-expansion-panel class="d-flex">
     <v-sheet
-      v-if="!is_map_viz"
       :color="background_color"
       class="d-flex align-start flex-shrink-0 justify-center"
     >
@@ -159,7 +154,6 @@ const saveOrder = (val) => {
     <v-sheet
       class="flex-grow-1"
       :color="background_color"
-      :class="{'pl-2': is_map_viz}"
     >
       <slot name="header" :main="main" :openMain="openMain">
         <v-expansion-panel-title>
@@ -178,27 +172,31 @@ const saveOrder = (val) => {
           <component
             v-if="edit_simple_component"
             :is="edit_simple_component"
-            :full_main="full_main"
+            v-model="full_main"
           />
+
           <EditCommon
             v-else
-            :full_main="full_main"
+            v-model="full_main"
             :collection_data="collection_data"
             can_delete
             @itemSaved="emits('item-saved', $event)"
             @itemDeleted="emits('item-deleted', $event)"
           >
-            <template #edit="{ full_main }">
+            <template #edit>
               <component
+                v-if="edit_component"
                 :is="edit_component"
-                :full_main="full_main"
+                v-model="full_main"
                 is_edit
                 @itemSaved="emits('item-saved', $event)"
               />
             </template>
           </EditCommon>
-          <slot name="sheet" :full_main="full_main">
-            Sheet genérico 3
+          <slot
+            name="sheet"
+            :full_main="full_main"
+          >
           </slot>
         </v-sheet>
       </v-expansion-panel-text>

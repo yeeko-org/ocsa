@@ -1,7 +1,7 @@
 <script setup>
 
 import ExtractivismIcons from "~/components/dashboard/project/ExtractivismIcons.vue";
-import CriteriaChip from "~/components/dashboard/source/CriteriaChip.vue";
+import CriteriaChip from "~/components/dashboard/capture/CriteriaChip.vue";
 
 const props = defineProps({
   mentions: Array,
@@ -15,6 +15,7 @@ const props = defineProps({
 
 
 const emit = defineEmits(['update:selected_projects'])
+const is_true = ref(true)
 
 const localSelectedProjects = computed({
   get: () => props.selected_projects,
@@ -43,16 +44,26 @@ const show_criteria = computed(() => {
       style="max-height: 16px; overflow: hidden;"
       :style="{ 'width': show_criteria ? '400px' : '250px' }"
     >
-      <v-checkbox-btn
-        v-if="show_criteria && show_full"
-        v-model="localSelectedProjects"
-        :value="mention.project_full.id"
-        density="compact"
-        hide-details
-      />
+      <template v-if="show_checkboxes && show_full && show_criteria">
+        <v-checkbox-btn
+          v-if="mentions.length > 1"
+          v-model="localSelectedProjects"
+          :value="mention.project_full.id"
+          density="compact"
+          hide-details
+        />
+        <v-checkbox-btn
+          v-else
+          v-model="is_true"
+          :value="true"
+          density="compact"
+          readonly
+          hide-details
+        />
+      </template>
       <ExtractivismIcons
         :project="mention.project_full"
-        is_small
+        small_icons
       />
       <v-card
         class="ml-1"
