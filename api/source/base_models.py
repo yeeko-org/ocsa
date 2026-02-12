@@ -196,7 +196,6 @@ class ProjectDataFull(ProjectDataBase, PathMixin):
     extractivism_types_str: list[str] = []
     extractivism_types: list[int] = []
     locations: list[LocationFull] = []
-    hide_mention: bool = True
     path: str | None = None
 
 
@@ -301,6 +300,7 @@ class MentionFull(MentionBase, CommonFull):
     project_full: ProjectDataFull
     status_history: list[StatusHistoryFull] = []
     impacts: list[ImpactFull] = []
+    hide_mention: bool = True
     # actors: list[ActorFull] = Field(max_length=20, default=[])
     participants: list[ParticipantFull] = []
     events: list[EventFull] = []

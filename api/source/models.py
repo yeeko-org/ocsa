@@ -97,6 +97,10 @@ class Note(CommentsMixin, models.Model):
             return match.value
         return None
 
+    def delete(self, *args, **kwargs):
+        Article.objects.filter(note=self).update(note=None)
+        super().delete(*args, **kwargs)
+
     def __str__(self):
         return self.title
 

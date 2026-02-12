@@ -230,6 +230,7 @@ class NoteFullSerializer(ConditionalFieldsMixin):
     files = NoteFileSerializer(many=True, read_only=True)
     mentions = MentionMegaFullSerializer(many=True, read_only=True)
     articles = ArticleSimpleSerializer(read_only=True, many=True)
+    pre_mentions = serializers.JSONField(read_only=True)
 
     class Meta:
         model = Note
