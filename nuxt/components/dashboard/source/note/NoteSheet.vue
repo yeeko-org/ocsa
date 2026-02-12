@@ -48,7 +48,7 @@ const addMention = () => {
 const loading_precapture = ref(false)
 
 async function preCapture() {
-  console.log("preCapture")
+  // console.log("preCapture")
   loading_precapture.value = true
   const res = await sendPreCapture(props.full_main.id)
   loading_precapture.value = false
@@ -116,6 +116,7 @@ async function discardPreMention(pre_item, index) {
   const saved_pre_item = await discardPreItem(
     pre_item.path, 'mention', props.full_main.id)
   all_mentions.value.splice(index, 1)
+  // console.log("saved_pre_item", saved_pre_item)
   all_mentions.value.push(saved_pre_item)
   showSnackbar('Se ha descartado la mención preliminar')
 }

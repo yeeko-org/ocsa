@@ -24,8 +24,8 @@ const saved_locations = computed(() => {
     if (loc.path) return acc
     loc.state_full = cats.value.state.find(st => st.id === Number(loc.state))
     loc.display_state = has_municipality.value
-      ? loc.state_full.code_name
-      : loc.state_full.name
+      ? loc.state_full?.code_name
+      : loc.state_full?.name
     return [...acc, loc]
   }, [])
 })

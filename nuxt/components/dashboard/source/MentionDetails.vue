@@ -29,7 +29,7 @@ const props = defineProps({
   two_columns: Boolean,
 })
 const mention = defineModel({type: Object, required: true})
-
+const saving = ref(false)
 
 const emits = defineEmits(
   ['mention-saved', 'mention-deleted', 'mention-accepted',
@@ -54,6 +54,9 @@ const impactsRef = ref(null)
 const statusHistoryRef = ref(null)
 const eventsRef = ref(null)
 async function saveMention() {
+  if (!mention.value.id)
+    return
+  all_saving.value = true
   const valid = await Promise.all([
     participantsRef.value.validate(),
     eventsRef.value.validate(),
@@ -66,9 +69,10 @@ async function saveMention() {
       field: 'todo el formulario',
       errors: 'Hay errores con algunos campos, scrolea y revísalos.'
     }]
+    all_saving.value = false
     return
   }
-  all_saving.value = true
+
   saveComplex('mention', mention.value)
     .then(() => {
       allFinished(null, mention.value.pre_data)
@@ -180,8 +184,9 @@ function closeChangeDialog(actor_data) {
 }
 const project_errors = ref(null)
 async function changeProject(project) {
+  console.log("changeProject", project)
   project_errors.value = null
-  if (mention.value.path && mention.value.discarded === null){
+  if (mention.value.path && !mention.value.id){
     emits('mention-accepted', project)
   }
   else{
@@ -342,7 +347,11 @@ async function discardLocation(pre_item) {
           </v-alert>
         </v-col>
       </v-row>
-      <v-col cols="12" class="d-flex justify-end px-6">
+      <v-col
+        v-if="mention.id"
+        cols="12"
+        class="d-flex justify-end px-6"
+      >
         <v-btn
           color="red"
           variant="outlined"

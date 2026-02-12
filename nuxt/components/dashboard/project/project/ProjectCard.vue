@@ -26,7 +26,7 @@ const parent_project = computed(() => {
 <template>
   <div class="py-2">
     <div
-      v-if="parent_project || full_main.status_validation"
+      v-if="parent_project || full_main.status_validation || full_main.project_type_text"
       class="text-caption d-flex ga-4"
     >
       <div v-if="parent_project" class="mt-n1">

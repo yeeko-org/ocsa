@@ -46,8 +46,10 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_sim
     edit_simple_component.value = ''
   })
 
+const opening = ref(false)
 
 const openMain = () => {
+  opening.value = true
   // const group = props.group
   // const real_group = group.parent ? `catalogs/${group.key}` : group.key
   const level = props.collection_data.level
@@ -55,12 +57,14 @@ const openMain = () => {
   if (level === 'category_group'){
     emits('finish-open')
     full_main.value = props.main
+    opening.value = false
     return
   }
   const elem_id = props.main.id ? 'id' : 'key_name'
   getElement(props.collection_data, props.main[elem_id]).then((res) => {
     full_main.value = res
     emits('finish-open')
+    opening.value = false
   })
 }
 
@@ -161,7 +165,7 @@ const saveOrder = (val) => {
         </v-expansion-panel-title>
       </slot>
       <v-expansion-panel-text
-        v-if="full_main"
+        v-if="full_main && !opening"
         class="ml-n16 mr-n6"
         :color="background_color"
       >
