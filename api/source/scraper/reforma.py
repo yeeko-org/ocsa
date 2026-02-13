@@ -60,7 +60,9 @@ class ReformaManagerScraper(ManagerScraper):
             recover_record: ScrapedRecord | None = None,
     ) -> None:
         super().__init__(
-            from_date, to_date, ReformaMainScraper, ReformaArticleScraper,
+            from_date, to_date,
+            main_scraper_class=ReformaMainScraper,
+            article_scraper_class=ReformaArticleScraper,
             recover_record=recover_record
         )
 
@@ -78,11 +80,15 @@ class ReformaMainScraper(MainScraper):
 
     need_proxy = True
     parser = "xml"
+    date_format = "%Y%m%d"
 
     def __init__(self, scraper_date: date | str):
         self.parser = "xml"
+        self.scraper_date = self.date_in_str(scraper_date)
         self.soup_content = get_content(
             self.main_url(), self.parser, self.need_proxy)
+        print("main url", self.main_url())
+        print("scraping date", self.scraper_date)
         super().__init__(scraper_date)
 
         for _, section_data in self.sections_dict.items():

@@ -81,20 +81,25 @@ class Note(CommentsMixin, models.Model):
             self.set_slug_title(save=False)
         super().save(*args, **kwargs)
 
-    def set_pre_capture(
-            self, path: str, discarded: bool, element_id: int | None = None
-    ):
+    def get_first_match(self, path: str):
         from jsonpath_ng.ext import parse
         if not self.pre_mentions:
             return None
-        new_values = {"discarded": discarded, "element_id": element_id}
         jsonpath_expr = parse(path)
         matches = jsonpath_expr.find(self.pre_mentions)
         if matches:
             match = matches[0]
-            match.value.update(new_values)
-            self.save()
             return match.value
+        return None
+
+    def set_pre_capture(
+            self, path: str, discarded: bool, element_id: int | None = None
+    ):
+        match = self.get_first_match(path)
+        if match is not None:
+            match.update({"discarded": discarded, "element_id": element_id})
+            self.save()
+            return match
         return None
 
     def delete(self, *args, **kwargs):

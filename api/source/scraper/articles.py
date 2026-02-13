@@ -155,7 +155,7 @@ class ManagerScraper(ABC):
                 sections_dict = self.main_scraper_class(date_).sections_dict
             except Exception as e:
                 sections_dict = {
-                    "error": f"Error getting sections for date {date_}",
+                    "error": f"EError getting sections for date {date_}",
                     "exception": str(e)
                 }
             articles_by_date[date_] = sections_dict

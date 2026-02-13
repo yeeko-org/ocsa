@@ -167,6 +167,20 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
             element_id=element_id)
         return Response({'content': new_content})
 
+    @action(detail=True, methods=['post'])
+    def pre_capture_by_path(self, request, pk=None):
+        note = self.get_object()
+
+        req_data = request.data
+        path = req_data.get('path', '')
+        if not path:
+            return Response({'detail': 'Path is required.'}, status=400)
+        # path = request.data.get('path', '')
+        # discarded = request.data.get('discarded', False)
+
+        new_content = note.get_first_match(path=path)
+        return Response({'content': new_content})
+
 
 class NoteFileViewSet(mixins.DestroyModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
