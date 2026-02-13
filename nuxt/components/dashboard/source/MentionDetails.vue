@@ -43,7 +43,9 @@ const participantsRef = ref(null)
 async function allFinished(mention_id=null, pre_data=null) {
   if (mention_id && mention_id !== mention.value.id)
     return
-  const res = await saveItemMixed('mention', mention.value, pre_data)
+  const path = pre_data ? pre_data.path : null
+  const res = await saveItemMixed(
+    'mention', mention.value, null, path)
   emits('mention-saved', res)
   all_saving.value = false
   participantsRef.value.resetInitialData()
@@ -170,7 +172,7 @@ async function saveNewParticipant(actor, participant=null, part_idx=null) {
 
 async function discardParticipant([pre_item, index]) {
   const new_pre_item = await discardPreItem(
-    pre_item.path, 'participant', props.note_id)
+    pre_item.path, props.note_id)
   console.log("new_pre_item Participant", new_pre_item)
   mention.value.participants.splice(index, 1)
   mention.value.participants.push(new_pre_item)
@@ -234,7 +236,7 @@ async function discardLocation(pre_item) {
   const index = mention.value.project_full.locations.findIndex(
     loc => loc.path === pre_item.path)
   const new_pre_item = await discardPreItem(
-    pre_item.path, 'location', props.note_id)
+    pre_item.path, props.note_id)
   mention.value.project_full.locations.splice(index, 1, new_pre_item)
 }
 

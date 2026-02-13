@@ -12,7 +12,7 @@ import FilesToolbar from "~/components/dashboard/capture/FilesToolbar.vue";
 import ParagraphsContent from "~/components/dashboard/capture/ParagraphsContent.vue";
 import ParagraphsProjectsContent from "~/components/dashboard/capture/ParagraphsProjectsContent.vue";
 
-const { saveSimple, sendPreCapture, savePreCapture } = mainStore
+const { saveSimple, sendPreCapture } = mainStore
 const { schemas } = storeToRefs(mainStore)
 const { showSnackbar } = dashboardStore
 import { useSaveElements } from "~/composables/save_elements.js";
@@ -114,7 +114,7 @@ async function discardPreMention(pre_item, index) {
     return
   }
   const saved_pre_item = await discardPreItem(
-    pre_item.path, 'mention', props.full_main.id)
+    pre_item.path, props.full_main.id)
   all_mentions.value.splice(index, 1)
   // console.log("saved_pre_item", saved_pre_item)
   all_mentions.value.push(saved_pre_item)

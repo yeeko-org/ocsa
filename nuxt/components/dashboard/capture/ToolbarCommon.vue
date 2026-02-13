@@ -279,9 +279,8 @@ async function acceptItem(pre_item, index) {
 async function discardRecord(pre_item, index) {
   saving.value = true
   index_in_edit.value = index
-  const child_name = child_collection.value.snake_name
   const new_pre_item = await discardPreItem(
-    pre_item.path, child_name, final_note_id.value)
+    pre_item.path, final_note_id.value)
   main_array.value.splice(index, 1)
   main_array.value.push(new_pre_item)
   saving.value = false

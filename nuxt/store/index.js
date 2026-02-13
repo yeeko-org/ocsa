@@ -697,6 +697,18 @@ export const useMainStore = defineStore('main', {
         return {errors: error.response.data}
       }
     },
+    async getPreCapture({note_id, path}) {
+      const { $api } = useNuxtApp()
+      try {
+        let response = await $api.post(`note/${note_id}/pre_capture_by_path/`,
+          {path}
+        )
+        return response.data
+      } catch (error) {
+        console.error(error);
+        return {errors: error.response.data}
+      }
+    },
     async saveSelected([id, data]) {
       const { $api } = useNuxtApp()
       // this.setHeader()
