@@ -105,6 +105,7 @@ MEMBERSHIP_TYPES = (
 )
 
 
+# TODO: Checar si estamos perdiendo info acá
 class Member(models.Model):
     actor_individual = models.ForeignKey(
         Actor, on_delete=models.CASCADE, related_name='actor_individual')

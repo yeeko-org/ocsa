@@ -154,6 +154,7 @@ all_collections = {
             "level": "category_subtype",
             "open_insertion": True,
             "available_actions": ["merge"],
+            "cat_params": {"select_component": "autocomplete"},
         },
         {
             "snake_name": "extractivism_type",
@@ -322,6 +323,7 @@ all_collections = {
             "level": "category_subtype",
             "open_insertion": True,
             "available_actions": ["merge"],
+            "cat_params": {"select_component": "autocomplete"},
         },
         {
             "snake_name": "sector_group",
@@ -374,6 +376,7 @@ all_collections = {
             "level": "category_subtype",
             "open_insertion": True,
             # "available_actions": ["merge"],
+            "cat_params": {"select_component": "autocomplete"},
         },
     ],
     "event": [
@@ -391,7 +394,7 @@ all_collections = {
                 # {"name": "involved_roles", "hidden": False},
                 {"filter_name": "sectors", "hidden": True},
                 {"filter_name": "involved_roles", "hidden": True},
-                # {"filter_name": "participant_types", "hidden": True},
+                {"filter_name": "participant_types", "hidden": True},
             ],
             "xls_export": True,
             "available_actions": ["massive_edit"],
@@ -414,7 +417,6 @@ all_collections = {
             "level": "category_subtype",
             "open_insertion": True,
             "available_actions": ["merge", "massive_edit"],
-            # "all_filters": [
         },
         {
             "snake_name": "involved_role",
@@ -423,6 +425,7 @@ all_collections = {
             "model_name": "InvolvedRole",
             "open_insertion": False,
             "level": "category_subtype",
+            "cat_params": {"select_component": "autocomplete"},
         },
         {
             "snake_name": "involved",

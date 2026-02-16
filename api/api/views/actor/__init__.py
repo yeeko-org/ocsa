@@ -1,4 +1,4 @@
-from django.db.models import F
+from django.db.models import F, Count
 from django_filters import FilterSet, NumberFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
@@ -133,6 +133,17 @@ class ActorViewMixin(viewsets.GenericViewSet):
 class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
 
     serializer_class = ActorBaseSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        retrieve_actions = ['retrieve']
+        if self.action in retrieve_actions:
+            queryset = queryset.annotate(
+                events_count=Count('participants__involvements', distinct=True),
+                # indirect_events_count=Count('participants__', distinct=True)
+            )
+
+        return queryset
 
     def get_serializer_class(self):
         action_serializer = {

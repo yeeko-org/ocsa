@@ -8,9 +8,31 @@ from project.models import Conflict
 from impact.models import ImpactType, Impact
 from space_time.models import Location
 from df.models import Displacement
+from actor.models import Participant
+from api.views.project.list_serializers import ActorFullSerializer
+
+
+class ParticipantFullSerializer(serializers.ModelSerializer):
+    actor_full = ActorFullSerializer(read_only=True, source='actor')
+    class Meta:
+        model = Participant
+        fields = '__all__'
 
 
 class InvolvedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Involved
+        fields = '__all__'
+
+
+class InvolvedFullSerializer(InvolvedSerializer):
+    participant_full = ParticipantFullSerializer(
+        read_only=True, source='participant')
+    example = serializers.SerializerMethodField(read_only=True)
+
+    def get_example(self, obj):
+        return "SOLO"
+
     class Meta:
         model = Involved
         fields = '__all__'
@@ -39,8 +61,8 @@ class EventMediumSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(EventMediumSerializer):
+    involvements = InvolvedFullSerializer(many=True, read_only=True)
     mention_full = MentionBaseSerializer(read_only=True, source='mention')
-
 
 
 class EventTypeSerializer(serializers.ModelSerializer):

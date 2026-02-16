@@ -127,7 +127,8 @@ class InvolvedRole(models.Model):
 class Involved(models.Model):
     event = models.ForeignKey(
         Event, on_delete=models.CASCADE, related_name='involvements')
-    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
+    participant = models.ForeignKey(
+        Participant, on_delete=models.CASCADE, related_name='involvements')
     involved_role = models.ForeignKey(
         InvolvedRole, on_delete=models.CASCADE, blank=True, null=True)
     number_women = models.IntegerField(blank=True, null=True)

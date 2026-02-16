@@ -130,6 +130,7 @@ class ActorFullSerializer(ActorBaseSerializer):
         many=True, read_only=True, source='others_parents')
     children_actors_full = ActorMiniSerializer(
         many=True, read_only=True, source='children_actors')
+    events_count = serializers.ReadOnlyField()
 
     def get_notes(self, obj: Actor):
         return NoteBasicSerializer(

@@ -203,9 +203,23 @@ class EventFilter(FilterSet):
     sector = NumberFilter(
         field_name='involvements__participant__actor__sector',
         lookup_expr='exact')
+    participant_type = NumberFilter(
+        field_name='involvements__participant__participant_types',
+        lookup_expr='exact')
+    participant_group = NumberFilter(
+        field_name='involvements__participant__participant_types__participant_group',
+        lookup_expr='exact')
     involved_role = NumberFilter(
         field_name='involvements__involved_role',
         lookup_expr='exact')
+    actor = NumberFilter(
+        field_name='involvements__participant__actor',
+        lookup_expr='exact')
+    indirect_actor = NumberFilter(
+        field_name='mention__participants__actor',
+        lookup_expr='exact')
+    project = NumberFilter(
+        field_name='mention__project', lookup_expr='exact')
 
     class Meta:
         model = Event
@@ -225,7 +239,8 @@ class EventViewSet(
         )\
         .prefetch_related(
             'involvements',
-        )
+        )\
+        .distinct()
 
     serializer_class = EventSerializer
     is_mention_child = True
@@ -296,7 +311,7 @@ class EventViewSet(
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        action_is_detail = self.action in ['retrieve', 'create', 'update']
+        action_is_detail = self.action in ['retrieve', 'list']
         if action_is_detail:
             return self.queryset.prefetch_related(
                 'involvements__participant',
