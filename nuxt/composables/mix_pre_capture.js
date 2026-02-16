@@ -82,13 +82,17 @@ export async function savePreItem(path, collection_name, note_id, params) {
 }
 
 export async function saveItemMixed(
-  collection_name, params, pre_capture=null
+  collection_name, params, pre_capture=null, path=null
 ) {
   const mainStore = useMainStore()
-  const { saveSimple } = mainStore
+  const { saveSimple, getPreCapture } = mainStore
   const saved_item = await saveSimple([collection_name, params])
   if (saved_item.errors)
     return saved_item
+  if (!pre_capture && path){
+    const pre_capture_res = await getPreCapture({note_id: saved_item.note, path})
+    pre_capture = pre_capture_res.content
+  }
   if (!pre_capture)
     return saved_item
 
@@ -97,7 +101,7 @@ export async function saveItemMixed(
   return mixOrigins(saved_item, pre_capture, level)
 }
 
-export async function discardPreItem(path, collection_name, note_id) {
+export async function discardPreItem(path, note_id) {
   const mainStore = useMainStore()
   const { savePreCapture } = mainStore
 

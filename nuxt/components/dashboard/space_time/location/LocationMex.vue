@@ -1,83 +1,89 @@
 <script setup>
-import {useMainStore} from "~/store/index.js";
-import {storeToRefs} from "pinia";
 
-const mainStore = useMainStore()
-const { full_geo, cats } = storeToRefs(mainStore)
-const { getGeo } = mainStore
+import { useGeoNewStore } from "~/store/geo.js";
+import { storeToRefs } from "pinia";
+
+const geoStore = useGeoNewStore()
+const { states } = storeToRefs(geoStore)
 
 const props = defineProps({
-  state_field: {
-    type: String,
-    default: 'state',
-  },
-  municipality_field: {
-    type: String,
-    default: 'municipality',
-  },
-  locality_field: {
-    type: String,
-    default: 'locality',
-  },
+  clearable: Boolean,
 })
-const full_main = defineModel({type: Object, required: true})
 
-const init_loaded = ref(false)
-const loading_geo = ref(false)
-const total_geo_requests = ref(0)
-const resolved_geo_requests = ref(0)
-
+const state = defineModel('state', { type: Number, default: null })
+const municipality = defineModel('municipality', { type: Number, default: null })
+const locality = defineModel('locality', { type: Number, default: null })
 
 onMounted(() => {
-  // console.log("full_main onMounted", full_main.value)
-  if (full_main.value.locations) {
-    getGeoUnities()
-  }
+  getMunicipalities(state.value)
+  getLocalities(municipality.value)
 })
 
-function getGeoUnities(forced = false) {
-  if (loading_geo.value)
-    return
-  total_geo_requests.value = 0
-  resolved_geo_requests.value = 0
-  if (!init_loaded.value || forced) {
-    init_loaded.value = true
-    const levels = ['state', 'municipality']
-    levels.forEach(level => {
-      updateGeo([level, full_main.value[level]])
-    })
+const loading_municipalities = ref(false)
+const municipalities = ref([])
+const municipalities_error = ref(null)
+
+async function getMunicipalities(state_id) {
+  if (!state_id) return
+  loading_municipalities.value = true
+  municipalities_error.value = null
+  try {
+    municipalities.value = await geoStore.getMunicipalities(state_id)
+  } catch (e) {
+    municipalities.value = []
+    municipalities_error.value = "Error al cargar municipios"
+  } finally {
+    loading_municipalities.value = false
   }
 }
 
-function updateGeo([level, value]) {
-  if (!value)
-    return
-  loading_geo.value = true
-  total_geo_requests.value += 1
-  getGeo([level, value]).then(() => {
-    resolved_geo_requests.value += 1
-    if (resolved_geo_requests.value === total_geo_requests.value)
-      loading_geo.value = false
-  })
-}
-
-
-function changeGeoValue(level, value) {
-  updateGeo([level, value])
-}
-
-nextTick(() => {
-  setTimeout(() => {
-    getGeoUnities()
-  }, 10)
+watch(state, (newState) => {
+  // console.log("Estado cambiado:", newState)
+  municipality.value = null
+  locality.value = null
+  getMunicipalities(newState)
 })
+
+const loading_localities = ref(false)
+const localities = ref([])
+const localities_error = ref(null)
+
+async function getLocalities(municipality_id) {
+  if (!municipality_id) return
+  loading_localities.value = true
+  localities_error.value = null
+  try {
+    localities.value = await geoStore.getLocalities(municipality_id)
+  } catch (e) {
+    localities.value = []
+    localities_error.value = "Error al cargar localidades"
+  } finally {
+    loading_localities.value = false
+  }
+}
+
+watch(municipality, (newMunicipality) => {
+  // console.log("Municipio cambiado:", newMunicipality)
+  locality.value = null
+  getLocalities(newMunicipality)
+})
+
+const commonProps = {
+  itemValue: "id",
+  itemTitle: "name",
+  variant: "outlined",
+  hideDetails: true,
+  class: "ml-2 mt-2",
+  maxWidth: "300",
+  minWidth: "240",
+}
 
 </script>
 
 <template>
   <v-autocomplete
-    v-model="full_main[state_field]"
-    :items="cats.state || []"
+    v-model="state"
+    :items="states"
     item-title="short_name"
     item-value="id"
     label="Estado"
@@ -86,34 +92,30 @@ nextTick(() => {
     width="200"
     hide-details
     class="mt-2"
-    @update:model-value="changeGeoValue('state', $event)"
+    :clearable="clearable"
   />
   <v-autocomplete
-    v-model="full_main[municipality_field]"
-    :items="full_geo.state[full_main[state_field]] || []"
-    item-title="name"
-    item-value="id"
+    v-model="municipality"
+    :items="municipalities"
     label="Municipio"
-    variant="outlined"
-    class="ml-2 mt-2"
-    max-width="300"
-    min-width="240"
-    hide-details
-    @update:model-value="changeGeoValue('municipality', $event)"
+    v-bind="commonProps"
+    :loading="loading_municipalities"
+    :clearable="clearable"
   >
   </v-autocomplete>
   <v-autocomplete
-    v-if="full_main[municipality_field]"
-    v-model="full_main[locality_field]"
-    :items="full_geo.municipality[full_main[municipality_field]] || []"
-    item-title="name"
-    item-value="id"
+    v-if="municipality"
+    v-model="locality"
+    :items="localities"
     label="Localidad"
-    variant="outlined"
-    class="ml-2 mt-2"
-    max-width="320"
-    min-width="240"
-    hide-details
-  >
-  </v-autocomplete>
+    v-bind="commonProps"
+    :loading="loading_localities"
+
+  ></v-autocomplete>
+  <v-alert v-if="municipalities_error" type="error" class="mt-2">
+    {{ municipalities_error }}
+  </v-alert>
+  <v-alert v-if="localities_error" type="error" class="mt-2">
+    {{ localities_error }}
+  </v-alert>
 </template>

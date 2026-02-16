@@ -136,7 +136,7 @@ async function validateAllForms(index=null, only_current=false) {
     else {
       // console.log("validating form at index", index)
       const formRef = mainForm.value[index]
-      console.log("formRef", formRef)
+      // console.log("formRef", formRef)
       if (!formRef)
         return showValidationErrors(
           "Formulario no encontrado", index)

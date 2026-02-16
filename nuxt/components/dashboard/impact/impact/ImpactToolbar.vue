@@ -54,7 +54,6 @@ function validate(){
       <DisplacementToolbar
         v-if="impacts[index].displacements"
         v-model="impacts[index].displacements"
-        :event_type="impacts[index].impact_type"
         :impact_type="impacts[index].impact_type"
         :parent_id="item.id"
         main_collection_name="impact"

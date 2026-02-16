@@ -50,7 +50,7 @@ const full_belongs = computed(() => {
           :width="160"
         />
       </v-card>
-      <div v-if="full_main.belongs.length" class="my-n1">
+      <div v-if="full_main.belongs?.length" class="my-n1">
         <BelongIcons :actor="full_main"/>
       </div>
       <StatusChip

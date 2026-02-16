@@ -1,10 +1,10 @@
-// components/map/useMapLayers.js
-import {useMainStore} from "~/store/index.js";
-import {storeToRefs} from "pinia";
+import { useMainStore } from "~/store/index.js";
+import { storeToRefs } from "pinia";
+import { GEOMETRY_TYPES } from "~/composables/location_types.js";
 
 export function useMapLayers(map) {
   const mainStore = useMainStore()
-  const { geometry_types, cats } = storeToRefs(mainStore)
+  const { cats } = storeToRefs(mainStore)
   function initializeMapLayers() {
     // Separate points, lines, multilinestrings, and polygons from the data
     let cluster_properties = {};
@@ -20,7 +20,7 @@ export function useMapLayers(map) {
       ];
     });
 
-    geometry_types.value.forEach(dt => {
+    GEOMETRY_TYPES.value.forEach(dt => {
       map.value.addSource(dt.source, {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
@@ -128,14 +128,14 @@ export function useMapLayers(map) {
     });
 
     let data = {};
-    geometry_types.value.forEach(gt => {
+    GEOMETRY_TYPES.value.forEach(gt => {
       data[gt.source] = {
         type: 'FeatureCollection',
         features: features_filtered.filter(f => f.geometry.type === gt.type)
       };
     });
 
-    geometry_types.value.forEach(gt => {
+    GEOMETRY_TYPES.value.forEach(gt => {
       const source = map.value.getSource(gt.source);
       if (source) {
         source.setData(data[gt.source]);

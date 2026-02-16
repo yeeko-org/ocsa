@@ -20,11 +20,14 @@ const props = defineProps({
   event_type: Number,
   impact_type: Number,
   note_id: Number,
+  direct_displacement: Boolean,
 })
 const displacements = defineModel({type: Array, required: true})
 
 
 const show_displacement = computed(() => {
+  if (props.direct_displacement)
+    return true
   return props.is_event
     ? displacement_event_types.value.includes(props.event_type)
     : displacement_impact_types.value.includes(props.impact_type)
@@ -62,7 +65,7 @@ const show_displacement = computed(() => {
           forced_clearable
         />
         <v-select
-          v-model="displacements[index].rhythm"
+          v-model="displacements[index].rithm"
           :items="['Paulatino', 'Repentino']"
           label="Ritmo"
           variant="outlined"
@@ -77,10 +80,10 @@ const show_displacement = computed(() => {
       </div>
       <div class="d-flex flex-wrap">
         <LocationMex
-          v-model="displacements[index]"
-          state_field="origin_state"
-          municipality_field="origin_municipality"
-          locality_field="origin_locality"
+          v-model:state="displacements[index].origin_state"
+          v-model:municipality="displacements[index].origin_municipality"
+          v-model:locality="displacements[index].origin_locality"
+          clearable
         />
       </div>
       <div
@@ -92,10 +95,10 @@ const show_displacement = computed(() => {
       <div class="d-flex flex-wrap">
         <LocationMex
           v-if="item.dimension === internal_displacement.id"
-          v-model="displacements[index]"
-          state_field="destination_state"
-          municipality_field="destination_municipality"
-          locality_field="destination_locality"
+          v-model:state="displacements[index].destination_state"
+          v-model:municipality="displacements[index].destination_municipality"
+          v-model:locality="displacements[index].destination_locality"
+          clearable
         />
         <SelectGroup
           v-else-if="item.dimension"

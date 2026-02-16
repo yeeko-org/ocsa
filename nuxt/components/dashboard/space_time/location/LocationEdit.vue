@@ -4,7 +4,7 @@ import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import LocationType from "~/components/dashboard/custom_filters/LocationType.vue";
 import LocationMapDialog from "~/components/dashboard/space_time/LocationMapDialog.vue";
-import {location_types} from "~/composables/location_types.js";
+import {LOCATION_TYPES} from "~/composables/location_types.js";
 import LocationMex from "~/components/dashboard/space_time/location/LocationMex.vue";
 
 const mainStore = useMainStore()
@@ -19,7 +19,7 @@ const full_main = defineModel({type: Object, required: true})
 
 const show_map = ref(false)
 
-const location_type_full = computed(() => location_types.find(
+const location_type_full = computed(() => LOCATION_TYPES.find(
     loc => loc.id === full_main.value.type_location))
 
 
@@ -65,7 +65,9 @@ function handleLocationUpdate(locationData) {
     <v-col :cols="show_map && !second_level ? 6 : 12">
       <div class="d-flex align-center flex-wrap">
         <LocationMex
-          v-model="full_main"
+          v-model:state="full_main.state"
+          v-model:municipality="full_main.municipality"
+          v-model:locality="full_main.locality"
         />
         <LocationType
           :full_main="full_main"

@@ -70,6 +70,7 @@ const registered_actors = computed(() => {
           v-model="events[index].displacements"
           :parent_id="item.id"
           main_collection_name="event"
+          :event_type="events[index].event_type"
           second_level
           is_event
         />

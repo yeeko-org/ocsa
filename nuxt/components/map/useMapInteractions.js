@@ -1,19 +1,20 @@
 // components/map/useMapInteractions.js
 import mapboxgl from 'mapbox-gl';
-import {useMainStore} from "~/store/index.js";
+import { useMainStore } from "~/store/index.js";
 import {storeToRefs} from "pinia";
+import { GEOMETRY_TYPES } from "~/composables/location_types.js";
 
 export function setupInteractions(map, buildFullProjectData) {
   const mainStore = useMainStore()
-  const {
-    cats, geometry_types, megaproject_types_dict } = storeToRefs(mainStore)
+  const {cats, megaproject_types_dict } = storeToRefs(mainStore)
+
   const popup = new mapboxgl.Popup({
     closeButton: false,
     closeOnClick: false,
     anchor: 'top'
   });
 
-  geometry_types.value.forEach(gt => {
+  GEOMETRY_TYPES.value.forEach(gt => {
     map.value.on('click', gt.main_layer, (e) => {
       console.log('Feature clicked:', e.features[0]);
       buildFullProjectData(e.features[0].properties);

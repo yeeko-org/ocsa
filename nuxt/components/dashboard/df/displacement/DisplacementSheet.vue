@@ -17,7 +17,7 @@ const props = defineProps({
 })
 
 const dest_collection = computed(() => {
-  const available_collections = ['event', 'project', 'impact']
+  const available_collections = ['event', 'impact']
   const current_collection = available_collections.find(
     collection => props.full_main[collection]
   )
@@ -33,7 +33,7 @@ const dest_collection = computed(() => {
 
 <template>
   <v-card class="mb-4 pa-3" v-if="dest_collection">
-    {{ dest_collection.collection_data.name }} contenedor de la ubicación:
+    {{ dest_collection.collection_data.name }} contenedor del desplazamiento:
     <PanelList
       :results="dest_collection.results"
       :collection_data="dest_collection.collection_data"

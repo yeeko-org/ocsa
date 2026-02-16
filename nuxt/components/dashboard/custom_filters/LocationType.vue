@@ -1,15 +1,9 @@
 <script setup>
-import {location_types} from "~/composables/location_types.js";
+import { LOCATION_TYPES } from "~/composables/location_types.js";
 const props = defineProps({
   full_main: Object,
   is_filter: Boolean,
 })
-
-// const location_types = [
-//   { id: 'point', name: 'Punto', icon: 'location_on' },
-//   { id: 'line', name: 'Línea', icon: 'timeline' },
-//   { id: 'polygon', name: 'Polígono', icon: 'map' },
-// ]
 
 const width = computed(() => {
   return props.is_filter ? '150px' : '56px'
@@ -20,7 +14,7 @@ const width = computed(() => {
 <template>
   <v-select
     v-model="full_main.type_location"
-    :items="location_types"
+    :items="LOCATION_TYPES"
     item-title="name"
     item-value="id"
     :variant="is_filter ? 'underlined' : 'solo-filled'"

@@ -26,7 +26,6 @@ const props = defineProps({
   subtype_class: String,
   required: Boolean,
   forced_clearable: Boolean,
-  show_console: Boolean,
 
 })
 const main_object = defineModel({type: Object, required: true})

@@ -1,4 +1,4 @@
-export const location_types = [
+export const LOCATION_TYPES = [
   {
     id: 'point',
     name: 'Punto',
@@ -37,3 +37,30 @@ export const location_types = [
     ],
   },
 ]
+
+export const GEOMETRY_TYPES = [
+    {
+      "type": "Polygon",
+      "collection": "polygons",
+      "source": "proyectos-poligonos",
+      "main_layer": "proyectos-poligonos-fill"
+    },
+    {
+      "type": "LineString",
+      "collection": "lines",
+      "source": "proyectos-lineas",
+      "main_layer": "proyectos-lineas"
+    },
+    {
+      "type": "MultiLineString",
+      "collection": "multiLineStrings",
+      "source": "proyectos-multilineas",
+      "main_layer": "proyectos-multilineas"
+    },
+    {
+      "type": "Point",
+      "collection": "points",
+      "source": "proyectos",
+      "main_layer": "unclustered-point"
+    },
+  ]

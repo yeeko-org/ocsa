@@ -4,7 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-import {location_types} from "~/composables/location_types.js";
+import {LOCATION_TYPES} from "~/composables/location_types.js";
 
 const props = defineProps({
   location_type: {
@@ -25,7 +25,7 @@ const isMapInitialized = ref(false);
 const isSatelliteView = ref(true);
 
 
-const location_type_full = computed(() => location_types.find(
+const location_type_full = computed(() => LOCATION_TYPES.find(
     loc => loc.id === props.location_type));
 
 const is_point = computed(() => location_type_full.value?.is_point);

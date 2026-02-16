@@ -6,7 +6,7 @@ import * as d3 from 'd3';
 import axios from "axios";
 import {status_filters} from "~/composables/filters.js";
 let request = axios.CancelToken.source();
-// import { useGeoStore } from "~/store/geo.js";
+import { useGeoNewStore } from "~/store/geo.js";
 
 const calculate_status = (status_control) => {
   return status_control.reduce((obj, st) => {
@@ -340,32 +340,6 @@ export const useMainStore = defineStore('main', {
     full_geo: {"state": {}, "municipality": {}},
     searchable_projects: [],
     target_project_id: null,
-    geometry_types: [
-      {
-        "type": "Polygon",
-        "collection": "polygons",
-        "source": "proyectos-poligonos",
-        "main_layer": "proyectos-poligonos-fill"
-      },
-      {
-        "type": "LineString",
-        "collection": "lines",
-        "source": "proyectos-lineas",
-        "main_layer": "proyectos-lineas"
-      },
-      {
-        "type": "MultiLineString",
-        "collection": "multiLineStrings",
-        "source": "proyectos-multilineas",
-        "main_layer": "proyectos-multilineas"
-      },
-      {
-        "type": "Point",
-        "collection": "points",
-        "source": "proyectos",
-        "main_layer": "unclustered-point"
-      },
-    ],
     activities: [],
     spend_groups: [],
     content_paragraphs: {},
@@ -400,11 +374,11 @@ export const useMainStore = defineStore('main', {
       return new Promise((resolve) => {
         $api.get('/catalogs/all/')
           .then(({data}) => {
-            // const geoStore = useGeoStore();
+            const geoNewStore = useGeoNewStore();
             // console.log("fetchCatalogs data", data)
             // this.extractivism_types = data.extractivism_type
             this.cats = data
-            // geoStore.setStates(data.state)
+            geoNewStore.$patch({ states: data.state })
             this.schemas = calculateSchemas(data)
             // console.log("schemas", this.schemas)
             this.all_nodes = calculateNewCats(data, this.schemas)
@@ -423,24 +397,6 @@ export const useMainStore = defineStore('main', {
       const { $api } = useNuxtApp()
       try {
         let response = await $api.get(`/${group}/${id}/`);
-        return response.data
-      } catch (error) {
-        console.error(error)
-        ;
-      }
-    },
-    async getGeo([group, id]) {
-      const { $api } = useNuxtApp()
-      if (this.full_geo[group][id])
-        return
-      this.full_geo[group][id] = []
-      // this.setHeader()
-      try {
-        let response = await $api.get(`space_time/${group}/${id}/`);
-        // console.log("getGeo", response.data)
-        // this.full_states[id] = response.data.municipalities
-        const child = group === 'state' ? 'municipalities' : 'localities'
-        this.full_geo[group][id] = response.data[child]
         return response.data
       } catch (error) {
         console.error(error)
@@ -637,7 +593,8 @@ export const useMainStore = defineStore('main', {
         let response = await $api.post(
           `/${coll_name}/${elem_id}/add_file/`, file_data,
           {headers: {'Content-Type': 'multipart/form-data'
-          }});
+          }}
+        );
         return response.data
       } catch (error) {
         console.error(error);
@@ -838,7 +795,10 @@ export const useMainStore = defineStore('main', {
       return event_types_dict
     },
     collections_summary(state) {
-      return state.schemas.collections.reduce((obj, coll) => {
+      if (!state.schemas.collections_dict){
+        return {}
+      }
+      return Object.values(state.schemas.collections_dict).reduce((obj, coll) => {
         obj[coll.snake_name] = {
           'value': coll.snake_name,
           'title': coll.name,
