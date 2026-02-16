@@ -4,6 +4,7 @@ import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
+import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 
@@ -17,6 +18,10 @@ const props = defineProps({
     default: false,
   },
   collection_data: Object,
+})
+
+const event_collection_data = computed(() => {
+  return schemas.value.collections_dict['event']
 })
 
 function build_participant(participant) {
@@ -91,6 +96,18 @@ const children_actors = computed(() => {
 
 const others_parents = computed(() => {
   return buildRelatedActors(props.full_main.others_parents_full)
+})
+
+const event_init_filters = computed(() => {
+  return {
+    actor: props.full_main.id,
+  }
+})
+
+const event_indirect_filters = computed(() => {
+  return {
+    indirect_actor: props.full_main.id,
+  }
 })
 
 </script>
@@ -168,6 +185,35 @@ const others_parents = computed(() => {
           </span>
         </template>
       </PanelsResult>
+    </v-card-text>
+  </v-card>
+  <v-card class="mb-4">
+    <v-card-text>
+      <CollectionDisplay
+        :parent_collection="event_collection_data"
+        :init_filters="event_init_filters"
+        :init_total_count="full_main.events_count"
+        direct_sheet
+      >
+        <template #title>
+          Eventos con participación directa
+          ({{ full_main.events_count }})
+        </template>
+      </CollectionDisplay>
+    </v-card-text>
+  </v-card>
+  <v-card class="mb-4">
+    <v-card-text>
+      <CollectionDisplay
+        :parent_collection="event_collection_data"
+        :init_filters="event_indirect_filters"
+        :init_total_count="full_main.events_count"
+        direct_sheet
+      >
+          <template #title>
+            Eventos con participación directa e indirecta
+          </template>
+      </CollectionDisplay>
     </v-card-text>
   </v-card>
 </template>

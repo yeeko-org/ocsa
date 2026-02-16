@@ -14,7 +14,7 @@ export function setupInteractions(map, buildFullProjectData) {
     anchor: 'top'
   });
 
-  GEOMETRY_TYPES.value.forEach(gt => {
+  GEOMETRY_TYPES.forEach(gt => {
     map.value.on('click', gt.main_layer, (e) => {
       console.log('Feature clicked:', e.features[0]);
       buildFullProjectData(e.features[0].properties);

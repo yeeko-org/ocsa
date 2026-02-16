@@ -31,7 +31,7 @@ const props = defineProps({
 const main_object = defineModel({type: Object, required: true})
 
 const collection_display = ref(null)
-const loaded = ref(false)
+const loading = ref(false)
 const dialog_add = ref(false)
 const main_action = ref("click")
 const level_dialog = ref(null)
@@ -39,8 +39,6 @@ const init_filters = ref(null)
 const init_in_edition = ref(null)
 
 defineExpose({ externalSetInitialData })
-
-const levels = ['group', 'type', 'subtype']
 
 const filter_node = computed(() => all_nodes.value[props.filter_group_name])
 const filter_group_data = computed(() => {
@@ -98,6 +96,7 @@ const subcategory_is_multiple = computed(() => {
   return false
 })
 
+const levels = ['group', 'type', 'subtype']
 const level_names = computed(() => {
   let done = false
   return levels.reduce((acc, level) => {
@@ -295,7 +294,7 @@ nextTick(() => {
     setInitialData()
   }, 100)
   setTimeout(() => {
-    loaded.value = false
+    loading.value = false
     setInitialData()
   }, 2500)
 })
@@ -304,7 +303,7 @@ function externalSetInitialData(){
 
   nextTick(() => {
     setTimeout(() => {
-      loaded.value = false
+      loading.value = false
       setInitialData()
     }, 1500)
   })
@@ -312,9 +311,9 @@ function externalSetInitialData(){
 }
 
 function setInitialData() {
-  if (loaded.value)
+  if (loading.value)
     return
-  loaded.value = true
+  loading.value = true
   if (props.is_filter)
     return
   const levels = level_final_names.value
@@ -384,7 +383,7 @@ function selectItem(item){
   // console.log("level_dialog", level_dialog.value)
   // console.log("level_names", level_names.value)
   // console.log("main_object", main_object.value)
-  const elem_id = item.id || item.key_nme
+  const elem_id = item.id || item.key_name
   Object.entries(level_names.value).forEach(([level, cat_name]) => {
     const [is_multiple, new_cat_name] = isLevelMultiple(level, cat_name)
     if (level === level_dialog.value)
@@ -396,7 +395,7 @@ function selectItem(item){
         ? []
         : null
   })
-  loaded.value = false
+  loading.value = false
   setInitialData()
   // console.log("main_object", main_object.value)
   // console.log("main_node", all_nodes.value[props.filter_group_name])
@@ -417,8 +416,8 @@ function changeSubtypeValue(value){
   // console.log("changeSubtypeValue", value)
   // emits('touched')
   if (filter_group_data.value?.open_search){
-    // console.log("loaded.value", loaded.value)
-    loaded.value = false
+    // console.log("loading.value", loading.value)
+    loading.value = false
     setInitialData()
   }
 }

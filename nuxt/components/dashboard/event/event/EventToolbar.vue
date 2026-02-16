@@ -98,6 +98,7 @@ const registered_actors = computed(() => {
             label="Participante"
             variant="outlined"
             :rules="[rules.required]"
+            max-width="400"
           >
             <template #item="{ item, props: {onClick, title, value} }">
               <v-list-item

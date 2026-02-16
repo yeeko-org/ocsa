@@ -51,7 +51,6 @@ const applyFilters = () => {
       v-else-if="filter_box.key_name"
       class="pr-3 pl-0 py-1 d-flex"
     >
-
       <SelectGroup
         v-model="final_filters"
         :filter_group_name="filter_box.key_name"
@@ -63,7 +62,6 @@ const applyFilters = () => {
     <template
       v-else-if="filter_box.component"
     >
-
       <TripleBooleanFilter
         v-if="filter_box.component === 'TripleBooleanFilter'"
         :final_filters="final_filters"

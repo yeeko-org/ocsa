@@ -3,6 +3,7 @@
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
 import {useMainStore} from "~/store/index.js";
+import SelectSubtype from "~/components/dashboard/common/select/SelectSubtype.vue";
 
 const mainStore = useMainStore()
 const { deleteOtherParents } = mainStore
@@ -67,24 +68,24 @@ function deleteExtraParents() {
     />
   </v-col>
   <v-col cols="12" class="d-flex pa-0">
-    <SelectGroup
+    <SelectSubtype
       v-model="full_main"
-      filter_group_name="belongs"
+      filter_collection_name="belong"
       main_collection_name="actor"
       field="belongs"
       :width="400"
       subtype_class="mr-2"
     />
-    <SelectGroup
+    <SelectSubtype
       v-model="full_main"
-      filter_group_name="indigenous_groups"
+      filter_collection_name="indigenous_group"
       main_collection_name="actor"
-      field="indigenous_group"
+      :width="400"
       subtype_class="mr-2"
     />
-    <SelectGroup
+    <SelectSubtype
       v-model="full_main"
-      filter_group_name="countries"
+      filter_collection_name="country"
       main_collection_name="actor"
       field="countries"
     />

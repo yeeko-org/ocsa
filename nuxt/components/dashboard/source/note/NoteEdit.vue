@@ -2,6 +2,7 @@
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
 import UserSelect from "~/components/dashboard/custom_filters/UserSelect.vue";
+import SelectSubtype from "~/components/dashboard/common/select/SelectSubtype.vue";
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
@@ -13,11 +14,19 @@ const emits = defineEmits(['item-saved'])
 
 <template>
   <div class="d-flex" style="width: 100%;">
-    <SelectGroup
+<!--    <SelectGroup-->
+<!--      v-model="full_main"-->
+<!--      filter_group_name="source_types"-->
+<!--      :width="160"-->
+<!--    />-->
+    <SelectSubtype
+      filter_collection_name="source"
+      main_collection_name="note"
       v-model="full_main"
-      filter_group_name="source_types"
+      field="source"
       :width="160"
     />
+
     <SelectDate
       :init_date="full_main.date"
       @update-date="full_main.date = $event"

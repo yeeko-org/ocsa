@@ -13,7 +13,8 @@ const events = ref([])
 // })
 const all_actors = computed(() => {
   return full_main.value.involvements.map(involvement => {
-    return {...involvement.participant_full}
+    const participant_full = involvement.participant_full
+    return {...participant_full.actor_full, ...participant_full}
   })
 })
 watch(

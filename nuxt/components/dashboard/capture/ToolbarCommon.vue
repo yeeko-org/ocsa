@@ -431,7 +431,6 @@ const color_child_card = computed(() => {
                     :forced_level="forced_level"
                     :required="required_full_category"
                   >
-<!--                    @touched="touched_index[index] = true"-->
                     <template #chip>
                       <slot
                         name="rows_init"

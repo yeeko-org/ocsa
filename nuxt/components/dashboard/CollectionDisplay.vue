@@ -303,6 +303,10 @@ function selectItem(item) {
         <v-spacer></v-spacer>
       </v-card-subtitle>
     </template>
+    <div class="text-h6">
+      <slot name="title">
+      </slot>
+    </div>
     <v-row class="mx-0" v-if="collection_data">
       <v-col cols="12" class="px-0" v-if="!simplified_filters">
         <v-chip-group

@@ -8,6 +8,7 @@ import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar
 import FilesToolbar from "~/components/dashboard/capture/FilesToolbar.vue";
 import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
 import {show_details} from "~/composables/fetch.js";
+import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 const mainStore = useMainStore()
 const dashboardStore = useDashboardStore()
 const { schemas } = storeToRefs(mainStore)
@@ -50,6 +51,10 @@ watch(props.full_main.locations, (newVal) => {
 
 const note_collection = computed(() => {
   return schemas.value.collections_dict['note']
+})
+
+const event_collection = computed(() => {
+  return schemas.value.collections_dict['event']
 })
 
 const actor_collection = computed(() => {
@@ -156,6 +161,18 @@ const children_projects = computed(() => {
   return buildRelatedProjects(props.full_main.children_projects_full)
 })
 
+const events_count = computed(() => {
+  return props.full_main.mentions.reduce((count, mention) => {
+    return count + mention.events.length
+  }, 0)
+})
+
+const event_init_filters = computed(() => {
+  return {
+    project: props.full_main.id,
+  }
+})
+
 </script>
 
 <template>
@@ -236,7 +253,16 @@ const children_projects = computed(() => {
   </v-card>
   <v-card class="my-3">
     <v-card-text>
-      Eventos registrados
+      <CollectionDisplay
+        :parent_collection="event_collection"
+        :init_filters="event_init_filters"
+        :init_total_count="events_count"
+        direct_sheet
+      >
+        <template #title>
+          Eventos registrados ({{ events_count }})
+        </template>
+      </CollectionDisplay>
     </v-card-text>
   </v-card>
   <v-card class="my-3">

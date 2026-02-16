@@ -1,3 +1,4 @@
+import colorMixin from "~/mixins/colorMixin.js";
 
 export const status_filters = {
   "status_register": {
@@ -35,6 +36,14 @@ export const status_filters = {
   }
 }
 
-// const group_filters = computed(() => {
-
+export function calculate_status(status_control) {
+  return status_control.reduce((obj, st) => {
+    st = colorMixin.methods.getComplementColor(st)
+    if (obj[st.group])
+      obj[st.group].push(st)
+    else
+      obj[st.group] = [st]
+    return obj
+  }, {})
+}
 

@@ -24,6 +24,18 @@ const involvement_count = computed(() => {
   return props.main.involvements.length
 })
 
+const involvements_names = computed(() => {
+  let actors = []
+  if (props.main.involvements){
+    props.main.involvements.forEach(involvement => {
+      const actor_full = involvement.participant_full?.actor_full
+      if (actor_full)
+        actors.push(actor_full.name)
+    })
+  }
+  return actors.join('<br>')
+})
+
 const event_subtype = computed(() => {
   return null
   // return event_subtypes.value.find(
@@ -81,6 +93,7 @@ const final_event_types = computed(() => {
         icon="supervised_user_circle"
         label="involucrado"
         label_plural="involucrados"
+        :tooltip_complement="involvements_names"
         color="teal"
         class="ml-2"
       />

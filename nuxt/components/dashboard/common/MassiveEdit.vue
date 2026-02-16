@@ -6,6 +6,7 @@ import { saveElement } from "~/composables/save_elements.js";
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from 'pinia'
+import SelectSubtype from "~/components/dashboard/common/select/SelectSubtype.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 
@@ -128,10 +129,17 @@ function sendMassiveEdit() {
             class="pr-3 pl-0 py-1 d-flex"
           >
             <SelectGroup
+              v-if="field.category_type"
               v-model="full_main"
               :filter_group_name="field.key_name"
               :category_group_value="field.category_group_value"
               :forced_level="field.forced_level || 'other'"
+            />
+            <SelectSubtype
+              v-else
+              v-model="full_main"
+              :filter_collection_name="field.category_subtype"
+              :main_collection="final_collection_data"
             />
           </div>
           <h5 v-else>{{field.title || field.name}}</h5>
