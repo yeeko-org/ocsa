@@ -22,13 +22,12 @@ class Dimension(models.Model):
         verbose_name_plural = 'Dimensiones de desplazamientos'
 
 
-class PopulationSize(CommentsMixin, models.Model):
+class PopulationSize(CommentsMixin):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     order = models.SmallIntegerField(default=5)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name

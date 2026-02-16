@@ -86,7 +86,7 @@ class Conflict(models.Model):
         verbose_name_plural = 'Conflictos Socioambientales'
 
 
-class Project(CommentsMixin, models.Model):
+class Project(CommentsMixin):
     proyecto_id_ref = models.IntegerField(blank=True, null=True)
     legacy_id_mp = models.IntegerField(blank=True, null=True)
     name = models.CharField(
@@ -117,7 +117,6 @@ class Project(CommentsMixin, models.Model):
     status_location = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True,
         related_name='project_location')
-    comments = models.TextField(blank=True, null=True)
     editors = models.ManyToManyField(
         User, blank=True, related_name='projects')
 

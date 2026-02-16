@@ -2,7 +2,7 @@
 from api.views.common_views import (
     OnlyByFilterMixin, BaseStatusViewSet, BaseGenericViewSet)
 from api.views.df.serializers import (
-    DisplacementSerializer, DisplacementListSerializer,
+    DisplacementListSerializer, DisplacementFullSerializer,
     DimensionSerializer, PopulationSizeSerializer,
     TemporalitySerializer)
 
@@ -20,7 +20,7 @@ class DisplacementFilter(OnlyByFilterMixin):
 
 class DisplacementViewSet(BaseStatusViewSet):
     queryset = Displacement.objects.all()
-    serializer_class = DisplacementSerializer
+    serializer_class = DisplacementFullSerializer
     filterset_class = DisplacementFilter
 
     def get_serializer_class(self):

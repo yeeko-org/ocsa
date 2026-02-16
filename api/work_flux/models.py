@@ -40,9 +40,8 @@ class StatusControl(models.Model):
         verbose_name_plural = "Status de control (TODOS)"
 
 
-class CommentsMixin:
+class CommentsMixin(models.Model):
     comments = models.TextField(blank=True, null=True)
-    save: Callable
 
     def add_comment(self, comment: str):
         if not comment:
@@ -53,3 +52,6 @@ class CommentsMixin:
         else:
             self.comments = comment
         self.save()
+
+    class Meta:
+        abstract = True

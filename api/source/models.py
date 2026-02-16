@@ -33,7 +33,7 @@ def clean_text(text):
     return cleaned_text
 
 
-class Note(CommentsMixin, models.Model):
+class Note(CommentsMixin):
     nota_id_ref = models.IntegerField(blank=True, null=True)
     title = models.CharField(max_length=255)
     subtitle = models.TextField(blank=True, null=True)
@@ -62,7 +62,6 @@ class Note(CommentsMixin, models.Model):
         User, blank=True, related_name='reviewers')
     status_register = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
     pre_mentions = models.JSONField(blank=True, null=True)
     frozen_pre_capture = models.BooleanField(default=False)
 
@@ -142,7 +141,7 @@ class NoteFile(models.Model):
         verbose_name_plural = 'Archivos de nota'
 
 
-class Mention(CommentsMixin, models.Model):
+class Mention(models.Model):
     note = models.ForeignKey(
         Note, on_delete=models.CASCADE, related_name='mentions')
     project = models.ForeignKey(

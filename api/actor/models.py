@@ -11,7 +11,7 @@ def default_list():
     return []
 
 
-class Actor(CommentsMixin, models.Model):
+class Actor(CommentsMixin):
     GEO_REACH_CHOICES = (
         ('local', 'Local'),
         ('regional', 'Regional'),
@@ -61,7 +61,6 @@ class Actor(CommentsMixin, models.Model):
         max_length=10, choices=SEX_CHOICES, blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
 
     capital_id_ref = models.IntegerField(blank=True, null=True)
 
