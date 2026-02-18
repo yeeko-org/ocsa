@@ -28,6 +28,12 @@ class EventType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)
+    purpose_defense = models.TextField(
+        blank=True, null=True,
+        verbose_name="Explicación del mecanismo legal de defensa")
+    purpose_spoliation = models.TextField(
+        blank=True, null=True,
+        verbose_name="Explicación del mecanismo legal de despojo")
     event_group = models.ForeignKey(EventGroup, on_delete=models.CASCADE)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)
@@ -65,6 +71,7 @@ class EventSubtype(models.Model):
 
 
 class Purpose(models.Model):
+    short_name = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
