@@ -3,6 +3,10 @@
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
+  col_order: {
+    type: Number,
+    default: 5,
+  }
 })
 const full_main = defineModel({type: Object, required: true})
 const capital_types = [
@@ -15,7 +19,7 @@ const capital_types = [
 </script>
 
 <template>
-  <v-col cols="12" class="pa-0 d-flex">
+  <v-col cols="12" class="pa-0 d-flex" :order="col_order">
     <v-checkbox
       v-model="full_main.is_collective"
       label="Es colectivo"

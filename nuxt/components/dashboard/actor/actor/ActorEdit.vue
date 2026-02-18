@@ -11,6 +11,10 @@ const { deleteOtherParents } = mainStore
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
+  col_order: {
+    type: Number,
+    default: 5,
+  }
 })
 const full_main = defineModel({type: Object, required: true})
 
@@ -39,7 +43,7 @@ function deleteExtraParents() {
 </script>
 
 <template>
-  <v-col cols="12" class="d-flex pa-0">
+  <v-col cols="12" class="d-flex pa-0" :order="col_order">
     <v-text-field
       v-model="full_main.alternative_names"
       label="Nombres alternativos"
@@ -47,7 +51,7 @@ function deleteExtraParents() {
       class="mb-2"
     />
   </v-col>
-  <v-col cols="12" md="6" class="d-flex pa-0">
+  <v-col cols="12" md="6" class="d-flex pa-0" :order="col_order">
     <SelectGroup
       v-model="full_main"
       filter_group_name="sectors"
@@ -55,7 +59,12 @@ function deleteExtraParents() {
       required
     />
   </v-col>
-  <v-col cols="12" md="6" class="d-flex py-0 pl-0 pr-3 mb-2">
+  <v-col
+    cols="12"
+    md="6"
+    class="d-flex py-0 pl-0 pr-3 mb-2"
+   :order="col_order"
+  >
     <CardCommon
       :full_main="full_main.parent_actor && full_main.parent_actor_full"
       collection_name="actor"
@@ -67,7 +76,11 @@ function deleteExtraParents() {
       @delete-item="full_main.parent_actor = null"
     />
   </v-col>
-  <v-col cols="12" class="d-flex pa-0">
+  <v-col
+    cols="12"
+    class="d-flex pa-0"
+   :order="col_order"
+  >
     <SelectSubtype
       v-model="full_main"
       filter_collection_name="belong"
@@ -90,7 +103,7 @@ function deleteExtraParents() {
       field="countries"
     />
   </v-col>
-  <v-col cols="12" class="d-flex pa-0">
+  <v-col cols="12" class="d-flex pa-0" :order="col_order">
     <v-alert
       v-if="errors.length > 0"
       type="error"
@@ -107,8 +120,6 @@ function deleteExtraParents() {
     >
       Eliminar 'padres extras'
     </v-btn>
-
-
   </v-col>
 </template>
 

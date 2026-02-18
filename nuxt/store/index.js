@@ -513,11 +513,7 @@ export const useMainStore = defineStore('main', {
         return {}
       return state.cats.event_group.find(eg => eg.name.toLowerCase().includes('violencia') )
     },
-    event_group_legal(state) {
-      if (!state.cats)
-        return {}
-      return state.cats.event_group.find(eg => eg.name.toLowerCase().includes('legal') )
-    },
+    // purpose
     displacement_event_types(state) {
       if (!state.cats)
         return []
@@ -540,7 +536,7 @@ export const useMainStore = defineStore('main', {
         return null
       return state.cats.discarded_reason.find(dr => dr.is_other)
     },
-    event_group_show_position(state) {
+    event_group_show_purpose(state) {
       if (!state.cats)
         return []
       let event_groups = state.cats.event_group.filter(eg => eg.show_position)

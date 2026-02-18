@@ -11,10 +11,7 @@ import _debounce from "lodash/debounce.js";
 import QuestionMark from "~/components/dashboard/common/utils/QuestionMark.vue";
 
 
-const {
-  schemas,
-  current_collection_data,
-} = storeToRefs(mainStore)
+const { current_collection_data } = storeToRefs(mainStore)
 const { fetchElements, cancelFetch, exportData } = mainStore
 
 const props = defineProps({
@@ -208,7 +205,7 @@ function initFilters() {
 
   if (props.is_mini) {
     if (props.init_filters?.q) {
-      console.log("current_filters", current_filters.value)
+      // console.log("current_filters", current_filters.value)
       visible_filters.value = current_filters.value.filter(
         f => f.key_name === 'states' || f.key_name === 'participant_types'
       )

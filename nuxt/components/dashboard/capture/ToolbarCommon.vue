@@ -33,7 +33,6 @@ const props = defineProps({
   second_level: Boolean,
   two_columns: Boolean,
   emit_add: Boolean,
-  partial_save: Boolean,
 
   hide_pre_buttons: Boolean,
   note_id: Number,

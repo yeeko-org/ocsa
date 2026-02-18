@@ -30,7 +30,7 @@ const locations = defineModel({type: Array, required: true})
     :note_id="note_id"
     :additional_fields="{'status_location': 'empty', 'type_location': 'point'}"
   >
-    <template #rows_init="{item}">
+    <template #rows_init="{item, index}">
       <div
         v-if="!second_level"
         class="d-flex align-start align-self-start"
@@ -44,7 +44,7 @@ const locations = defineModel({type: Array, required: true})
         class="d-flex justify-end"
       >
         <StatusDetail
-          :final_filters="item"
+          v-model="locations[index]"
           collection="location"
           :style="`max-width: ${second_level ? 250 : 280}px; min-width: 200px;`"
           hide_details
@@ -57,10 +57,12 @@ const locations = defineModel({type: Array, required: true})
       </div>
     </template>
     <template #rows="{item, index}">
-      <LocationEdit
-        v-model="locations[index]"
-        :second_level="second_level"
-      />
+      <v-row>
+        <LocationEdit
+          v-model="locations[index]"
+          :second_level="second_level"
+        />
+      </v-row>
     </template>
   </ToolbarCommon>
 

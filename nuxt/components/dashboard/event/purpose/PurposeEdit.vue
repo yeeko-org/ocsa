@@ -1,4 +1,4 @@
-<script setup >
+<script setup>
 
 const props = defineProps({
   is_massive_edit: Boolean,
@@ -9,16 +9,21 @@ const props = defineProps({
   }
 })
 const full_main = defineModel({type: Object, required: true})
+const emits = defineEmits(['item-saved'])
 </script>
 
 <template>
-  <v-col cols="12" class="d-flex pa-0" :order="col_order">
+  <v-col
+    cols="12"
+    class="d-flex pa-0"
+    :order="col_order"
+  >
     <v-text-field
-      v-model="full_main.flag_emoji"
-      label="Emoji del país"
+      v-model="full_main.short_name"
+      label="Nombre corto"
       variant="outlined"
-      class="mb-2 mr-3"
-      style="max-width: 250px;"
+      readonly
+      style="max-width: 340px;"
     />
   </v-col>
 </template>

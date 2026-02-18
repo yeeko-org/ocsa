@@ -1,5 +1,12 @@
 <script setup>
-
+const props = defineProps({
+  is_massive_edit: Boolean,
+  is_edit: Boolean,
+  col_order: {
+    type: Number,
+    default: 5,
+  }
+})
 const full_main = defineModel({type: Object, required: true})
 </script>
 

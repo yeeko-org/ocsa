@@ -4,10 +4,13 @@ import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
 
 import UserSelect from "~/components/dashboard/custom_filters/UserSelect.vue";
 
-
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
+  col_order: {
+    type: Number,
+    default: 5,
+  }
 })
 const full_main = defineModel({type: Object, required: true})
 
@@ -27,7 +30,7 @@ function changeConflict(conflict) {
 
 
 <template>
-  <v-col cols="12" md="6" class="pa-0 d-flex">
+  <v-col cols="12" md="6" class="pa-0 d-flex" :order="col_order">
     <v-text-field
       v-model="full_main.alternative_name"
       label="Nombres alternativos"
@@ -36,7 +39,7 @@ function changeConflict(conflict) {
       style="max-width: 460px;"
     />
   </v-col>
-  <v-col cols="12" md="6" class="pa-0 d-flex">
+  <v-col cols="12" md="6" class="pa-0 d-flex" :order="col_order">
     <CardCommon
       :full_main="full_main.conflict && full_main.conflict_full"
       collection_name="conflict"
@@ -48,7 +51,7 @@ function changeConflict(conflict) {
       @delete-item="full_main.conflict = null"
     />
   </v-col>
-  <v-col cols="12" md="8" class="pa-0 d-flex">
+  <v-col cols="12" md="8" class="pa-0 d-flex" :order="col_order">
     <SelectGroup
       v-model="full_main"
       filter_group_name="project_types"
@@ -56,14 +59,14 @@ function changeConflict(conflict) {
       required
     />
   </v-col>
-  <v-col cols="12" md="4" class="pa-0 d-flex">
+  <v-col cols="12" md="4" class="pa-0 d-flex" :order="col_order">
     <SelectGroup
       v-model="full_main"
       filter_group_name="status_projects"
       :width="300"
     />
   </v-col>
-  <v-col cols="12" md="6" class="pa-0 d-flex align-center">
+  <v-col cols="12" md="6" class="pa-0 d-flex align-center" :order="col_order">
     <v-card
       variant="outlined"
       class="mr-2 px-2 mb-2"
@@ -86,7 +89,7 @@ function changeConflict(conflict) {
       chips
     />
   </v-col>
-  <v-col cols="12" md="6" class="pa-0 d-flex mb-2">
+  <v-col cols="12" md="6" class="pa-0 d-flex mb-2" :order="col_order">
     <CardCommon
       :full_main="full_main.parent_project && full_main.parent_project_full"
       collection_name="project"

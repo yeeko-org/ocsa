@@ -47,7 +47,6 @@ const registered_actors = computed(() => {
     child_relation_name="event"
     field="events"
     two_columns
-    partial_save
     color="lime"
     required_field="event_type"
     required_full_category

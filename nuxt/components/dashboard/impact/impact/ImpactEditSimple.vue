@@ -17,11 +17,17 @@ watch(
 </script>
 
 <template>
-  <v-card class="mb-4 pa-0">
-    <ImpactToolbar
-      v-model="impacts"
-    />
-  </v-card>
+  <v-col
+    cols="12"
+    class="d-flex pa-0"
+    :order="col_order"
+  >
+    <v-card class="mb-4 pa-0">
+      <ImpactToolbar
+        v-model="impacts"
+      />
+    </v-card>
+  </v-col>
 </template>
 
 <style scoped>

@@ -6,6 +6,10 @@ import SelectSubtype from "~/components/dashboard/common/select/SelectSubtype.vu
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
+  col_order: {
+    type: Number,
+    default: 5,
+  }
 })
 const full_main = defineModel({type: Object, required: true})
 const emits = defineEmits(['item-saved'])
@@ -13,12 +17,17 @@ const emits = defineEmits(['item-saved'])
 </script>
 
 <template>
-  <div class="d-flex" style="width: 100%;">
+<!--  <div class="d-flex" style="width: 100%;">-->
 <!--    <SelectGroup-->
 <!--      v-model="full_main"-->
 <!--      filter_group_name="source_types"-->
 <!--      :width="160"-->
 <!--    />-->
+  <v-col
+    cols="12"
+    class="d-flex pa-0"
+    :order="col_order"
+  >
     <SelectSubtype
       filter_collection_name="source"
       main_collection_name="note"
@@ -50,13 +59,16 @@ const emits = defineEmits(['item-saved'])
       style="max-width: 200px;"
     >
     </v-text-field>
-  </div>
-  <div class="d-flex" style="width: 100%;">
+  </v-col>
+  <v-col
+    cols="12"
+    class="d-flex pa-0"
+    :order="col_order"
+  >
     <v-text-field
       v-model="full_main.author"
       label="Autor"
       variant="outlined"
-      class="ml-2"
       style="width: 240px;"
     >
     </v-text-field>
@@ -95,25 +107,31 @@ const emits = defineEmits(['item-saved'])
       multiple
       chips
     />
-  </div>
-  <v-text-field
-    v-model="full_main.link"
-    label="Enlace a la nota"
-    variant="outlined"
-    class="mr-2"
-    style="width: 600px;"
+  </v-col>
+  <v-col
+    cols="12"
+    class="d-flex pa-0"
+    :order="col_order"
   >
-    <template #append v-if="full_main.link">
-      <v-btn
-        color="accent"
-        variant="outlined"
-        icon="open_in_new"
-        :href="full_main.link"
-        target="_blank"
-        v-tooltip:bottom="'Abrir enlace'"
-      ></v-btn>
-    </template>
-  </v-text-field>
+    <v-text-field
+      v-model="full_main.link"
+      label="Enlace a la nota"
+      variant="outlined"
+      class="mr-2"
+      style="width: 600px;"
+    >
+      <template #append v-if="full_main.link">
+        <v-btn
+          color="accent"
+          variant="outlined"
+          icon="open_in_new"
+          :href="full_main.link"
+          target="_blank"
+          v-tooltip:bottom="'Abrir enlace'"
+        ></v-btn>
+      </template>
+    </v-text-field>
+  </v-col>
 </template>
 
 <style scoped>

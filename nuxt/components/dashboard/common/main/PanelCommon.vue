@@ -18,16 +18,11 @@ const props = defineProps({
 })
 
 const full_main = ref(null)
-const edit_component = shallowRef('')
-const edit_simple_component = shallowRef('')
+
 const route_key = computed(() => props.collection_data.app_label)
 const snake_name = computed(() => props.collection_data.snake_name)
+const edit_component = shallowRef('')
 const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
-const edit_simple_name = computed(() => `${props.collection_data.model_name}EditSimple`)
-
-const emits = defineEmits([
-    'finish-open', 'item-saved', 'item-deleted', 'select-item'])
-
 import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
   .then(module => {
     edit_component.value = module.default
@@ -38,6 +33,9 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_nam
     })
   })
 
+const edit_simple_component = shallowRef('')
+const edit_simple_name = computed(() => `${props.collection_data.model_name}EditSimple`)
+
 import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_simple_name.value}.vue`)
   .then(module => {
     edit_simple_component.value = module.default
@@ -46,6 +44,8 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_sim
     edit_simple_component.value = ''
   })
 
+const emits = defineEmits([
+    'finish-open', 'item-saved', 'item-deleted', 'select-item'])
 const opening = ref(false)
 
 const openMain = () => {
@@ -60,7 +60,7 @@ const openMain = () => {
     opening.value = false
     return
   }
-  const elem_id = props.main.id ? 'id' : 'key_name'
+  const elem_id = props.collection_data.pk
   getElement(props.collection_data, props.main[elem_id]).then((res) => {
     full_main.value = res
     emits('finish-open')
@@ -201,6 +201,7 @@ const saveOrder = (val) => {
             name="sheet"
             :full_main="full_main"
           >
+            Sheet genérico 3
           </slot>
         </v-sheet>
       </v-expansion-panel-text>

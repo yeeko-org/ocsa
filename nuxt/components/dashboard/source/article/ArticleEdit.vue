@@ -16,6 +16,10 @@ const { schemas, other_discarded_reason } = storeToRefs(mainStore)
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
+  col_order: {
+    type: Number,
+    default: 5,
+  }
 })
 const full_main = defineModel({type: Object, required: true})
 
@@ -110,6 +114,7 @@ const label_other_reason = computed(() => {
 <template>
   <v-col
     class="px-0 grow"
+   :order="col_order"
   >
     <v-textarea
       v-model="full_main.url"
@@ -148,6 +153,7 @@ const label_other_reason = computed(() => {
   <v-col
     class="d-flex px-0"
     style="min-width: 500px;"
+    :order="col_order"
   >
 
     <div class="d-flex flex-column ml-6 justify-center">
@@ -189,7 +195,6 @@ const label_other_reason = computed(() => {
           border
           divided
           color="grey-lighten-3"
-
           @update:model-value="changeSelected"
         >
           <v-btn
@@ -241,7 +246,12 @@ const label_other_reason = computed(() => {
       </v-btn>
     </v-card>
   </v-col>
-  <v-col v-if="full_main.note_full || note_full" cols="12" class="px-0">
+  <v-col
+    v-if="full_main.note_full || note_full"
+    cols="12"
+    class="px-0"
+    :order="col_order"
+  >
     <span class="text-subtitle-1 font-weight-bold">
       Nota en la que se menciona:
     </span>
@@ -256,6 +266,7 @@ const label_other_reason = computed(() => {
     v-if="full_main.qualifications && full_main.qualifications.length"
     cols="12"
     class="px-0"
+    :order="col_order"
   >
     Alternativas:
     <v-card
@@ -286,6 +297,7 @@ const label_other_reason = computed(() => {
     v-if="full_main.second_criteria"
     cols="12"
     class="px-0"
+    :order="col_order"
   >
     <ParagraphsProjectsContent
       :full_main="full_main"
@@ -293,7 +305,7 @@ const label_other_reason = computed(() => {
     />
   </v-col>
 
-  <v-col v-else cols="12" class="px-0">
+  <v-col v-else cols="12" class="px-0" :order="col_order">
     <ParagraphsContent
       :full_main="full_main"
       :sending_link="sending_link"

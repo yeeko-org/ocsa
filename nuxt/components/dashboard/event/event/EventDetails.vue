@@ -3,10 +3,11 @@
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
+import GenericSelect from "~/components/dashboard/common/select/GenericSelect.vue";
 const mainStore = useMainStore()
 
 const {
-  event_group_violence, event_group_show_position,
+  event_group_violence, event_group_show_purpose, cats
 } = storeToRefs(mainStore)
 
 const props = defineProps({
@@ -16,7 +17,21 @@ const props = defineProps({
     required: false,
   },
 })
+
 const full_main = defineModel({type: Object, required: true})
+
+const purpose_options = computed(() => {
+  const event_type_full = cats.value.event_type.find(
+      event_type => event_type.id === full_main.value.event_type) || {}
+  return cats.value.purpose.map(purpose => {
+    const field = `purpose_${purpose.short_name}`
+    const description = event_type_full[field] || purpose.description
+    return {
+      ...purpose,
+      description
+    }
+  })
+})
 
 </script>
 
@@ -68,13 +83,17 @@ const full_main = defineModel({type: Object, required: true})
       ></v-text-field>
     </div>
   </template>
-  <template v-if="event_group_show_position.includes(full_main.event_group)">
-    <div class="text-subtitle-1 mt-4" v-if="false">Intencionalidad:</div>
-    <div class="d-flex mr-8 mt-5">
-      <SelectGroup
+  <template v-if="event_group_show_purpose.includes(full_main.event_group)">
+    <div class="text-subtitle-1 mt-4 text-grey-darken-2">
+      Intencionalidad del mecanismo:
+    </div>
+    <div class="d-flex mr-8">
+      <GenericSelect
         v-model="full_main"
-        filter_group_name="purposes"
-        main_collection_name="event"
+        level_name="purpose"
+        :main_width="400"
+        :items="purpose_options"
+        required
       />
     </div>
   </template>

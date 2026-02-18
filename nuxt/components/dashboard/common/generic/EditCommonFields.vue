@@ -48,7 +48,11 @@ function saveStatus(new_status, status_group) {
   <v-card-text
     class="d-flex flex-wrap"
   >
-    <v-col cols="12" class="d-flex pa-0">
+    <v-col
+      cols="12"
+      class="d-flex pa-0"
+      order="1"
+    >
       <v-text-field
         v-if="final_collection_data.has.order"
         v-model="full_main.order"
@@ -72,7 +76,7 @@ function saveStatus(new_status, status_group) {
       <template v-if="final_collection_data.status_groups">
         <StatusDetail
           v-for="status_group in final_collection_data.status_groups"
-          :final_filters="full_main"
+          v-model="full_main"
           :collection="status_group"
           style="max-width: 300px;"
           density="default"
@@ -92,6 +96,7 @@ function saveStatus(new_status, status_group) {
       v-if="final_collection_data.has.icon || final_collection_data.has.color"
       cols="12"
       class="d-flex pa-0"
+      order="3"
     >
       <v-text-field
         v-if="final_collection_data.has.icon"
@@ -124,13 +129,14 @@ function saveStatus(new_status, status_group) {
       </v-text-field>
     </v-col>
     <slot name="edit">
-      EDICIÓN 2 (REVISAR PORQUE NO ES NORMAL)
+      EDICIÓN 2 (REVISAR SI APARECE PORQUE NO ES NORMAL)
     </slot>
     <v-col
       v-if="final_collection_data.has.description
         && final_collection_data.name_field !== 'description'"
       cols="12"
       class="d-flex pa-0"
+      order="7"
     >
       <v-textarea
         v-model="full_main.description"
@@ -144,10 +150,12 @@ function saveStatus(new_status, status_group) {
     <v-col
       cols="12"
       class="d-flex pa-0"
+      order="9"
     >
       <v-textarea
         v-if="final_collection_data.has.help_text"
         v-model="full_main.help_text"
+        class="mb-4"
         label="Texto visible de ayuda"
         variant="outlined"
         rows="2"

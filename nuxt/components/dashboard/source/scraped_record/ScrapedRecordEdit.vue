@@ -12,6 +12,10 @@ dayjs.extend(relativeTime)
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
+  col_order: {
+    type: Number,
+    default: 5,
+  }
 })
 const full_main = defineModel({type: Object, required: true})
 
@@ -57,7 +61,7 @@ function sendReprocess() {
 </script>
 
 <template>
-  <v-col cols="7" class="d-flex pa-0">
+  <v-col cols="7" class="d-flex pa-0" :order="col_order">
     <v-list>
       <v-list-item prepend-icon="calendar_today">
         <v-list-item-title class="_text-h6">
@@ -134,6 +138,7 @@ function sendReprocess() {
     v-if="full_main.articles_count > full_main.analyzed_count"
     cols="5"
     class="d-flex pa-0"
+   :order="col_order"
   >
     <div v-if="full_main.date_started">
 

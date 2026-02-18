@@ -254,11 +254,8 @@ function openDialog(is_add=true){
             >
               {{ item.raw.description }}
             </v-tooltip>
-
           </div>
-
         </template>
-
       </v-list-item>
     </template>
     <template #selection="{ item }" v-if="!is_multiple">

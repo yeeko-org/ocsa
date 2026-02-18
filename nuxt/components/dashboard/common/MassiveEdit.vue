@@ -115,7 +115,7 @@ function sendMassiveEdit() {
         >
           <StatusDetail
             v-if="field.collection"
-            :final_filters="full_main"
+            v-model="full_main"
             :collection="field.key_name"
             clearable
             hide-details

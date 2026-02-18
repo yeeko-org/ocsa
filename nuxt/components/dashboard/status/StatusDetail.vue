@@ -5,15 +5,10 @@ import {useAuthStore} from "~/store/auth.js";
 const authStore = useAuthStore()
 const mainStore = useMainStore()
 import {status_filters} from "~/composables/filters.js";
-// export default defineComponent({
-//   name: "StatusDetail"
-// })
-// const final_filters = ref({})
-// const collection = ref("status_location")
+
 const { is_staff } = storeToRefs(authStore);
 
 const props = defineProps({
-  final_filters: Object,
   collection: String,
   is_filter: Boolean,
   density: {
@@ -28,21 +23,11 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  // label: {
-  //   type: String,
-  //   default: "Status",
-  // },
-  // clearable: {
-  //   type: Boolean,
-  //   default: false,
-  // },
-  // hide_details: {
-  //   type: Boolean,
-  //   default: false,
-  // },
 })
 
-const { status, cats } = storeToRefs(mainStore)
+const final_filters = defineModel({type: Object, required: true})
+
+const { status } = storeToRefs(mainStore)
 
 const simple_name = computed(() => {
   return props.collection.replace('status_', '');
@@ -63,7 +48,7 @@ const field = computed(() => {
 })
 
 const status_selected = computed(() => {
-  const status_name = props.final_filters[field.value]
+  const status_name = final_filters.value[field.value]
   if (!status_name) return {open_editor: true}
   return items_built.value.find(item => item.name === status_name)
 })

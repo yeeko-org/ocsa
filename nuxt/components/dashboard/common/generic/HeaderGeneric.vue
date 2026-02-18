@@ -15,9 +15,6 @@ const props = defineProps({
     default: false,
   },
 })
-const project = computed(() => {
-  return props.main
-})
 
 </script>
 

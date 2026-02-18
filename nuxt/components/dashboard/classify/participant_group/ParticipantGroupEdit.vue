@@ -3,7 +3,10 @@
 const props = defineProps({
   is_massive_edit: Boolean,
   is_edit: Boolean,
-
+  col_order: {
+    type: Number,
+    default: 5,
+  }
 })
 const full_main = defineModel({type: Object, required: true})
 const rules = ref({
@@ -14,7 +17,7 @@ const rules = ref({
 </script>
 
 <template>
-  <v-col cols="12" class="d-flex pa-0">
+  <v-col cols="12" class="d-flex pa-0" :order="col_order">
     <v-text-field
       v-model="full_main.short_name"
       label="Nombre clave"

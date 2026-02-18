@@ -38,7 +38,7 @@ const applyFilters = () => {
 <!--      _v-if="filter_box.collection && filter_box.collection_group === 'status'"-->
     <StatusDetail
       v-if="filter_box.collection"
-      :final_filters="final_filters"
+      v-model="final_filters"
       :collection="filter_box.key_name"
       clearable
       hide-details

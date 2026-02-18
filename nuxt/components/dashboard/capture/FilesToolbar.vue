@@ -16,14 +16,11 @@ const props = defineProps({
   parent_id: Number,
   note_id: Number,
 })
+
 const files = defineModel({type: Array, required: true})
-// const ready_files = ref(0)
-const pdf = ref()
 const main_file = ref(null)
 const saving = ref(false)
 const show_img = ref(false)
-
-// const { pdf } = usePDF(/
 
 function uploadFile(e){
   let new_files = e.target.files || e.dataTransfer.files;
