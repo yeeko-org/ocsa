@@ -1,6 +1,5 @@
 import threading
 from api.views.common_views import BaseGenericViewSet
-from django.db import connection
 from django_filters import FilterSet, DateFilter
 from django.db.models import Count
 
@@ -150,7 +149,7 @@ class ScrapedRecordView(BaseGenericViewSet):
         from datetime import timedelta
 
         scraped_record = self.get_object()
-        source = scraped_record.source.id
+        # source = scraped_record.source.id
         dates = []
         fields = ['date_start', 'last_updated']
         for field in fields:
@@ -172,7 +171,7 @@ class ScrapedRecordView(BaseGenericViewSet):
 
         # last_update = min(scraped_record.date_end, scraped_record.last_update)
         if not scraped_record.date_end:
-            if scraped_record.date_start + timedelta(days=1) < time_now:
+            if scraped_record.date_start + timedelta(hours=3) > time_now:
                 return Response(
                     {"detail": "Cannot reprocess an ongoing scraped record."},
                     status=status.HTTP_400_BAD_REQUEST
