@@ -7,17 +7,20 @@ from source.base_models import (
     ActorBase, StatusHistoryBase, LocationFull, InterestFull,
     ParticipantFull, FinalActorFull)
 from source.criteria import BaseCriteriaManager
+from profile_auth.models import User
 
 
 class PreCaptureManager(BaseCriteriaManager):
 
     def __init__(
             self, recover_record: ScrapedRecord | None = None,
-            ai_engine: str | None = None, is_test: bool = False
+            ai_engine: str | None = None, is_test: bool = False,
+            user: User | None = None
     ) -> None:
         super().__init__(recover_record, ai_engine, is_test)
         self.prompt_name = "pre_capture"
         self.seconds_cache = 10
+        self.user = user
 
     def get_articles_objects(self) -> List[Article]:
         articles = Article.objects.filter(
@@ -121,7 +124,7 @@ class PreCaptureManager(BaseCriteriaManager):
             article.save()
         else:
             json_criteria = article.pre_capture
-        note: Note = article.create_note_from_article()
+        note: Note = article.create_note_from_article(self.user)
 
         full_pre_capture = NoteHydrated(root=json_criteria)
         # print("full_pre_capture\n", full_pre_capture.model_dump_json())

@@ -15,7 +15,6 @@ AUTH_USER_MODEL = "profile_auth.User"
 # Application definition
 
 INSTALLED_APPS = [
-    "ps_schema",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -26,6 +25,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "rest_framework.authtoken",
+
+    "ps_schema",
     "django_filters",
     "profile_auth",
     "ocsa_legacy",

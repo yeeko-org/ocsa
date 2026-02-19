@@ -122,7 +122,9 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             self.perform_update(serializer)
             note_saved = serializer.instance
-            if request.user.is_staff:
+            if not note_saved.editors.exists():
+                note_saved.editors.add(request.user)
+            elif request.user.is_staff:
                 note_saved.reviewers.add(request.user)
             else:
                 note_saved.editors.add(request.user)

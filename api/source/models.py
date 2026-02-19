@@ -40,8 +40,6 @@ class Note(CommentsMixin):
     old_id = models.IntegerField(blank=True, null=True)
     author = models.CharField(max_length=255, blank=True, null=True)
     slug_title = models.CharField(max_length=255, blank=True, null=True)
-    # En teoría, tendría que haber 2 fuentes, La Jornada y Reforma,
-    # pero sí hay más, pues hay que registrarlas, pero con is_news=False
     source = models.ForeignKey(
         Source, on_delete=models.CASCADE,
         verbose_name='Fuente de información', related_name='notes')
@@ -367,7 +365,7 @@ class Article(models.Model):
 
         return max(degrees) if degrees else 0
 
-    def create_note_from_article(self) -> Note:
+    def create_note_from_article(self, user:User = None) -> Note:
         if self.note:
             return self.note
         if self.pages:
@@ -389,6 +387,8 @@ class Article(models.Model):
             date=self.published_date,
             status_register_id="pre_captured",
         )
+        if user:
+            note.editors.add(user)
 
         file_url = get_url_file_reforma(self)
 

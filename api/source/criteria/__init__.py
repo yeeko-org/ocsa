@@ -6,6 +6,7 @@ from tqdm import tqdm
 from source.models import Article, ScrapedRecord, QualifySchema
 from utils.gemini_ai import RequestGemini
 from source.scraper.articles import CriteriaError
+from profile_auth.models import User
 
 
 class EnumEncoder(json.JSONEncoder):
@@ -24,6 +25,7 @@ class BaseCriteriaManager(ABC):
     classify_request: RequestGemini
     qualify_schema: QualifySchema | None
     prompt_name: str
+    user: User | None
 
     def __init__(
             self, recover_record: ScrapedRecord | None = None,

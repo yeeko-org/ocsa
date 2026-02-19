@@ -130,7 +130,8 @@ class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
             return Response(
                 ArticleStatusSerializer(article, context=context).data)
 
-        manager = PreCaptureManager(ai_engine="gemini-3-flash-preview")
+        manager = PreCaptureManager(
+            ai_engine="gemini-3-flash-preview", user=request.user)
         manager.build_direct_criteria(article)
 
         context["status"] = "selected"
