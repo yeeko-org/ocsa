@@ -2,28 +2,20 @@ from django.db import models
 # from space_time.models import Location
 from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
+from utils.mix_models import CatalogGroup, CatalogType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from space_time.models import Location
 
 
-class ExtractivismType(models.Model):
-    name = models.CharField(max_length=255)
+class ExtractivismType(CatalogGroup):
     short_name = models.CharField(max_length=100, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    help_text = models.TextField(blank=True, null=True)
     ai_name = models.CharField(
         max_length=255, blank=True, null=True,
         help_text='Nombre para IA, si es diferente al nombre')
-    icon = models.CharField(max_length=100, blank=True, null=True)
     icon_image = models.ImageField(
         upload_to='icons/', blank=True, null=True)
-    color = models.CharField(max_length=100, blank=True, null=True)
-    order = models.SmallIntegerField(default=5)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         ordering = ['order', 'name']
@@ -31,22 +23,11 @@ class ExtractivismType(models.Model):
         verbose_name_plural = 'Tipos de Extractivismo'
 
 
-class MegaprojectType(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
+class MegaprojectType(CatalogType):
     extractivism_types = models.ManyToManyField(
         ExtractivismType, blank=True, related_name='megaproject_types')
     has_many_dct = models.BooleanField(
         default=False, verbose_name='Difiere en Tipo de Extractivismo')
-    # common_affection_types = models.ManyToManyField(
-    #     'impact.AffectionType', blank=True)
-    status_validation = models.ForeignKey(
-        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
-    order = models.SmallIntegerField(default=10)
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         ordering = ['order']
@@ -54,16 +35,7 @@ class MegaprojectType(models.Model):
         verbose_name_plural = 'Tipos de Megaproyecto'
 
 
-class StatusProject(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    order = models.SmallIntegerField(default=5)
-    status_validation = models.ForeignKey(
-        StatusControl, on_delete=models.CASCADE, blank=True, null=True)
-    comments = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
+class StatusProject(CatalogType):
 
     class Meta:
         ordering = ["order", "name"]

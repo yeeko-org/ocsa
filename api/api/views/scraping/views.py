@@ -9,8 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from api.permissions import IsFullEditorOrReadOnly
-from api.views.article.source_serializers import ScrapedRecordSimpleSerializer, ScrapedRecordSerializer, \
-    ScrapingDateSerializer
+from api.views.article.source_serializers import (
+    ScrapedRecordSerializer, ScrapingDateSerializer)
 from source.models import ScrapedRecord, Article
 from source.scraper.jornada import JornadaManagerScraper
 from source.scraper.reforma import ReformaManagerScraper
@@ -72,9 +72,10 @@ class ScrapingDatesView(APIView):
         print(f"Scraping from {from_date} to {to_date} for source {source}")
 
         manager_scraper_class = get_manager_scraper_class(source)
-        print(f"Using scraper class: {manager_scraper_class.__name__}")
+        # print(f"Using scraper class: {manager_scraper_class.__name__}")
 
-        manager_scraper = manager_scraper_class(from_date, to_date or from_date)
+        manager_scraper = manager_scraper_class(
+            from_date, to_date or from_date, user=request.user)
 
         if manager_scraper.errors or manager_scraper.overlapping_dates:
             return Response({
@@ -86,7 +87,7 @@ class ScrapingDatesView(APIView):
         manager_scraper.record_articles()
 
         scraped_record = manager_scraper.scraped_record
-        scraped_data = ScrapedRecordSimpleSerializer(scraped_record).data
+        scraped_data = ScrapedRecordSerializer(scraped_record).data
         response_data = {
             "articles_count": Article.objects.filter(
                 scraped=scraped_record).count(),
@@ -102,8 +103,8 @@ class ScrapingDatesView(APIView):
 
 
 class ScrapedRecordFilter(FilterSet):
-    from_date = DateFilter(field_name='from_date', lookup_expr='gte')
-    to_date = DateFilter(field_name='to_date', lookup_expr='lte')
+    from_date = DateFilter(field_name='to_date', lookup_expr='gte')
+    to_date = DateFilter(field_name='from_date', lookup_expr='lte')
     class Meta:
         model = ScrapedRecord
         fields = {
@@ -131,16 +132,6 @@ class ScrapedRecordView(BaseGenericViewSet):
             return queryset
         # return queryset.filter(status=ScrapedRecord.STATUS_DONE)
         return queryset
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        serializer.instance.user = request.user
-        serializer.instance.save()
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=True, methods=["post"],
             permission_classes=[IsFullEditorOrReadOnly])

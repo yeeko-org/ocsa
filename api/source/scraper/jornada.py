@@ -5,6 +5,7 @@ from bs4.element import Tag
 from typing import List
 
 from source.models import ScrapedRecord, Source
+from profile_auth.models import User
 from source.scraper.articles import (
     ArticleScraper, MainScraper, ManagerScraper)
 from source.scraper.scraper_base import get_content, get_clean_text
@@ -14,11 +15,12 @@ class JornadaManagerScraper(ManagerScraper):
 
     def __init__(
             self, from_date: str | date | None, to_date: str | date | None,
-            recover_record: ScrapedRecord | None = None
+            recover_record: ScrapedRecord | None = None,
+            user:User | None = None
     ) -> None:
         super().__init__(
             from_date, to_date, JornadaMainScraper, JornadaArticleScraper,
-            recover_record=recover_record
+            recover_record=recover_record, user=user
         )
 
     def get_source(self) -> Source:

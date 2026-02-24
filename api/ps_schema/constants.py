@@ -265,7 +265,7 @@ all_collections = {
             ],
             "all_filters": [
                 {"filter_name": "participant_types", "hidden": False},
-                {"filter_name": "belongs", "hidden": False},
+                {"filter_name": "belongs", "hidden": True},
                 {"filter_name": "indigenous_groups", "hidden": True},
                 {"filter_name": "sectors", "hidden": False},
                 {"filter_name": "countries", "hidden": True},
@@ -609,6 +609,13 @@ filter_groups = [
         "category_type": "classify-sector_group",
         "category_subtype": "classify-sector",
         "addl_config": {"subtype_is_autocomplete": True, "open_search": True},
+    },
+    {
+        "key_name": "participants",
+        "name": "Participante en Proyecto",
+        "plural_name": "Participantes en Proyectos",
+        "main_collection": "actor-actor",
+        "category_subtype": "actor-participant",
     },
     {
         "key_name": "interest_types",

@@ -1,12 +1,11 @@
 from rest_framework import serializers
 
 from api.views.project.list_serializers import (
-    ImpactSerializer, ParticipantFullSerializer)
-from api.views.project.retrieve_serializers import ConflictSerializer
-from api.views.event.serializers import EventSerializer
+    ImpactSerializer)
 from api.views.common_serializers import (
     ConditionalFieldsMixin, MunicipalitySimpleSerializer,
-    LocalitySimpleSerializer)
+    LocalitySimpleSerializer, ParticipantSerializer,
+    ParticipantFullSerializer, ConflictSerializer)
 
 from project.models import Project, ProjectFile
 from source.models import Mention, Note, NoteFile, StatusHistory, Article
@@ -14,7 +13,7 @@ from event.models import Event, Involved
 from actor.models import Participant, Interest
 from impact.models import Impact
 from df.models import Displacement
-from space_time.models import Location, Municipality, Locality
+from space_time.models import Location
 
 
 # class ConditionalFieldsSerializerMixin:
@@ -57,6 +56,16 @@ class LocationSemiFullSerializer(ConditionalFieldsMixin):
             "id", "project", "state", "municipality", "municipality_full",
             "locality", "locality_full", "details",
             "type_location", "status_location"]
+
+
+class ProjectSimpleSerializer(ConditionalFieldsMixin):
+
+    class Meta:
+        model = Project
+        fields = [
+            'id', 'name', 'alternative_name', 'description',
+            'megaproject_type', 'is_grouper', 'parent_project',
+        ]
 
 
 class ProjectSerializer(ConditionalFieldsMixin):
@@ -130,7 +139,7 @@ class ImpactEmbedSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MentionSerializer(serializers.ModelSerializer):
+class MentionSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mention
@@ -188,6 +197,13 @@ class NoteSerializer(ConditionalFieldsMixin):
         exclude = ['pre_mentions', 'link', 'nota_id_ref']
 
 
+class NoteSimpleSerializer(ConditionalFieldsMixin):
+
+    class Meta:
+        model = Note
+        exclude = ['pre_mentions', 'link', 'nota_id_ref']
+
+
 class StatusHistoryFullSerializer(serializers.ModelSerializer):
     project_full = ProjectSerializer(
         source='mention.project', read_only=True)
@@ -206,7 +222,7 @@ class ImpactFullSerializer(ImpactEmbedSerializer):
         fields = '__all__'
 
 
-class EventFullNoteSerializer(EventEmbedSerializer, EventSerializer):
+class EventFullNoteSerializer(EventEmbedSerializer):
     note = NoteSerializer(source='mention.note', read_only=True)
     involvements = InvolvedFullSerializer(many=True, read_only=True)
     event_group = serializers.IntegerField(
@@ -260,3 +276,22 @@ class PreMentionSerializer(serializers.Serializer):
     discarded = serializers.BooleanField(required=True)
     element_id = serializers.IntegerField(required=False)
 
+
+
+class InvolvedEventFullSerializer(serializers.ModelSerializer):
+    event_full = EventSimpleSerializer(source='event', read_only=True)
+
+    class Meta:
+        model = Involved
+        fields = '__all__'
+
+
+class ParticipantMegaFullSerializer(ParticipantFullSerializer):
+    involvements = InvolvedEventFullSerializer(many=True, read_only=True)
+    note = NoteSerializer(source='mention.note', read_only=True)
+
+
+class ParticipantListFullSerializer(ParticipantFullSerializer):
+    involvements = InvolvedEventFullSerializer(many=True, read_only=True)
+    note = NoteSimpleSerializer(source='mention.note', read_only=True)
+    project = ProjectSimpleSerializer(source='mention.project', read_only=True)

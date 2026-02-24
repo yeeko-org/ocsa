@@ -23,8 +23,7 @@ from project.models import Conflict, Project, ProjectFile
 
 from .list_serializers import (
     ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
-    ProjectExportSerializer, ProjectMiniBasicSerializer, MentionSerializer,
-    LocationVizSerializer)
+    ProjectExportSerializer, ProjectMiniBasicSerializer, LocationVizSerializer)
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
 
@@ -180,14 +179,14 @@ class ProjectViewSet(
         #     "field": "conflict__description"
         # },
         {
-            "name": "Tipo de megaproyecto",
-            "width": 20,
-            "field": "megaproject_type__name"
-        },
-        {
             "name": "Tipos de extractivismo",
             "width": 25,
             "field": "extractivism_types"
+        },
+        {
+            "name": "Tipo de megaproyecto",
+            "width": 20,
+            "field": "megaproject_type__name"
         },
         {
             "name": "Status de validación",

@@ -161,7 +161,10 @@ class SourceViewSet(BaseStatusViewSet):
                                   'scraped_records__articles')
         return queryset
 
+
 class DiscardedReasonViewSet(BaseGenericViewSet):
+
     queryset = DiscardedReason.objects.all()
     serializer_class = DiscardedReasonSerializer
     permission_classes = [IsAdminOrReadOnly]
+

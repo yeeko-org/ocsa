@@ -13,9 +13,9 @@ else:
 
 
 class ExportXlsMixin(ModelViewSet):
-    action_add_file_param: str = ""
     # xls_name: str = "Export"
     xls_attrs: list = []
+    final_xls_attrs: list = []
     # add_locations = False
     additional_groups: list[str] = []
     extra_attrs: dict = {
@@ -119,7 +119,107 @@ class ExportXlsMixin(ModelViewSet):
                     "field": "conflict__name"
                 },
             ],
-        }
+        },
+        "actor": {
+            "attrs": [
+                {
+                    "name": "ID del Actor",
+                    "width": 5,
+                    "field": "id"
+                },
+                {
+                    "name": "Nombre del Actor",
+                    "width": 35,
+                    "field": "name"
+                },
+                {
+                    "name": "Nombres alternativos",
+                    "width": 25,
+                    "field": "alternative_names",
+                    "conditions": ["only_logged_in"]
+                },
+                {
+                    "name": "ID de actor agrupador",
+                    "width": 5,
+                    "field": "parent_actor__id"
+                },
+                {
+                    "name": "Nombre de actor agrupador",
+                    "width": 30,
+                    "field": "parent_actor__name"
+                },
+                {
+                    "name": "Sector",
+                    "width": 30,
+                    "field": "sector"
+                },
+                {
+                    "name": "Pertenencias (vulnerabilidades)",
+                    "width": 30,
+                    "field": "belongs"
+                },
+                {
+                    "name": "Grupo indígena",
+                    "width": 30,
+                    "field": "indigenous_group"
+                },
+                {
+                    "name": "Sexo",
+                    "width": 10,
+                    "field": "sex",
+                    "conditions": ["only_logged_in"]
+                },
+                {
+                    "name": "Paises origen",
+                    "width": 30,
+                    "field": "countries"
+                },
+            ],
+        },
+        "event": {
+            "attrs": [
+                {
+                    "name": "ID del evento",
+                    "width": 5,
+                    "field": "id"
+                },
+                {
+                    "name": "Grupo de evento",
+                    "width": 15,
+                    "field": "event_type__event_group"
+                },
+                {
+                    "name": "Tipo de evento",
+                    "width": 30,
+                    "field": "event_type__name"
+                },
+                {
+                    "name": "Descripción del evento",
+                    "width": 50,
+                    "field": "description"
+                },
+                {
+                    "name": "Mujeres víctimas",
+                    "width": 4,
+                    "field": "number_women"
+                },
+                {
+                    "name": "Hombres víctimas",
+                    "width": 4,
+                    "field": "number_men"
+                },
+                {
+                    "name": "Personas víctimas",
+                    "width": 4,
+                    "field": "number_mix"
+                },
+                {
+                    "name": "Intención del mecanismo",
+                    "width": 18,
+                    "field": "purpose"
+                },
+            ]
+        },
     }
     # location_attrs = extra_attrs['location']['attrs']
 
@@ -151,32 +251,42 @@ class ExportXlsMixin(ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def export_xls(self, request):
+        import json
         serializer = self.get_serializer(
             self.get_query_for_export_xls(), many=True)
 
         data = serializer.data
+        first_item = data[0] if data else None
+        serializer_name = serializer.__class__.__name__ if serializer else None
+        print("serializer_name", serializer_name)
+        if first_item:
+            print("first_item", json.dumps(first_item, indent=2))
         is_logged_in = request.user and request.user.is_authenticated
-        print("is_logged_in", is_logged_in)
+        # print("is_logged_in", is_logged_in)
 
-        name = getattr(self, 'xls_name', None)
+        name = getattr(self, 'xls_name', 'Exportación sin nombre')
         if not name:
             name = self.queryset.model._meta.verbose_name_plural
         xls_attrs = getattr(self, 'xls_attrs', [])
         for group in self.additional_groups:
             if group in self.extra_attrs:
                 xls_attrs += self.extra_attrs[group]['attrs']
-        final_xls_attrs = xls_attrs.copy()
+        # final_xls_attrs = xls_attrs.copy()
+        self.final_xls_attrs = []
         for xls_attr in xls_attrs:
-            conditions = xls_attr.get('conditions', [])
             add_to_final = True
-            for condition in conditions:
-                if condition == 'only_logged_in' and not is_logged_in:
-                    add_to_final = False
-            if not add_to_final:
-                final_xls_attrs.remove(xls_attr)
+            if conditions := xls_attr.get('conditions'):
+                for condition in conditions:
+                    if condition == 'only_logged_in' and not is_logged_in:
+                        add_to_final = False
+            if add_to_final:
+                self.add_final_xls_attr(xls_attr)
 
-        columns_width = [row.get('width', 20) for row in final_xls_attrs]
-        headers = [row.get('name', '') for row in final_xls_attrs]
+        # print("final_xls_attrs", self.final_xls_attrs)
+        columns_width = [
+            row.get('width', 20) for row in self.final_xls_attrs]
+        headers = [
+            row.get('name', '') for row in self.final_xls_attrs]
         # columns_width_pixel
         max_decimal = getattr(self, 'max_decimal', 2)
 
@@ -184,7 +294,7 @@ class ExportXlsMixin(ModelViewSet):
         for row in data:
             row_data = []
             # table_data.append([row.get(attr['field'], '') for attr in attrs])
-            for attr in final_xls_attrs:
+            for attr in self.final_xls_attrs:
                 field = attr.get('field', '')
                 if field:
                     value = row
@@ -225,3 +335,19 @@ class ExportXlsMixin(ModelViewSet):
 
         response.seek(0)
         return FileResponse(response, as_attachment=True, filename=f"{name}.xlsx")
+
+    def add_final_xls_attr(self, xls_attr):
+        if special_group := xls_attr.get('special_group'):
+            group_attrs = self.extra_attrs \
+                .get(special_group, { }) \
+                .get('attrs', [])
+            if preset := xls_attr.get('preset'):
+                final_group_attrs = []
+                for group_attr in group_attrs:
+                    group_attr['field'] = f"{preset}__{group_attr['field']}"
+                    final_group_attrs.append(group_attr)
+                self.final_xls_attrs.extend(final_group_attrs)
+            else:
+                self.final_xls_attrs.extend(group_attrs)
+        else:
+            self.final_xls_attrs.append(xls_attr)

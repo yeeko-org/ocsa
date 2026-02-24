@@ -4,6 +4,7 @@ from typing import Dict, List, Type
 from tqdm import tqdm
 from source.models import Article, ScrapedRecord, Source
 from source.scraper.scraper_base import MainScraper, ArticleScraper
+from profile_auth.models import User
 
 
 def date_in_date(date_: str | date) -> date:
@@ -74,6 +75,8 @@ class ManagerScraper(ABC):
             main_scraper_class: Type["MainScraper"],
             article_scraper_class: Type["ArticleScraper"],
             recover_record: ScrapedRecord | None = None,
+            user: User | None = None
+
     ) -> None:
         self.main_scraper_class = main_scraper_class
         self.article_scraper_class = article_scraper_class
@@ -92,7 +95,7 @@ class ManagerScraper(ABC):
 
         self.scraped_record = ScrapedRecord.objects.create(
             source=self.get_source(), from_date=date_in_date(from_date),
-            to_date=date_in_date(to_date))
+            to_date=date_in_date(to_date), user=user)
 
     def add_errors(self, errors: List[str]):
         if not self.scraped_record:

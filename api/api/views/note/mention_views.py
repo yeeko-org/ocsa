@@ -9,15 +9,20 @@ from api.views.action_export_xls import ExportXlsMixin
 
 from api.views.event import EventSerializer
 from api.views.note.serializers import (
-    MentionSerializer, MentionMegaFullSerializer,
+    MentionSimpleSerializer, MentionMegaFullSerializer,
     ParticipantSimpleSerializer, InterestSerializer,
-    InvolvedSerializer, StatusHistorySerializer, StatusHistoryFullSerializer)
+    InvolvedSerializer, StatusHistorySerializer, StatusHistoryFullSerializer,
+    ParticipantFullSerializer,
+    ParticipantMegaFullSerializer, ParticipantListFullSerializer)
+from api.views.actor.participant_export import (
+    ParticipantExportLoggedSerializer, ParticipantExportSerializer,
+    xlsx_participant_fields)
 from api.views.project.list_serializers import (
-    ImpactSerializer, ParticipantFullSerializer, ImpactSimpleSerializer)
+    ImpactSerializer, ImpactSimpleSerializer)
 from api.views.note.serializers import (
     ImpactFullSerializer, EventFullNoteSerializer)
 from api.views.event.serializers import (
-    EventExportSerializer, ImpactExportSerializer, EventMediumSerializer)
+    EventExportFullSerializer, ImpactExportSerializer, EventMediumSerializer)
 from api.views.common_views import MassiveEdit, ClickHistoryMixin
 from api.views.common_views import BaseGenericViewSet
 
@@ -30,7 +35,7 @@ from event.models import Involved, Event
 class MentionViewSet(ClickHistoryMixin, viewsets.ModelViewSet):
     queryset = Mention.objects.all()
 
-    serializer_class = MentionSerializer
+    serializer_class = MentionSimpleSerializer
 
 
     def get_serializer_class(self):
@@ -65,33 +70,72 @@ class MentionViewSet(ClickHistoryMixin, viewsets.ModelViewSet):
         return self.common(request, serializer)
 
 
-class ParticipantViewSet(ClickHistoryMixin, viewsets.ModelViewSet):
+class ParticipantFilter(FilterSet):
+
+    event_type = NumberFilter(
+        field_name='involvements__event__event_type',
+        lookup_expr='exact')
+    # indirect_event_type = NumberFilter(
+    #     field_name='mention__events__event_type',
+    #     lookup_expr='exact')
+
+    class Meta:
+        model = Participant
+        fields = {
+            # 'event_type': ['exact'],
+            # 'purpose': ['exact'],
+        }
+
+class ParticipantViewSet(
+    ClickHistoryMixin, ExportXlsMixin, BaseGenericViewSet):
     queryset = Participant.objects.all()
 
+    filterset_class = ParticipantFilter
     serializer_class = ParticipantFullSerializer
     is_mention_child = True
+    ordering = ['actor__name']
+    # additional_groups = ["actor", "mention"]
+    xls_attrs = xlsx_participant_fields
 
-    # def get_serializer_class(self):
-    #     action_serializer = {
-    #         'retrieve': ParticipantFullSerializer,
-    #         'create': ParticipantFullSerializer,
-    #         'update': ParticipantFullSerializer,
-    #         # 'export_xls': EventExportSerializer,
-    #     }
-    #     return action_serializer.get(self.action, self.serializer_class)
+    def get_serializer_class(self):
+        # user_object = self.request.user if self.request else None
+        is_authenticated = self.request.user.is_authenticated \
+            if self.request else False
+        export_serializer = ParticipantExportLoggedSerializer \
+            if is_authenticated else ParticipantExportSerializer
+        action_serializer = {
+            'export_xls': export_serializer,
+            'retrieve': ParticipantMegaFullSerializer,
+            'list': ParticipantListFullSerializer,
+        }
+        return action_serializer.get(self.action, self.serializer_class)
 
-    # def create(self, request, *args, **kwargs):
-    #
-    #     serializer_class = self.get_serializer_class()
-    #     serializer = serializer_class(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #
-    #         new_serializer = ParticipantFullSerializer(
-    #             serializer.instance)
-    #         return Response(
-    #             new_serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_query_for_export_xls(self):
+
+        queryset = self.get_queryset() \
+            .select_related(
+            'mention',
+            'mention__note',
+            'mention__note__source',
+            'mention__project',
+            'actor',
+            'actor__parent_actor',
+            'actor__sector',
+            'actor__sector__sector_group',
+            'actor__indigenous_group',
+        )\
+        .prefetch_related(
+            'interests',
+            'interests__interest_subtype',
+            'interests__interest_subtype__interest_type',
+            'interests__interest_subtype__interest_type__interest_group',
+            'actor__belongs',
+            'actor__countries',
+        ) \
+        .order_by('-id')\
+        .distinct()
+        return self.filter_queryset(queryset)[:100]
 
 
 class ImpactViewSet(
@@ -179,6 +223,31 @@ class InvolvedViewSet(viewsets.ModelViewSet):
     serializer_class = InvolvedSerializer
 
 
+    def get_query_for_export_xls(self):
+
+        queryset = self.get_queryset() \
+            .select_related(
+            'event',
+            'event__purpose',
+            'event__event_type',
+            'event__event_type__event_group',
+            'event__mention',
+            'event__mention__note',
+            'event__mention__note__source',
+            'event__mention__project',
+            'participant__actor',
+            'participant__actor__parent_actor',
+            'participant__actor__sector',
+            'participant__actor__sector__sector_group',
+            'participant__actor__indigenous_group',
+            'actor__belongs',
+            'actor__countries',
+        )\
+        .order_by('-id')\
+        .distinct()
+        return self.filter_queryset(queryset)[:100]
+
+
 class StatusHistoryViewSet(BaseStatusViewSet):
     filterset_fields = ['status_project']
     queryset = StatusHistory.objects.all()\
@@ -255,48 +324,17 @@ class EventViewSet(
     ordering = ['id']
 
     # add_locations = True
-    additional_groups = ["mention", "location"]
-    # xls_name = 'Eventos'
+    # additional_groups = ["mention", "location"]
+    xls_name = 'Eventos'
     xls_attrs = [
         {
-            "name": "ID",
-            "width": 5,
-            "field": "id"
+            "special_group": "event",
         },
         {
-            "name": "Descripción del evento",
-            "width": 50,
-            "field": "description"
+            "special_group": "mention",
         },
         {
-            "name": "Mujeres víctimas",
-            "width": 4,
-            "field": "number_women"
-        },
-        {
-            "name": "Hombres víctimas",
-            "width": 4,
-            "field": "number_men"
-        },
-        {
-            "name": "Personas víctimas",
-            "width": 4,
-            "field": "number_mix"
-        },
-        {
-            "name": "Grupo de evento",
-            "width": 15,
-            "field": "event_type__event_group"
-        },
-        {
-            "name": "Tipo de evento",
-            "width": 30,
-            "field": "event_type__name"
-        },
-        {
-            "name": "Intención del mecanismo",
-            "width": 18,
-            "field": "purpose"
+            "special_group": "location",
         },
     ]
 
@@ -305,7 +343,7 @@ class EventViewSet(
             'retrieve': EventFullNoteSerializer,
             'create': EventMediumSerializer,
             'update': EventMediumSerializer,
-            'export_xls': EventExportSerializer,
+            'export_xls': EventExportFullSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 

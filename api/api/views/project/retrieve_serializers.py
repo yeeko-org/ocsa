@@ -2,21 +2,15 @@ from rest_framework import serializers
 
 from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.project.list_serializers import (
-    MentionSerializer, ParticipantFullSerializer,
-    ProjectBasicSerializer, ProjectMiniSerializer)
+    MentionSerializer, ProjectBasicSerializer, ProjectMiniSerializer)
+from api.views.note.serializers import ParticipantFullSerializer
 from project.models import (
-    Conflict, ExtractivismType, MegaprojectType, Project, ProjectFile)
+    ExtractivismType, MegaprojectType, Project, ProjectFile)
 from source.models import Note, Mention
 from space_time.models import Location
 from api.views.common_serializers import (
-    ConditionalFieldsMixin, MunicipalitySimpleSerializer,
-    LocalitySimpleSerializer)
-
-
-class ConflictSerializer(ConditionalFieldsMixin):
-    class Meta:
-        model = Conflict
-        fields = '__all__'
+    MunicipalitySimpleSerializer,
+    LocalitySimpleSerializer, ConflictSerializer)
 
 
 class ExtractivismTypeSerializer(serializers.ModelSerializer):

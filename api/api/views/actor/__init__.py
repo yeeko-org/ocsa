@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions
 from api.permissions import IsFullEditorOrReadOnly, DynamicCatalogPermission
+from api.views.action_export_xls import ExportXlsMixin
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -17,6 +18,8 @@ from api.views.actor.serializers import (
     ActorBaseSerializer, ActorMiniSerializer, ActorCreateSerializer,
     ActorEditeSerializer, ActorFullSerializer, ActorMiniBaseSerializer
 )
+from api.views.actor.actor_export import (
+    ActorFullExportSerializer, xlsx_actor_fields)
 from api.views.common_views import UnaccentSearchFilter
 
 
@@ -35,6 +38,12 @@ class ActorFilter(FilterSet):
     participant_group = NumberFilter(
         field_name='participants__participant_types__participant_group',
         lookup_expr='exact')
+    event_type = NumberFilter(
+        field_name='participants__involvements__event__event_type',
+        lookup_expr='exact')
+    indirect_event_type = NumberFilter(
+        field_name='participants__mention__events__event_type',
+        lookup_expr='exact')
     belong = CharFilter(field_name='belongs', lookup_expr='exact')
     country = NumberFilter(field_name='countries', lookup_expr='exact')
 
@@ -49,7 +58,7 @@ class ActorFilter(FilterSet):
         }
 
 
-class ActorViewMixin(viewsets.GenericViewSet):
+class ActorViewMixin(viewsets.ModelViewSet):
 
     request: Request
     massive_fields = ["sector_id", "status_validation", "parent_actor_id"]
@@ -130,9 +139,11 @@ class ActorViewMixin(viewsets.GenericViewSet):
         return Response(list_serializer.data)
 
 
-class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
+class ActorViewSet(ExportXlsMixin, ActorViewMixin):
 
     serializer_class = ActorBaseSerializer
+    xls_name = "Exportación de Actores"
+    xls_attrs = xlsx_actor_fields
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -145,6 +156,26 @@ class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
 
         return queryset
 
+
+    def get_query_for_export_xls(self):
+        queryset = Actor.objects.all() \
+            .select_related(
+            'parent_actor',
+            'status_validation',
+            'sector',
+            'sector__sector_group',
+            'indigenous_group',
+        ) \
+            .prefetch_related(
+            'participants__mention__note',
+            'belongs',
+            'countries',
+        ) \
+            .distinct()
+
+        return self.filter_queryset(queryset)
+
+
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': ActorFullSerializer,
@@ -152,6 +183,7 @@ class ActorViewSet(ActorViewMixin, viewsets.ModelViewSet):
             'update': ActorFullSerializer,
             'massive_changes': MassiveChangeSerializer,
             'merge': FromToModelSerializer,
+            'export_xls': ActorFullExportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
 

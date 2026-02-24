@@ -33,6 +33,7 @@ import requests
 from django.conf import settings
 
 from source.models import ScrapedRecord, Source
+from profile_auth.models import User
 from source.scraper.articles import ArticleScraper, MainScraper, ManagerScraper
 from source.scraper.scraper_base import get_json_content
 
@@ -382,6 +383,7 @@ class ProcesoManagerScraper(ManagerScraper):
         from_date: str | date | None,
         to_date: str | date | None,
         recover_record: ScrapedRecord | None = None,
+        user: User | None = None,
     ) -> None:
         # Habilitar auto-cleanup de sesiones de PressReader
         enable_auto_cleanup()
@@ -392,6 +394,7 @@ class ProcesoManagerScraper(ManagerScraper):
             main_scraper_class=ProcesoMainScraper,
             article_scraper_class=ProcesoArticleScraper,
             recover_record=recover_record,
+            user=user,
         )
 
     def get_source(self) -> Source:

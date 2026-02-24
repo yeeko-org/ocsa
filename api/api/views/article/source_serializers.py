@@ -122,7 +122,7 @@ class ScrapedRecordSerializer(ScrapedRecordSimpleSerializer):
 
 class SourceFullSerializer(serializers.ModelSerializer):
     notes_count = serializers.ReadOnlyField()
-    scraped_records = ScrapedRecordSimpleSerializer(many=True, read_only=True)
+    # scraped_records = ScrapedRecordSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Source

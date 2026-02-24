@@ -1,51 +1,13 @@
 from rest_framework import serializers
 
-from actor.models import Actor, Participant, Interest
+from actor.models import Interest
 from impact.models import Impact
 from project.models import Project, Conflict, MegaprojectType
 from space_time.models import Location
 from source.models import Mention
-from api.views.common_serializers import BaseExportSerializer
-from event.models import Event
+from api.views.common_serializers import (
+    LocationBaseExportSerializer, NoteDatesSerializer, ParticipantSerializer, EventSerializer)
 from api.views.common_serializers import ConditionalFieldsMixin
-
-
-class ActorBasicSerializer(ConditionalFieldsMixin):
-    participants_count = serializers.SerializerMethodField()
-
-    def get_participants_count(self, obj):
-        return 9999
-
-    class Meta:
-        model = Actor
-        # exclude = ['std_name', 'capital_id_ref']
-        fields = [
-            'id',
-            'name',
-            'participants_count',
-        ]
-
-
-class ActorFullSerializer(ActorBasicSerializer):
-
-    class Meta:
-        model = Actor
-        fields = [
-            'id',
-            'name',
-            'participants_count',
-            'comments',
-            'sector',
-            'belongs',
-            'status_validation',
-        ]
-
-
-class InterestFullSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Interest
-        fields = '__all__'
 
 
 class InterestSerializer(serializers.ModelSerializer):
@@ -53,23 +15,6 @@ class InterestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Interest
         fields = ['id', 'interest_type', 'interest_subtype', 'participant']
-
-
-class ParticipantSerializer(serializers.ModelSerializer):
-    actor_full = ActorBasicSerializer(source='actor')
-
-    class Meta:
-        model = Participant
-        fields = "__all__"
-
-
-class ParticipantFullSerializer(serializers.ModelSerializer):
-    actor_full = ActorFullSerializer(source='actor', read_only=True)
-    interests = InterestFullSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Participant
-        fields = "__all__"
 
 
 class ImpactSimpleSerializer(serializers.ModelSerializer):
@@ -84,13 +29,6 @@ class ImpactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Impact
         fields = '__all__'
-
-
-class EventSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Event
-        fields = ['event_type', 'description', 'purpose']
 
 
 class MentionSerializer(serializers.ModelSerializer):
@@ -193,26 +131,14 @@ class ExtractivismTypesSerializer(serializers.RelatedField):
         return ", ".join(value.extractivism_types.values_list('name', flat=True))
 
 
-class NoteDatesSerializer(serializers.RelatedField):
-
-    def to_representation(self, value):
-        return value.note.date.strftime("%d-%m-%Y")
-
-
 class MegaprojectTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MegaprojectType
         fields = "__all__"
 
 
-class ProjectExportSerializer(BaseExportSerializer):
+class ProjectExportSerializer(LocationBaseExportSerializer):
     conflict = ConflictSimpleSerializer()
-    # conflict__id = serializers.ReadOnlyField(source='conflict.id')
-    # conflict__name = serializers.ReadOnlyField(source='conflict.name')
-    # conflict__description = serializers.ReadOnlyField(
-    #     source='conflict.description')
-    # megaproject_type__name = serializers.ReadOnlyField(
-    #     source='megaproject_type.name')
     megaproject_type = MegaprojectTypeSerializer()
     extractivism_types = ExtractivismTypesSerializer(
         source='megaproject_type', read_only=True)

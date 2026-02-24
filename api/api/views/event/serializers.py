@@ -3,20 +3,11 @@ from event.models import Event, Involved, EventType
 
 from api.views.actor.serializers import MentionBaseSerializer
 from api.views.common_serializers import (
-    BaseExportSerializer, ConditionalFieldsMixin)
+    LocationBaseExportSerializer, ConditionalFieldsMixin, ParticipantFullSerializer)
 from project.models import Conflict
 from impact.models import ImpactType, Impact
 from space_time.models import Location
 from df.models import Displacement
-from actor.models import Participant
-from api.views.project.list_serializers import ActorFullSerializer
-
-
-class ParticipantFullSerializer(serializers.ModelSerializer):
-    actor_full = ActorFullSerializer(read_only=True, source='actor')
-    class Meta:
-        model = Participant
-        fields = '__all__'
 
 
 class InvolvedSerializer(serializers.ModelSerializer):
@@ -90,14 +81,30 @@ class ConflictSimpleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class EventExportSerializer(BaseExportSerializer):
-    mention = MentionBaseSerializer()
-
-    conflict = ConflictSimpleSerializer(
-        source='mention.project.conflict', read_only=True)
+class EventExportSerializer(serializers.ModelSerializer):
     event_type = EventTypeSerializer()
     purpose = serializers.CharField(
         source='purpose.name', read_only=True)
+
+    class Meta:
+        model = Event
+        fields = [
+            'id',
+            'date',
+            'description',
+            'number_women',
+            'number_men',
+            'number_mix',
+            'event_type',
+            'purpose',
+        ]
+        read_only_fields = fields
+
+
+class EventExportFullSerializer(LocationBaseExportSerializer):
+    mention = MentionBaseSerializer()
+    conflict = ConflictSimpleSerializer(
+        source='mention.project.conflict', read_only=True)
 
     class Meta:
         model = Event
@@ -127,7 +134,7 @@ class EventExportSerializer(BaseExportSerializer):
         read_only_fields = fields
 
 
-class ImpactExportSerializer(BaseExportSerializer):
+class ImpactExportSerializer(LocationBaseExportSerializer):
     mention = MentionBaseSerializer()
 
     conflict = ConflictSimpleSerializer(

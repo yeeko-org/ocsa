@@ -141,9 +141,6 @@ class Participant(models.Model):
 class Interest(models.Model):
     participant = models.ForeignKey(
         Participant, on_delete=models.CASCADE, related_name='interests')
-    interest_type = models.ForeignKey(
-        ParticipantType, on_delete=models.CASCADE, blank=True, null=True,
-        related_name='interests')
     interest_subtype = models.ForeignKey(
         InterestSubtype, on_delete=models.CASCADE, blank=True, null=True,
         related_name='interests')

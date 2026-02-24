@@ -12,7 +12,7 @@ from source.models import Note, NoteFile
 from api.pagination import CustomPagination
 from api.views.note.serializers import (
     NoteSerializer, NoteCreateSerializer, NoteFullSerializer,
-    NoteFileSerializer, MentionSerializer, PreMentionSerializer)
+    NoteFileSerializer, PreMentionSerializer)
 from api.views.common_views import (
     UnaccentSearchFilter, OrderingAutoFilter, ClickHistoryMixin)
 

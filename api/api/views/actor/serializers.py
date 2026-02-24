@@ -9,7 +9,9 @@ from space_time.models import Location
 class ProjectBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = '__all__'
+        fields = [
+            'id', 'name', 'parent_project', 'alternative_name',
+            'conflict', 'megaproject_type']
 
 
 class NoteBasicSerializer(serializers.ModelSerializer):
