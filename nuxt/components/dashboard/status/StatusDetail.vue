@@ -80,7 +80,7 @@ const emits = defineEmits(['change-status'])
         :title="title"
         :subtitle="item.raw.description"
         :value="value"
-        :disabled="!is_filter && !is_staff && !item.raw.open_editor"
+        :disabled="!is_filter && !is_staff && !item.raw.open_selectable"
       >
         <template v-slot:prepend>
           <v-icon

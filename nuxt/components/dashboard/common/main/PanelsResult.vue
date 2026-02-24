@@ -176,6 +176,7 @@ function mergeItems(res_main) {
 }
 
 function massiveFinish(){
+  sel.value.selected_elems = []
   closeDialog()
   emits('update-page-number', 1)
 }
