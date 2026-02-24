@@ -1,13 +1,14 @@
 <script setup>
 import PanelList from "~/components/dashboard/common/main/PanelList.vue";
-import {useMainStore} from "~/store/index.js";
-import {storeToRefs} from "pinia";
+import { useMainStore } from "~/store/index.js";
+import { storeToRefs } from "pinia";
 import CalendarDisplay from "~/components/dashboard/source/CalendarDisplay.vue";
 import SelectDate from "~/components/dashboard/common/select/SelectDate.vue";
+import dayjs from 'dayjs'
+
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
-const { saveSimple } = mainStore
-import dayjs from 'dayjs'
+const { saveSimple, getSimple, fetchElements } = mainStore
 
 const props = defineProps({
   full_main: {
@@ -23,7 +24,6 @@ const props = defineProps({
 const loading = ref(false)
 const result_articles = ref([])
 const recordForm = ref(null)
-const months_ago = ref(30)
 const errors = ref(null)
 
 const new_record = ref({
@@ -32,20 +32,46 @@ const new_record = ref({
   to_date: null,
 })
 
-const note_collection = computed(() => {
-  return schemas.value.collections_dict['note']
-})
+const selected_year = ref(null)
+const year_scraped_records = ref([])
+const loading_year = ref(false)
+
 const scraped_record_collection = computed(() => {
   return schemas.value.collections_dict['scraped_record']
 })
 
-const scraped_records = computed(() => {
-  const source_full = {'id': props.full_main.id, 'name': props.full_main.name}
-  return props.full_main.scraped_records.map(scraped_record => {
-    scraped_record.source_full = source_full
-    return scraped_record
-  })
+const years = computed(() => {
+  const first_year = 2020
+  const current_year = dayjs().year()
+  const result = []
+  for (let y = first_year; y <= current_year; y++) {
+    result.push(y)
+  }
+  return result
 })
+
+const year_scraped_records_with_source = computed(() => {
+  const source_full = { id: props.full_main.id, name: props.full_main.name }
+  return year_scraped_records.value.map(scraped_record => ({
+    ...scraped_record,
+    source_full,
+  }))
+})
+
+async function selectYear(year) {
+  selected_year.value = year
+  loading_year.value = true
+  year_scraped_records.value = []
+  const result = await fetchElements(['scraped_record', {
+    from_date: `${year}-01-01`,
+    to_date: `${year}-12-31`,
+    source: props.full_main.id,
+  }])
+  year_scraped_records.value = result.results || []
+  loading_year.value = false
+}
+
+const new_scraped_records = ref([])
 
 async function saveScrapedRecord() {
   const { valid } = await recordForm.value.validate()
@@ -61,7 +87,7 @@ async function saveScrapedRecord() {
   }
   saveSimple(['scraped_date', data]).then(response => {
     // console.log("response saveScrapedRecord", response)
-    if (response.errors) {
+    if (response.errors?.length > 0) {
       loading.value = false
       errors.value = response.errors
       return
@@ -69,26 +95,31 @@ async function saveScrapedRecord() {
     loading.value = false
     new_record.value.from_date = null
     new_record.value.to_date = null
-    props.full_main.scraped_records.push(response.scraped_record)
+    new_scraped_records.value.push(response.scraped_record)
   })
+}
+
+const loading_new_records = ref(false)
+async function reloadNewScrapedRecords() {
+  loading_new_records.value = true
+  const responses = await Promise.all(
+    new_scraped_records.value.map(scraped_record => {
+      return getSimple(['scraped_record', scraped_record.id])
+    })
+  )
+  // console.log("responses", responses)
+  loading_new_records.value = false
 }
 
 function updateDate(date, field) {
   if (field === 'from_date') {
     new_record.value.from_date = date
-    // if (!new_record.value.to_date) {
-    //   // add 30 days to from_date
-    //   let after_30_days = dayjs(date).add(30, 'day').toDate()
-    //   after_30_days = dayjs(after_30_days).format('YYYY-MM-DD')
-    //   new_record.value.to_date = after_30_days
-    // }
   } else if (field === 'to_date') {
     new_record.value.to_date = date
   }
 }
 
 function selectDay(day) {
-  // console.log("selectDay", day)
   if (new_record.value.from_date && new_record.value.to_date) {
     new_record.value.from_date = day.full_day
     new_record.value.to_date = null
@@ -99,8 +130,6 @@ function selectDay(day) {
     new_record.value.from_date = day.full_day
     new_record.value.to_date = null
   }
-  // if (!day.limit)
-  //   return
 }
 
 
@@ -109,27 +138,29 @@ function selectDay(day) {
 <template>
   <v-card class="mb-4 pa-3">
     <div class="d-flex align-end justify-start mb-4">
-      <v-card
-        class="align-center pl-3 d-flex"
-        variant="flat"
-        style="width: 240px;"
-      >
-        <v-text-field
-          v-model="months_ago"
-          label="Meses atrás"
-          variant="outlined"
-          class="mt-2"
-          density="compact"
-          style="max-width: 120px;"
-          type="number"
-          hide-details
-        >
-        </v-text-field>
-      </v-card>
+      <div>
+        <v-card-subtitle>
+          Selecciona un año para ver los periodos extraídos de noticias:
+        </v-card-subtitle>
+        <div class="d-flex flex-wrap align-center">
+          <v-btn
+            v-for="year in years"
+            :key="year"
+            :color="selected_year === year ? 'primary' : 'default'"
+            variant="outlined"
+
+            class="mr-1 mb-1"
+            :loading="loading_year && selected_year === year"
+            @click="selectYear(year)"
+          >
+            {{ year }}
+          </v-btn>
+        </div>
+      </div>
       <v-spacer></v-spacer>
       <v-card
         class="ml-4 pa-2"
-        style="width: 600px;"
+        style="width: 560px;"
         color="grey-lighten-3"
       >
         Periodos extraídos de noticias:
@@ -155,10 +186,11 @@ function selectDay(day) {
               required
               clearable
             />
-            <v-spacer></v-spacer>
+
             <v-btn
               color="accent"
               variant="elevated"
+              class="ml-4"
               @click="saveScrapedRecord()"
               :loading="loading"
             >
@@ -181,31 +213,54 @@ function selectDay(day) {
       {{errors}}
     </v-alert>
     <CalendarDisplay
-      :scraped_records="full_main.scraped_records"
+      v-if="selected_year"
+      :scraped_records="year_scraped_records"
       :new_record="new_record"
-      :months_ago="months_ago"
+      :year="selected_year"
       @select-day="selectDay($event)"
     />
-    <v-card-title
-      v-if="full_main.scraped_records?.length"
-      class="px-0 mt-2"
+    <template
+      v-if="new_scraped_records.length > 0"
     >
-      Consultas realizadas:
-    </v-card-title>
-    <v-card-text class="px-0">
-      <PanelList
-        :results="scraped_records"
-        :collection_data="scraped_record_collection"
-        :show_details="true"
-      />
-    </v-card-text>
-
-<!--    <PanelList-->
-<!--      v-if="full_main.note"-->
-<!--      :results="[full_main.note]"-->
-<!--      :collection_data="note_collection"-->
-<!--      :show_details="true"-->
-<!--    />-->
+      <v-card-title
+        class="px-0 mt-2 d-flex"
+      >
+        Nuevas consultas enviadas:
+         <v-btn
+           color="accent"
+           variant="outlined"
+           size="x-small"
+           icon
+           class="ml-4"
+           :loading="loading_new_records"
+           @click="reloadNewScrapedRecords()"
+         >
+           <v-icon>
+             cached
+           </v-icon>
+         </v-btn>
+      </v-card-title>
+      <v-card-text class="px-0">
+        <PanelList
+          :results="new_scraped_records"
+          :collection_data="scraped_record_collection"
+        />
+      </v-card-text>
+    </template>
+    <template v-if="selected_year">
+      <v-card-title
+        v-if="year_scraped_records.length"
+        class="px-0 mt-2"
+      >
+        Consultas realizadas en {{ selected_year }}:
+      </v-card-title>
+      <v-card-text class="px-0">
+        <PanelList
+          :results="year_scraped_records_with_source"
+          :collection_data="scraped_record_collection"
+        />
+      </v-card-text>
+    </template>
   </v-card>
 </template>
 

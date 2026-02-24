@@ -76,11 +76,12 @@ const final_value = computed(() => {
       >
         {{ final_value[item_title] }}
       </v-chip>
-      <span
+      <div
         v-else
+        style="max-height: 22px; overflow: hidden;"
       >
         {{ final_value[item_title] }}
-      </span>
+      </div>
     </template>
     <span v-else>
       !?

@@ -10,14 +10,13 @@ dayjs.locale('es')
 const props = defineProps({
   scraped_records: Array,
   new_record: Object,
-  months_ago: {
+  year: {
     type: Number,
-    default: 30
+    required: true,
   }
 })
 
 const emits = defineEmits(['select-day'])
-const is_ready = ref(false)
 
 function getLimits() {
   if (!props.scraped_records)
@@ -58,13 +57,6 @@ function getLimitsWithDayJS() {
 }
 
 const recent_months_with_day_js = computed(() => {
-  if (is_ready.value)
-    return
-  const now = dayjs()
-  const real_months_ago = now.subtract(props.months_ago, 'month')
-  let current_day = real_months_ago.startOf('month')
-  current_day = current_day.subtract(1, 'day')
-  let all_months = {}
   const limits = getLimits()
   let between_dates = getLimitsWithDayJS()
   if (props.new_record && props.new_record.from_date){
@@ -81,8 +73,10 @@ const recent_months_with_day_js = computed(() => {
       color: 'green-lighten-2'
     })
   }
-  while (current_day.isBefore(now)){
-    current_day = current_day.add(1, 'day')
+  let all_months = {}
+  let current_day = dayjs(`${props.year}-01-01`)
+  const end_day = dayjs(`${props.year}-12-31`)
+  while (!current_day.isAfter(end_day)) {
     const year_month = current_day.format('YYYY-MM')
     const date_str = current_day.format('YYYY-MM-DD')
     const limit = limits[date_str]
@@ -104,8 +98,9 @@ const recent_months_with_day_js = computed(() => {
       all_months[year_month].push(day_obj)
     else
       all_months[year_month] = [day_obj]
+
+    current_day = current_day.add(1, 'day')
   }
-  // console.log("all_months", all_months)
   return Object.entries(all_months).map(([month, days]) => {
     const month_str = dayjs(month).format('MMM')
     const year = days[0].year % 1000
@@ -115,7 +110,6 @@ const recent_months_with_day_js = computed(() => {
 })
 
 function indirectSelectDay(day) {
-  // const date = dayjs(day.full_day)
   emits('select-day', {
     date: day.date,
     limit: day.limit,

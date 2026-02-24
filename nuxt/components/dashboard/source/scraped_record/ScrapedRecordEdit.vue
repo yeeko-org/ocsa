@@ -135,21 +135,18 @@ function sendReprocess() {
     </v-list>
   </v-col>
   <v-col
-    v-if="full_main.articles_count > full_main.analyzed_count"
     cols="5"
-    class="d-flex pa-0"
+    class="d-flex pa-0 flex-column align-center mt-8 ga-3"
    :order="col_order"
   >
-    <div v-if="full_main.date_started">
-
+    <div v-if="full_main.date_start">
       <span class="text-caption">
         Última actualización:
       </span>
-      {{dayjs(full_main.date_started).fromNow()}}
+      {{dayjs(full_main.date_start).fromNow()}}
     </div>
     <v-card-actions>
       <v-btn
-
         color="accent"
         variant="outlined"
         append-icon="replay"

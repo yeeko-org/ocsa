@@ -22,7 +22,9 @@ const full_belongs = computed(() => {
 </script>
 
 <template>
-  <div :class="{ 'py-2': !is_simple}">
+  <div
+    :class="{ 'py-2': !is_simple}"
+  >
     <div class="d-flex flex-wrap align-center">
       <span v-if="title" class="text-caption mr-2 text-grey-darken-2">
         ({{ title }})
@@ -40,8 +42,6 @@ const full_belongs = computed(() => {
           {{ full_main.sector_text }}
           <BelongIcons :actor="full_belongs"/>
         </div>
-
-
         <DisplayGroup
           v-else
           :main_object="full_main"
@@ -51,10 +51,13 @@ const full_belongs = computed(() => {
         />
       </v-card>
       <div v-if="full_main.belongs?.length" class="my-n1">
-        <BelongIcons :actor="full_main"/>
+        <BelongIcons
+          :actor="full_main"
+          size="x-small"
+        />
       </div>
       <StatusChip
-        v-if="full_main.status_validation"
+        v-if="full_main.status_validation && !is_simple"
         :main="full_main"
         collection="validation"
         class="mb-1 mr-2"
@@ -64,7 +67,9 @@ const full_belongs = computed(() => {
       />
     </div>
     <div class="d-flex align-center">
-      <span :class="is_simple ? 'text-subtitle-1' : 'text-h6'">
+      <span
+        :class="is_simple ? 'text-body-2 font-weight-medium' : 'text-h6'"
+      >
         {{ full_main.name }}
       </span>
       <span

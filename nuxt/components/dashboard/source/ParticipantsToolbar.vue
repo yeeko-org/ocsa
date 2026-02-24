@@ -2,6 +2,7 @@
 
 import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
+import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
 
 const props = defineProps({
   parent_id: Number,
@@ -92,6 +93,44 @@ function validate(){
             rows="1"
             auto-grow
           ></v-textarea>
+        </template>
+      </ToolbarCommon>
+      <ToolbarCommon
+        v-if="participants[second_index].involvements"
+        v-model="participants[second_index].involvements"
+        main_collection_name="event"
+        filter_group_name="involved_roles"
+        child_relation_name="involved"
+        second_level
+        :parent_id="item.id"
+        :note_id="note_id"
+        required_full_category
+        color="blue"
+        required
+        vertical_actions
+      >
+        <template #rows_init="{ item }">
+          <v-card
+            v-if="item.event_full"
+            variant="tonal"
+            color="lime"
+            class="d-flex flex-column align-start px-2 py-1"
+          >
+            <div class="d-flex align-center mb-2">
+
+              <span class="text-black font-weight-bold mr-4">
+                Evento:
+              </span>
+              <DisplayGroup
+                filter_group_name="event_types"
+                :main_object="item.event_full"
+              />
+            </div>
+            <div class="text-caption text-grey-darken-2">
+              {{item.event_full.description}}
+            </div>
+          </v-card>
+
         </template>
       </ToolbarCommon>
     </template>

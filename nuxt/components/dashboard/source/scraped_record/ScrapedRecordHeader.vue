@@ -37,7 +37,7 @@ const is_init_ready = computed(() => {
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
         <div class="text-caption text-purple-darken-1">
-          {{main.source_full.name}}
+          {{main.source_full?.name}}
         </div>
         <div class="font-weight-medium">
           {{ title }}

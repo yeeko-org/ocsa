@@ -4,8 +4,7 @@ import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 import EventDetails from "~/components/dashboard/event/event/EventDetails.vue";
-import ActorCard from "~/components/dashboard/actor/actor/ActorCard.vue";
-import { useRules } from '~/composables/useRules'
+import ParticipantSelect from "~/components/dashboard/actor/ParticipantSelect.vue";
 import PreActorCard from "~/components/dashboard/event/PreActorCard.vue";
 const props = defineProps({
   parent_id: Number,
@@ -15,7 +14,6 @@ const props = defineProps({
   },
   note_id: Number,
 })
-const { rules } = useRules()
 // const mention = defineModel({type: Object, required: true})
 const events = defineModel({type: Array, required: true})
 
@@ -33,9 +31,6 @@ function validate(){
   return true
 }
 
-const registered_actors = computed(() => {
-  return props.all_actors.filter(actor => actor.id)
-})
 
 </script>
 
@@ -87,43 +82,13 @@ const registered_actors = computed(() => {
         required_full_category
         color="blue"
         required
+        vertical_actions
       >
         <template #rows_init="{ item }">
-          <v-select
+          <ParticipantSelect
             v-model="item.participant"
-            :items="registered_actors"
-            item-title="name"
-            item-value="id"
-            label="Participante"
-            variant="outlined"
-            :rules="[rules.required]"
-            max-width="400"
-          >
-            <template #item="{ item, props: {onClick, title, value} }">
-              <v-list-item
-                @click="onClick"
-                :value="value"
-              >
-                <template
-                  v-slot:default
-                >
-                  <ActorCard
-                    :full_main="item.raw"
-                    :title="item.title"
-                    is_simple
-                  />
-                </template>
-              </v-list-item>
-            </template>
-            <template #selection="{ item }">
-              <ActorCard
-                :full_main="item.raw"
-                :title="item.name"
-                is_simple
-              />
-            </template>
-          </v-select>
-
+            :all_actors="all_actors"
+          />
         </template>
         <template #rows="{item}">
           <PreActorCard

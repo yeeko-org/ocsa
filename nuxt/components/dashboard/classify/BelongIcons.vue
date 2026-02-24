@@ -9,6 +9,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  size: {
+    type: String,
+    default: 'small',
+  },
 })
 
 const all_belongs = computed(() => {
@@ -23,7 +27,7 @@ const all_belongs = computed(() => {
     v-for="belong in all_belongs"
     :key="belong.key_name"
     icon
-    size="small"
+    :size="size"
     variant="tonal"
     color="secondary"
     class="ml-2"
