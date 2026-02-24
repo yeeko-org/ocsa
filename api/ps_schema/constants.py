@@ -270,7 +270,7 @@ all_collections = {
                 {"filter_name": "sectors", "hidden": False},
                 {"filter_name": "countries", "hidden": True},
             ],
-            "available_actions": ["merge"],
+            "available_actions": ["merge", "massive_edit"],
         },
         {
             "snake_name": "participant",

@@ -171,7 +171,6 @@ class MassiveEdit(viewsets.ModelViewSet):
     @action(detail=True, methods=['patch'])
     def massive_patch(self, request, pk=None):
         elements_ids = request.data.pop('elems_ids')
-        print("elements_ids: ", elements_ids)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

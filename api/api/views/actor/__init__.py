@@ -20,7 +20,7 @@ from api.views.actor.serializers import (
 )
 from api.views.actor.actor_export import (
     ActorFullExportSerializer, xlsx_actor_fields)
-from api.views.common_views import UnaccentSearchFilter
+from api.views.common_views import UnaccentSearchFilter, MassiveEdit
 
 
 class ActorFilter(FilterSet):
@@ -81,65 +81,8 @@ class ActorViewMixin(viewsets.ModelViewSet):
     ordering_fields = ['id', 'name', 'mentions_count', 'status_validation__order']
     ordering = ['id']
 
-    @action(detail=False, methods=['post'])
-    def massive_changes(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
 
-        sector_id = data.get('sector_id')
-        status_validation = data.get('status_validation')
-        parent_actor_id = data.get('parent_actor_id')
-
-        update_data = {}
-
-        if sector_id:
-            update_data['sector_id'] = sector_id
-
-        if status_validation:
-            update_data['status_validation'] = status_validation
-
-        if parent_actor_id:
-            update_data['parent_actor_id'] = parent_actor_id
-
-        actors = Actor.objects.filter(id__in=data['actors_ids'])
-        actors.update(**update_data)
-
-        return Response({'message': 'Actors updated successfully'})
-
-    @action(detail=False, methods=['post'])
-    def simple_massive_changes(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        actors_ids = data.pop('actors_ids')
-
-        actors = Actor.objects.filter(id__in=actors_ids)
-        actors.update(**request.data)
-
-        return Response({'message': 'Actors updated successfully'})
-
-    @action(detail=False, methods=['post'])
-    def medium_massive_changes(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        elements_ids = data.get('elems_ids')
-
-        update_data = {}
-        for field in self.massive_fields:
-            if field in data:
-                update_data[field] = data[field]
-
-        queryset = self.get_queryset()
-        elements = queryset.filter(id__in=elements_ids)
-        elements.update(**update_data)
-
-        list_serializer = self.get_serializer(elements, many=True)
-        return Response(list_serializer.data)
-
-
-class ActorViewSet(ExportXlsMixin, ActorViewMixin):
+class ActorViewSet(ExportXlsMixin, MassiveEdit, ActorViewMixin):
 
     serializer_class = ActorBaseSerializer
     xls_name = "Exportación de Actores"
@@ -181,7 +124,7 @@ class ActorViewSet(ExportXlsMixin, ActorViewMixin):
             'retrieve': ActorFullSerializer,
             'create': ActorFullSerializer,
             'update': ActorFullSerializer,
-            'massive_changes': MassiveChangeSerializer,
+            'massive_patch': ActorEditeSerializer,
             'merge': FromToModelSerializer,
             'export_xls': ActorFullExportSerializer,
         }

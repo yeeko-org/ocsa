@@ -27,7 +27,11 @@ class StatusControl(models.Model):
     order = models.IntegerField(default=4)
     is_public = models.BooleanField(default=True)
     open_editor = models.BooleanField(
-        default=True, verbose_name="Abierto a todxs")
+        default=True, verbose_name="open editor",
+        help_text="Se puede cambiar a este status")
+    open_selectable = models.BooleanField(
+        default=True, verbose_name="open selectable",
+        help_text="Se puede seleccionar la categoría")
     is_deleted = models.BooleanField(default=False)
     priority = models.IntegerField(default=0)
 

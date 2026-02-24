@@ -12,7 +12,7 @@ class CatalogBase(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['order']
+        ordering = ['order', 'name']
         abstract = True
 
 

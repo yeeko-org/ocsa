@@ -159,7 +159,9 @@ class ActorCreateSerializer(serializers.ModelSerializer):
 
 
 class ActorEditeSerializer(ActorCreateSerializer):
-    pass
+
+    class Meta(ActorCreateSerializer.Meta):
+        read_only_fields = ['id', 'name']
 
 
 class ActorFullCountSerializer(ActorSimpleSerializer):
