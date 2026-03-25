@@ -100,16 +100,17 @@ class ActorSimpleSerializer(serializers.ModelSerializer):
 
 class BelongsRepSerializer(serializers.RelatedField):
     def to_representation(self, value):
-        return ", ".join(value.values_list('name', flat=True))
+        return ", ".join(item.name for item in value.all())
 
 
 class CountriesRepSerializer(serializers.RelatedField):
     def to_representation(self, value):
-        return ", ".join(value.values_list('name', flat=True))
+        return ", ".join(item.name for item in value.all())
 
 
 class ActorExportSerializer(serializers.ModelSerializer):
     sector = serializers.CharField(source='sector.name', read_only=True)
+    parent_actor = ActorSimpleSerializer()
     sector_group = serializers.CharField(
         source='sector.sector_group.name', read_only=True)
     belongs = BelongsRepSerializer(read_only=True)
@@ -125,6 +126,7 @@ class ActorExportSerializer(serializers.ModelSerializer):
             "alternative_names",
             "sex",
 
+            "parent_actor",
             "sector",
             "sector_group",
             "belongs",
@@ -134,7 +136,7 @@ class ActorExportSerializer(serializers.ModelSerializer):
 
 
 class ActorFullExportSerializer(ActorExportSerializer):
-    parent_actor = ActorSimpleSerializer()
+
     note_dates = NoteDatesActorSerializer(
         source='participants', many=True, read_only=True)
     status_validation = serializers.CharField(

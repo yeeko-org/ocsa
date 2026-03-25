@@ -2,7 +2,7 @@ from rest_framework import serializers
 from actor.models import Participant
 from api.views.actor.serializers import MentionBaseSerializer
 from api.views.common_serializers import (
-    GenericTextRepSerializer, GenericNameRepSerializer)
+    GenericNameRepSerializer, InterestExportMixin)
 from api.views.actor.actor_export import ActorExportSerializer
 from api.views.event.serializers import EventExportSerializer
 
@@ -44,19 +44,19 @@ xlsx_participant_fields = [
     {
         "name": "Grupo de interés del actor",
         "width": 35,
-        "field": "interest_types",
+        "field": "interest_groups",
         "conditions": ["only_logged_in"]
     },
     {
         "name": "Tipo de interés del actor",
         "width": 35,
-        "field": "interest_groups",
+        "field": "interest_types",
         "conditions": ["only_logged_in"]
     },
     {
         "name": "Subtipo de interés del actor",
         "width": 35,
-        "field": "interests__interest_subtype",
+        "field": "interest_subtypes",
         "conditions": ["only_logged_in"]
     },
     {
@@ -69,35 +69,9 @@ xlsx_participant_fields = [
     },
 ]
 
-class BelongsRepSerializer(serializers.RelatedField):
-    def to_representation(self, value):
-        return ", ".join(value.values_list('name', flat=True))
-
-
 class ParticipantGroupRepSerializer(serializers.RelatedField):
     def to_representation(self, value):
         return value.participant_group.name
-
-
-class InterestSubtypeRepSerializer(serializers.RelatedField):
-    def to_representation(self, value):
-        if not value.interest_subtype:
-            return None
-        return value.interest_subtype.name
-
-
-class InterestTypeRepSerializer(serializers.RelatedField):
-    def to_representation(self, value):
-        if not value.interest_subtype:
-            return None
-        return value.interest_subtype.interest_type.name
-
-
-class InterestGroupRepSerializer(serializers.RelatedField):
-    def to_representation(self, value):
-        if not value.interest_subtype:
-            return None
-        return value.interest_subtype.interest_type.interest_group.name
 
 
 class EventInvolvedRepSerializer(serializers.RelatedField):
@@ -138,15 +112,13 @@ class ParticipantExportSerializer(serializers.ModelSerializer):
         ]
 
 
-class ParticipantExportLoggedSerializer(ParticipantExportSerializer):
-    interest_subtypes = InterestSubtypeRepSerializer(
-        source='interests', read_only=True, many=True)
-    interest_types = InterestTypeRepSerializer(
-        source='interests', read_only=True, many=True)
-    interest_groups = InterestGroupRepSerializer(
-        source='interests', read_only=True, many=True)
-    interests = GenericTextRepSerializer(
-        read_only=True, many=True)
+class ParticipantExportLoggedSerializer(
+        InterestExportMixin, ParticipantExportSerializer):
+    """Export serializer for authenticated users, includes interest data."""
+    interest_subtypes = serializers.SerializerMethodField()
+    interest_types = serializers.SerializerMethodField()
+    interest_groups = serializers.SerializerMethodField()
+    interests = serializers.SerializerMethodField()
 
     class Meta:
         model = Participant
@@ -165,6 +137,5 @@ class ParticipantExportLoggedSerializer(ParticipantExportSerializer):
             "interest_subtypes",
             "interest_types",
             "interest_groups",
-
         ]
 

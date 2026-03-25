@@ -1,7 +1,5 @@
 from rest_framework import serializers
 
-from api.views.project.list_serializers import (
-    ImpactSerializer)
 from api.views.common_serializers import (
     ConditionalFieldsMixin, MunicipalitySimpleSerializer,
     LocalitySimpleSerializer, ParticipantSerializer,
@@ -130,13 +128,16 @@ class EventEmbedSerializer(ConditionalFieldsMixin, EventSimpleSerializer):
     displacements = DisplacementSimpleSerializer(many=True, read_only=True)
 
 
-class ImpactEmbedSerializer(serializers.ModelSerializer):
-    locations = LocationSimpleSerializer(many=True, read_only=True)
-    displacements = DisplacementSimpleSerializer(many=True, read_only=True)
+class ImpactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Impact
         fields = '__all__'
+
+
+class ImpactEmbedSerializer(ImpactSerializer):
+    locations = LocationSimpleSerializer(many=True, read_only=True)
+    displacements = DisplacementSimpleSerializer(many=True, read_only=True)
 
 
 class MentionSimpleSerializer(serializers.ModelSerializer):
@@ -144,6 +145,7 @@ class MentionSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mention
         fields = '__all__'
+
 
 
 class MentionFullSerializer(ConditionalFieldsMixin):

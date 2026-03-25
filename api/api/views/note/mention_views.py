@@ -135,7 +135,7 @@ class ParticipantViewSet(
         ) \
         .order_by('-id')\
         .distinct()
-        return self.filter_queryset(queryset)[:100]
+        return self.filter_queryset(queryset)
 
 
 class ImpactViewSet(

@@ -30,5 +30,3 @@ class User(AbstractUser):
         if self.is_anonymous:
             return False
         return self.is_superuser or self.is_staff
-
-
