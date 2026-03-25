@@ -430,7 +430,7 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
             features.append(feature)
 
         serializer_other = self.get_serializer(other_locations, many=True)
-        extra_large_locations = []
+        # extra_large_locations = []
         for loc_data in serializer_other.data:
             # if loc_data["id"] == 2513 or loc_data["id"] == 12306:
             #     print(f"\n\nDebugging location id {loc_data['id']}:")
@@ -446,8 +446,8 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
 
             if new_geometry:
                 coordinates = new_geometry.get('coordinates', [])
-                if len(coordinates) > 100:
-                    extra_large_locations.append(loc_data)
+                # if len(coordinates) > 100:
+                #     extra_large_locations.append(loc_data)
                 new_coordinates = []
                 for coord_set in coordinates:
                     new_coord_set = []

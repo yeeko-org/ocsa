@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 from rest_framework.decorators import action
 from django.http import FileResponse
 from yeeko_xlsx_export.generic import export_xlsx
+from api.views.actor.actor_export import xlsx_actor_group
+from api.views.note.mention_export import xlsx_mention_group
 
 
 if TYPE_CHECKING:
@@ -77,104 +79,10 @@ class ExportXlsMixin(ModelViewSet):
             ],
         },
         "mention": {
-            "attrs": [
-                {
-                    "name": "ID de nota",
-                    "width": 5,
-                    "field": "mention__note_full__id"
-                },
-                {
-                    "name": "Fecha de nota",
-                    "width": 10,
-                    "field": "mention__note_full__date"
-                },
-                {
-                    "name": "Título de nota",
-                    "width": 40,
-                    "field": "mention__note_full__title"
-                },
-                {
-                    "name": "Medio de la nota",
-                    "width": 15,
-                    "field": "mention__note_full__source"
-                },
-                {
-                    "name": "ID de proyecto",
-                    "width": 5,
-                    "field": "mention__project_full__id"
-                },
-                {
-                    "name": "Nombre de proyecto",
-                    "width": 40,
-                    "field": "mention__project_full__name"
-                },
-                {
-                    "name": "ID de conflicto",
-                    "width": 5,
-                    "field": "conflict__id"
-                },
-                {
-                    "name": "Nombre de conflicto",
-                    "width": 30,
-                    "field": "conflict__name"
-                },
-            ],
+            "attrs": xlsx_mention_group,
         },
         "actor": {
-            "attrs": [
-                {
-                    "name": "ID del Actor",
-                    "width": 5,
-                    "field": "id"
-                },
-                {
-                    "name": "Nombre del Actor",
-                    "width": 35,
-                    "field": "name"
-                },
-                {
-                    "name": "Nombres alternativos",
-                    "width": 25,
-                    "field": "alternative_names",
-                    "conditions": ["only_logged_in"]
-                },
-                {
-                    "name": "ID de actor agrupador",
-                    "width": 5,
-                    "field": "parent_actor__id"
-                },
-                {
-                    "name": "Nombre de actor agrupador",
-                    "width": 30,
-                    "field": "parent_actor__name"
-                },
-                {
-                    "name": "Sector",
-                    "width": 30,
-                    "field": "sector"
-                },
-                {
-                    "name": "Pertenencias (vulnerabilidades)",
-                    "width": 30,
-                    "field": "belongs"
-                },
-                {
-                    "name": "Grupo indígena",
-                    "width": 30,
-                    "field": "indigenous_group"
-                },
-                {
-                    "name": "Sexo",
-                    "width": 10,
-                    "field": "sex",
-                    "conditions": ["only_logged_in"]
-                },
-                {
-                    "name": "Paises origen",
-                    "width": 30,
-                    "field": "countries"
-                },
-            ],
+            "attrs": xlsx_actor_group
         },
         "event": {
             "attrs": [
@@ -288,7 +196,7 @@ class ExportXlsMixin(ModelViewSet):
         headers = [
             row.get('name', '') for row in self.final_xls_attrs]
         # columns_width_pixel
-        max_decimal = getattr(self, 'max_decimal', 2)
+        max_decimal = getattr(self, 'max_decimal', 5)
 
         table_data = [headers]
         for row in data:

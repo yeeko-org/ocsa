@@ -65,8 +65,7 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
     filter_backends = [
         OrderingAutoFilter, DjangoFilterBackend, UnaccentSearchFilter]
     # SearchFilter
-    search_fields = ["title", "=nota_id_ref"]
-    # ordering_fields = ['id', 'date', 'status_register__order']
+    search_fields = ["title", "=nota_id_ref", 'articles__content']
     ordering_fields = ['__auto__']
     ordering = ['id']
     click_actions = ['opened', 'updated']

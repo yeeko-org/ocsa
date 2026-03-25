@@ -407,8 +407,8 @@ class Article(models.Model):
 
     class Meta:
         unique_together = ['uid', 'source']
-        verbose_name = 'Pre-Nota'
-        verbose_name_plural = 'Pre-Notas'
+        verbose_name = 'Pre-Nota (Artículo)'
+        verbose_name_plural = 'Pre-Notas (Artículos)'
         # ordering = ['-second_certainty_degree', '-certainty_degree', '-published_date']
         ordering = [
             models.F('second_certainty_degree').desc(nulls_last=True),

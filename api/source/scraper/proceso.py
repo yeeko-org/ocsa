@@ -420,7 +420,7 @@ class ProcesoManagerScraper(ManagerScraper):
         bearer_token = get_pressreader_token()
 
         # Consultar calendario para obtener fechas reales con issues
-        str_dates = self.get_available_issues(
+        str_dates = self._get_available_issues(
             from_date, to_date, bearer_token)
 
         if not str_dates:
@@ -448,7 +448,7 @@ class ProcesoManagerScraper(ManagerScraper):
         self.scraped_record.save()
 
     # Si recibimos más de un día, necesitamos revisar si hay issues disponibles para cada día
-    def get_available_issues(
+    def _get_available_issues(
         self, from_date: date, to_date: date, bearer_token: str
     ) -> List[str]:
         """

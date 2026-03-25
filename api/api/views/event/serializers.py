@@ -101,7 +101,8 @@ class EventExportSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class EventExportFullSerializer(LocationBaseExportSerializer):
+class EventExportFullSerializer(
+    EventExportSerializer, LocationBaseExportSerializer):
     mention = MentionBaseSerializer()
     conflict = ConflictSimpleSerializer(
         source='mention.project.conflict', read_only=True)

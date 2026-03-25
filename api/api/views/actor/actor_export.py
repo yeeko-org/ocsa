@@ -33,6 +33,61 @@ xlsx_actor_fields = [
     }
 ]
 
+xlsx_actor_group = [
+    {
+        "name": "ID del Actor",
+        "width": 5,
+        "field": "id"
+    },
+    {
+        "name": "Nombre del Actor",
+        "width": 35,
+        "field": "name"
+    },
+    {
+        "name": "Nombres alternativos",
+        "width": 25,
+        "field": "alternative_names",
+        "conditions": ["only_logged_in"]
+    },
+    {
+        "name": "ID de actor agrupador",
+        "width": 5,
+        "field": "parent_actor__id"
+    },
+    {
+        "name": "Nombre de actor agrupador",
+        "width": 30,
+        "field": "parent_actor__name"
+    },
+    {
+        "name": "Sector",
+        "width": 30,
+        "field": "sector"
+    },
+    {
+        "name": "Pertenencias (vulnerabilidades)",
+        "width": 30,
+        "field": "belongs"
+    },
+    {
+        "name": "Grupo indígena",
+        "width": 30,
+        "field": "indigenous_group"
+    },
+    {
+        "name": "Sexo",
+        "width": 10,
+        "field": "sex",
+        "conditions": ["only_logged_in"]
+    },
+    {
+        "name": "Paises origen",
+        "width": 30,
+        "field": "countries"
+    },
+]
+
 
 class ActorSimpleSerializer(serializers.ModelSerializer):
 
