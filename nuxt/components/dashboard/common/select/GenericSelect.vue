@@ -150,66 +150,10 @@ function openDialog(is_add=true){
     @update:model-value="changeValue"
     @update:search="searchQuery = $event"
   >
-    <template #append-item v-if="!is_filter">
-      <div class="px-2 d-flex align-center">
-        <template v-if="show_add">
-          <div
-            class="flex-grow-1 pr-2"
-          >
-            <v-btn
-              variant="elevated"
-              color="accent"
-              append-icon="add"
-              block
-              @click="openDialog(true)"
-            >
-              Agregar
-            </v-btn>
-          </div>
-          <div class="flex-shrink-1">
-            <v-btn
-              variant="outlined"
-              color="accent"
-              icon
-              @click="openDialog(false)"
-              v-tooltip="`Gestionar ${collection_data.plural_name}`"
-            >
-              <v-icon>settings</v-icon>
-            </v-btn>
-          </div>
-        </template>
-        <v-btn
-          v-else
-          variant="outlined"
-          color="accent"
-          class="mt-2 _mb-1"
-          append-icon="settings"
-          block
-          @click="openDialog(false)"
-        >
-          Gestionar
-        </v-btn>
-      </div>
-    </template>
-    <template #append-item v-if="filter_null">
-      <v-list-item
-        title="Filtrar vacíos"
-        @click="sendNull"
-      >
-        <template v-slot:prepend>
-          <v-icon
-            class="mr-n3"
-            :color="'grey'"
-            :icon="'circle'"
-          ></v-icon>
-        </template>
-      </v-list-item>
-    </template>
     <template #item="{ item, props: {onClick, title, value} }">
       <v-list-item
         @click="onClick"
         :title="title"
-        _subtitle="item.raw.description"
         :value="value"
         :lines="false"
         max-width="400"
@@ -274,6 +218,61 @@ function openDialog(is_add=true){
         disabled
         hide_details
       />
+    </template>
+    <template #append-item v-if="filter_null">
+      <v-list-item
+        title="Filtrar vacíos"
+        @click="sendNull"
+      >
+        <template v-slot:prepend>
+          <v-icon
+            class="mr-n3"
+            :color="'grey'"
+            :icon="'circle'"
+          ></v-icon>
+        </template>
+      </v-list-item>
+    </template>
+    <template #append-item v-if="!is_filter">
+      <div class="px-2 d-flex align-center">
+        <template v-if="show_add">
+          <div
+            class="flex-grow-1 pr-2"
+          >
+            <v-btn
+              variant="elevated"
+              color="accent"
+              append-icon="add"
+              block
+              @click="openDialog(true)"
+            >
+              Agregar
+            </v-btn>
+          </div>
+          <div class="flex-shrink-1">
+            <v-btn
+              variant="outlined"
+              color="accent"
+              icon
+              @click="openDialog(false)"
+              v-tooltip="`Gestionar ${collection_data.plural_name}`"
+            >
+              <v-icon>settings</v-icon>
+            </v-btn>
+          </div>
+        </template>
+        <v-btn
+          v-else
+          variant="outlined"
+          color="accent"
+          class="mt-2 _mb-1"
+          append-icon="settings"
+          block
+          @click="openDialog(false)"
+        >
+          Gestionar
+        </v-btn>
+      </div>
     </template>
   </component>
 </template>

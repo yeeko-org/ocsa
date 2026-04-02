@@ -8,28 +8,34 @@ const props = defineProps({
   label: String,
 })
 
+const lte = computed(() => {
+  return props.field + '__lte'
+})
+const gte = computed(() => {
+  return props.field + '__gte'
+})
+
 </script>
 
 <template>
   <SelectDate
-    :init_date="final_filters.start_date"
+    :init_date="final_filters[gte]"
     label="Desde"
     class="mr-2"
-    @update-date="final_filters.start_date = $event"
+    @update-date="final_filters[gte] = $event"
     is_filter
     max_width="130px"
     min-width="100px"
   />
   <SelectDate
-    :init_date="final_filters.end_date"
+    :init_date="final_filters[lte]"
     label="Hasta"
     class="mr-2"
-    @update-date="final_filters.end_date = $event"
+    @update-date="final_filters[lte] = $event"
     is_filter
     max_width="130px"
     min-width="100px"
   />
-
 </template>
 
 <style scoped>

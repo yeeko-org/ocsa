@@ -123,7 +123,6 @@ export function calculateSchemas(data) {
     // "collections": collections,
     "collections_dict": collections_dict,
     "filter_groups": filter_groups,
-    "levels": data.levels,
     "filters_dict": filters_dict,
   }
 }

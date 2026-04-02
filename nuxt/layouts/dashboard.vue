@@ -41,30 +41,96 @@ const collection_data = computed(() => {
   // return all_groups.value.find(g => g.key === group_name) || dashboard
   return current_collection_data.value || dashboard
 })
-  // let main_collections = data.collections.filter(
-  //   coll => ['primary', 'secondary'].includes(coll.level))
-const main_collections = computed(() => {
-  if (!schemas.value.collections_dict)
-    return []
-  return Object.values(schemas.value.collections_dict).filter(
-    coll => ['primary', 'secondary'].includes(coll.level))
-})
-// const icon = computed(() => group.value.icon || group.parent ?
 
-function openIcon(val){
-  // console.log('openIcon', val)
+const main_structure = [
+  {
+    snake_name: "location",
+    children: ["states"]
+  },
+  {
+    snake_name: "project",
+    children: [ "project_types", "status_projects"]
+  },
+  { snake_name: "conflict" },
+  { snake_name: "note" },
+  { snake_name: "status_history" },
+  {
+    snake_name: "article",
+    children: [
+      "scraped_record",
+      "source_types",
+      "discarded_reasons"
+    ]
+  },
+  {
+    snake_name: "impact",
+    children: [ "impact_types" ]
+  },
+  {
+    snake_name: "event",
+    children: [
+      "event_types",
+      "purposes",
+      "involved_roles"
+    ]
+  },
+  {
+    snake_name: "displacement",
+    children: [
+      "dimensions",
+      "population_sizes",
+      "temporalities"
+    ]
+  },
+  {
+    snake_name: "actor",
+    children: [
+      "belongs",
+      "countries",
+      "participants",
+      "indigenous_groups",
+      "sectors",
+      "participant_types"
+    ]
+  },
+  {
+    snake_name: "interest",
+    children: [ "interest_types" ]
+  }
+]
+
+const main_collections = computed(() => {
+  if (!schemas.value.collections_dict) return []
+  return main_structure.map(item => {
+    const coll = schemas.value.collections_dict[item.snake_name] || {}
+    return {
+      snake_name: item.snake_name,
+      plural_name: coll.plural_name,
+      icon: coll.icon,
+      color: coll.color,
+      level: coll.level,
+      children: (item.children || []).map(child_key => {
+        const child = schemas.value.collections_dict[child_key] || {}
+        return {
+          snake_name: child_key,
+          plural_name: child.plural_name,
+          to: child.level?.startsWith('category_')
+            ? `/dashboard/catalog/${child_key}`
+            : `/dashboard/${child_key}`,
+        }
+      }),
+    }
+  })
+})
+
+function openIcon(){
   disable_open.value = true
 }
 
 function openItem(ev, val){
-  // console.log('openItem', val)
-  // console.log('ev', ev)
-  // console.log('disable_open', disable_open.value)
   if (!disable_open.value)
     router.push(`/dashboard/${val}`)
   disable_open.value = false
-  // :to="`/dashboard/${collection.snake_name}`"
-  // router.push(val)
 }
 
 watch(
@@ -146,11 +212,11 @@ watch(
             :key="collection.snake_name"
           >
             <v-list-group
-              v-if="collection.catalog_groups.length"
+              v-if="collection.children.length"
               :value="collection.snake_name"
               soubgroup
             >
-              <template v-slot:activator="{ props, isOpen }">
+              <template v-slot:activator="{ props }">
                 <v-list-item
                   v-bind="props"
                   exact
@@ -162,7 +228,7 @@ watch(
                   :active-class="collection.level === 'primary'
                     ? '' : 'font-weight-bold'"
                 >
-                  <template v-slot:append="{ isActive, select }">
+                  <template v-slot:append="{ isActive }">
                     <v-icon
                       @click="openIcon"
                     >
@@ -172,13 +238,12 @@ watch(
                 </v-list-item>
               </template>
               <v-list-item
-                v-for="(sub_coll, i) in collection.catalog_groups"
-                :key="i"
+                v-for="sub_coll in collection.children"
+                :key="sub_coll.snake_name"
                 exact
                 :title="sub_coll.plural_name"
                 :value="sub_coll.snake_name"
-                _to="`/dashboard/catalog/${sub_item.key}`"
-                :to="`/dashboard/catalog/${sub_coll.key_name}`"
+                :to="sub_coll.to"
               ></v-list-item>
             </v-list-group>
             <v-list-item
