@@ -2,9 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
 
-from ps_schema.models import Level, Collection, FilterGroup
 from ps_schema import generate_serializer
-from ps_schema.registry import catalog_registry
+from ps_schema.models import LEVEL_CHOICES
+from ps_schema.registry import catalog_registry, collection_registry
 from source.models import QualifySchema
 from work_flux.models import StatusControl
 
@@ -23,21 +23,23 @@ class CatalogsView(APIView):
             .filter(network_seq__isnull=False)\
             .values_list('network_seq', flat=True)\
             .distinct()
-        # print("networks", networks)
         network_list_sorted = sorted(list(networks))
         final_networks = [{"name": f"Red {i}", "id": i}
                           for i in network_list_sorted]
         catalogs = {
             "user": [],
-            "offline_types": { k: v for k, v in OFFLINE_TYPES },
+            "offline_types": {k: v for k, v in OFFLINE_TYPES},
             "network": final_networks,
+            "levels": [{"key_name": k, "name": v} for k, v in LEVEL_CHOICES],
+            "collections": (
+                collection_registry.get_collections_data() +
+                catalog_registry.get_collections_data()
+            ),
+            "filter_groups": list(catalog_registry.iter_filter_group_data()),
         }
         catalogs.update(catalog_registry.get_catalog_dump())
         manual_registry = {
             "qualify_schema": QualifySchema,
-            "levels": Level,
-            "collections": Collection,
-            "filter_groups": FilterGroup,
             "status_control": StatusControl,
         }
         for key, model_cls in manual_registry.items():

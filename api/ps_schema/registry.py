@@ -23,6 +23,85 @@ from utils.obj_str import camel_to_snake
 
 
 # ---------------------------------------------------------------------------
+# Field metadata helper
+# ---------------------------------------------------------------------------
+
+def _model_fields(model_cls: type) -> list[dict]:
+    """
+    Return field metadata for a Django model class.
+    Computes from model._meta — no DB queries, no cache needed.
+    Adapted from the old InitCollections.field_of_models.
+    """
+    from django.db.models import CharField, TextField, IntegerField
+
+    result = []
+    for field in model_cls._meta.get_fields(
+            include_parents=False, include_hidden=False):
+        relation_type = "simple"
+        is_primary_key = False
+        if field.one_to_many:
+            relation_type = "one_to_many"
+        elif field.is_relation:
+            if field.many_to_many:
+                relation_type = "many_to_many"
+            elif field.one_to_one:
+                relation_type = "one_to_one"
+            else:
+                relation_type = "relation"
+        else:
+            is_primary_key = field.primary_key
+
+        field_type = "unknown"
+        width = 100
+        is_string = is_char = False
+        if isinstance(field, TextField):
+            field_type, width, is_string = "text", 200, True
+        if isinstance(field, CharField):
+            field_type, width, is_string, is_char = "char", 150, True, True
+        if isinstance(field, IntegerField):
+            field_type, width = "integer", 80
+
+        entry: dict = {
+            "name": field.name,
+            "real_name": f"{field.name}{'_id' if field.is_relation else ''}",
+            "primary_key": is_primary_key,
+            "relation_type": relation_type,
+            "field_type": field_type,
+            "is_string": is_string,
+            "is_massive": False,
+            "is_editable": True,
+            "width": width,
+            "null": field.null,
+        }
+        try:
+            entry["verbose_name"] = field.verbose_name
+        except AttributeError:
+            pass
+        try:
+            if type(field.default) in [str, int, bool]:
+                entry["default"] = field.default
+        except AttributeError:
+            pass
+        if is_char:
+            entry["max_length"] = field.max_length
+        if field.is_relation:
+            try:
+                entry["related_name"] = field.related_query_name()
+            except TypeError:
+                pass
+            try:
+                meta = field.related_model._meta
+                entry["related_snake_name"] = camel_to_snake(
+                    meta.object_name)
+                entry["related_model"] = meta.object_name
+                entry["related_app_label"] = meta.app_label
+            except AttributeError:
+                pass
+        result.append(entry)
+    return result
+
+
+# ---------------------------------------------------------------------------
 # Internal factory (CatalogSchema only)
 # ---------------------------------------------------------------------------
 
@@ -187,6 +266,18 @@ class CatalogRegistry:
                 'all_filters': [],
             }
 
+    def get_collections_data(self) -> list[dict]:
+        """
+        Schema data + runtime field metadata.
+        Catalog collections have no DB-editable fields — no overrides needed.
+        """
+        result = []
+        for _app, data in self.iter_collection_data():
+            data['fields'] = _model_fields(
+                self._schemas[data['snake_name']].model)
+            result.append(data)
+        return result
+
     def iter_filter_group_data(self):
         """
         Yield filter group dicts for InitFilterGroups, combining:
@@ -297,6 +388,34 @@ class CollectionRegistry:
                 'all_filters': [
                     filter_to_dict(f) for f in schema_cls.all_filters],
             }
+
+    def get_collections_data(self) -> list[dict]:
+        """
+        Schema data + DB overrides (order, icon, color, help_text,
+        description) + runtime field metadata.
+        """
+        from ps_schema.models import Collection  # lazy — avoids circular import
+        db_overrides = {
+            c.snake_name: {
+                'order': c.order,
+                'icon': c.icon,
+                'color': c.color,
+                'help_text': c.help_text,
+                'description': c.description,
+            }
+            for c in Collection.objects.all()
+        }
+        result = []
+        for _app, data in self.iter_collection_data():
+            snake = data['snake_name']
+            overrides = db_overrides.get(snake, {})
+            merged = {
+                **data,
+                **{k: v for k, v in overrides.items() if v is not None},
+            }
+            merged['fields'] = _model_fields(self._schemas[snake].model)
+            result.append(merged)
+        return result
 
 
 # ---------------------------------------------------------------------------

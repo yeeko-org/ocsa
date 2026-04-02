@@ -7,4 +7,7 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Collection
-        fields = '__all__'
+        fields = [
+            'snake_name', 'level', 'order', 'icon', 'color',
+            'help_text', 'description',
+        ]
