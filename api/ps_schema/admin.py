@@ -9,14 +9,6 @@ class PsSchemaAdmin(admin.ModelAdmin):
     list_editable = ('order',)
 
 
-class CollectionLinkAdmin(admin.ModelAdmin):
-    list_display = ('parent', 'child', 'link_type', 'is_multiple', 'is_provisional')
-    list_filter = (
-        'link_type', 'is_multiple', 'is_provisional', 'is_mandatory',
-        'parent__app_label', 'child__app_label')
-    search_fields = ('parent__snake_name', 'child__snake_name')
-
-
 @register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
     list_display = (

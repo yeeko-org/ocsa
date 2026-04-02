@@ -120,15 +120,6 @@ class ScrapedRecordSerializer(ScrapedRecordSimpleSerializer):
         exclude = ["data"]
 
 
-class SourceFullSerializer(serializers.ModelSerializer):
-    notes_count = serializers.ReadOnlyField()
-    # scraped_records = ScrapedRecordSimpleSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Source
-        fields = "__all__"
-
-
 class ScrapingDateSerializer(serializers.Serializer):
     from_date = serializers.DateField(required=True)
     to_date = serializers.DateField(required=False, allow_null=True)

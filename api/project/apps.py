@@ -5,3 +5,6 @@ class ProjectConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'project'
     verbose_name = '5. Proyectos y Conflictos'
+
+    def ready(self) -> None:
+        import project.catalog_schema  # noqa — triggers @catalog_registry.register

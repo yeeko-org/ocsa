@@ -1,30 +1,21 @@
-import requests
-from django.db.models import Count
 from django.conf import settings
 
 from django_filters import FilterSet, NumberFilter, DateFilter, CharFilter
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from source.models import Article, Note, NoteFile, Source, DiscardedReason
+from source.models import Article, Note, NoteFile
 
 from api.views.common_views import (
-    BaseGenericViewSet, BaseStatusViewSet, ClickHistoryMixin)
+    BaseGenericViewSet, ClickHistoryMixin)
 from .serializers import (
     ArticleListSerializer, ArticleDetailSerializer,
     ArticleSuperDetailSerializer, ArticleListSuperSerializer,
     ArticleSelectedSerializer, ArticleStatusSerializer)
-from .source_serializers import SourceFullSerializer
-from api.views.catalogs.serializers import (
-    SourceSerializer, DiscardedReasonSerializer)
-from ...permissions import IsAdminOrReadOnly
-
 
 class ArticleFilter(FilterSet):
     scraped_record = NumberFilter(
         field_name="scraped__id", lookup_expr="exact")
-    start_date = DateFilter(field_name='published_date', lookup_expr='gte')
-    end_date = DateFilter(field_name='published_date', lookup_expr='lte')
     status = CharFilter(method='custom_filter_status')
     status_retro = CharFilter(field_name='status_retro__name')
 
@@ -66,6 +57,7 @@ class ArticleFilter(FilterSet):
     class Meta:
         model = Article
         fields = {
+            'published_date': ['gte', 'lte'],
             "source": ["exact"],
             "discarded_reason": ["exact"],
             "is_selected": ["exact"],
@@ -138,33 +130,4 @@ class ArticleViewSet(ClickHistoryMixin, BaseGenericViewSet):
         return Response(
             ArticleStatusSerializer(article, context=context).data)
 
-
-class SourceViewSet(BaseStatusViewSet):
-    permission_classes = [IsAdminOrReadOnly]
-    filterset_fields = []
-    queryset = Source.objects.all()\
-        .annotate(notes_count=Count('notes'))\
-        .distinct()
-    serializer_class = SourceSerializer
-
-    def get_serializer_class(self):
-        action_serializer = {
-            'retrieve': SourceFullSerializer,
-        }
-        return action_serializer.get(self.action, self.serializer_class)
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        if self.action == "get":
-            return queryset \
-                .prefetch_related('scraped_records',
-                                  'scraped_records__articles')
-        return queryset
-
-
-class DiscardedReasonViewSet(BaseGenericViewSet):
-
-    queryset = DiscardedReason.objects.all()
-    serializer_class = DiscardedReasonSerializer
-    permission_classes = [IsAdminOrReadOnly]
 

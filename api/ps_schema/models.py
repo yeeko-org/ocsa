@@ -23,12 +23,6 @@ something = [{"key_name": "primary"}, "secondary", "relational"]
 
 class Collection(models.Model):
 
-    GROUP_CHOICES = [
-        ("register", "Registro"),
-        ("validation", "Validación"),
-        ('location', 'Ubicación'),
-    ]
-
     snake_name = models.CharField(
         max_length=225, primary_key=True)
     name = models.CharField(
@@ -134,32 +128,3 @@ class FilterGroup(models.Model):
         verbose_name = "Grupo de Filtros"
         verbose_name_plural = "1.2 Grupos de Filtros"
         ordering = ['order', 'name']
-
-
-class CollectionLink(models.Model):
-    LINK_TYPES = (
-        ('category', 'Categoría'),
-        ('grouper', 'Agrupador'),
-        ('relational', 'Relacional'),
-    )
-
-    parent = models.ForeignKey(
-        Collection, on_delete=models.CASCADE, related_name='child_links')
-    child = models.ForeignKey(
-        Collection, on_delete=models.CASCADE, related_name='parent_links')
-    link_type = models.CharField(
-        max_length=20, choices=LINK_TYPES, default='category')
-    is_multiple = models.BooleanField(default=False)
-    is_provisional = models.BooleanField(default=False)
-    is_mandatory = models.BooleanField(default=False)
-    filter_group = models.ForeignKey(
-        FilterGroup, on_delete=models.CASCADE, blank=True, null=True,
-        related_name='links')
-
-    def __str__(self):
-        return f"{self.parent} - {self.child}"
-
-    class Meta:
-        verbose_name = "Enlace de Colección"
-        verbose_name_plural = "1.4 Enlaces de Colecciones"
-

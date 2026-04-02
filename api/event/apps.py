@@ -7,6 +7,7 @@ class EventConfig(AppConfig):
     name = "event"
 
     def ready(self) -> None:
+        import event.catalog_schema  # noqa — triggers @catalog_registry.register
         from .models import InvolvedRole
         _ready = super().ready()
         init_involved_roles = [

@@ -1,77 +1,66 @@
-## Dominio: Módulo `source/`
+## Módulo `source/` — Pipeline de notas periodísticas
 
-Este módulo gestiona las notas periodísticas (de Jornada, Reforma y Proceso)
-que son la fuente primaria de datos del OCSA. Cada nota puede disparar un
-proceso de pre-captura asistida por IA que extrae entidades estructuradas.
+Gestiona la ingesta de artículos (Jornada, Reforma, Proceso) y su conversión
+en notas curadas con menciones estructuradas.
 
 ---
 
-## Modelo conceptual de pre-captura
+## Ciclo de vida de un artículo
 
-### Megaproyecto extractivista
+```
+ScrapedRecord        ← lote de scraping (fuente + rango de fechas)
+  └── Article[]      ← artículo crudo con HTML, párrafos y scoring IA
 
-Obra, actividad o instalación física de gran escala que ocupa o transforma
-un territorio para la extracción, transformación o explotación de recursos
-naturales (presas, minas, gasoductos, monocultivos, desarrollos inmobiliarios,
-parques eólicos, etc.). Puede ser componente de un proyecto padre
-(`parent_project`).
+Article
+  ├── criteria / certainty_degree          ← scoring de 1ª pasada (>100 pasa)
+  ├── second_criteria / second_certainty_degree ← scoring de 2ª pasada (>100 pasa)
+  └── pre_capture                          ← JSON con menciones extraídas por IA
 
-### Entidades extraídas por nota
+Article → Note                             ← conversión editorial
+Note
+  ├── pre_mentions    ← copia inicial del JSON de pre_capture
+  ├── frozen_pre_capture ← si True, bloquea re-procesamiento
+  └── mentions[]      ← menciones confirmadas (una por proyecto en la nota)
 
-Una nota puede mencionar uno o varios proyectos. Por cada proyecto mencionado
-se genera una **mención** con cinco componentes:
+Mention (nota × proyecto)
+  ├── StatusHistory[]
+  ├── Impact[]
+  ├── Participant[]  →  Actor
+  │     └── Interest[]
+  └── Event[]
+        └── Involved[]  →  Participant
+```
 
-#### 1. `project_full` — Datos del proyecto
-Identidad y ubicación del proyecto en la nota: nombre, tipo, ubicaciones
-(estado / municipio / localidad / detalles), proyecto padre si aplica.
+---
 
-#### 2. `status_history` — Historial de estatus
-Cambios de etapa del proyecto mencionados en la nota: planeación,
-construcción, activo, ampliación, suspensión, cancelado, clausurado.
-Cada entrada tiene fecha aproximada y referencia a párrafos.
+## Pre-captura asistida por IA
 
-#### 3. `impacts` — Afectaciones
+El proceso lo orquesta `source/criteria/pre_capture.py` (`PreCaptureManager`).
+Solo procesa artículos con `second_certainty_degree > 100` y sin `Note` aún.
 
-Consecuencias **negativas y directas** de la construcción, ampliación u
-operación del proyecto. Dos grupos:
+El prompt usado está en `source/prompts/gemini_pre_capture_criteria_v2.txt`.
+Los esquemas Pydantic de validación del JSON de salida están en
+`source/base_models.py` (`NoteBase`, `MentionBase`, y subclases).
 
-- **Social:** desplazamiento, salud pública, pérdida de medios de vida,
-  violación de derechos (consulta, participación), patrimonio cultural.
-- **Ecológico:** contaminación (agua/suelo/aire), deforestación, pérdida
-  de biodiversidad, alteración de ecosistemas.
+La hidratación (`save_criteria_results`) convierte textos libres del JSON de
+la IA en IDs de Django: estados → `space_time.State`, municipios →
+`space_time.Municipality`, tipos de impacto → `impact.ImpactType`, etc.
 
-**Frontera clave:** solo impacto directo del proyecto. Se descartan efectos
-macroeconómicos, accidentes circunstanciales y desastres naturales externos.
-Cada impacto tiene un flag `is_potential` (ocurrido vs. posible).
+---
 
-#### 4. `actors` — Actores
+## Scoring de artículos
 
-Personas, comunidades u organizaciones con relación **directa y explícita**
-con el proyecto. Máximo 20. Tres posiciones posibles:
+`Article.sum_degrees()` pondera la presencia de features en párrafos:
 
-- `oppose` — se oponen al proyecto
-- `support` — lo promueven, ejecutan o apoyan
-- `neutral` — median entre opositores y promotores
+| Feature | Peso |
+|---------|------|
+| opponents | 13 |
+| social_impacts | 18 |
+| ecological_impacts | 24 |
+| acts_of_violence | 21 |
+| collective_actions | 20 |
 
-Se descartan actores incidentales (ej. bomberos, protección civil) y
-trabajadores sin posición explícita.
+---
 
-Cada actor tiene sector (`sector_text`) y puede pertenecer a grupos
-especiales: Afectado, Indígena, Campesino, Habitante, Líder, Trabajador,
-Urbano, organización/participación de mujeres, Tiene Protección.
-
-#### 5. `events` — Eventos
-
-Hechos narrados en la nota que afectan al proyecto o a sus actores.
-Cuatro grupos mutuamente excluyentes:
-
-| Grupo | Descripción |
-|-------|-------------|
-| `collective_actions` | Movilizaciones y acciones colectivas **dirigidas contra el proyecto**: protestas, bloqueos, denuncias, comunicados, tomas de instalaciones. |
-| `acts_of_violence` | Acciones intencionales para dañar a **opositores**: amenazas, agresiones, criminalización, demandas legales contra opositores, asesinatos. |
-| `spoliation_acts` | Mecanismos legales que **facilitan el despojo**: normativas, vacíos o interpretaciones jurídicas que permiten el acceso de actores privados/estatales. |
-| `defense_acts` | Mecanismos legales **en defensa de comunidades**: amparos, recursos jurídicos que restringen, cancelan o disminuyen el proyecto. |
-
-Cada evento referencia actores de la lista mediante `involvements` (actor_uid
-+ rol). Las ubicaciones solo se registran si difieren de la ubicación
-principal del proyecto.
+Para definiciones conceptuales de las entidades que genera el pipeline
+(proyecto, actor, impacto, evento, etc.), ver el skill `ocs-entities`.

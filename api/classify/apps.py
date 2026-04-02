@@ -8,6 +8,7 @@ class ClassifyConfig(AppConfig):
     verbose_name = 'Clasificaciones de actores'
 
     def ready(self) -> None:
+        import classify.catalog_schema  # noqa — triggers @catalog_registry.register
         from .initial_data import (
             InitParticipantTypes, TemporalParticipantTypes, InitSectorGroups,
             InitSector, InitBelongs, InitParticipantGroups, InitInterestTypes)

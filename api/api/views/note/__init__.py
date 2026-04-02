@@ -1,4 +1,4 @@
-from django_filters import FilterSet, DateFilter, CharFilter, BooleanFilter
+from django_filters import FilterSet, NumberFilter, CharFilter, BooleanFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, permissions
 from rest_framework.decorators import action
@@ -19,29 +19,18 @@ from api.views.common_views import (
 
 class NoteFilter(FilterSet):
 
-    start_date = DateFilter(field_name='date', lookup_expr='gte')
-    end_date = DateFilter(field_name='date', lookup_expr='lte')
     has_files = BooleanFilter(
         field_name='files', lookup_expr='isnull', exclude=True)
-    editor = CharFilter(method='filter_by_user')
+    editor = NumberFilter(field_name='editors__id')
+    reviewer = NumberFilter(field_name='reviewers__id')
     status_register = CharFilter(field_name='status_register__name')
-    reviewer = CharFilter(method='filter_by_user')
-
-    def filter_by_user(self, queryset, name, value):
-        if not value:
-            return queryset
-        if name == 'editor':
-            return queryset.filter(editors__id=value)
-        elif name == 'reviewer':
-            return queryset.filter(reviewers__id=value)
-        return queryset
 
     class Meta:
         model = Note
         fields = {
+            'date': ['gte', 'lte'],
             'source': ['exact'],
-            # 'editors': ['exact'],
-            # 'reviewers': ['exact'],
+            # 'status_register': ['exact'],
         }
 
 

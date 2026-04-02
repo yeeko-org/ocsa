@@ -60,11 +60,14 @@ class Displacement(models.Model):
         Impact, on_delete=models.CASCADE, blank=True, null=True,
         related_name='displacements')
     dimension = models.ForeignKey(
-        Dimension, on_delete=models.CASCADE, blank=True, null=True)
+        Dimension, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacements')
     population_size = models.ForeignKey(
-        PopulationSize, on_delete=models.CASCADE, blank=True, null=True)
+        PopulationSize, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacements')
     temporality = models.ForeignKey(
-        Temporality, on_delete=models.CASCADE, blank=True, null=True)
+        Temporality, on_delete=models.CASCADE,
+        blank=True, null=True, related_name='displacements')
     rithm = models.CharField(max_length=255, blank=True, null=True)
     origin_state = models.ForeignKey(
         State, on_delete=models.CASCADE,

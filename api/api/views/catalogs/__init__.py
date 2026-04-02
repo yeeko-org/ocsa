@@ -5,60 +5,18 @@ from api.permissions import IsAdminOrReadOnly, IsEditorOrCreateOrRead
 # from rest_framework.decorators import action
 # from rest_framework.response import Response
 
-from classify.models import (
-    InterestGroup,
-    InterestType,
-    InterestSubtype, )
-from event.models import (
-    InvolvedRole,)
-
 from work_flux.models import StatusControl
 
-from project.models import MegaprojectType, ExtractivismType, StatusProject
+from project.models import MegaprojectType, StatusProject
 
-from api.views.catalogs.event_serializers import InvolvedRoleSerializer
-
-from api.views.catalogs.classify_serializers import (
-    InterestGroupSerializer, InterestTypeSerializer,
-    InterestSubtypeSerializer
-)
-from api.views.catalogs.serializers import (
-    SourceSerializer, StatusControlSerializer,
-)
+from api.views.catalogs.serializers import StatusControlSerializer
 from api.views.catalogs.project_serializers import (
-    ExtractivismTypeSerializer,
     MegaprojectTypeCountSerializer,
     MegaprojectTypeFullSerializer,
-    StatusProjectSerializer,
     StatusProjectFullSerializer,
 )
 from .all import CatalogsView  # noqa
-from ..common_views import BaseViewSet, BaseStatusViewSet, ClickHistoryMixin
-from api.views.confirm_delete import CustomDeleteMixin
-
-
-class InterestGroupViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
-    permission_classes = [IsAdminOrReadOnly]
-    queryset = InterestGroup.objects.all()
-    serializer_class = InterestGroupSerializer
-
-
-class InterestTypeViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
-    permission_classes = [IsEditorOrCreateOrRead]
-    queryset = InterestType.objects.all()
-    serializer_class = InterestTypeSerializer
-
-
-class InterestSubtypeViewSet(CustomDeleteMixin, viewsets.ModelViewSet):
-    permission_classes = [IsEditorOrCreateOrRead]
-    queryset = InterestSubtype.objects.all()
-    serializer_class = InterestSubtypeSerializer
-
-
-class InvolvedRoleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsEditorOrCreateOrRead]
-    queryset = InvolvedRole.objects.all()
-    serializer_class = InvolvedRoleSerializer
+from ..common_views import BaseStatusViewSet, ClickHistoryMixin
 
 
 class StatusControlViewSet(viewsets.ModelViewSet):
@@ -74,20 +32,6 @@ class StatusProjectViewSet(ClickHistoryMixin, BaseStatusViewSet):
         .annotate(projects_count=Count('projects'))\
         .distinct()
     serializer_class = StatusProjectFullSerializer
-
-
-class ExtractivismTypeViewSet(BaseViewSet):
-    queryset = ExtractivismType.objects.all()
-    serializer_class = ExtractivismTypeSerializer
-    permission_classes = [IsAdminOrReadOnly]
-
-    def get_serializer_class(self):
-        action_serializer = {
-            'retrieve': ExtractivismTypeSerializer,
-            'create': ExtractivismTypeSerializer,
-            'update': ExtractivismTypeSerializer
-        }
-        return action_serializer.get(self.action, self.serializer_class)
 
 
 class MegaprojectTypeFilter(FilterSet):

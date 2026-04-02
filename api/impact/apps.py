@@ -8,6 +8,7 @@ class ImpactConfig(AppConfig):
     verbose_name = 'Afectaciones sociales y ambientales'
 
     def ready(self) -> None:
+        import impact.catalog_schema  # noqa — triggers @catalog_registry.register
         from .initial_data import InitialImpactGroups
         _ready = super().ready()
         valid_commands = ["migrate_initial_data", "migrate_classify"]

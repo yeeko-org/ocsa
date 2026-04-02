@@ -1,65 +1,28 @@
 from django.urls import include, path
 
-from api.views.actor import ActorViewSet, ActorMiniListViewSet
-from api.views.project import (
-    ProjectViewSet, ProjectFileViewSet, ConflictViewSet, ProjectMiniViewSet,
-    ProjectLocationViewSet)
+from api.views.project import ProjectLocationViewSet
 from api.views.project.map_views import ProjectMapViewSet
 from api.views.generic_merge.views import MergeRecordsView
-from api.views.df.df_views import DisplacementViewSet
-from api.views.note import NoteViewSet, NoteFileViewSet
-from api.views.note.mention_views import (
-    MentionViewSet, ParticipantViewSet, ImpactViewSet,
-    InvolvedViewSet, InterestViewSet, StatusHistoryViewSet, EventViewSet)
-from api.views.article.views import ArticleViewSet
 from api.views.auth.login_views import UserLoginAPIView
-from api.views.scraping.views import ScrapingDatesView, ScrapedRecordView
-from api.views.space_time import LocationViewSet
+from api.views.scraping.views import ScrapingDatesView
 from api.views.task import ActivityView, OfflineTaskViewSet
 # from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 from api.views.ps_schemas.views import CollectionViewSet
+from ps_schema.registry import collection_registry
 
 router = DefaultRouter()
 
-router.register(r'actor', ActorViewSet, basename='actor')
-router.register(r'actor_mini', ActorMiniListViewSet, basename='actor mini')
-
-router.register(r'note', NoteViewSet, basename='note')
-router.register(r'note_file', NoteFileViewSet, basename='note file')
-router.register(r'article', ArticleViewSet, basename='article')
-
-router.register(r'project', ProjectViewSet, basename='project')
-router.register(r'project_mini', ProjectMiniViewSet, basename='project mini')
 router.register(r'project_map', ProjectMapViewSet, basename='project map')
 
 router.register(r'project_location', ProjectLocationViewSet,
                 basename='project_location')
 
-router.register(r'conflict', ConflictViewSet, basename='conflict')
-router.register(r'conflict_mini', ConflictViewSet, basename='conflict mini')
-router.register(r'project_file', ProjectFileViewSet, basename='project file')
-
-router.register(r'mention', MentionViewSet, basename='mention')
-router.register(r'status_history', StatusHistoryViewSet,
-                basename='status history')
-router.register(r'impact', ImpactViewSet, basename='impact')
-router.register(r'participant', ParticipantViewSet, basename='participant')
-router.register(r'interest', InterestViewSet, basename='interest')
-
-router.register(r'event', EventViewSet, basename='event')
-router.register(r'involved', InvolvedViewSet, basename='involved')
-
-router.register(r'displacement', DisplacementViewSet, basename='displacement')
-
-router.register(r'location', LocationViewSet, basename='location')
-
 router.register(r'collection', CollectionViewSet, basename='collection')
 
-router.register(r'scraped_record', ScrapedRecordView,
-                basename='scraped_record')
-
 router.register(r'offline_task', OfflineTaskViewSet)
+
+collection_registry.register_routes(router)
 
 
 urlpatterns = [

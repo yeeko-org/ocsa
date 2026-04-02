@@ -1,6 +1,5 @@
-from ps_schema.models import Level, Collection, CollectionLink, FilterGroup
-from ps_schema.constants import (
-    all_collections, filter_groups, delete_collections)
+from ps_schema.models import Level, Collection, FilterGroup
+from ps_schema.registry import catalog_registry, collection_registry
 
 
 class InitLevels:
@@ -120,51 +119,67 @@ class InitCollections:
 
     def __init__(self):
         from django.apps import apps
-        levels_dict = {level.key_name: level for level in Level.objects.all()}
-        # Collection.objects.all().delete()
+        levels_dict = {
+            level.key_name: level for level in Level.objects.all()}
         order_base = 0
         order = 0
-        for collection_snake_name in delete_collections:
-            print(f"Deleting collection: {collection_snake_name}")
-            Collection.objects.filter(snake_name=collection_snake_name).delete()
-        for app_label, collections in all_collections.items():
+
+        # Registry-based declarations (CatalogSchema + CollectionSchema)
+        registry_by_app: dict = {}
+        for app_label, coll_dict in catalog_registry.iter_collection_data():
+            registry_by_app.setdefault(app_label, []).append(coll_dict)
+        for app_label, coll_dict in collection_registry.iter_collection_data():
+            registry_by_app.setdefault(app_label, []).append(coll_dict)
+        for app_label, collections in registry_by_app.items():
             for collection in collections:
                 order += 1
-                model_name = collection['model_name']
-                # new_collection.level = levels_dict[collection['level']]
-                level = levels_dict.get(collection.get('level', None), None)
-                new_collection, is_new = Collection.objects.get_or_create(
-                    snake_name=collection['snake_name'],
-                    app_label=app_label, level=level)
-                my_model = apps.get_model(app_label, model_name)
-                meta_data = my_model._meta
-
-                new_collection.name = collection.get(
-                    'name', meta_data.verbose_name)
-
-                new_collection.plural_name = collection.get(
-                    'plural_name', meta_data.verbose_name_plural)
-
-                new_collection.model_name = model_name
-                new_collection.optional_category = collection.get(
-                    'optional_category', False)
-                new_collection.available_actions = collection.get(
-                    'available_actions', [])
-                new_collection.order = order_base + order
-                new_collection.all_filters = collection.get('all_filters', [])
-                new_collection.cat_params = collection.get('cat_params', {})
-                if is_new:
-                    new_collection.icon = collection.get('icon', None)
-                    new_collection.color = collection.get('color', None)
-                    new_collection.open_insertion = collection.get(
-                        'open_insertion', None)
-                    new_collection.xls_export = collection.get('xls_export', False)
-                new_collection.save()
-                # print(f"Order: {order_base + order}\n{defaults}")
+                self._upsert_collection(
+                    apps, levels_dict, app_label,
+                    collection, order_base + order)
             order_base += 10
+
         for collection in Collection.objects.all():
             collection.fields = field_of_models(collection)
             collection.save()
+
+    @staticmethod
+    def _upsert_collection(
+            apps, levels_dict: dict,
+            app_label: str, collection: dict, order: int) -> None:
+        model_name = collection['model_name']
+        level = levels_dict.get(collection.get('level', None), None)
+        try:
+            new_collection, is_new = Collection.objects.get_or_create(
+                snake_name=collection['snake_name'],
+                app_label=app_label, level=level)
+        except:
+            is_new = False
+            new_collection = Collection.objects.get(
+                snake_name=collection['snake_name'],
+                app_label=app_label)
+            new_collection.level = level
+        my_model = apps.get_model(app_label, model_name)
+        meta_data = my_model._meta
+
+        new_collection.name = collection.get(
+            'name', meta_data.verbose_name)
+        new_collection.plural_name = collection.get(
+            'plural_name', meta_data.verbose_name_plural)
+        new_collection.model_name = model_name
+        new_collection.optional_category = collection.get(
+            'optional_category', False)
+        new_collection.available_actions = collection.get(
+            'available_actions', [])
+        new_collection.order = order
+        new_collection.all_filters = collection.get('all_filters', [])
+        new_collection.cat_params = collection.get('cat_params', {})
+        if is_new:
+            new_collection.icon = collection.get('icon', None)
+            new_collection.color = collection.get('color', None)
+            new_collection.open_insertion = collection.get(
+                'open_insertion', None)
+            new_collection.xls_export = collection.get('xls_export', False)
+        new_collection.save()
 
 
 class InitFilterGroups:
@@ -180,10 +195,8 @@ class InitFilterGroups:
             collections_dict[collection.snake_name] = collection
 
         # print("collections_dict", collections_dict)
-        for group in filter_groups:
-            # category_group = group.get('category_group', None)
-            # print("category_group", category_group)
-            # print("collection_group", collections_dict.get(category_group, None))
+        all_filter_groups = list(catalog_registry.iter_filter_group_data())
+        for group in all_filter_groups:
             filter_group, _ = FilterGroup.objects.get_or_create(
                 key_name=group['key_name'],
                 defaults=dict(

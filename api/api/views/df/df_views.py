@@ -1,13 +1,10 @@
 
 from api.views.common_views import (
-    OnlyByFilterMixin, BaseStatusViewSet, BaseGenericViewSet)
+    OnlyByFilterMixin, BaseStatusViewSet)
 from api.views.df.serializers import (
-    DisplacementListSerializer, DisplacementFullSerializer,
-    DimensionSerializer, PopulationSizeSerializer,
-    TemporalitySerializer)
+    DisplacementListSerializer, DisplacementFullSerializer)
 
-from df.models import (
-    Displacement, Dimension, PopulationSize, Temporality)
+from df.models import Displacement
 
 
 class DisplacementFilter(OnlyByFilterMixin):
@@ -28,18 +25,3 @@ class DisplacementViewSet(BaseStatusViewSet):
             'list': DisplacementListSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
-
-
-class DimensionViewSet(BaseGenericViewSet):
-    queryset = Dimension.objects.all()
-    serializer_class = DimensionSerializer
-
-
-class PopulationSizeViewSet(BaseStatusViewSet):
-    queryset = PopulationSize.objects.all()
-    serializer_class = PopulationSizeSerializer
-
-
-class TemporalityViewSet(BaseGenericViewSet):
-    queryset = Temporality.objects.all()
-    serializer_class = TemporalitySerializer
