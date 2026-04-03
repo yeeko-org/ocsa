@@ -14,7 +14,6 @@ class StateSchema(CatalogSchema):
     plural_name = "Estados"
     viewset_class = StateListViewSet
     filter_group_key = "states"
-    filter_group_main = "space_time-location"
 
 
 @collection_registry.register

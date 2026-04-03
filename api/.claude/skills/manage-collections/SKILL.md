@@ -47,7 +47,6 @@ class ModelASchema(CatalogSchema):
     full_serializer_class = ModelAFullSerializer       # pattern 3
     # Simple FilterGroup (single category_subtype only):
     filter_group_key = "model_as"
-    filter_group_main = "app-snake_name"
 ```
 
 ---
@@ -56,6 +55,11 @@ class ModelASchema(CatalogSchema):
 
 `viewset_class` is required. `mini_viewset_class` auto-registers a
 `{snake}_mini` endpoint when a lightweight ViewSet exists for selectors.
+
+`icon` and `color` are **initial defaults only** — written to the DB on first
+`migrate_ps_schemas` run and never overwritten, so frontend changes are
+preserved. `help_text` and `description` are DB-only (no schema field); set
+them via the admin or frontend.
 
 ```python
 from ps_schema.registry import (

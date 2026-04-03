@@ -14,15 +14,12 @@ from api.views.actor.classify_serializers import (
 class IndigenousGroupSchema(CatalogSchema):
     model = IndigenousGroup
     level = "category_subtype"
-    name = "Pueblo Indígena"
-    plural_name = "Pueblos Indígenas"
     open_insertion = True
     can_merge = True
     cat_params = {"select_component": "autocomplete"}
     count_fields = {"count": "actors"}
     full_serializer_class = IndigenousGroupFullSerializer
     filter_group_key = "indigenous_groups"
-    filter_group_main = "actor-actor"
     filter_group_addl_config = {"subtype_is_autocomplete": True}
 
 
@@ -77,7 +74,6 @@ class BelongSchema(CatalogSchema):
     count_fields = {"actors_count": "actors"}
     filterset_fields = []
     filter_group_key = "belongs"
-    filter_group_main = "actor-actor"
 
 
 @catalog_registry.register
@@ -90,7 +86,6 @@ class CountrySchema(CatalogSchema):
     count_fields = {"actors_count": "actors"}
     filterset_fields = []
     filter_group_key = "countries"
-    filter_group_main = "actor-actor"
     filter_group_addl_config = {"subtype_is_autocomplete": True}
 
 

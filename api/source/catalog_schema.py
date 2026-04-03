@@ -18,7 +18,6 @@ class SourceSchema(CatalogSchema):
     count_fields = {"notes_count": "notes"}
     filterset_fields = []
     filter_group_key = "source_types"
-    filter_group_main = "source-article"
 
 
 @catalog_registry.register
@@ -28,7 +27,6 @@ class DiscardedReasonSchema(CatalogSchema):
     base = "generic"
     permission = "admin"
     filter_group_key = "discarded_reasons"
-    filter_group_main = "source-article"
 
 
 @catalog_registry.register_filter_group

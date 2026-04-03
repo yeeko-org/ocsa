@@ -19,7 +19,7 @@ from ps_schema.schemas import (  # noqa: F401 — re-exported for callers
     FilterRef, ComponentFilter, filter_to_dict,
     BaseSchema, CatalogSchema, CollectionSchema, FilterGroupSchema,
 )
-from utils.obj_str import camel_to_snake
+from utils.universal import camel_to_snake
 
 
 # ---------------------------------------------------------------------------
@@ -168,9 +168,7 @@ def _generate_viewset(schema_cls: type[CatalogSchema]) -> type:
 
 
 def _model_collection_key(model: type) -> str:
-    """Return 'app_label-snake_name' for a Django model class."""
-    meta = model._meta
-    return f"{meta.app_label}-{camel_to_snake(meta.object_name)}"
+    return camel_to_snake(model._meta.object_name)
 
 
 # ---------------------------------------------------------------------------
@@ -313,8 +311,7 @@ class CatalogRegistry:
                 'name': schema_cls.name or meta.verbose_name,
                 'plural_name': (
                     schema_cls.plural_name or meta.verbose_name_plural),
-                'main_collection': schema_cls.filter_group_main,
-                'category_subtype': f"{meta.app_label}-{snake_name}",
+                'category_subtype': snake_name,
                 'addl_config': schema_cls.filter_group_addl_config,
             }
 

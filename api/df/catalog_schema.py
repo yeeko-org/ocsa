@@ -12,7 +12,6 @@ class DimensionSchema(CatalogSchema):
     base = "generic"
     count_fields = {"displacement_count": "displacements"}
     filter_group_key = "dimensions"
-    filter_group_main = "df-displacement"
 
 
 @catalog_registry.register
@@ -22,7 +21,6 @@ class PopulationSizeSchema(CatalogSchema):
     base = "status"
     count_fields = {"displacement_count": "displacements"}
     filter_group_key = "population_sizes"
-    filter_group_main = "df-displacement"
 
 
 @catalog_registry.register
@@ -32,7 +30,6 @@ class TemporalitySchema(CatalogSchema):
     base = "generic"
     count_fields = {"displacement_count": "displacements"}
     filter_group_key = "temporalities"
-    filter_group_main = "df-displacement"
 
 
 # ---------------------------------------------------------------------------

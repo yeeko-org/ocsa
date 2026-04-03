@@ -82,9 +82,9 @@ class IndigenousGroup(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Grupo Indígena'
+        verbose_name = 'Pueblo Indígena'
         ordering = ['name']
-        verbose_name_plural = 'Grupos Indígenas'
+        verbose_name_plural = 'Pueblos Indígenas'
 
 
 CAPITAL_TYPES = (

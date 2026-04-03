@@ -29,7 +29,6 @@ class StatusProjectSchema(CatalogSchema):
     cat_params = {"select_component": "autocomplete"}
     viewset_class = StatusProjectViewSet
     filter_group_key = "status_projects"
-    filter_group_main = "project-project"
     filter_group_addl_config = {"subtype_is_autocomplete": True}
 
 

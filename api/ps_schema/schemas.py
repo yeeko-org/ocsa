@@ -134,7 +134,6 @@ class CatalogSchema(BaseSchema):
     # Only suitable when this schema is the sole category_subtype/type for
     # the group (no category_group / category_type siblings needed).
     filter_group_key: str | None = None       # key_name del FilterGroup
-    filter_group_main: str | None = None      # "app-snake_name" colección principal
     filter_group_addl_config: dict = {}
 
 

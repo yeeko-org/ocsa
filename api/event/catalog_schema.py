@@ -15,7 +15,6 @@ class InvolvedRoleSchema(CatalogSchema):
     open_insertion = False
     cat_params = {"select_component": "autocomplete"}
     filter_group_key = "involved_roles"
-    filter_group_main = "event-event"
     filter_group_addl_config = {"subtype_is_autocomplete": True}
 
 
@@ -54,7 +53,6 @@ class PurposeSchema(CatalogSchema):
     count_fields = {"events_count": "events"}
     filterset_fields = []
     filter_group_key = "purposes"
-    filter_group_main = "event-event"
 
 
 @catalog_registry.register_filter_group
