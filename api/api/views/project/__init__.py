@@ -25,7 +25,7 @@ from project.models import Conflict, Project, ProjectFile
 
 from .list_serializers import (
     ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
-    ProjectExportSerializer, ProjectMiniBasicSerializer, LocationVizSerializer)
+    ProjectMiniBasicSerializer, LocationVizSerializer)
 from .retrieve_serializers import ProjectFileSerializer, ProjectFullSerializer
 
 
