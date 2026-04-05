@@ -2,24 +2,23 @@ from django.db.models import F, Count
 from django_filters import FilterSet, NumberFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from rest_framework import viewsets, permissions
-from api.permissions import IsFullEditorOrReadOnly, DynamicCatalogPermission
+from rest_framework import viewsets
+from api.permissions import DynamicCatalogPermission
 from api.views.action_export_xls import ExportXlsMixin
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.request import Request
 
-from actor.models import Actor, Member, OriginReference, Participant
+from actor.models import Actor
 
-from api.merge_mix import FromToModelSerializer, MergeSerializerMixin
+from api.merge_mix import FromToModelSerializer
 from api.pagination import CustomPagination
 from api.views.actor.massive_chages_serializers import MassiveChangeSerializer
 from api.views.actor.serializers import (
     ActorBaseSerializer, ActorMiniSerializer, ActorCreateSerializer,
     ActorEditeSerializer, ActorFullSerializer, ActorMiniBaseSerializer
 )
-from api.views.actor.actor_export import (
-    ActorFullExportSerializer, xlsx_actor_fields)
+from api.export_blocks.actor import ActorExportBlock, xlsx_actor_fields
 from api.views.common_views import UnaccentSearchFilter, MassiveEdit
 
 
@@ -126,9 +125,27 @@ class ActorViewSet(ExportXlsMixin, MassiveEdit, ActorViewMixin):
             'update': ActorFullSerializer,
             'massive_patch': ActorEditeSerializer,
             'merge': FromToModelSerializer,
-            'export_xls': ActorFullExportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    def get_export_rows(self, queryset) -> list[dict]:
+        from utils.universal import safe_attr
+        rows = []
+        for actor in queryset:
+            note_dates = []
+            for p in actor.participants.all():
+                try:
+                    note_dates.append(
+                        p.mention.note.date.strftime("%d-%m-%Y"))
+                except AttributeError:
+                    pass
+            rows.append({
+                **ActorExportBlock.extract(actor),
+                "note_dates": note_dates,
+                "status_validation": safe_attr(
+                    actor, 'status_validation', 'public_name'),
+            })
+        return rows
 
     @action(detail=True, methods=['delete'])
     def delete_other_parents(self, request, *args, **kwargs):

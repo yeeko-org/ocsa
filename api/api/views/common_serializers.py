@@ -159,6 +159,32 @@ class InterestExportMixin:
         return self._get_interest_data(obj)['groups']
 
 
+def extract_interests(obj) -> dict:
+    """
+    Extrae datos de intereses de un objeto con M2M .interests.
+    Itera una sola vez; requiere prefetch_related con
+    interests__interest_subtype__interest_type__interest_group.
+    """
+    interests, subtypes, types, groups = [], [], [], []
+    for interest in obj.interests.all():
+        interests.append(interest.text)
+        if interest.interest_subtype:
+            subtypes.append(interest.interest_subtype.name)
+            types.append(interest.interest_subtype.interest_type.name)
+            groups.append(
+                interest.interest_subtype.interest_type.interest_group.name)
+        else:
+            subtypes.append(None)
+            types.append(None)
+            groups.append(None)
+    return {
+        "interests": interests,
+        "interest_subtypes": subtypes,
+        "interest_types": types,
+        "interest_groups": groups,
+    }
+
+
 class ActorBasicSerializer(ConditionalFieldsMixin):
     participants_count = serializers.SerializerMethodField()
 

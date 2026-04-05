@@ -1,7 +1,6 @@
 from django.urls import include, path
 
-from api.views.project import ProjectLocationViewSet
-from api.views.project.map_views import ProjectMapViewSet
+from api.views.project.map_views import ProjectMapViewSet, ProjectLocationViewSet
 from api.views.generic_merge.views import MergeRecordsView
 from api.views.auth.login_views import UserLoginAPIView
 from api.views.scraping.views import ScrapingDatesView
@@ -9,6 +8,7 @@ from api.views.task import ActivityView, OfflineTaskViewSet
 # from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 from api.views.ps_schemas.views import CollectionViewSet
+from api.export_blocks.participation import ParticipationExportViewSet
 from ps_schema.registry import collection_registry
 
 router = DefaultRouter()
@@ -21,6 +21,12 @@ router.register(r'project_location', ProjectLocationViewSet,
 router.register(r'collection', CollectionViewSet, basename='collection')
 
 router.register(r'offline_task', OfflineTaskViewSet)
+
+router.register(
+    r'participation_export',
+    ParticipationExportViewSet,
+    basename='participation_export',
+)
 
 collection_registry.register_routes(router)
 

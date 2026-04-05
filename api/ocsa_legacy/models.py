@@ -1,6 +1,6 @@
 from django.db import models
 
-from utils.obj_str import nombre_or_pk
+from utils.universal import nombre_or_pk
 
 
 class CustomModel(models.Model):

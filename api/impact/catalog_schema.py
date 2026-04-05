@@ -58,7 +58,7 @@ class ImpactTypesFilterGroup(FilterGroupSchema):
 # CollectionSchema — primary / secondary / relational
 # ---------------------------------------------------------------------------
 
-from api.views.note.mention_views import ImpactViewSet  # noqa: E402
+from api.views.impact import ImpactViewSet
 
 
 @collection_registry.register

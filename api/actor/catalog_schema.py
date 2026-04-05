@@ -32,6 +32,7 @@ class ActorSchema(CollectionSchema):
     mini_viewset_class = ActorMiniListViewSet
     icon = "recent_actors"
     color = "blue"
+    xls_export = True
     sort_fields = [
         'status_location__order', 'name',
         {'mentions_count': 'Cantidad de menciones'},
@@ -51,6 +52,7 @@ class ActorSchema(CollectionSchema):
 class ParticipantSchema(CollectionSchema):
     model = Participant
     level = "relational"
+    xls_export = True
     viewset_class = ParticipantViewSet
 
 

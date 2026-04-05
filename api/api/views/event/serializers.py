@@ -5,7 +5,6 @@ from api.views.actor.serializers import MentionBaseSerializer
 from api.views.common_serializers import (
     LocationBaseExportSerializer, ConditionalFieldsMixin, ParticipantFullSerializer)
 from project.models import Conflict
-from impact.models import ImpactType, Impact
 from space_time.models import Location
 from df.models import Displacement
 
@@ -63,15 +62,6 @@ class EventTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventType
         fields = '__all__'
-
-
-class ImpactTypeSerializer(serializers.ModelSerializer):
-    impact_group  = serializers.CharField(
-        source='impact_group.name', read_only=True)
-
-    class Meta:
-        model = ImpactType
-        fields = "__all__"
 
 
 class ConflictSimpleSerializer(serializers.ModelSerializer):
@@ -135,34 +125,3 @@ class EventExportFullSerializer(
         read_only_fields = fields
 
 
-class ImpactExportSerializer(LocationBaseExportSerializer):
-    mention = MentionBaseSerializer()
-
-    conflict = ConflictSimpleSerializer(
-        source='mention.project.conflict', read_only=True)
-    impact_type = ImpactTypeSerializer()
-    impact_subtype = serializers.CharField(
-        source='impact_subtype.name', read_only=True)
-
-    class Meta:
-        model = Impact
-        fields = [
-            'id',
-            'description',
-            'impact_type',
-            'impact_subtype',
-
-            'mention',
-            'conflict',
-
-            "location_id",
-            "state__inegi_code",
-            "state__short_name",
-            "municipality__inegi_code",
-            "municipality__name",
-            "locality__inegi_code",
-            "locality__name",
-            "latitude",
-            "longitude",
-        ]
-        read_only_fields = fields
