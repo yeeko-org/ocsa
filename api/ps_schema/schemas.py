@@ -156,6 +156,7 @@ class CollectionSchema(BaseSchema):
     icon: str = None
     all_filters: list = []     # List[FilterRef | ComponentFilter]
     xls_export: bool = False
+    xls_export_class: type | None = None
     can_massive_delete: bool = False
 
     # When set, register_routes also registers {snake_name}_mini

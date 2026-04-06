@@ -56,6 +56,7 @@ class ProjectTypesFilterGroup(FilterGroupSchema):
 # CollectionSchema — primary / secondary / relational
 # ---------------------------------------------------------------------------
 
+from api.export_blocks.project import ProjectExport  # noqa: E402
 from api.views.project import (  # noqa: E402
     ProjectViewSet, ProjectFileViewSet, ConflictViewSet, ProjectMiniViewSet)
 
@@ -72,7 +73,7 @@ class ProjectSchema(CollectionSchema):
         'id', 'status_validation__order', 'name', 'status_location__order']
     can_merge = True
     can_massive_edit = True
-    xls_export = True
+    xls_export_class = ProjectExport
     all_filters = [
         FilterRef("project_types"),
         FilterRef("states"),

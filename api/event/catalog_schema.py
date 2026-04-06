@@ -76,6 +76,7 @@ class EventTypesFilterGroup(FilterGroupSchema):
 # ---------------------------------------------------------------------------
 
 from api.views.event import EventViewSet
+from api.export_blocks.event import EventExport
 
 
 @collection_registry.register
@@ -86,7 +87,7 @@ class EventSchema(CollectionSchema):
     icon = "notifications_active"
     color = "lime"
     can_massive_edit = True
-    xls_export = True
+    xls_export_class = EventExport
     all_filters = [
         FilterRef("event_types"),
         FilterRef("purposes", hidden=True),

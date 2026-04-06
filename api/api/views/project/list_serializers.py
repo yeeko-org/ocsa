@@ -137,50 +137,6 @@ class MegaprojectTypeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProjectExportSerializer(LocationBaseExportSerializer):
-    conflict = ConflictSimpleSerializer()
-    megaproject_type = MegaprojectTypeSerializer()
-    extractivism_types = ExtractivismTypesSerializer(
-        source='megaproject_type', read_only=True)
-    parent_project = ProjectMiniSerializer()
-    note_dates = NoteDatesSerializer(
-        source='mentions', many=True, read_only=True)
-    status_validation = serializers.ReadOnlyField(
-        source='status_validation.public_name')
-    status_location = serializers.ReadOnlyField(
-        source='status_location.public_name')
-
-    class Meta:
-        model = Project
-        fields = [
-            "id",
-            "name",
-            "alternative_name",
-            "description",
-            "is_grouper",
-            "proyecto_id_ref",
-
-            "conflict",
-            "megaproject_type",
-            "extractivism_types",
-            "parent_project",
-
-            "location_id",
-            "state__inegi_code",
-            "state__short_name",
-            "municipality__inegi_code",
-            "municipality__name",
-            "locality__inegi_code",
-            "locality__name",
-            "latitude",
-            "longitude",
-
-            "note_dates",
-            "status_validation",
-            "status_location",
-        ]
-
-
 class ConflictSerializer(ConflictSimpleSerializer):
     projects = ProjectMiniSerializer(many=True, read_only=True)
 

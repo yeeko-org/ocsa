@@ -19,6 +19,8 @@ class ParticipantsFilterGroup(FilterGroupSchema):
 # CollectionSchema — primary / secondary / relational
 # ---------------------------------------------------------------------------
 
+from api.export_blocks.actor import ActorExport  # noqa: E402
+from api.export_blocks.participant import ParticipantExport  # noqa: E402
 from api.views.actor import ActorViewSet, ActorMiniListViewSet  # noqa: E402
 from api.views.note.mention_views import (  # noqa: E402
     ParticipantViewSet, InterestViewSet)
@@ -32,7 +34,7 @@ class ActorSchema(CollectionSchema):
     mini_viewset_class = ActorMiniListViewSet
     icon = "recent_actors"
     color = "blue"
-    xls_export = True
+    xls_export_class = ActorExport
     sort_fields = [
         'status_location__order', 'name',
         {'mentions_count': 'Cantidad de menciones'},
@@ -52,7 +54,7 @@ class ActorSchema(CollectionSchema):
 class ParticipantSchema(CollectionSchema):
     model = Participant
     level = "relational"
-    xls_export = True
+    xls_export_class = ParticipantExport
     viewset_class = ParticipantViewSet
 
 

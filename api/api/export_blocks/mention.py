@@ -1,73 +1,39 @@
-from api.export_blocks.base import ExportBlock
+from source.models import Mention, Note
+from yeeko_xlsx_export import ModelExport, XlsColumn, FkColumn, Include
 from api.export_blocks.project import (
-    ProjectMiniExportBlock, ConflictMiniExportBlock)
-from source.models import Note
+    ConflictMiniBlock, ProjectExpandBlock, ProjectMiniBlock,
+)
 
 
-class NoteExportBlock(ExportBlock):
-    """
-    Requiere select_related: source.
-    """
+class NoteBlock(ModelExport):
+    """Columnas base de Nota, reutilizable vía Include."""
 
+    model = Note
     columns = [
-        {"name": "ID de nota", "width": 5, "field": "id"},
-        {"name": "Fecha de nota", "width": 10, "field": "date"},
-        {"name": "Título de nota", "width": 40, "field": "title"},
-        {"name": "Medio de la nota", "width": 15, "field": "source"},
+        XlsColumn("id", title="ID de nota"),
+        XlsColumn("date", title="Fecha de nota"),
+        XlsColumn("title", title="Título de nota", width=40),
+        FkColumn(
+            "source", "name",
+            title="Medio de la nota",
+        ),
     ]
 
-    @classmethod
-    def extract(cls, note: Note) -> dict:
-        from utils.universal import safe_attr
-        return {
-            "id": note.id,
-            "date": str(note.date),
-            "title": note.title,
-            "source": safe_attr(note, 'source', 'name'),
-        }
 
+class MentionBlock(ModelExport):
+    """Bloque de Mención: compone Nota, Proyecto y Conflicto.
 
-class MentionExportBlock(ExportBlock):
-    """Columnas y extractor para Mention en exportaciones XLSX.
-
-    Se usa SIN preset en xls_attrs; los fields resultantes incluyen los
-    prefijos mention__note__, mention__project__ y conflict__ derivados
-    de la composición de los sub-bloques.
-    Requiere select_related: mention__note__source,
-                             mention__project__conflict.
+    Usado como Include(MentionBlock, through="mention") en exports
+    cuyo modelo tiene FK a Mention.
     """
 
+    model = Mention
     columns = [
-        *NoteExportBlock.prefixed("mention__note"),
-        *ProjectMiniExportBlock.prefixed("mention__project"),
-        *ConflictMiniExportBlock.prefixed("conflict"),
+        Include(NoteBlock, through="note"),
+        Include(ProjectMiniBlock, through="project"),
+        Include(ProjectExpandBlock, through="project"),
+        Include(
+            ConflictMiniBlock, through="project__conflict",
+        ),
     ]
-
-    @classmethod
-    def extract(cls, obj) -> dict:
-        """Extrae mention de cualquier objeto con FK .mention.
-
-        Devuelve claves de primer nivel 'mention' y 'conflict' para el
-        traversal de ExportXlsMixin (sin preset).
-        """
-        from utils.universal import safe_attr
-        mention = obj.mention
-        project = mention.project
-        conflict = safe_attr(project, 'conflict')
-        return {
-            "mention": {
-                "note": NoteExportBlock.extract(mention.note),
-                "project": ProjectMiniExportBlock.extract(project),
-            },
-            "conflict": ConflictMiniExportBlock.extract(conflict),
-        }
-
-
-# Legacy — se eliminará cuando todos los ViewSets usen MentionExportBlock
-xlsx_mention_group = MentionExportBlock.columns
-
-
-def extract_mention(obj) -> dict:
-    """Legacy wrapper — usar MentionExportBlock.extract en código nuevo."""
-    return MentionExportBlock.extract(obj)
 

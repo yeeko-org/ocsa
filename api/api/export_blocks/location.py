@@ -1,57 +1,197 @@
-from api.export_blocks.base import ExportBlock
+from space_time.models import Location
+from yeeko_xlsx_export import ModelExport, XlsColumn
+
+from api.export_blocks.conditions import expand_project
 
 
-class LocationExportBlock(ExportBlock):
-    """Columnas y extractor para la ubicación principal de una entidad.
+class LocationBlock(ModelExport):
+    """Bloque de ubicación principal — lee de anotaciones Subquery.
 
-    Requiere que el queryset haya sido anotado con get_annotations().
-    Los valores se leen de los atributos ORM anotados en el objeto.
+    Los valores provienen de anotaciones en el queryset padre, no de
+    FK traversal directo. Las annotation keys usan ``_`` (no ``__``)
+    para evitar que resolve_field_path las interprete como paths ORM.
+
+    Uso en un export::
+
+        class MyExport(ModelExport):
+            columns = [
+                ...,
+                Include(LocationBlock),  # sin through
+            ]
+
+            def get_annotations(self) -> dict:
+                return LocationBlock.build_annotations("event")
     """
 
-    columns = [
-        {"name": "ID de ubicación principal", "width": 5, "field": "location_id"},
-        {"name": "ID de Entidad", "width": 4, "field": "state__inegi_code"},
-        {"name": "Entidad", "width": 25, "field": "state__short_name"},
-        {"name": "ID de Municipio", "width": 4,
-         "field": "municipality__inegi_code"},
-        {"name": "Municipio", "width": 25, "field": "municipality__name"},
-        {"name": "ID de Localidad", "width": 4,
-         "field": "locality__inegi_code"},
-        {"name": "Localidad", "width": 25, "field": "locality__name"},
-        {"name": "Latitud", "width": 12, "field": "latitude"},
-        {"name": "Longitud", "width": 12, "field": "longitude"},
-    ]
+    model = Location
 
-    # Campos que get_annotations() debe anotar en el queryset
-    annotation_fields: list[str] = [
-        'state__inegi_code', 'state__short_name',
-        'municipality__inegi_code', 'municipality__name',
-        'locality__inegi_code', 'locality__name',
-        'latitude', 'longitude',
+    # Mapeo: annotation_key → path dentro de Location para Subquery
+    _annotation_sources: dict[str, str] = {
+        "location_id": "id",
+        "state_inegi_code": "state__inegi_code",
+        "state_short_name": "state__short_name",
+        "municipality_inegi_code": "municipality__inegi_code",
+        "municipality_name": "municipality__name",
+        "locality_inegi_code": "locality__inegi_code",
+        "locality_name": "locality__name",
+        "loc_latitude": "latitude",
+        "loc_longitude": "longitude",
+    }
+
+    columns = [
+        XlsColumn(
+            "location_id",
+            title="ID de ubicación principal",
+        ),
+        XlsColumn(
+            "state_inegi_code",
+            title="ID de Entidad", width=4,
+        ),
+        XlsColumn(
+            "state_short_name",
+            title="Entidad", width=25,
+        ),
+        XlsColumn(
+            "municipality_inegi_code",
+            title="ID de Municipio", width=4,
+        ),
+        XlsColumn(
+            "municipality_name",
+            title="Municipio", width=25,
+        ),
+        XlsColumn(
+            "locality_inegi_code",
+            title="ID de Localidad", width=4,
+        ),
+        XlsColumn(
+            "locality_name",
+            title="Localidad", width=25,
+        ),
+        XlsColumn(
+            "loc_latitude",
+            title="Latitud", width=12,
+        ),
+        XlsColumn(
+            "loc_longitude",
+            title="Longitud", width=12,
+        ),
     ]
 
     @classmethod
-    def extract(cls, obj) -> dict:
-        """Lee los valores de las anotaciones ORM del objeto.
+    def build_annotations(
+        cls,
+        target: str,
+        outer_ref: str = "id",
+        prefix: str = "",
+    ) -> dict:
+        """Genera anotaciones Subquery para la ubicación principal.
 
-        Devuelve un dict anidado compatible con el traversal __ de
-        ExportXlsMixin: state__inegi_code → row['state']['inegi_code'].
+        Selecciona la Location con mayor prioridad de status_location
+        y extrae sus campos como anotaciones planas del queryset padre.
+
+        Args:
+            target: FK en Location que apunta a la entidad padre
+                (``"event"``, ``"impact"``, ``"project"``).
+            outer_ref: campo del modelo raíz del queryset que se
+                usa en ``OuterRef``. Default ``"id"`` (el modelo
+                raíz ES la entidad). Para contextos anidados usar
+                el path hasta el id de la entidad, e.g.
+                ``"mention__project_id"``.
+            prefix: prefijo para los annotation keys, útil cuando
+                el export ya tiene un ``LocationBlock`` propio y
+                se necesita evitar colisiones (e.g. ``"proj_"``).
         """
+        from django.db.models import OuterRef, Subquery
+
+        query_loc = {target: OuterRef(outer_ref)}
+        max_priority = (
+            Location.objects
+            .filter(**query_loc)
+            .order_by("-status_location__priority")
+        )
         return {
-            "location_id": getattr(obj, 'location_id', None),
-            "state": {
-                "inegi_code": getattr(obj, 'state__inegi_code', None),
-                "short_name": getattr(obj, 'state__short_name', None),
-            },
-            "municipality": {
-                "inegi_code": getattr(
-                    obj, 'municipality__inegi_code', None),
-                "name": getattr(obj, 'municipality__name', None),
-            },
-            "locality": {
-                "inegi_code": getattr(obj, 'locality__inegi_code', None),
-                "name": getattr(obj, 'locality__name', None),
-            },
-            "latitude": getattr(obj, 'latitude', None),
-            "longitude": getattr(obj, 'longitude', None),
+            f"{prefix}{ann_key}": Subquery(
+                max_priority.values(source)[:1],
+            )
+            for ann_key, source
+            in cls._annotation_sources.items()
         }
+
+
+class ProjectLocationBlock(ModelExport):
+    """Ubicación principal del proyecto — annotations prefijadas.
+
+    Se incluye a nivel raíz del Export (sin ``through``) porque
+    las annotations viven en el objeto raíz del queryset, no en
+    el objeto Project relacionado.
+
+    Cada columna lleva ``condition=expand_project`` para que solo
+    aparezcan con ``?expand_project=1``.
+
+    Uso en un export::
+
+        class EventExport(ModelExport):
+            columns = [
+                ...,
+                Include(ProjectLocationBlock),
+            ]
+
+            def get_annotations(self) -> dict:
+                return {
+                    **LocationBlock.build_annotations("event"),
+                    **LocationBlock.build_annotations(
+                        "project",
+                        outer_ref="mention__project_id",
+                        prefix="proj_",
+                    ),
+                }
+    """
+
+    model = Location
+    columns = [
+        XlsColumn(
+            "proj_location_id",
+            title="ID de ubicación del proyecto",
+            condition=expand_project,
+        ),
+        XlsColumn(
+            "proj_state_inegi_code",
+            title="ID de Entidad del proyecto", width=4,
+            condition=expand_project,
+        ),
+        XlsColumn(
+            "proj_state_short_name",
+            title="Entidad del proyecto", width=25,
+            condition=expand_project,
+        ),
+        XlsColumn(
+            "proj_municipality_inegi_code",
+            title="ID de Municipio del proyecto", width=4,
+            condition=expand_project,
+        ),
+        XlsColumn(
+            "proj_municipality_name",
+            title="Municipio del proyecto", width=25,
+            condition=expand_project,
+        ),
+        XlsColumn(
+            "proj_locality_inegi_code",
+            title="ID de Localidad del proyecto", width=4,
+            condition=expand_project,
+        ),
+        XlsColumn(
+            "proj_locality_name",
+            title="Localidad del proyecto", width=25,
+            condition=expand_project,
+        ),
+        XlsColumn(
+            "proj_loc_latitude",
+            title="Latitud del proyecto", width=12,
+            condition=expand_project,
+        ),
+        XlsColumn(
+            "proj_loc_longitude",
+            title="Longitud del proyecto", width=12,
+            condition=expand_project,
+        ),
+    ]

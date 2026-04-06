@@ -1,84 +1,98 @@
+"""Bloques y export de Actor para exportación XLSX.
+
+ActorBlock — bloque reutilizable (campos base del actor).
+ActorExport — export completo con notas y status de validación.
+"""
 from actor.models import Actor
-from api.export_blocks.base import ExportBlock
+from api.export_blocks.conditions import is_authenticated
+from yeeko_xlsx_export import (
+    CollectColumn, FkColumn, Include, ModelExport, XlsColumn,
+)
 
 
-xlsx_actor_fields = [
-    {
-        "special_group": "actor",
-    },
-    {
-        "name": "Número de notas",
-        "width": 15,
-        "field": "note_dates",
-        "operation": "count"
-    },
-    {
-        "name": "Primera nota",
-        "width": 15,
-        "field": "note_dates",
-        "operation": "min"
-    },
-    {
-        "name": "Status de validación",
-        "width": 15,
-        "field": "status_validation",
-        "conditions": ["only_logged_in"]
-    },
-    {
-        "name": "Última nota",
-        "width": 15,
-        "field": "note_dates",
-        "operation": "max"
-    }
-]
+class ActorBlock(ModelExport):
+    """Columnas base de Actor, reutilizable vía Include.
 
-class ActorExportBlock(ExportBlock):
-    """Columnas y extractor para Actor en exportaciones XLSX.
-
-    Requiere select_related: sector, indigenous_group, parent_actor.
-    Requiere prefetch_related: belongs, countries.
+    Infiere automáticamente:
+      select_related: parent_actor, sector, indigenous_group
+      prefetch_related: belongs, countries
     """
 
+    model = Actor
     columns = [
-        {"name": "ID del Actor", "width": 5, "field": "id"},
-        {"name": "Nombre del Actor", "width": 35, "field": "name"},
-        {
-            "name": "Nombres alternativos", "width": 25,
-            "field": "alternative_names",
-            "conditions": ["only_logged_in"],
-        },
-        {"name": "ID de actor agrupador", "width": 5,
-         "field": "parent_actor__id"},
-        {"name": "Nombre de actor agrupador", "width": 30,
-         "field": "parent_actor__name"},
-        {"name": "Sector", "width": 30, "field": "sector"},
-        {"name": "Pertenencias (vulnerabilidades)", "width": 30,
-         "field": "belongs"},
-        {"name": "Grupo indígena", "width": 30, "field": "indigenous_group"},
-        {
-            "name": "Sexo", "width": 10, "field": "sex",
-            "conditions": ["only_logged_in"],
-        },
-        {"name": "Paises origen", "width": 30, "field": "countries"},
+        XlsColumn("id", title="ID del Actor"),
+        XlsColumn("name", title="Nombre del Actor", width=35),
+        XlsColumn(
+            "alternative_names",
+            width=25,
+            condition=is_authenticated,
+        ),
+        FkColumn(
+            "parent_actor", "id",
+            title="ID de actor agrupador",
+        ),
+        FkColumn(
+            "parent_actor", "name",
+            title="Nombre de actor agrupador",
+        ),
+        FkColumn(
+            "sector", "name",
+            title="Sector", width=30,
+        ),
+        CollectColumn(
+            "belongs", "name",
+            title="Pertenencias (vulnerabilidades)",
+            width=30,
+        ),
+        FkColumn(
+            "indigenous_group", "name",
+            title="Grupo indígena", width=30,
+        ),
+        XlsColumn(
+            "sex",
+            title="Sexo",
+            width=10,
+            condition=is_authenticated,
+        ),
+        CollectColumn(
+            "countries", "name",
+            title="Paises origen",
+            width=30,
+        ),
     ]
 
-    @classmethod
-    def extract(cls, actor: Actor) -> dict:
-        from utils.universal import safe_attr
-        return {
-            "id": actor.id,
-            "name": actor.name,
-            "alternative_names": actor.alternative_names,
-            "parent_actor": {
-                "id": actor.parent_actor_id,
-                "name": safe_attr(actor, 'parent_actor', 'name'),
-            },
-            "sector": safe_attr(actor, 'sector', 'name'),
-            "belongs": [b.name for b in actor.belongs.all()],
-            "indigenous_group": safe_attr(actor, 'indigenous_group', 'name'),
-            "sex": actor.sex,
-            "countries": [c.name for c in actor.countries.all()],
-        }
 
+class ActorExport(ModelExport):
+    """Exportación completa de Actores.
 
+    Incluye campos base (ActorBlock), conteo/rango de notas
+    vía participants→mention→note, y status de validación.
+    """
+
+    model = Actor
+    export_name = "Exportación de Actores"
+    columns = [
+        Include(ActorBlock),
+        CollectColumn(
+            "participants__mention__note", "date",
+            title="Número de notas",
+            operation="count",
+        ),
+        CollectColumn(
+            "participants__mention__note", "date",
+            title="Primera nota",
+            operation="min",
+        ),
+        CollectColumn(
+            "participants__mention__note", "date",
+            title="Última nota",
+            operation="max",
+        ),
+        FkColumn(
+            "status_validation", "public_name",
+            title="Status de validación",
+            width=15,
+            condition=is_authenticated,
+        ),
+    ]
 

@@ -4,7 +4,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework import viewsets
 from api.permissions import DynamicCatalogPermission
-from api.views.action_export_xls import ExportXlsMixin
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -18,7 +17,6 @@ from api.views.actor.serializers import (
     ActorBaseSerializer, ActorMiniSerializer, ActorCreateSerializer,
     ActorEditeSerializer, ActorFullSerializer, ActorMiniBaseSerializer
 )
-from api.export_blocks.actor import ActorExportBlock, xlsx_actor_fields
 from api.views.common_views import UnaccentSearchFilter, MassiveEdit
 
 
@@ -81,42 +79,18 @@ class ActorViewMixin(viewsets.ModelViewSet):
     ordering = ['id']
 
 
-class ActorViewSet(ExportXlsMixin, MassiveEdit, ActorViewMixin):
+class ActorViewSet(MassiveEdit, ActorViewMixin):
 
     serializer_class = ActorBaseSerializer
-    xls_name = "Exportación de Actores"
-    xls_attrs = xlsx_actor_fields
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        retrieve_actions = ['retrieve']
-        if self.action in retrieve_actions:
+        if self.action == 'retrieve':
             queryset = queryset.annotate(
-                events_count=Count('participants__involvements', distinct=True),
-                # indirect_events_count=Count('participants__', distinct=True)
+                events_count=Count(
+                    'participants__involvements', distinct=True),
             )
-
         return queryset
-
-
-    def get_query_for_export_xls(self):
-        queryset = Actor.objects.all() \
-            .select_related(
-            'parent_actor',
-            'status_validation',
-            'sector',
-            'sector__sector_group',
-            'indigenous_group',
-        ) \
-            .prefetch_related(
-            'participants__mention__note',
-            'belongs',
-            'countries',
-        ) \
-            .distinct()
-
-        return self.filter_queryset(queryset)
-
 
     def get_serializer_class(self):
         action_serializer = {
@@ -127,25 +101,6 @@ class ActorViewSet(ExportXlsMixin, MassiveEdit, ActorViewMixin):
             'merge': FromToModelSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
-
-    def get_export_rows(self, queryset) -> list[dict]:
-        from utils.universal import safe_attr
-        rows = []
-        for actor in queryset:
-            note_dates = []
-            for p in actor.participants.all():
-                try:
-                    note_dates.append(
-                        p.mention.note.date.strftime("%d-%m-%Y"))
-                except AttributeError:
-                    pass
-            rows.append({
-                **ActorExportBlock.extract(actor),
-                "note_dates": note_dates,
-                "status_validation": safe_attr(
-                    actor, 'status_validation', 'public_name'),
-            })
-        return rows
 
     @action(detail=True, methods=['delete'])
     def delete_other_parents(self, request, *args, **kwargs):

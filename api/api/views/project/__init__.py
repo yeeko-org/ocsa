@@ -8,13 +8,9 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.export_blocks.location import LocationExportBlock
-from api.export_blocks.project import ConflictMiniExportBlock
 from api.permissions import DynamicCatalogPermission
 from actor.models import Actor
 from api.pagination import CustomPagination
-from api.views.action_export_xls import ExportXlsMixin
-from utils.universal import safe_attr
 from api.views.action_file import ActionFileMixin
 from api.views.actor.serializers import ActorFullCountSerializer
 from api.views.common_views import (
@@ -104,7 +100,7 @@ class ProjectViewSetMixin(viewsets.ModelViewSet):
 
 class ProjectViewSet(
         ClickHistoryMixin, CustomDeleteMixin, ActionFileMixin, MassiveEdit,
-        ExportXlsMixin, ProjectViewSetMixin):
+        ProjectViewSetMixin):
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
@@ -122,42 +118,6 @@ class ProjectViewSet(
     ).distinct()
     # add_locations = True
     click_actions = ['opened', 'created', 'saved']
-
-    extra_attrs = {
-        **ExportXlsMixin.extra_attrs,
-        "conflict": ConflictMiniExportBlock,
-    }
-
-    xls_attrs = [
-        {"name": "ID", "width": 5, "field": "id"},
-        {"name": "ID antiguo", "width": 5, "field": "proyecto_id_ref"},
-        {"name": "Nombre", "width": 35, "field": "name"},
-        {"name": "Nombres alternativos", "width": 25,
-         "field": "alternative_name"},
-        {"name": "Descripción", "width": 40, "field": "description"},
-        {"name": "Es agrupador", "width": 8, "field": "is_grouper"},
-        {"name": "ID de proyecto agrupador", "width": 5,
-         "field": "parent_project__id"},
-        {"name": "Nombre de proyecto agrupador", "width": 30,
-         "field": "parent_project__name"},
-        {"special_group": "conflict", "preset": "conflict"},
-        {"name": "Tipos de extractivismo", "width": 25,
-         "field": "extractivism_types"},
-        {"name": "Tipo de megaproyecto", "width": 20,
-         "field": "megaproject_type__name"},
-        {"name": "Status de validación", "width": 15,
-         "field": "status_validation", "conditions": ["only_logged_in"]},
-        {"name": "Status de ubicación", "width": 15,
-         "field": "status_location", "conditions": ["only_logged_in"]},
-        {"name": "Número de notas", "width": 15, "field": "note_dates",
-         "operation": "count"},
-        {"name": "Primera nota", "width": 15, "field": "note_dates",
-         "operation": "min"},
-        {"name": "Última nota", "width": 15, "field": "note_dates",
-         "operation": "max"},
-        {"special_group": "location"},
-    ]
-    xls_name = "Exportación de Proyectos"
 
     pagination_class = CustomPagination
     serializer_class = ProjectBasicSerializer
@@ -189,56 +149,6 @@ class ProjectViewSet(
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related("others_parents")
         return queryset
-
-    def get_query_for_export_xls(self):
-        annotations = self.get_annotations('project')
-        queryset = Project.objects.all()\
-            .select_related(
-                'parent_project', 'conflict', 'megaproject_type',
-                'status_validation', 'status_location',
-            )\
-            .prefetch_related(
-                'megaproject_type__extractivism_types',
-                'mentions__note',
-            )\
-            .annotate(**annotations)\
-            .distinct()
-        return self.filter_queryset(queryset)
-
-    def get_export_rows(self, queryset) -> list[dict]:
-        rows = []
-        for obj in queryset:
-            extractivism = None
-            if obj.megaproject_type:
-                names = obj.megaproject_type.extractivism_types\
-                    .values_list('name', flat=True)
-                extractivism = ", ".join(names)
-            rows.append({
-                "id": obj.id,
-                "proyecto_id_ref": obj.proyecto_id_ref,
-                "name": obj.name,
-                "alternative_name": obj.alternative_name,
-                "description": obj.description,
-                "is_grouper": obj.is_grouper,
-                "parent_project": {
-                    "id": safe_attr(obj.parent_project, 'id'),
-                    "name": safe_attr(obj.parent_project, 'name'),
-                },
-                "conflict": ConflictMiniExportBlock.extract(obj.conflict),
-                "extractivism_types": extractivism,
-                "megaproject_type": {
-                    "name": safe_attr(obj.megaproject_type, 'name'),
-                },
-                "status_validation": safe_attr(
-                    obj.status_validation, 'public_name'),
-                "status_location": safe_attr(
-                    obj.status_location, 'public_name'),
-                "note_dates": [
-                    m.note.date for m in obj.mentions.all() if m.note
-                ],
-                **LocationExportBlock.extract(obj),
-            })
-        return rows
 
     def create(self, request, *args, **kwargs):
         data = request.data

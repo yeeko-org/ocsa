@@ -4,7 +4,6 @@ from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
 
 from api.pagination import CustomPagination
-from api.views.action_export_xls import ExportXlsMixin
 from api.views.common_views import ClickHistoryMixin, MassiveEdit
 
 from api.views.event.serializers import EventSerializer, EventMediumSerializer
@@ -49,7 +48,7 @@ class EventFilter(FilterSet):
 
 
 class EventViewSet(
-    ClickHistoryMixin, MassiveEdit, ExportXlsMixin, viewsets.ModelViewSet):
+    ClickHistoryMixin, MassiveEdit, viewsets.ModelViewSet):
     queryset = Event.objects.all()\
         .select_related(
             'mention',
@@ -73,21 +72,6 @@ class EventViewSet(
     ordering_fields = ['id', 'date']
     ordering = ['id']
 
-    # add_locations = True
-    # additional_groups = ["mention", "location"]
-    xls_name = 'Eventos'
-    xls_attrs = [
-        {
-            "special_group": "event",
-        },
-        {
-            "special_group": "mention",
-        },
-        {
-            "special_group": "location",
-        },
-    ]
-
     def get_serializer_class(self):
         action_serializer = {
             'retrieve': EventFullNoteSerializer,
@@ -95,20 +79,6 @@ class EventViewSet(
             'update': EventMediumSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
-
-    def get_export_rows(self, queryset) -> list[dict]:
-        from api.export_blocks.event import EventExportBlock
-        from api.export_blocks.mention import MentionExportBlock
-        from api.export_blocks.location import LocationExportBlock
-
-        return [
-            {
-                **EventExportBlock.extract(event),
-                **MentionExportBlock.extract(event),
-                **LocationExportBlock.extract(event),
-            }
-            for event in queryset
-        ]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -119,17 +89,3 @@ class EventViewSet(
                 'involvements__participant__actor')
         return queryset
 
-    def get_query_for_export_xls(self):
-
-        annotations = self.get_annotations(target='event')
-
-        queryset = self.get_queryset() \
-            .annotate(**annotations)\
-            .select_related(
-                'mention', 'mention__note',
-                'mention__note__source', 'purpose',
-                'mention__project', 'mention__project__conflict',
-                'event_type', 'event_type__event_group',
-            )\
-            .distinct()
-        return self.filter_queryset(queryset)

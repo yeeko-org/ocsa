@@ -1,36 +1,58 @@
-from api.export_blocks.base import ExportBlock
+"""Bloques y export de Impact para exportación XLSX.
+
+ImpactBlock — bloque reutilizable (campos base de la afectación).
+ImpactExport — export completo con mención, nota y ubicación.
+"""
+from impact.models import Impact
+from api.export_blocks.location import LocationBlock, ProjectLocationBlock
+from api.export_blocks.mention import MentionBlock
+from yeeko_xlsx_export import (
+    ModelExport, XlsColumn, FkColumn, Include,
+)
 
 
-class ImpactExportBlock(ExportBlock):
-    """Columnas y extractor para Impact en exportaciones XLSX.
-
-    Requiere select_related: impact_type__impact_group, impact_subtype.
+class ImpactBlock(ModelExport):
+    """Columnas base de Impact, reutilizable vía Include.
     """
 
+    model = Impact
     columns = [
-        {"name": "ID", "width": 5, "field": "id"},
-        {"name": "Descripción de la afectación", "width": 50,
-         "field": "description"},
-        {"name": "Grupo de afectación", "width": 15,
-         "field": "impact_type__impact_group"},
-        {"name": "Tipo de afectación", "width": 15,
-         "field": "impact_type__name"},
-        {"name": "Subtipo de afectación", "width": 30,
-         "field": "impact_subtype__name"},
+        XlsColumn("id"),
+        XlsColumn("description", width=50),
+        FkColumn(
+            "impact_type", "impact_group__name",
+            title="Grupo de afectación", width=15,
+        ),
+        FkColumn(
+            "impact_type", "name",
+            title="Tipo de afectación", width=15,
+        ),
+        FkColumn(
+            "impact_subtype", "name",
+            title="Subtipo de afectación", width=30,
+        ),
     ]
 
-    @classmethod
-    def extract(cls, obj) -> dict:
-        from utils.universal import safe_attr
+
+class ImpactExport(ModelExport):
+    """Exportación completa de Afectaciones.
+    """
+
+    model = Impact
+    export_name = "Exportación de Afectaciones"
+    columns = [
+        Include(ImpactBlock),
+        Include(MentionBlock, through="mention"),
+        Include(LocationBlock),
+        Include(ProjectLocationBlock),
+    ]
+
+    def get_annotations(self) -> dict:
         return {
-            "id": obj.id,
-            "description": obj.description,
-            "impact_type": {
-                "impact_group": safe_attr(
-                    obj, 'impact_type', 'impact_group', 'name'),
-                "name": safe_attr(obj, 'impact_type', 'name'),
-            },
-            "impact_subtype": {
-                "name": safe_attr(obj, 'impact_subtype', 'name'),
-            },
+            **LocationBlock.build_annotations("impact"),
+            **LocationBlock.build_annotations(
+                "project",
+                outer_ref="mention__project_id",
+                prefix="proj_",
+            ),
         }

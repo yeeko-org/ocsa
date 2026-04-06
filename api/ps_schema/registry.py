@@ -347,14 +347,42 @@ class CollectionRegistry:
         return schema_cls
 
     def register_routes(self, router) -> None:
-        """Register all CollectionSchema viewsets into a DRF router."""
+        """Register all CollectionSchema viewsets into a DRF router.
+
+        Cuando un schema define ``xls_export_class``, inyecta
+        ``ExportActionMixin`` en el ViewSet dinámicamente para
+        que la action ``export_xls`` se registre vía el router.
+        """
         for snake_name, schema_cls in self._schemas.items():
+            viewset_cls = self._with_export_mixin(schema_cls)
             router.register(
-                snake_name, schema_cls.viewset_class, basename=snake_name)
+                snake_name, viewset_cls, basename=snake_name)
             if mini_class := schema_cls.mini_viewset_class:
                 endpoint_name = f'{snake_name}_mini'
                 router.register(
                     endpoint_name, mini_class, basename=endpoint_name)
+
+    @staticmethod
+    def _with_export_mixin(
+        schema_cls: type,
+    ) -> type:
+        """Inyecta ExportActionMixin si el schema tiene export.
+
+        Crea una subclase dinámica que hereda del mixin +
+        ViewSet original, con ``xls_export_class`` configurado.
+        """
+        export_cls = schema_cls.xls_export_class
+        if export_cls is None:
+            return schema_cls.viewset_class
+
+        from yeeko_xlsx_export import ExportActionMixin
+
+        viewset_cls = schema_cls.viewset_class
+        return type(
+            f"{viewset_cls.__name__}Export",
+            (ExportActionMixin, viewset_cls),
+            {"xls_export_class": export_cls},
+        )
 
     def iter_collection_data(self):
         """Yield (app_label, collection_dict) for InitCollections."""
@@ -380,7 +408,10 @@ class CollectionRegistry:
                     ) if flag
                 ],
                 'cat_params': schema_cls.cat_params,
-                'xls_export': schema_cls.xls_export,
+                'xls_export': (
+                    schema_cls.xls_export_class is not None
+                    or schema_cls.xls_export
+                ),
                 'sort_fields': schema_cls.sort_fields,
                 'all_filters': [
                     filter_to_dict(f) for f in schema_cls.all_filters],

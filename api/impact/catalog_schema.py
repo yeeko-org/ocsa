@@ -59,6 +59,7 @@ class ImpactTypesFilterGroup(FilterGroupSchema):
 # ---------------------------------------------------------------------------
 
 from api.views.impact import ImpactViewSet
+from api.export_blocks.impact import ImpactExport
 
 
 @collection_registry.register
@@ -68,7 +69,7 @@ class ImpactSchema(CollectionSchema):
     viewset_class = ImpactViewSet
     color = "indigo"
     can_massive_edit = True
-    xls_export = True
+    xls_export_class = ImpactExport
     all_filters = [
         FilterRef("impact_types"),
     ]

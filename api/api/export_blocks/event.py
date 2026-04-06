@@ -1,37 +1,81 @@
-from api.export_blocks.base import ExportBlock
-from utils.universal import safe_attr
+"""Bloques y export de Event para exportación XLSX.
+
+EventBlock — bloque reutilizable (columnas base del evento).
+EventExport — export completo con mención, ubicación.
+"""
+from typing import Any
+
+from event.models import Event
+from yeeko_xlsx_export import (
+    ModelExport, XlsColumn, FkColumn, Include,
+)
+from api.export_blocks.location import LocationBlock, ProjectLocationBlock
+from api.export_blocks.mention import MentionBlock
 
 
-class EventExportBlock(ExportBlock):
-    """Columnas y extractor para Event en exportaciones XLSX.
+class EventBlock(ModelExport):
+    """Columnas base de Event, reutilizable vía Include.
 
-    Requiere select_related: event_type__event_group, purpose.
+    Infiere automáticamente:
+      select_related: event_type, event_type__event_group, purpose
     """
 
+    model = Event
     columns = [
-        {"name": "ID del evento", "width": 5, "field": "id"},
-        {"name": "Grupo de evento", "width": 15, "field": "event_type__event_group"},
-        {"name": "Tipo de evento", "width": 30, "field": "event_type__name"},
-        {"name": "Descripción del evento", "width": 50, "field": "description"},
-        {"name": "Mujeres víctimas", "width": 4, "field": "number_women"},
-        {"name": "Hombres víctimas", "width": 4, "field": "number_men"},
-        {"name": "Personas víctimas", "width": 4, "field": "number_mix"},
-        {"name": "Intención del mecanismo", "width": 18, "field": "purpose"},
+        XlsColumn("id", title="ID del evento"),
+        FkColumn(
+            "event_type", "event_group__name",
+            title="Grupo de evento", width=15,
+        ),
+        FkColumn(
+            "event_type", "name",
+            title="Tipo de evento", width=30,
+        ),
+        XlsColumn(
+            "description",
+            title="Descripción del evento", width=50,
+        ),
+        XlsColumn(
+            "number_women",
+            title="Mujeres víctimas", width=4,
+        ),
+        XlsColumn(
+            "number_men",
+            title="Hombres víctimas", width=4,
+        ),
+        XlsColumn(
+            "number_mix",
+            title="Personas víctimas", width=4,
+        ),
+        FkColumn(
+            "purpose", "name",
+            title="Intención del mecanismo", width=18,
+        ),
     ]
 
-    @classmethod
-    def extract(cls, obj) -> dict:
-        """Extrae campos de Event para exportación XLSX."""
+
+class EventExport(ModelExport):
+    """Exportación completa de Eventos.
+
+    Compone EventBlock + MentionBlock (nota, proyecto, conflicto)
+    + LocationBlock (ubicación principal vía anotaciones Subquery).
+    """
+
+    model = Event
+    export_name = "Eventos"
+    columns = [
+        Include(EventBlock),
+        Include(MentionBlock, through="mention"),
+        Include(LocationBlock),
+        Include(ProjectLocationBlock),
+    ]
+
+    def get_annotations(self) -> dict[str, Any]:
         return {
-            "id": obj.id,
-            "event_type": {
-                "event_group": safe_attr(
-                    obj, 'event_type', 'event_group', 'name'),
-                "name": safe_attr(obj, 'event_type', 'name'),
-            },
-            "description": obj.description,
-            "number_women": obj.number_women,
-            "number_men": obj.number_men,
-            "number_mix": obj.number_mix,
-            "purpose": safe_attr(obj, 'purpose', 'name'),
+            **LocationBlock.build_annotations("event"),
+            **LocationBlock.build_annotations(
+                "project",
+                outer_ref="mention__project_id",
+                prefix="proj_",
+            ),
         }
