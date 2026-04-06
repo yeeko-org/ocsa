@@ -2,9 +2,7 @@ from project.models import Conflict, Project
 from yeeko_xlsx_export import (
     CollectColumn, FkColumn, Include, ModelExport, XlsColumn,
 )
-from api.export_blocks.conditions import (
-    expand_project, expand_project_auth, is_authenticated,
-)
+from api.export_blocks.conditions import is_authenticated
 from api.export_blocks.location import LocationBlock
 
 
@@ -29,68 +27,20 @@ class ProjectMiniBlock(ModelExport):
 
 
 class ProjectExpandBlock(ModelExport):
-    """Campos extra de Proyecto, activados con ?expand_project=1.
+    """Campos extra de Proyecto.
 
     Pensado para incluirse después de ProjectMiniBlock en exports
     que llegan al proyecto vía MentionBlock (Event, Impact,
-    Participant). Cada columna lleva condition para que solo
-    aparezcan cuando el frontend lo solicita explícitamente.
+    Participant). La visibilidad se controla con
+    ``Include(..., condition=expand_project)`` en el bloque
+    que lo referencia, no en cada columna individual.
+
+    También se reutiliza en ``ProjectExport`` (sin condition)
+    para evitar duplicar las mismas columnas.
     """
 
     model = Project
     columns = [
-        XlsColumn(
-            "is_grouper",
-            condition=expand_project,
-        ),
-        FkColumn(
-            "parent_project", "id",
-            title="ID de proyecto agrupador",
-            condition=expand_project,
-        ),
-        FkColumn(
-            "parent_project", "name",
-            title="Nombre de proyecto agrupador",
-            width=30,
-            condition=expand_project,
-        ),
-        CollectColumn(
-            "megaproject_type__extractivism_types", "name",
-            title="Tipos de extractivismo",
-            width=25,
-            condition=expand_project,
-        ),
-        FkColumn(
-            "megaproject_type", "name",
-            title="Tipo de megaproyecto",
-            width=20,
-            condition=expand_project,
-        ),
-        FkColumn(
-            "status_location", "public_name",
-            title="Status de ubicación",
-            width=15,
-            condition=expand_project_auth,
-        ),
-    ]
-
-
-class ProjectExport(ModelExport):
-    """Exportación completa de Proyectos.
-
-    Incluye datos propios, proyecto agrupador, conflicto,
-    tipo de megaproyecto, conteo/rango de notas y ubicación
-    principal (vía anotaciones Subquery).
-    """
-
-    model = Project
-    export_name = "Exportación de Proyectos"
-    columns = [
-        XlsColumn("id"),
-        XlsColumn("name", width=35),
-        XlsColumn("alternative_name", width=25),
-        XlsColumn("description", width=40),
-        Include(ConflictMiniBlock, through="conflict"),
         XlsColumn("is_grouper"),
         FkColumn(
             "parent_project", "id",
@@ -117,6 +67,26 @@ class ProjectExport(ModelExport):
             width=15,
             condition=is_authenticated,
         ),
+    ]
+
+
+class ProjectExport(ModelExport):
+    """Exportación completa de Proyectos.
+
+    Incluye datos propios, proyecto agrupador, conflicto,
+    tipo de megaproyecto, conteo/rango de notas y ubicación
+    principal (vía anotaciones Subquery).
+    """
+
+    model = Project
+    export_name = "Exportación de Proyectos"
+    columns = [
+        XlsColumn("id"),
+        XlsColumn("name", width=35),
+        XlsColumn("alternative_name", width=25),
+        XlsColumn("description", width=40),
+        Include(ConflictMiniBlock, through="conflict"),
+        Include(ProjectExpandBlock),
         Include(LocationBlock),
         CollectColumn(
             "mentions__note", "date",

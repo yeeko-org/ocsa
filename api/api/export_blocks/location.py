@@ -1,8 +1,6 @@
 from space_time.models import Location
 from yeeko_xlsx_export import ModelExport, XlsColumn
 
-from api.export_blocks.conditions import expand_project
-
 
 class LocationBlock(ModelExport):
     """Bloque de ubicación principal — lee de anotaciones Subquery.
@@ -125,15 +123,19 @@ class ProjectLocationBlock(ModelExport):
     las annotations viven en el objeto raíz del queryset, no en
     el objeto Project relacionado.
 
-    Cada columna lleva ``condition=expand_project`` para que solo
-    aparezcan con ``?expand_project=1``.
+    La visibilidad se controla con
+    ``Include(..., condition=expand_project)``, no en cada
+    columna individual.
 
     Uso en un export::
 
         class EventExport(ModelExport):
             columns = [
                 ...,
-                Include(ProjectLocationBlock),
+                Include(
+                    ProjectLocationBlock,
+                    condition=expand_project,
+                ),
             ]
 
             def get_annotations(self) -> dict:
@@ -152,46 +154,37 @@ class ProjectLocationBlock(ModelExport):
         XlsColumn(
             "proj_location_id",
             title="ID de ubicación del proyecto",
-            condition=expand_project,
         ),
         XlsColumn(
             "proj_state_inegi_code",
             title="ID de Entidad del proyecto", width=4,
-            condition=expand_project,
         ),
         XlsColumn(
             "proj_state_short_name",
             title="Entidad del proyecto", width=25,
-            condition=expand_project,
         ),
         XlsColumn(
             "proj_municipality_inegi_code",
             title="ID de Municipio del proyecto", width=4,
-            condition=expand_project,
         ),
         XlsColumn(
             "proj_municipality_name",
             title="Municipio del proyecto", width=25,
-            condition=expand_project,
         ),
         XlsColumn(
             "proj_locality_inegi_code",
             title="ID de Localidad del proyecto", width=4,
-            condition=expand_project,
         ),
         XlsColumn(
             "proj_locality_name",
             title="Localidad del proyecto", width=25,
-            condition=expand_project,
         ),
         XlsColumn(
             "proj_loc_latitude",
             title="Latitud del proyecto", width=12,
-            condition=expand_project,
         ),
         XlsColumn(
             "proj_loc_longitude",
             title="Longitud del proyecto", width=12,
-            condition=expand_project,
         ),
     ]

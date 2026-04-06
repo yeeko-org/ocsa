@@ -4,6 +4,7 @@ ImpactBlock — bloque reutilizable (campos base de la afectación).
 ImpactExport — export completo con mención, nota y ubicación.
 """
 from impact.models import Impact
+from api.export_blocks.conditions import expand_project
 from api.export_blocks.location import LocationBlock, ProjectLocationBlock
 from api.export_blocks.mention import MentionBlock
 from yeeko_xlsx_export import (
@@ -44,7 +45,7 @@ class ImpactExport(ModelExport):
         Include(ImpactBlock),
         Include(MentionBlock, through="mention"),
         Include(LocationBlock),
-        Include(ProjectLocationBlock),
+        Include(ProjectLocationBlock, condition=expand_project),
     ]
 
     def get_annotations(self) -> dict:

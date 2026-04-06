@@ -1,5 +1,6 @@
 from source.models import Mention, Note
 from yeeko_xlsx_export import ModelExport, XlsColumn, FkColumn, Include
+from api.export_blocks.conditions import expand_project
 from api.export_blocks.project import (
     ConflictMiniBlock, ProjectExpandBlock, ProjectMiniBlock,
 )
@@ -31,7 +32,7 @@ class MentionBlock(ModelExport):
     columns = [
         Include(NoteBlock, through="note"),
         Include(ProjectMiniBlock, through="project"),
-        Include(ProjectExpandBlock, through="project"),
+        Include(ProjectExpandBlock, through="project", condition=expand_project),
         Include(
             ConflictMiniBlock, through="project__conflict",
         ),

@@ -9,6 +9,7 @@ from event.models import Event
 from yeeko_xlsx_export import (
     ModelExport, XlsColumn, FkColumn, Include,
 )
+from api.export_blocks.conditions import expand_project
 from api.export_blocks.location import LocationBlock, ProjectLocationBlock
 from api.export_blocks.mention import MentionBlock
 
@@ -67,7 +68,7 @@ class EventExport(ModelExport):
         Include(EventBlock),
         Include(MentionBlock, through="mention"),
         Include(LocationBlock),
-        Include(ProjectLocationBlock),
+        Include(ProjectLocationBlock, condition=expand_project),
     ]
 
     def get_annotations(self) -> dict[str, Any]:

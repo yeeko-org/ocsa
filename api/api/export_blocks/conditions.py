@@ -20,18 +20,8 @@ def is_authenticated(request: Request) -> bool:
 
 def expand_project(request: Request) -> bool:
     """True si se solicita expansión de datos de proyecto."""
+    return True
     return request.query_params.get(
         "expand_project", ""
     ).lower() in ("1", "true")
 
-
-def expand_project_auth(request: Request) -> bool:
-    """True si se solicita expansión Y el usuario está autenticado.
-
-    Combina ``expand_project`` e ``is_authenticated`` para campos
-    sensibles del proyecto (e.g. status_location).
-    """
-    return (
-        expand_project(request)
-        and is_authenticated(request)
-    )

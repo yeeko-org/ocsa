@@ -10,7 +10,7 @@ from typing import Any
 
 from actor.models import Participant
 from api.export_blocks.actor import ActorBlock
-from api.export_blocks.conditions import is_authenticated
+from api.export_blocks.conditions import expand_project, is_authenticated
 from api.export_blocks.event import EventBlock
 from api.export_blocks.location import LocationBlock, ProjectLocationBlock
 from api.export_blocks.mention import MentionBlock
@@ -103,7 +103,7 @@ class ParticipantExport(ModelExport):
             title="Rol en el evento", width=20,
         ),
         Include(MentionBlock, through="mention"),
-        Include(ProjectLocationBlock),
+        Include(ProjectLocationBlock, condition=expand_project),
     ]
     extra_prefetch = [
         "involvements__event__event_type__event_group",
