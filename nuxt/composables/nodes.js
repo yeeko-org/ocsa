@@ -9,6 +9,14 @@ export function hydrateFilterGroup(fg, data, collections_dict) {
   let groups = data[group_key] || []
 
   const subtype_collection = collections_dict[subtype_key]
+  if (!subtype_collection){
+
+    console.log("filter_group", fg)
+    console.log("subtype_collection", subtype_collection)
+    console.log("subtype_key", subtype_key)
+    console.log("collections_dict", collections_dict)
+
+  }
   let type_field = subtype_collection.fields.find(field =>
     field.related_snake_name === fg.category_type)
   if (type_field)

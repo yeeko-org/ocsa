@@ -3,13 +3,12 @@ const menu_drawer = ref(false)
 import {useMainStore} from "~/store/index.js";
 import {useDashboardStore} from "~/store/dash.js";
 import {useAuthStore} from "~/store/auth.js";
-const router = useRouter()
 const config = useRuntimeConfig();
 
 const mainStore = useMainStore()
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
-const { schemas, current_collection_data } = storeToRefs(mainStore)
+const { schemas, current_collection_data, cats } = storeToRefs(mainStore)
 const { global_snackbar, global_snackbar_message } = storeToRefs(dashboardStore)
 const { is_full_editor } = storeToRefs(authStore);
 // const { fetchCatalogs } = mainStore
@@ -24,9 +23,6 @@ const admin_url = config.public.adminUrl
 // //     console.log("cats_ready")
 // //   })
 // })
-
-const disable_open = ref(false)
-const group = ref(null)
 
 const collection_data = computed(() => {
   // console.log('route', route)
@@ -43,17 +39,7 @@ const collection_data = computed(() => {
 })
 
 const main_structure = [
-  {
-    snake_name: "location",
-    children: ["states"]
-  },
-  {
-    snake_name: "project",
-    children: [ "project_types", "status_projects"]
-  },
-  { snake_name: "conflict" },
   { snake_name: "note" },
-  { snake_name: "status_history" },
   {
     snake_name: "article",
     children: [
@@ -62,6 +48,16 @@ const main_structure = [
       "discarded_reasons"
     ]
   },
+  {
+    snake_name: "project",
+    children: [
+      "project_types",
+      "status_projects",
+      "status_history"
+    ]
+  },
+  { snake_name: "conflict" },
+  // { snake_name: "status_history" },
   {
     snake_name: "impact",
     children: [ "impact_types" ]
@@ -72,14 +68,6 @@ const main_structure = [
       "event_types",
       "purposes",
       "involved_roles"
-    ]
-  },
-  {
-    snake_name: "displacement",
-    children: [
-      "dimensions",
-      "population_sizes",
-      "temporalities"
     ]
   },
   {
@@ -94,51 +82,65 @@ const main_structure = [
     ]
   },
   {
+    snake_name: "location",
+    children: ["states"]
+  },
+  {
     snake_name: "interest",
     children: [ "interest_types" ]
-  }
+  },
+  {
+    snake_name: "displacement",
+    children: [
+      "dimensions",
+      "population_sizes",
+      "temporalities"
+    ]
+  },
+
 ]
 
 const main_collections = computed(() => {
   if (!schemas.value.collections_dict) return []
   return main_structure.map(item => {
     const coll = schemas.value.collections_dict[item.snake_name] || {}
+    const raw_children = item.children || []
     return {
       snake_name: item.snake_name,
       plural_name: coll.plural_name,
       icon: coll.icon,
       color: coll.color,
       level: coll.level,
-      children: (item.children || []).map(child_key => {
-        const child = schemas.value.collections_dict[child_key] || {}
-        return {
-          snake_name: child_key,
-          plural_name: child.plural_name,
-          to: child.level?.startsWith('category_')
-            ? `/dashboard/catalog/${child_key}`
-            : `/dashboard/${child_key}`,
-        }
-      }),
+      children: raw_children.length ? [
+        {
+          snake_name: item.snake_name,
+          plural_name: coll.plural_name,
+          to: `/dashboard/${item.snake_name}`,
+          color: coll.color,
+          is_primary: true,
+          title: `Ver ${coll.plural_name}`,
+          key: `sub-${item.snake_name}`,
+        },
+        ...raw_children.map(child_key => {
+          let fg = cats.value.filter_groups.find(c => c.key_name === child_key)
+          let to = `/dashboard/catalog/${child_key}`
+          if (!fg) {
+            fg = schemas.value.collections_dict[child_key]
+            to = `/dashboard/${child_key}`
+            console.warn(`No se encontró el filter group ${child_key}`)
+          }
+          return {
+            snake_name: child_key,
+            key: child_key,
+            plural_name: fg.plural_name,
+            to,
+          }
+        }),
+      ] : [],
     }
   })
 })
 
-function openIcon(){
-  disable_open.value = true
-}
-
-function openItem(ev, val){
-  if (!disable_open.value)
-    router.push(`/dashboard/${val}`)
-  disable_open.value = false
-}
-
-watch(
-  group, (val) => {
-    // console.log('group', val)
-    menu_drawer.value = false
-  }
-)
 
 </script>
 
@@ -219,31 +221,22 @@ watch(
               <template v-slot:activator="{ props }">
                 <v-list-item
                   v-bind="props"
-                  exact
                   :title="collection.plural_name"
                   :prepend-icon="collection.icon || 'category'"
                   :base-color="collection.color || 'grey-darken-1'"
-                  @click="openItem($event, collection.snake_name)"
                   :class="collection.level === 'primary' ? '' : '_ml-3'"
                   :active-class="collection.level === 'primary'
                     ? '' : 'font-weight-bold'"
-                >
-                  <template v-slot:append="{ isActive }">
-                    <v-icon
-                      @click="openIcon"
-                    >
-                      {{ isActive ? 'expand_less' : 'expand_more' }}
-                    </v-icon>
-                  </template>
-                </v-list-item>
+                ></v-list-item>
               </template>
               <v-list-item
                 v-for="sub_coll in collection.children"
-                :key="sub_coll.snake_name"
+                :key="sub_coll.key"
                 exact
-                :title="sub_coll.plural_name"
+                :title="sub_coll.title || sub_coll.plural_name"
                 :value="sub_coll.snake_name"
                 :to="sub_coll.to"
+                :base-color="sub_coll.color"
               ></v-list-item>
             </v-list-group>
             <v-list-item

@@ -14,14 +14,6 @@ export function calculateSchemas(data) {
   // const name_fields = ["name", "title", "description"]
   const name_fields = ["name", "title"]
   let collections_dict = data.collections.reduce((obj, coll) => {
-    coll.catalog_groups = filter_groups.reduce((arr, new_fg) => {
-      if (new_fg.main_collection !== coll.snake_name)
-        return arr
-      const cat_group = new_fg.category_group || new_fg.special_group
-      if (cat_group)
-        new_fg.category_groups = data[cat_group] || []
-      return [...arr, new_fg]
-    }, [])
     const valid_relations = ['one_to_many', 'many_to_many']
     coll.child_relation_fields = coll.fields.filter(field => {
       return valid_relations.includes(field.relation_type)
