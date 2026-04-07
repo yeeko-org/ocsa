@@ -353,6 +353,7 @@ const color_child_card = computed(() => {
       :color="`${color}-lighten-${second_level ? 4 : 3}`"
     >
       <ToolbarHeader
+        v-if="child_collection"
         :child_collection="child_collection"
         :main_collection_name="main_collection_name"
         :total_count="total_count"

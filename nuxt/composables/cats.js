@@ -3,7 +3,11 @@ import {status_filters} from "~/composables/filters.js";
 // const calculateSchemas = (data) => {
 export function calculateSchemas(data) {
   let filter_groups = data.filter_groups.map(fg => {
-    return {...fg, ...fg.addl_config}
+    let new_fg =  {...fg, ...fg.addl_config}
+    const cat_group = new_fg.category_group || new_fg.special_group
+    if (cat_group)
+      new_fg.category_groups = data[cat_group] || []
+    return new_fg
   })
   const filters_dict = filter_groups.reduce((obj, fg) => {
     obj[fg.key_name] = fg
