@@ -71,9 +71,7 @@ class ParticipantFilter(FilterSet):
         }
 
 
-class ParticipantViewSet(
-    ClickHistoryMixin, BaseGenericViewSet,
-):
+class ParticipantViewSet(ClickHistoryMixin, BaseGenericViewSet):
     queryset = Participant.objects.all()
 
     filterset_class = ParticipantFilter

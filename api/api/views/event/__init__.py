@@ -6,9 +6,11 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from api.pagination import CustomPagination
 from api.views.common_views import ClickHistoryMixin, MassiveEdit
 
-from api.views.event.serializers import EventSerializer, EventMediumSerializer
+from api.views.event.serializers import (
+    EventSerializer, EventMediumSerializer, InvolvedSerializer)
+from api.views.common_views import BaseGenericViewSet
 from api.views.note.serializers import EventFullNoteSerializer
-from event.models import Event
+from event.models import Event, Involved
 
 
 class EventFilter(FilterSet):
@@ -88,4 +90,10 @@ class EventViewSet(
                 'involvements__participant',
                 'involvements__participant__actor')
         return queryset
+
+
+class InvolvedViewSet(MassiveEdit, BaseGenericViewSet):
+    queryset = Involved.objects.all()
+    serializer_class = InvolvedSerializer
+    search_fields = []
 

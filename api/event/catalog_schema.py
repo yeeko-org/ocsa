@@ -1,11 +1,11 @@
 from ps_schema.registry import (
     catalog_registry, CatalogSchema,
     collection_registry, CollectionSchema, FilterRef,
-    FilterGroupSchema,
+    FilterGroupSchema
 )
 from api.views.common_views import MassiveEdit
 from event.models import (
-    InvolvedRole, EventGroup, EventType, Purpose, Event)
+    InvolvedRole, EventGroup, EventType, Purpose, Event, Involved)
 
 
 @catalog_registry.register
@@ -75,7 +75,7 @@ class EventTypesFilterGroup(FilterGroupSchema):
 # CollectionSchema — primary / secondary / relational
 # ---------------------------------------------------------------------------
 
-from api.views.event import EventViewSet
+from api.views.event import EventViewSet, InvolvedViewSet
 from api.export_blocks.event import EventExport
 
 
@@ -95,4 +95,11 @@ class EventSchema(CollectionSchema):
         FilterRef("involved_roles", hidden=True),
         FilterRef("participant_types", hidden=True),
     ]
+
+
+@collection_registry.register
+class InvolvedSchema(CollectionSchema):
+    model = Involved
+    level = "relational"
+    viewset_class = InvolvedViewSet
 

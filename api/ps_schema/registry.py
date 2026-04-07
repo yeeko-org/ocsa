@@ -91,8 +91,7 @@ def _model_fields(model_cls: type) -> list[dict]:
                 pass
             try:
                 meta = field.related_model._meta
-                entry["related_snake_name"] = camel_to_snake(
-                    meta.object_name)
+                entry["related_snake_name"] = camel_to_snake(meta.object_name)
                 entry["related_model"] = meta.object_name
                 entry["related_app_label"] = meta.app_label
             except AttributeError:
@@ -171,6 +170,27 @@ def _model_collection_key(model: type) -> str:
     return camel_to_snake(model._meta.object_name)
 
 
+def _base_collection_dict(
+    snake_name: str, schema_cls: type[BaseSchema],
+) -> dict:
+    """
+    Campos comunes a CatalogRegistry y CollectionRegistry
+    en iter_collection_data.  Cada registry agrega los suyos.
+    """
+    meta = schema_cls.model._meta
+    return {
+        'app_label': meta.app_label,
+        'snake_name': snake_name,
+        'model_name': meta.object_name,
+        'name': schema_cls.name or meta.verbose_name,
+        'plural_name': (
+            schema_cls.plural_name or meta.verbose_name_plural),
+        'level': schema_cls.level,
+        'cat_params': schema_cls.cat_params,
+        'sort_fields': schema_cls.sort_fields,
+    }
+
+
 # ---------------------------------------------------------------------------
 # CatalogRegistry
 # ---------------------------------------------------------------------------
@@ -239,15 +259,8 @@ class CatalogRegistry:
     def iter_collection_data(self):
         """Yield (app_label, collection_dict) for InitCollections."""
         for snake_name, schema_cls in self._schemas.items():
-            model = schema_cls.model
-            meta = model._meta
-            yield meta.app_label, {
-                'snake_name': snake_name,
-                'model_name': meta.object_name,
-                'name': schema_cls.name or meta.verbose_name,
-                'plural_name': (
-                    schema_cls.plural_name or meta.verbose_name_plural),
-                'level': schema_cls.level,
+            data = {
+                **_base_collection_dict(snake_name, schema_cls),
                 'icon': None,
                 'color': None,
                 'open_insertion': schema_cls.open_insertion,
@@ -258,11 +271,10 @@ class CatalogRegistry:
                         ("massive_edit", schema_cls.can_massive_edit),
                     ) if flag
                 ],
-                'cat_params': schema_cls.cat_params,
                 'xls_export': False,
-                'sort_fields': schema_cls.sort_fields,
                 'all_filters': [],
             }
+            yield data['app_label'], data
 
     def get_collections_data(self) -> list[dict]:
         """
@@ -387,15 +399,8 @@ class CollectionRegistry:
     def iter_collection_data(self):
         """Yield (app_label, collection_dict) for InitCollections."""
         for snake_name, schema_cls in self._schemas.items():
-            model = schema_cls.model
-            meta = model._meta
-            yield meta.app_label, {
-                'snake_name': snake_name,
-                'model_name': meta.object_name,
-                'name': schema_cls.name or meta.verbose_name,
-                'plural_name': (
-                    schema_cls.plural_name or meta.verbose_name_plural),
-                'level': schema_cls.level,
+            data = {
+                **_base_collection_dict(snake_name, schema_cls),
                 'icon': schema_cls.icon,
                 'color': schema_cls.color,
                 'open_insertion': None,
@@ -404,18 +409,19 @@ class CollectionRegistry:
                     a for a, flag in (
                         ("merge", schema_cls.can_merge),
                         ("massive_edit", schema_cls.can_massive_edit),
-                        ("massive_delete", schema_cls.can_massive_delete),
+                        ("massive_delete",
+                         schema_cls.can_massive_delete),
                     ) if flag
                 ],
-                'cat_params': schema_cls.cat_params,
                 'xls_export': (
                     schema_cls.xls_export_class is not None
                     or schema_cls.xls_export
                 ),
-                'sort_fields': schema_cls.sort_fields,
                 'all_filters': [
-                    filter_to_dict(f) for f in schema_cls.all_filters],
+                    filter_to_dict(f)
+                    for f in schema_cls.all_filters],
             }
+            yield data['app_label'], data
 
     def get_collections_data(self) -> list[dict]:
         """
