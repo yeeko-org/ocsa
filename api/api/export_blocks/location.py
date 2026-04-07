@@ -67,11 +67,11 @@ class LocationBlock(ModelExport):
         ),
         XlsColumn(
             "loc_latitude",
-            title="Latitud", width=12,
+            title="Latitud", width=12, max_decimal=4,
         ),
         XlsColumn(
             "loc_longitude",
-            title="Longitud", width=12,
+            title="Longitud", width=12, max_decimal=4,
         ),
     ]
 
@@ -181,10 +181,10 @@ class ProjectLocationBlock(ModelExport):
         ),
         XlsColumn(
             "proj_loc_latitude",
-            title="Latitud del proyecto", width=12,
+            title="Latitud del proyecto", width=12, max_decimal=4,
         ),
         XlsColumn(
             "proj_loc_longitude",
-            title="Longitud del proyecto", width=12,
+            title="Longitud del proyecto", width=12, max_decimal=4,
         ),
     ]
