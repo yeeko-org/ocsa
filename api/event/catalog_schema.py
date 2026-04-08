@@ -27,6 +27,7 @@ class EventGroupSchema(CatalogSchema):
     open_insertion = False
     base = "viewset"
     permission = "admin"
+    count_fields = {"event_types_count": "event_types"}
 
 
 @catalog_registry.register

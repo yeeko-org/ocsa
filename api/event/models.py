@@ -24,7 +24,8 @@ class EventType(CatalogType):
     purpose_spoliation = models.TextField(
         blank=True, null=True,
         verbose_name="Explicación del mecanismo legal de despojo")
-    event_group = models.ForeignKey(EventGroup, on_delete=models.CASCADE)
+    event_group = models.ForeignKey(
+        EventGroup, on_delete=models.CASCADE, related_name='event_types')
     has_displacement = models.BooleanField(default=False)
 
     class Meta:

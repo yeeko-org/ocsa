@@ -90,7 +90,7 @@ class ParticipantExport(ModelExport):
     export_name = "Participantes"
     columns = [
         XlsColumn(
-            "mention_id", title="ID de mención",
+            "mention__id", title="ID de mención",
         ),
         XlsColumn(
             "consecutive",
