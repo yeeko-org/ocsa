@@ -1,6 +1,6 @@
 ---
 name: ocs-entities
-description: Documentación de referencia de las entidades centrales del OCSA (Observatorio de Conflictos Socioambientales). Carga cuando el usuario trabaja con modelos de proyecto, actor. participación, impacto, evento o desplazamiento forzado, o cuando pregunta qué campos, catálogos o relaciones tiene alguna de estas entidades.
+description: Referencia de entidades OCSA (proyecto, actor, participación, mención, evento, impacto, desplazamiento) y sus relaciones. Activar al construir queries, filtros, exportaciones o consultar campos/catálogos que crucen estas entidades. Mention es el hub central que conecta Note, Project, Participant/Actor, Event, Impact y StatusHistory.
 ---
 
 # OCS Entities — Reference Index
