@@ -33,7 +33,7 @@ const props = defineProps({
     <template #details>
       <HeaderChip
         class="ml-3"
-        :count="main.count"
+        :count="main.events_count"
         collection_name="event"
       />
       <v-icon

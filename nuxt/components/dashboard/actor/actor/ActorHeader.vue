@@ -7,6 +7,7 @@ import BelongIcons from "~/components/dashboard/classify/BelongIcons.vue";
 import { useMainStore } from '~/store/index.js'
 import { storeToRefs } from 'pinia'
 import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
+import DescriptionIcon from "~/components/dashboard/common/utils/DescriptionIcon.vue";
 const mainStore = useMainStore()
 const { cats } = storeToRefs(mainStore)
 
@@ -112,6 +113,9 @@ const participants = computed(() => {
           {{ main.name }}
         </div>
       </div>
+      <DescriptionIcon
+        :description="main.alternative_names"
+      />
     </template>
     <template #details>
       <template v-if="!is_simple">
