@@ -1,8 +1,17 @@
+"""
+Actores involucrados en mecanismos legales (event_group_id=3).
+Genera dos DataFrames:
+  - df_event_types: conteo de proyectos por tipo de mecanismo legal
+    (total, despojo, defensa)
+  - df_actors / df_grouped: actores con sus mecanismos y conteos,
+    enriquecidos con totales del tipo de evento
+"""
 import pandas as pd
 from actor.models import Actor
 from django.db.models import Count, Q, F
 from event.models import EventType
 
+# Proyectos por tipo de mecanismo legal (despojo vs defensa)
 projects_by_event_type = list(
     EventType.objects
     .filter(event_group_id=3)
@@ -28,6 +37,7 @@ projects_by_event_type = list(
 )
 df_event_types = pd.DataFrame(projects_by_event_type)
 
+# Actores con sus tipos de mecanismo y conteos por propósito
 actors_mecanismos = list(
     Actor.objects
     .filter(
@@ -61,6 +71,7 @@ actors_mecanismos = list(
 
 df_actors = pd.DataFrame(actors_mecanismos)
 
+# Enriquecer actores con totales globales del tipo de evento
 df_actors_full = df_actors.merge(
     df_event_types.rename(columns={
         'project_count': 'total_projects',
@@ -72,6 +83,7 @@ df_actors_full = df_actors.merge(
     suffixes=('', '_et'),
 ).drop(columns=['id_et', 'name_et'])
 
+# Agrupar actores: un renglón por actor con sus mecanismos concatenados
 df_grouped = (
     df_actors
     .groupby(['id', 'name', 'alternative_names'])

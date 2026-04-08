@@ -1,9 +1,17 @@
+"""
+Mecanismos legales cruzados con tipo de extractivismo.
+Genera tres DataFrames:
+  - df_extractivism: total de proyectos por tipo de extractivismo
+  - df_events_extr: pivot de EventType × ExtractivismType con conteos
+  - df_purpose_extr: pivot de Purpose × ExtractivismType con totales
+"""
 import pandas as pd
 from django.db.models import Count, Q, F
-from event.models import EventType
+from event.models import EventType, Event
 from project.models import ExtractivismType
 
-# Total de proyectos por ExtractivismType
+
+# Base: total de proyectos por tipo de extractivismo
 projects_by_extractivism = list(
     ExtractivismType.objects
     .annotate(
@@ -17,7 +25,7 @@ projects_by_extractivism = list(
 )
 df_extractivism = pd.DataFrame(projects_by_extractivism)
 
-# Proyectos por EventType × ExtractivismType
+# Mecanismos legales × extractivismo: conteo de proyectos
 events_extractivism = list(
     EventType.objects
     .filter(event_group_id=3)
@@ -65,8 +73,7 @@ df_events_extr.columns = [
 ]
 df_events_extr = df_events_extr.reset_index()
 
-# Proyectos por Purpose × ExtractivismType
-from event.models import Event
+# Propósito (despojo/defensa) × extractivismo con totales
 
 purpose_extractivism = list(
     Event.objects
