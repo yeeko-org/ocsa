@@ -2,378 +2,45 @@
 Scraper de Proceso usando la API de PressReader.
 Hecho por Martín Szyszlican <martin@abrimos.info>
 
-Este scraper obtiene artículos de la revista Proceso a través de la API de PressReader.
-A diferencia de otros scrapers (Reforma, Jornada), este trabaja con ediciones mensuales
-y requiere autenticación con Bearer token.
+Este scraper obtiene artículos de la revista Proceso a través de la
+API de PressReader. A diferencia de otros scrapers (Reforma, Jornada),
+trabaja con ediciones mensuales y requiere autenticación con Bearer
+token.
 
-Flujo de la API de PressReader:
-1. GET /catalog/v1/routes/publication?publication=proceso -> obtiene CID (24em)
-2. GET /IssueInfo/GetIssueInfoByCid?cid=24em&issueDate=YYYYMMDD -> obtiene Issue ID
-3. GET /pagesMetadata/?issue={issue_id} -> obtiene páginas y lista de artículos
-4. GET /Articles/GetItems?articles[]={id1}&articles[]={id2} -> obtiene contenido completo
+La gestión del token (login, logout, liveness, persistencia) vive en
+`source.scraper.pressreader_auth`. Este módulo solo consume tokens.
 
-Credenciales requeridas en .env:
-- PRESSREADER_USER
-- PRESSREADER_PASS
-
-Códigos de Status de PressReader:
-- Status 0: Éxito
-- Status 1: Error genérico
-- Status 2: Has excedido el número de sesiones simultáneas
-          (ejecutar: python close_pressreader_sessions.py)
+Flujo de la API de PressReader (una vez autenticado):
+1. GET /IssueInfo/GetIssueInfoByCid?cid=24em&issueDate=YYYYMMDD -> Issue ID
+2. GET /pagesMetadata/?issue={issue_id} -> páginas y lista de artículos
+3. GET /Articles/GetItems?articles[]={id} -> contenido completo
 """
 
-import atexit
-import time
-import urllib.parse
-from datetime import date, datetime
+from datetime import date
 from typing import List
-
-import requests
-from django.conf import settings
 
 from source.models import ScrapedRecord, Source
 from profile_auth.models import User
 from source.scraper.articles import ArticleScraper, MainScraper, ManagerScraper
 from source.scraper.scraper_base import get_json_content
+from source.scraper.pressreader_auth import (
+    PRESSREADER_API_BASE,
+    get_pressreader_headers,
+    get_pressreader_token,
+)
 
-# URL base de la API de PressReader
-# PRESSREADER_API_BASE = "https://ingress.pressreader.com/se2skyservices"
-PRESSREADER_API_BASE = "https://ingress.pressreader.com/services"
 
-# CID de Proceso en PressReader (se puede obtener dinámicamente)
+# CID de Proceso en PressReader
 PROCESO_CID = "24em"
-
-# Cache para el token de PressReader (evita múltiples logins)
-_pressreader_token_cache: dict = {}
-
-# Historial de tokens usados (para poder cerrar sesiones antiguas)
-_pressreader_token_history: list = []
-
-# Flag para controlar si el cleanup automático está habilitado
-_auto_cleanup_enabled: bool = False
-
-
-# GESTIÓN DE TOKENS Y SESIONES DE PRESSREADER
-def _cleanup_pressreader_sessions():
-    """
-    Función de cleanup que se ejecuta automáticamente al salir del programa.
-    Cierra todas las sesiones conocidas para no dejar sesiones abiertas.
-    """
-    if not _auto_cleanup_enabled:
-        return
-
-    if _pressreader_token_history:
-        print("\n" + "=" * 60)
-        print("Limpiando sesiones de PressReader al finalizar...")
-        print("=" * 60)
-        closed = 0
-        for token in _pressreader_token_history:
-            try:
-                if signout_with_token(token):
-                    closed += 1
-            except KeyboardInterrupt:
-                print("\n⚠ Cleanup interrumpido por el usuario")
-                break
-            except Exception:
-                # Ignorar errores individuales y continuar con los siguientes tokens
-                continue
-        if closed > 0:
-            print(f"✓ Se cerraron {closed} sesiones automáticamente")
-
-
-def enable_auto_cleanup():
-    """
-    Habilita el cierre automático de sesiones al finalizar el programa.
-    """
-    global _auto_cleanup_enabled
-    if not _auto_cleanup_enabled:
-        _auto_cleanup_enabled = True
-        atexit.register(_cleanup_pressreader_sessions)
-        print("✓ Auto-cleanup de sesiones habilitado")
-
-
-def disable_auto_cleanup():
-    """
-    Deshabilita el cierre automático de sesiones.
-    """
-    global _auto_cleanup_enabled
-    _auto_cleanup_enabled = False
-    print("✓ Auto-cleanup de sesiones deshabilitado")
-
-
-def get_pressreader_token() -> str:
-    """
-    Obtiene el Bearer token de PressReader haciendo login con las credenciales.
-    El token se cachea para evitar múltiples logins en la misma sesión.
-
-    El flujo de autenticación de PressReader es:
-    1. Obtener token anónimo desde proceso.pressreader.com/authentication/v1/initialize
-    2. Hacer signin con credenciales usando el token anónimo
-    3. Completar el signin para obtener el bearerToken final
-
-    Requiere en settings (via .env):
-    - PRESSREADER_USER
-    - PRESSREADER_PASS
-
-    Returns:
-        str: Bearer token para usar en headers de autorización
-    """
-    # Verificar cache (token válido por 1 hora)
-    if _pressreader_token_cache.get("token"):
-        cache_time = _pressreader_token_cache.get("time", 0)
-        if time.time() - cache_time < 3600:  # 1 hora
-            return _pressreader_token_cache["token"]
-
-    user = getattr(settings, "PRESSREADER_USER", None)
-    password = getattr(settings, "PRESSREADER_PASS", None)
-
-    if not user or not password:
-        raise ValueError(
-            "PRESSREADER_USER y PRESSREADER_PASS deben estar configurados en .env"
-        )
-
-    session = requests.Session()
-    base_headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0",
-        "Accept": "*/*",
-        "Accept-Language": "es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Origin": "https://proceso.pressreader.com",
-        "Referer": "https://proceso.pressreader.com/proceso",
-    }
-
-    # Paso 1: Visitar la página para obtener cookies y ticket
-    try:
-        init_response = session.get(
-            "https://proceso.pressreader.com/proceso", headers=base_headers, timeout=30
-        )
-        # Extraer el ticket de la cookie AProfile
-        aprof_cookie = session.cookies.get("AProfile")
-        if not aprof_cookie:
-            raise ValueError("No se obtuvo cookie AProfile")
-
-        ticket = aprof_cookie
-    except Exception as e:
-        raise ValueError(f"Error al acceder a proceso.pressreader.com: {e}")
-
-    # Paso 2: Inicializar sesión y obtener token anónimo
-    init_url = "https://proceso.pressreader.com/authentication/v1/initialize"
-    init_body = {
-        "tickets": [ticket],
-        "language": "es-mx",
-        "urlReferrer": "https://proceso.pressreader.com/",
-        "url": "https://proceso.pressreader.com/proceso",
-    }
-
-    try:
-        init_auth_response = session.post(
-            init_url,
-            headers={**base_headers, "Content-Type": "application/json"},
-            json=init_body,
-            timeout=30,
-        )
-        if init_auth_response.status_code == 200:
-            init_data = init_auth_response.json()
-            anon_token = init_data.get("bearerToken")
-        else:
-            anon_token = None
-    except Exception as e:
-        raise ValueError(f"Error al inicializar sesión: {e}")
-
-    if not anon_token:
-        raise ValueError("No se pudo obtener token anónimo de PressReader")
-
-    # Paso 3: Hacer signin con las credenciales
-    signin_url = f"{PRESSREADER_API_BASE}/auth/Signin"
-    signin_headers = {
-        **base_headers,
-        "Authorization": f"Bearer {anon_token}",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-    }
-    signin_body = urllib.parse.urlencode(
-        {
-            "userName": user,
-            "password": password,
-            "reCaptchaVersion": "3",
-            "reCaptchaToken": "",
-            "forceSignOut": "true",  # Forzar cierre de sesiones previas
-        }
-    )
-
-    try:
-        signin_response = session.post(
-            signin_url, headers=signin_headers, data=signin_body, timeout=30
-        )
-    except Exception as e:
-        raise ValueError(f"Error en signin de PressReader: {e}")
-
-    if signin_response.status_code != 200:
-        raise ValueError(
-            f"Error en signin: {signin_response.status_code} "
-            f"- {signin_response.text[:200]}"
-        )
-
-    signin_data = signin_response.json()
-    status_code = signin_data.get("Status")
-
-    # Interpretar códigos de status de PressReader
-    if status_code == 2:
-        raise ValueError(
-            "PressReader Status 2: Has excedido el número de sesiones simultáneas. "
-            "Ejecuta 'python close_pressreader_sessions.py' para cerrar sesiones antiguas."
-        )
-    elif status_code != 0 and status_code is not None:
-        raise ValueError(f"PressReader Status {status_code}: {signin_data}")
-
-    sign_in_token = signin_data.get("Token") or signin_data.get("signInToken")
-    tickets = signin_data.get("tickets", [])
-
-    if not sign_in_token:
-        raise ValueError(f"No se obtuvo Token: {signin_data}")
-
-    # Paso 4: Completar el signin para obtener el bearerToken final
-    complete_url = "https://proceso.pressreader.com/authentication/v1/signIn"
-    complete_headers = {
-        **base_headers,
-        "Content-Type": "application/json",
-    }
-    complete_body = {
-        "signInToken": sign_in_token,
-        "tickets": tickets,
-        "language": "es-mx",
-        "enableAutoLogin": True,
-    }
-
-    try:
-        complete_response = session.post(
-            complete_url, headers=complete_headers,
-            json=complete_body, timeout=30
-        )
-    except Exception as e:
-        raise ValueError(f"Error al completar signin: {e}")
-
-    if complete_response.status_code != 200:
-        raise ValueError(
-            f"Error al completar signin: {complete_response.status_code} - {complete_response.text[:200]}"
-        )
-
-    complete_data = complete_response.json()
-    bearer_token = complete_data.get("bearerToken")
-
-    if not bearer_token:
-        raise ValueError(f"No se obtuvo bearerToken: {complete_data}")
-
-    # Guardar en cache
-    _pressreader_token_cache["token"] = bearer_token
-    _pressreader_token_cache["time"] = time.time()
-    _pressreader_token_cache["session"] = (
-        session  # Guardar sesión para poder cerrarla después
-    )
-
-    # Agregar al historial de tokens usados
-    if bearer_token not in _pressreader_token_history:
-        _pressreader_token_history.append(bearer_token)
-
-    # Habilitar auto-cleanup si no está ya habilitado
-    if not _auto_cleanup_enabled:
-        enable_auto_cleanup()
-
-    return bearer_token
-
-
-def signout_with_token(token: str) -> bool:
-    """
-    Cierra una sesión específica usando un Bearer token conocido.
-
-    Args:
-        token: Bearer token de la sesión a cerrar
-
-    Returns:
-        bool: True si se cerró exitosamente, False si falló
-    """
-    base_headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0",
-        "Accept": "*/*",
-        "Accept-Language": "es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Origin": "https://proceso.pressreader.com",
-        "Referer": "https://proceso.pressreader.com/proceso",
-    }
-
-    signout_url = f"{PRESSREADER_API_BASE}/auth/SignOut"
-
-    try:
-        response = requests.post(
-            signout_url,
-            headers={
-                **base_headers,
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
-            },
-            json={},
-            timeout=30,
-        )
-
-        if response.status_code == 200:
-            print(f"  ✓ Sesión cerrada: {token[:40]}...")
-            return True
-        else:
-            print(f"  ✗ Error {response.status_code} para token: {token[:40]}...")
-            return False
-
-    except Exception as e:
-        print(f"  ✗ Excepción al cerrar token {token[:40]}...: {e}")
-        return False
-
-
-def close_all_pressreader_sessions() -> int:
-    """
-    Cierra todas las sesiones conocidas usando los tokens del historial.
-
-    Returns:
-        int: Número de sesiones cerradas exitosamente
-    """
-    all_tokens = list(_pressreader_token_history)
-
-    if not all_tokens:
-        print("No hay tokens en el historial")
-        return 0
-
-    print(f"Intentando cerrar {len(all_tokens)} sesiones conocidas...")
-    closed_count = 0
-
-    for token in all_tokens:
-        if signout_with_token(token):
-            closed_count += 1
-
-    # Limpiar el historial de tokens cerrados
-    _pressreader_token_history.clear()
-    _pressreader_token_cache.clear()
-
-    return closed_count
-
-
-def get_pressreader_headers(bearer_token: str) -> dict:
-    """
-    Construye los headers estándar para las peticiones a PressReader API.
-
-    Args:
-        bearer_token: Token de autenticación de PressReader
-
-    Returns:
-        Dict con headers de autorización y user-agent
-    """
-    return {
-        "Authorization": f"Bearer {bearer_token}",
-        "User-Agent": "Mozilla/5.0",
-    }
-
 
 class ProcesoManagerScraper(ManagerScraper):
     """
-    IMPORTANTE: Para evitar el error status dos (demasiadas sesiones)
-    Este scraper habilita automáticamente el cierre de sesiones
-    de PressReader al finalizar. Las sesiones se cerrarán automáticamente
-    cuando el programa termine, incluso si hay errores o interrupciones.
+    Manager del scraper de Proceso.
+
+    La sesión contra PressReader es gestionada por
+    `source.scraper.pressreader_auth` y persistida en el modelo
+    `PressReaderSession`. Para liberar el slot manualmente, correr
+    `python manage.py close_pressreader_session`.
     """
 
     date_format = "%Y%m%d"
@@ -385,9 +52,6 @@ class ProcesoManagerScraper(ManagerScraper):
         recover_record: ScrapedRecord | None = None,
         user: User | None = None,
     ) -> None:
-        # Habilitar auto-cleanup de sesiones de PressReader
-        enable_auto_cleanup()
-
         super().__init__(
             from_date,
             to_date,

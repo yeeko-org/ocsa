@@ -10,6 +10,55 @@ from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
 
 
+class PressReaderSession(models.Model):
+    """
+    Sesión activa contra la API de PressReader. Singleton lógico: se
+    espera una única fila en la tabla (el código asume `first()`).
+
+    La lógica de gestión vive en `source.scraper.pressreader_auth`.
+    Este modelo solo persiste el token y el momento de su última
+    validación, para evitar spam de liveness checks dentro del TTL.
+    """
+    bearer_token = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_validated_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def get_active(cls) -> "PressReaderSession | None":
+        return cls.objects.first()
+
+    def revalidate_if_stale(self, ttl_seconds: int | None = None) -> bool:
+        """
+        Si la última validación es reciente (< ttl), asume vivo sin
+        tocar la API. Si no, hace liveness check real:
+          - 200 -> actualiza `last_validated_at` y devuelve True
+          - cualquier otra cosa -> devuelve False (el llamador debe
+            hacer signOut + relogin)
+
+        Returns:
+            bool: True si el token sigue sirviendo, False si no.
+        """
+        from source.scraper.pressreader_auth import (
+            LIVENESS_TTL_SECONDS, check_token_alive,
+        )
+        ttl = ttl_seconds if ttl_seconds is not None else LIVENESS_TTL_SECONDS
+        age = (timezone.now() - self.last_validated_at).total_seconds()
+        if age < ttl:
+            return True
+        if check_token_alive(self.bearer_token):
+            self.last_validated_at = timezone.now()
+            self.save(update_fields=["last_validated_at"])
+            return True
+        return False
+
+    def __str__(self):
+        return f"PressReaderSession (creada {self.created_at:%Y-%m-%d %H:%M})"
+
+    class Meta:
+        verbose_name = "Sesión de PressReader"
+        verbose_name_plural = "Sesiones de PressReader"
+
+
 class Source(models.Model):
     name = models.CharField(max_length=100)
     is_news = models.BooleanField(
