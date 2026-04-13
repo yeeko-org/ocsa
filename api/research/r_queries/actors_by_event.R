@@ -6,8 +6,27 @@
 #                      mecanismo legal (total, despojo, defensa)
 #   - df_actors      : actores con sus mecanismos y conteos,
 #                      enriquecidos con totales del tipo de evento
-#   - df_grouped     : un renglon por actor con sus mecanismos
+#   - df_grouped     : un renglón por actor con sus mecanismos
 #                      concatenados
+# ------------------------------------------------------------
+# NOTA sobre el tipo de relación Actor↔Evento usada aquí:
+# Este script relaciona actores y eventos de forma INDIRECTA,
+# vía co-ocurrencia en la misma mención (source_mention). Es
+# decir: un actor "cuenta" para un tipo de mecanismo si aparece
+# en la misma nota donde se reportó ese mecanismo, aunque no
+# haya sido parte formal del evento.
+#
+# Esta elección es POR DISEÑO, no por descuido: la pregunta de
+# investigación aquí es "¿qué actores aparecen asociados
+# editorialmente a mecanismos de despojo o defensa en los
+# proyectos?", lo cual encaja con la co-ocurrencia.
+#
+# La alternativa es la relación DIRECTA vía event_involved
+# (actor que participó estrictamente en el evento). Si se
+# quiere esa lectura, el JOIN es:
+#   actor_actor → actor_participant → event_involved →
+#     event_event
+# Ver references/event.md para el patrón directo.
 # ============================================================
 
 source("config.R")
@@ -80,7 +99,7 @@ df_actors_full <- df_actors |>
   ) |>
   select(-id_et)
 
-# ---- 4. Agrupar: un renglon por actor ---------------------
+# ---- 4. Agrupar: un renglón por actor ---------------------
 
 df_grouped <- df_actors |>
   group_by(id, name, alternative_names) |>

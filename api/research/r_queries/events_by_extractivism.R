@@ -6,7 +6,7 @@
 #                        extractivismo
 #   - df_events_extr   : pivot de EventType x ExtractivismType
 #                        con conteos (total, despojo, defensa)
-#   - df_purpose_extr  : pivot de Proposito x ExtractivismType
+#   - df_purpose_extr  : pivot de Propósito x ExtractivismType
 # ============================================================
 
 source("config.R")
@@ -60,7 +60,7 @@ ORDER BY et.name, project_count DESC
 
 df_events_extr_raw <- consulta(con, sql_events_extr)
 
-# Pivot: una columna por cada combinacion metrica-extractivismo
+# Pivot: una columna por cada combinación métrica-extractivismo
 df_events_extr <- df_events_extr_raw |>
   pivot_longer(
     cols = c(project_count, despojo_count, defensa_count),
@@ -75,7 +75,7 @@ df_events_extr <- df_events_extr_raw |>
     values_fill = 0
   )
 
-# ---- 3. Proposito x extractivismo con totales -------------
+# ---- 3. Propósito x extractivismo con totales -------------
 
 sql_purpose_extr <- "
 SELECT
@@ -118,7 +118,7 @@ print(df_extractivism)
 cat("\n=== Mecanismos legales x extractivismo ===\n")
 print(df_events_extr)
 
-cat("\n=== Proposito x extractivismo ===\n")
+cat("\n=== Propósito x extractivismo ===\n")
 print(df_purpose_extr)
 
 dbDisconnect(con)

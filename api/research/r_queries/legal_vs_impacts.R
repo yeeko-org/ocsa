@@ -1,15 +1,15 @@
 # ============================================================
 # Co-ocurrencia: mecanismos legales x afectaciones
 # ============================================================
-# Dos analisis:
+# Dos análisis:
 #   1. Mecanismos de despojo  x Afectaciones
 #   2. Mecanismos de defensa  x Afectaciones
 #
 # Cada analisis produce:
 #   - $crudo : conteo de proyectos por par (mecanismo,
 #              afectacion)
-#   - $lift  : lift = P(afectacion | mecanismo) / P(afectacion)
-#       > 1 -> la combinacion ocurre MAS de lo esperado
+#   - $lift  : lift = P(afectación | mecanismo) / P(afectación)
+#       > 1 -> la combinación ocurre MÁS de lo esperado
 #       < 1 -> ocurre MENOS de lo esperado
 #
 # Las afectaciones se etiquetan "Grupo | Tipo".
@@ -18,7 +18,7 @@
 source("config.R")
 con <- conectar_bd()
 
-# ---- Funcion principal -------------------------------------
+# ---- Función principal -------------------------------------
 
 analisis_legal_impactos <- function(
     con,
@@ -45,7 +45,7 @@ analisis_legal_impactos <- function(
 
   mecanismos <- consulta(con, sql_mechs)
 
-  # 2. Tipos de afectacion validados con suficientes proyectos
+  # 2. Tipos de afectación validados con suficientes proyectos
   sql_impacts <- sprintf("
     SELECT
         it.id,
@@ -64,7 +64,7 @@ analisis_legal_impactos <- function(
 
   tipos_afectacion <- consulta(con, sql_impacts)
 
-  # 3. Total de proyectos con al menos un evento o afectacion
+  # 3. Total de proyectos con al menos un evento o afectación
   sql_total <- "
     SELECT COUNT(DISTINCT project_id) AS total
     FROM (
@@ -79,7 +79,7 @@ analisis_legal_impactos <- function(
   "
   total_projects <- consulta(con, sql_total)$total
 
-  # 4. Pares (proyecto, mecanismo) para el proposito dado
+  # 4. Pares (proyecto, mecanismo) para el propósito dado
   sql_mech_pairs <- sprintf("
     SELECT DISTINCT
         m.project_id,
@@ -93,7 +93,7 @@ analisis_legal_impactos <- function(
 
   mech_pairs <- consulta(con, sql_mech_pairs)
 
-  # 5. Pares (proyecto, tipo de afectacion)
+  # 5. Pares (proyecto, tipo de afectación)
   sql_impact_pairs <- "
     SELECT DISTINCT
         m.project_id,
@@ -103,7 +103,7 @@ analisis_legal_impactos <- function(
   "
   impact_pairs <- consulta(con, sql_impact_pairs)
 
-  # ---- Calculo de co-ocurrencia ----------------------------
+  # ---- Cálculo de co-ocurrencia ----------------------------
 
   # Etiquetas: "Grupo | Tipo"
   etiquetas <- tipos_afectacion |>
@@ -144,14 +144,14 @@ analisis_legal_impactos <- function(
       values_fill = 0
     )
 
-  # Reordenar columnas segun grupo
+  # Reordenar columnas según grupo
   cols_presentes <- intersect(col_order, names(df_crudo))
   df_crudo <- df_crudo |>
     select(mecanismo, all_of(cols_presentes))
 
-  # ---- Calculo de lift -------------------------------------
+  # ---- Cálculo de lift -------------------------------------
 
-  # P(afectacion) = proyectos con esa afectacion / total
+  # P(afectación) = proyectos con esa afectación / total
   baseline_afectacion <- impact_pairs |>
     filter(impact_type_id %in% tipos_afectacion$id) |>
     group_by(impact_type_id) |>

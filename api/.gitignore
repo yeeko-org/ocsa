@@ -48,3 +48,11 @@ note_migrate_files_exit.json
 /source/fixtures/
 
 staticfiles/
+
+# RStudio session artifacts
+.Rproj.user
+.RData
+.Rhistory
+
+# Generated archives
+research/r_queries.zip

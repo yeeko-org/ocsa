@@ -1,21 +1,21 @@
 # ============================================================
-# Co-ocurrencia: mecanismos legales x eventos de oposicion
+# Co-ocurrencia: mecanismos legales x eventos de oposición
 # ============================================================
-# Dos analisis:
+# Dos análisis:
 #   1. Mecanismos de despojo  x Violencias
 #   2. Mecanismos de defensa  x Acciones colectivas
 #
 # Cada analisis produce:
 #   - $crudo : conteo de proyectos por par (mecanismo, evento)
-#   - $lift  : lift = P(oposicion | mecanismo) / P(oposicion)
-#       > 1 -> la combinacion ocurre MAS de lo esperado
+#   - $lift  : lift = P(oposición | mecanismo) / P(oposición)
+#       > 1 -> la combinación ocurre MÁS de lo esperado
 #       < 1 -> ocurre MENOS de lo esperado
 # ============================================================
 
 source("config.R")
 con <- conectar_bd()
 
-# ---- Funcion principal -------------------------------------
+# ---- Función principal -------------------------------------
 
 analisis_legal_oposicion <- function(
     con,
@@ -43,7 +43,7 @@ analisis_legal_oposicion <- function(
 
   mecanismos <- consulta(con, sql_mechs)
 
-  # 2. Tipos de oposicion con suficientes eventos
+  # 2. Tipos de oposición con suficientes eventos
   sql_opp <- sprintf("
     SELECT
         et.id,
@@ -67,7 +67,7 @@ analisis_legal_oposicion <- function(
   "
   total_projects <- consulta(con, sql_total)$total
 
-  # 4. Pares (proyecto, mecanismo) para el proposito dado
+  # 4. Pares (proyecto, mecanismo) para el propósito dado
   sql_mech_pairs <- sprintf("
     SELECT DISTINCT
         m.project_id,
@@ -81,7 +81,7 @@ analisis_legal_oposicion <- function(
 
   mech_pairs <- consulta(con, sql_mech_pairs)
 
-  # 5. Pares (proyecto, tipo de oposicion)
+  # 5. Pares (proyecto, tipo de oposición)
   sql_opp_pairs <- sprintf("
     SELECT DISTINCT
         m.project_id,
@@ -94,7 +94,7 @@ analisis_legal_oposicion <- function(
 
   opp_pairs <- consulta(con, sql_opp_pairs)
 
-  # ---- Calculo de co-ocurrencia ----------------------------
+  # ---- Cálculo de co-ocurrencia ----------------------------
 
   # Merge: proyectos con mecanismo Y oposicion
   cooc <- mech_pairs |>
@@ -116,7 +116,7 @@ analisis_legal_oposicion <- function(
               by = c("opp_type_id" = "id")) |>
     rename(oposicion = name)
 
-  # Pivot: filas = mecanismo, columnas = oposicion
+  # Pivot: filas = mecanismo, columnas = oposición
   df_crudo <- cooc |>
     select(mecanismo, oposicion, n_projects) |>
     pivot_wider(
@@ -125,9 +125,9 @@ analisis_legal_oposicion <- function(
       values_fill = 0
     )
 
-  # ---- Calculo de lift -------------------------------------
+  # ---- Cálculo de lift -------------------------------------
 
-  # P(oposicion) = proyectos con esa oposicion / total
+  # P(oposición) = proyectos con esa oposición / total
   baseline_opp <- opp_pairs |>
     filter(opp_type_id %in% oposiciones$id) |>
     group_by(opp_type_id) |>
