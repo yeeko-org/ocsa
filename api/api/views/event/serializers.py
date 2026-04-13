@@ -3,7 +3,7 @@ from event.models import Event, Involved, EventType
 
 from api.views.actor.serializers import MentionBaseSerializer
 from api.views.common_serializers import (
-    LocationBaseExportSerializer, ConditionalFieldsMixin, ParticipantFullSerializer)
+    ConditionalFieldsMixin, ParticipantFullSerializer)
 from project.models import Conflict
 from space_time.models import Location
 from df.models import Displacement
@@ -55,73 +55,8 @@ class EventSerializer(EventMediumSerializer):
     mention_full = MentionBaseSerializer(read_only=True, source='mention')
 
 
-class EventTypeSerializer(serializers.ModelSerializer):
-    event_group  = serializers.CharField(
-        source='event_group.name', read_only=True)
-
-    class Meta:
-        model = EventType
-        fields = '__all__'
-
-
 class ConflictSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conflict
         fields = '__all__'
-
-
-class EventExportSerializer(serializers.ModelSerializer):
-    event_type = EventTypeSerializer()
-    purpose = serializers.CharField(
-        source='purpose.name', read_only=True)
-
-    class Meta:
-        model = Event
-        fields = [
-            'id',
-            'date',
-            'description',
-            'number_women',
-            'number_men',
-            'number_mix',
-            'event_type',
-            'purpose',
-        ]
-        read_only_fields = fields
-
-
-class EventExportFullSerializer(
-    EventExportSerializer, LocationBaseExportSerializer):
-    mention = MentionBaseSerializer()
-    conflict = ConflictSimpleSerializer(
-        source='mention.project.conflict', read_only=True)
-
-    class Meta:
-        model = Event
-        fields = [
-            'id',
-            'date',
-            'description',
-            'number_women',
-            'number_men',
-            'number_mix',
-            'event_type',
-            'purpose',
-
-            'conflict',
-            'mention',
-
-            "location_id",
-            "state__inegi_code",
-            "state__short_name",
-            "municipality__inegi_code",
-            "municipality__name",
-            "locality__inegi_code",
-            "locality__name",
-            "latitude",
-            "longitude",
-        ]
-        read_only_fields = fields
-
-

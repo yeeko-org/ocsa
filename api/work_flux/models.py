@@ -1,6 +1,5 @@
 from django.db import models
 from typing import Callable
-# from django.db.models import JSONField
 
 
 GROUP_CHOICES = [

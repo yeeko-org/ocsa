@@ -115,3 +115,15 @@ ID a partir del cual son borradores: 3915
 
 from source.models.models import Note
 Note.objects.filter(id__gte=3915).update(status_register='created')
+
+
+## Empaquetar `research/r_queries/` para entrega
+
+Genera un zip limpio (sin artefactos de RStudio) con lo commiteado en HEAD:
+
+```bash
+git archive --format=zip -o research/r_queries.zip HEAD:research/r_queries
+```
+
+Notas:
+- Commitea antes de correrlo; `git archive` ignora cambios sin commitear.

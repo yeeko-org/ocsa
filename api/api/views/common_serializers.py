@@ -55,28 +55,6 @@ class LocalitySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'inegi_code']
 
 
-class LocationExportSerializer(serializers.ModelSerializer):
-    state = StateSerializer()
-    municipality = MunicipalitySerializer()
-    locality = LocalitySerializer()
-
-    class Meta:
-        model = Location
-        fields = '__all__'
-
-
-class LocationBaseExportSerializer(serializers.ModelSerializer):
-    location_id = serializers.ReadOnlyField()
-    state__inegi_code = serializers.ReadOnlyField()
-    state__short_name = serializers.ReadOnlyField()
-    municipality__inegi_code = serializers.ReadOnlyField()
-    municipality__name = serializers.ReadOnlyField()
-    locality__inegi_code = serializers.ReadOnlyField()
-    locality__name = serializers.ReadOnlyField()
-    latitude = serializers.ReadOnlyField()
-    longitude = serializers.ReadOnlyField()
-
-
 class MunicipalitySimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Municipality
@@ -110,79 +88,6 @@ class GenericNameRepSerializer(serializers.RelatedField):
 class GenericTextRepSerializer(serializers.RelatedField):
     def to_representation(self, value):
         return value.text
-
-
-class InterestExportMixin:
-    """Mixin for interest export serializers.
-
-    Computes interest_subtypes, interest_types, interest_groups and
-    interest texts in a single pass over obj.interests, caching the
-    result on the instance to avoid re-iterating across the four
-    SerializerMethodFields that consume it.
-    """
-
-    def _get_interest_data(self, obj: object) -> dict:
-        """Iterate obj.interests once and cache all four lists."""
-        if not hasattr(obj, '_interest_cache'):
-            subtypes, types, groups, texts = [], [], [], []
-            for interest in obj.interests.all():
-                texts.append(interest.text)
-                if interest.interest_subtype:
-                    subtypes.append(interest.interest_subtype.name)
-                    types.append(
-                        interest.interest_subtype.interest_type.name)
-                    groups.append(
-                        interest.interest_subtype
-                        .interest_type.interest_group.name)
-                else:
-                    subtypes.append(None)
-                    types.append(None)
-                    groups.append(None)
-            obj._interest_cache = {
-                'texts': texts,
-                'subtypes': subtypes,
-                'types': types,
-                'groups': groups,
-            }
-        return obj._interest_cache
-
-    def get_interests(self, obj: object) -> list:
-        return self._get_interest_data(obj)['texts']
-
-    def get_interest_subtypes(self, obj: object) -> list:
-        return self._get_interest_data(obj)['subtypes']
-
-    def get_interest_types(self, obj: object) -> list:
-        return self._get_interest_data(obj)['types']
-
-    def get_interest_groups(self, obj: object) -> list:
-        return self._get_interest_data(obj)['groups']
-
-
-def extract_interests(obj) -> dict:
-    """
-    Extrae datos de intereses de un objeto con M2M .interests.
-    Itera una sola vez; requiere prefetch_related con
-    interests__interest_subtype__interest_type__interest_group.
-    """
-    interests, subtypes, types, groups = [], [], [], []
-    for interest in obj.interests.all():
-        interests.append(interest.text)
-        if interest.interest_subtype:
-            subtypes.append(interest.interest_subtype.name)
-            types.append(interest.interest_subtype.interest_type.name)
-            groups.append(
-                interest.interest_subtype.interest_type.interest_group.name)
-        else:
-            subtypes.append(None)
-            types.append(None)
-            groups.append(None)
-    return {
-        "interests": interests,
-        "interest_subtypes": subtypes,
-        "interest_types": types,
-        "interest_groups": groups,
-    }
 
 
 class ActorBasicSerializer(ConditionalFieldsMixin):
@@ -244,7 +149,6 @@ class ParticipantFullSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
         fields = '__all__'
-
 
 
 class ParticipantInterestFullSerializer(ParticipantSerializer):

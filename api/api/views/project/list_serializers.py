@@ -5,8 +5,7 @@ from impact.models import Impact
 from project.models import Project, Conflict, MegaprojectType
 from space_time.models import Location
 from source.models import Mention
-from api.views.common_serializers import (
-    LocationBaseExportSerializer, NoteDatesSerializer, ParticipantSerializer, EventSerializer)
+from api.views.common_serializers import ParticipantSerializer, EventSerializer
 from api.views.common_serializers import ConditionalFieldsMixin
 
 
@@ -145,12 +144,6 @@ class ConflictFullSerializer(ConflictSimpleSerializer):
     projects = ProjectBasicSerializer(many=True, read_only=True)
     parent_project_full = ProjectMiniSerializer(
         read_only=True, source='parent_project')
-
-
-
-# class ImpactExportSerializer(serializers.ModelSerializer):
-#     pass
-#
 
 
 class ProjectLocationVizSerializer(ConditionalFieldsMixin):
