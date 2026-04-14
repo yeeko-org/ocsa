@@ -157,10 +157,11 @@ class ManagerScraper(ABC):
             try:
                 sections_dict = self.main_scraper_class(date_).sections_dict
             except Exception as e:
-                sections_dict = {
-                    "error": f"EError getting sections for date {date_}",
-                    "exception": str(e)
-                }
+                self.add_error(
+                    f"Error getting sections for date {date_}",
+                    exception=e,
+                )
+                continue
             articles_by_date[date_] = sections_dict
 
         self.scraped_record.data = articles_by_date  # type: ignore
@@ -176,9 +177,6 @@ class ManagerScraper(ABC):
         self.get_source()
         for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
             for section_name, section_data in sections_dict.items():
-                if section_name in ["error", "exception"]:
-                    print(f"Error in {date_}/{section_name} : {section_data}")
-                    continue
                 for article_data in section_data.get("articles", []):
                     try:
                         self.record_article(

@@ -102,10 +102,11 @@ class ProcesoManagerScraper(ManagerScraper):
                 sections_dict = self.main_scraper_class(date_).sections_dict
                 print(f"✓ Secciones obtenidas para fecha {date_}: {list(sections_dict.keys())}")
             except Exception as e:
-                sections_dict = {
-                    "error": f"Error getting sections for date {date_}",
-                    "exception": str(e),
-                }
+                self.add_error(
+                    f"Error getting sections for date {date_}",
+                    exception=e,
+                )
+                continue
             articles_by_date[date_] = sections_dict
 
         self.scraped_record.data = articles_by_date
@@ -272,7 +273,11 @@ class ProcesoMainScraper(MainScraper):
         # La API retorna una lista directamente, no un dict con "Pages"
         pages_list = section_pages_response.get("Pages", [])
         exclude_sections = ["PORTADA", "CONTENTS", "ÍNDICE"]
-        ready_articles = set()
+        # article_home: uid -> sección donde quedó registrado el artículo.
+        # Un artículo puede aparecer listado en páginas de varias secciones
+        # (reportajes largos cruzando fronteras de sección); lo guardamos
+        # una sola vez en su primera sección y acumulamos páginas ahí.
+        article_home: dict[str, str] = {}
         base_url = (f"https://proceso.pressreader.com/proceso"
                     f"/{self.scraper_date}/page")
 
@@ -281,26 +286,22 @@ class ProcesoMainScraper(MainScraper):
             if section_name in exclude_sections:
                 continue
             page_number = page.get("PageNumber", 0)
-            # page_title = f"Página {page_number}"
-
-            # Extraer IDs de artículos de esta página
             self.sections_dict.setdefault(section_name, {"articles": {}})
-
-            def append_page(article_str, page_n):
-                self.sections_dict[section_name]["articles"][article_str]\
-                    ["metadata"]["pages"].append(page_n)
 
             for article_data in page.get("Articles", []):
                 root_article_id = article_data.get("RootArticleId")
                 if not root_article_id:
                     continue
                 str_uid = str(root_article_id)
-                if root_article_id in ready_articles:
-                    append_page(str_uid, page_number)
-                    continue
-                ready_articles.add(root_article_id)
-                title_data = titles_dict.get(str_uid, {})
 
+                if str_uid in article_home:
+                    home = article_home[str_uid]
+                    self.sections_dict[home]["articles"][str_uid]\
+                        ["metadata"]["pages"].append(page_number)
+                    continue
+
+                article_home[str_uid] = section_name
+                title_data = titles_dict.get(str_uid, {})
                 self.sections_dict[section_name]["articles"][str_uid] = {
                     "uid": str_uid,
                     "url": f"{base_url}/{page_number}/textview",
@@ -309,10 +310,9 @@ class ProcesoMainScraper(MainScraper):
                     "metadata": {
                         "article_id": str_uid,
                         "issue_id": self.issue_id,
-                        "pages": [],
+                        "pages": [page_number],
                     }
                 }
-                append_page(str_uid, page_number)
 
     def get_articles(self):
         """
