@@ -40,7 +40,6 @@ const elem_in_edition = ref(null)
 
 function editItem(item) {
   // console.log("editItem", item)
-  base_element.value = false
   if (props.indirect_get || props.is_select){
     getElement(final_collection_data.value, item.id).then(response => {
       elem_in_edition.value = response
@@ -56,19 +55,19 @@ function editItem(item) {
 const emits = defineEmits([
   'selected-item', 'delete-item', 'edit-item', 'discard-item'])
 
-function closeDialog(event) {
-  // console.log("close dialog", event)
+function closeDialog() {
   dialog_edit.value = false
-  if (!event) return
-  emits('selected-item', event)
+}
+
+function onItemSaved({res}) {
+  dialog_edit.value = false
+  if (res) emits('selected-item', res)
 }
 
 const dialog_search = ref(false)
-const base_element = ref(false)
 function searchItem(full_project = false) {
   // console.log("search item")
   // console.log("init filters", props.init_filters)
-  base_element.value = full_project
   dialog_search.value = true
   if (full_project){
     const paragraphs = props.full_main?.paragraphs || []
@@ -102,12 +101,6 @@ function closeSearchDialog(new_item) {
     variant="tonal"
     style="width: 100%;"
   >
-<!--    <component-->
-<!--      v-if="card_component && full_main"-->
-<!--      :is="card_component"-->
-<!--      :full_main="full_main"-->
-<!--      :title="title"-->
-<!--    />-->
     <slot
       name="card"
       v-if="full_main"
@@ -121,7 +114,7 @@ function closeSearchDialog(new_item) {
       />
     </slot>
     <span v-else class="text-h6 mr-2 text-warning">
-      Sin {{title || collection_data.name}}
+      Sin {{title || final_collection_data.name}}
     </span>
     <v-spacer></v-spacer>
     <div
@@ -189,27 +182,17 @@ function closeSearchDialog(new_item) {
         class="mr-1"
         v-tooltip="`Cambiar`"
       ></v-btn>
+      <slot
+        name="buttons"
+        :full_main="full_main"
+        :final_collection_data="final_collection_data"
+      />
       <ParagraphFilter
         :paragraphs="full_main?.paragraphs"
         :note_id="note_id"
         :path="full_main?.path"
       />
     </div>
-<!--    <v-dialog-->
-<!--      v-model="dialog_search"-->
-<!--      max-width="920"-->
-<!--    >-->
-<!--      <v-card height="840">-->
-<!--        <v-card-text class="py-0">-->
-<!--          <CollectionDisplay-->
-<!--            :parent_collection="collection_data"-->
-<!--            is_mini-->
-<!--            @select-item="closeChangeDialog"-->
-<!--            :init_filters="init_filters"-->
-<!--          />-->
-<!--        </v-card-text>-->
-<!--      </v-card>-->
-<!--    </v-dialog>-->
     <v-dialog
       v-model="dialog_search"
       max-width="1420"
@@ -222,15 +205,13 @@ function closeSearchDialog(new_item) {
         />
       </slot>
     </v-dialog>
-    <v-dialog
-      v-model="dialog_edit"
-      max-width="1200"
-    >
-      <DialogEdit
-        v-model="elem_in_edition"
-        :collection_data="final_collection_data"
-        @close-dialog="closeDialog($event)"
-      />
-    </v-dialog>
+    <DialogEdit
+      v-model="elem_in_edition"
+      v-model:open="dialog_edit"
+      :collection_data="final_collection_data"
+      :show_sheet="true"
+      @close-dialog="closeDialog"
+      @item-saved="onItemSaved"
+    />
   </v-card>
 </template>

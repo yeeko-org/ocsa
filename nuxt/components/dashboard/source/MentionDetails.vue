@@ -9,15 +9,25 @@ import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
 import ImpactToolbar from "~/components/dashboard/impact/impact/ImpactToolbar.vue";
 import StatusHistoryToolbar from "~/components/dashboard/project/status_history/StatusHistoryToolbar.vue";
 import DialogSearch from "~/components/dashboard/common/dialog/DialogSearch.vue";
+import DialogDelete from "~/components/dashboard/common/dialog/DialogDelete.vue";
 import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue";
 
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 const { showSnackbar } = mainStore
-const { saveSimple, getRelatedActors, deleteSimple, patchSimple } = mainStore
+const { saveSimple, getRelatedActors, patchSimple } = mainStore
 import {savePreItem, saveItemMixed, discardPreItem, mixOrigins} from "~/composables/mix_pre_capture.js";
 import { useSaveElements } from "~/composables/save_elements.js";
+import { useDeleteWithReport } from "~/composables/delete_with_report.js";
 const { saveComplex, save_errors } = useSaveElements()
+const {
+  report_data: delete_report_data,
+  deleting,
+  delete_errors,
+  tryDelete,
+  confirmForceDelete,
+  reset: resetDelete,
+} = useDeleteWithReport()
 
 const props = defineProps({
   note_id: Number,
@@ -220,16 +230,21 @@ const project_init_filters = computed(() => {
 
 
 const dialog_delete = ref(false)
-function deleteMention() {
-  if (!mention.value.id)
-    return
-  all_saving.value = true
-  deleteSimple(['mention', mention.value.id]).then(() => {
-    emits('mention-deleted', mention.value.id)
-    all_saving.value = false
+function openDeleteDialog() {
+  resetDelete()
+  dialog_delete.value = true
+}
+async function deleteMention() {
+  if (!mention.value.id) return
+  const action = delete_report_data.value
+    ? confirmForceDelete : tryDelete
+  const res = await action('mention', mention.value.id)
+  if (res.success) {
     dialog_delete.value = false
+    emits('mention-deleted', mention.value.id)
     showSnackbar('Se ha eliminado la mención')
-  })
+    resetDelete()
+  }
 }
 
 async function discardLocation(pre_item) {
@@ -288,17 +303,9 @@ async function discardLocation(pre_item) {
               :full_main="mention.project_full"
               :full_article="full_article"
               :note_id="note_id"
-              :show_base="true"
               :init_filters="project_init_filters"
               @selected-item="closeSearchDialog"
             />
-<!--                <v-btn-->
-<!--                  color="red"-->
-<!--                  variant="text"-->
-<!--                  @click="closeSearchDialog(); newTest"-->
-<!--                >-->
-<!--                  Descartar mención-->
-<!--                </v-btn>-->
           </template>
         </CardCommon>
       </v-col>
@@ -359,7 +366,7 @@ async function discardLocation(pre_item) {
           variant="outlined"
           class="mr-4"
           :disabled="all_saving"
-          @click="dialog_delete = true"
+          @click="openDeleteDialog"
         >
           Eliminar mención
         </v-btn>
@@ -389,36 +396,13 @@ async function discardLocation(pre_item) {
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog
+    <DialogDelete
       v-model="dialog_delete"
-      max-width="600"
-    >
-      <v-card class="pa-3">
-        <v-card-title>
-          ¿Confirmas la eliminación de esta mención?
-        </v-card-title>
-        <v-card-subtitle>
-          Esta acción no se puede deshacer
-        </v-card-subtitle>
-        <v-card-actions class="py-4">
-          <v-btn
-            color="accent"
-            variant="outlined"
-            @click="dialog_delete = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="error"
-            variant="elevated"
-            @click="deleteMention"
-          >
-            Eliminar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      :loading="deleting"
+      :report_data="delete_report_data"
+      :delete_errors="delete_errors"
+      @confirm-delete="deleteMention"
+    />
   </v-card>
 </template>
 
