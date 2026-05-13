@@ -90,8 +90,8 @@ class EventSchema(CollectionSchema):
     can_massive_edit = True
     xls_export_class = EventExport
     all_filters = [
-        FilterRef("event_types"),
-        FilterRef("purposes", hidden=True),
+        FilterRef("event_types", can_massive_edit=True),
+        FilterRef("purposes", hidden=True, can_massive_edit=True),
         FilterRef("sectors", hidden=True),
         FilterRef("involved_roles", hidden=True),
         FilterRef("participant_types", hidden=True),

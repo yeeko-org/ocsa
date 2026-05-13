@@ -58,13 +58,41 @@ dentro de México (usar `destination_state_id`,
 | 1 | Temporal |
 | 2 | Permanente |
 
-## Ubicación en desplazamiento (caso especial)
+## Ubicación en desplazamiento: menú de opciones
 
 El desplazamiento **no** usa `space_time_location`. Sus columnas de
 origen y destino apuntan directamente a
 `space_time_state` / `space_time_municipality` / `space_time_locality`
 (y `classify_country` para destino internacional). Esto difiere de
 cómo se resuelve la ubicación para proyectos, eventos y afectaciones.
+
+Además, como `df_displacement` cuelga de un evento o afectación (vía
+`event_id` o `impact_id`, ambos nullable), puede heredar
+indirectamente la ubicación directa de esas entidades, y por la
+mención de la nota también la ubicación del proyecto.
+
+Cuando la usuaria pida "la ubicación" de un desplazamiento, **el
+agente debe preguntar** cuál o cuáles niveles quiere, porque no hay
+default limpio. El menú:
+
+1. **Origen** del desplazamiento (`origin_state_id`,
+   `origin_municipality_id`, `origin_locality_id` en
+   `df_displacement`).
+2. **Destino** del desplazamiento
+   (`destination_state/municipality/locality_id` para interno;
+   `destination_country_id` para internacional, según
+   `df_dimension`).
+3. **Ubicación directa del evento o afectación asociados**
+   (`space_time_location` filtrando por `event_id` o `impact_id`).
+   Relevante solo en los pocos casos en que evento o afectación
+   tienen ubicación propia registrada.
+4. **Ubicación del proyecto** al que pertenece la nota, vía
+   `mention → project → space_time_location`, con el patrón canónico
+   de `status_location.priority`.
+
+Después de que la usuaria elija, combinar los niveles pedidos en un
+solo `SELECT` con `LEFT JOIN`s (los cuatro niveles son opcionales e
+independientes entre sí).
 
 ## Ejemplos
 

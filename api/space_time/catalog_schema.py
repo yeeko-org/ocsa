@@ -30,7 +30,7 @@ class LocationSchema(CollectionSchema):
         {'mentions_count': 'Cantidad de menciones'},
     ]
     all_filters = [
-        FilterRef("states"),
+        FilterRef("states", can_massive_edit=True),
         ComponentFilter(
             title="Colección", field="only_by",
             component="OnlyByFilter",

@@ -71,5 +71,5 @@ class ImpactSchema(CollectionSchema):
     can_massive_edit = True
     xls_export_class = ImpactExport
     all_filters = [
-        FilterRef("impact_types"),
+        FilterRef("impact_types", can_massive_edit=True),
     ]

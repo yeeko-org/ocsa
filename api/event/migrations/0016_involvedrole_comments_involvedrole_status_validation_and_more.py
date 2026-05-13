@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='eventgroup',
             name='name',
-            field=models.CharField(max_length=120),
+            field=models.CharField(max_length=160),
         ),
         migrations.AlterField(
             model_name='eventgroup',
@@ -50,12 +50,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='eventsubtype',
             name='name',
-            field=models.CharField(max_length=120),
+            field=models.CharField(max_length=160),
         ),
         migrations.AlterField(
             model_name='eventtype',
             name='name',
-            field=models.CharField(max_length=120),
+            field=models.CharField(max_length=160),
         ),
         migrations.AlterField(
             model_name='eventtype',
@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='involvedrole',
             name='name',
-            field=models.CharField(max_length=120),
+            field=models.CharField(max_length=160),
         ),
         migrations.AlterField(
             model_name='purpose',
@@ -80,6 +80,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='purpose',
             name='name',
-            field=models.CharField(max_length=120),
+            field=models.CharField(max_length=160),
         ),
     ]
