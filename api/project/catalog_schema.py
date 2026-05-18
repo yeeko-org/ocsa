@@ -74,8 +74,9 @@ class ProjectSchema(CollectionSchema):
     can_merge = True
     can_massive_edit = True
     xls_export_class = ProjectExport
+    extra_massive_edit_fields = ["conflict"]
     all_filters = [
-        FilterRef("project_types"),
+        FilterRef("project_types", can_massive_edit=True),
         FilterRef("states"),
         FilterRef("status_projects", hidden=True),
         FilterRef("impact_types", hidden=True),

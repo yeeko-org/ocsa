@@ -3,7 +3,7 @@ from work_flux.models import StatusControl
 
 
 class CatalogBase(models.Model):
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=160)
     order = models.SmallIntegerField(default=10)
     description = models.TextField(blank=True, null=True)
     help_text = models.TextField(blank=True, null=True)

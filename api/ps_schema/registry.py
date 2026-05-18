@@ -188,6 +188,7 @@ def _base_collection_dict(
         'level': schema_cls.level,
         'cat_params': schema_cls.cat_params,
         'sort_fields': schema_cls.sort_fields,
+        'extra_massive_edit_fields': schema_cls.extra_massive_edit_fields,
     }
 
 

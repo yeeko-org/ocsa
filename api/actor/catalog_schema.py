@@ -43,10 +43,10 @@ class ActorSchema(CollectionSchema):
     can_massive_edit = True
     all_filters = [
         FilterRef("participant_types"),
-        FilterRef("belongs", hidden=True),
-        FilterRef("indigenous_groups", hidden=True),
-        FilterRef("sectors"),
-        FilterRef("countries", hidden=True),
+        FilterRef("belongs", hidden=True, can_massive_edit=True),
+        FilterRef("indigenous_groups", hidden=True, can_massive_edit=True),
+        FilterRef("sectors", can_massive_edit=True),
+        FilterRef("countries", hidden=True, can_massive_edit=True),
     ]
 
 
