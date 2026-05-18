@@ -156,6 +156,20 @@ class Location(models.Model):
             return f"{self.latitude}, {self.longitude}"
         return f"{self.state or 'sin entidad'} - {self.details}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.project:
+            from utils.universal import apply_project_status_location
+            apply_project_status_location(self.project)
+
+    def delete(self, *args, **kwargs):
+        project = self.project
+        result = super().delete(*args, **kwargs)
+        if project:
+            from utils.universal import apply_project_status_location
+            apply_project_status_location(project)
+        return result
+
     class Meta:
         verbose_name = "Ubicación"
         verbose_name_plural = "Ubicaciones"

@@ -72,23 +72,12 @@ class Command(BaseCommand):
         self.set_min_status()
 
     def set_min_status(self):
-        # st_dict = {st.order: st for st in StatusControl.objects.all()}
         projects = Project.objects.all().prefetch_related('locations')
-        "empty"
-        "initial"
-        "filled"
-        "need_consensus"
-        "finished"
-        "initial_v1"
-        "need_fix"
-        "could_enhance"
-        "migrated_v1"
         custom_order = [
             'empty', 'need_fix', 'could_enhance', 'need_consensus',
-            'initial', 'initial_v1', 'filled', 'migrated_v1', 'finished']
+            'initial', 'initial_v1', 'filled', 'migrated_v1',
+            'Aproximado', 'finished']
         for project in projects:
-            # status_locations = project.values_list(
-            #     'locations__status_location', flat=True)
             status_locations = project.locations.values_list(
                 'status_location_id', flat=True)
             if status_locations:
