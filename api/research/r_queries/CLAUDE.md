@@ -15,16 +15,36 @@ preguntar.
 
 Casos canónicos a vigilar:
 
-- **Ubicación de algo**. La ubicación del proyecto, del evento y de la
-  afectación son tres ubicaciones posibles distintas y se guardan cada
-  una en sus propias filas de `space_time_location` (filtrando por
-  `project_id`, `event_id` o `impact_id` según corresponda). Para
-  **desplazamiento forzado** la ubicación funciona distinto: no usa
-  `space_time_location`; la tabla `df_displacement` tiene sus propias
-  columnas de origen y destino hacia state/municipality/locality y
-  país de destino. Si la usuaria quiere "la" ubicación del proyecto y
-  hay varias registradas, se elige la de mayor
+- **Ubicación de algo**. Cada entidad (proyecto, evento, afectación)
+  puede tener su propia fila en `space_time_location`, filtrando por
+  `project_id`, `event_id` o `impact_id`. Para una misma entidad con
+  varias ubicaciones registradas, se elige la de mayor
   `status_location.priority` (patrón canónico del sistema).
+
+  Para **evento y afectación** hay dos niveles posibles de ubicación:
+
+  a) **Directa**: la fila de `space_time_location` ligada al propio
+     `event_id` o `impact_id`. Suele estar poco poblada y no siempre
+     existe.
+  c) **Vía proyecto** (`mention → project → space_time_location`):
+     la ubicación principal del proyecto al que pertenece la nota.
+     **Este es el default** cuando la usuaria pide "la ubicación del
+     evento o la afectación": es la ruta más
+     poblada.
+
+  Comportamiento del agente para evento/afectación: **no preguntar**,
+  usar la opción c) por default y **mencionarlo explícitamente** en el
+  resumen de la respuesta, de modo que la usuaria pueda pedir la
+  opción a) o un `COALESCE` entre ambas si le conviene.
+
+  Para **desplazamiento forzado** la ubicación funciona distinto y
+  tiene varios niveles (origen, destino, ubicación del evento o
+  afectación asociados, ubicación del proyecto). El caso es
+  multidimensional y no tiene default limpio, así que **sí
+  preguntar**. El menú completo de opciones y el patrón SQL viven en
+  `references/df.md` (sección "Ubicación en desplazamiento: menú de
+  opciones"); cargar ese archivo antes de generar la query y
+  presentarle a la usuaria las opciones documentadas ahí.
 
 - **Despojo vs defensa**. Ambos mecanismos legales conviven en
   `event_event` con `event_type.event_group_id = 3`. Se distinguen por
