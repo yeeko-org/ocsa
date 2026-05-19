@@ -1,6 +1,7 @@
 <script setup>
 
 import EventToolbar from "~/components/dashboard/event/event/EventToolbar.vue";
+import EventReclassification from "~/components/dashboard/event/event/EventReclassification.vue";
 
 const full_main = defineModel({type: Object, required: true})
 const events = ref([])
@@ -25,6 +26,10 @@ watch(
 </script>
 
 <template>
+  <EventReclassification
+    v-if="full_main.reclassification_stage"
+    v-model="full_main"
+  />
   <v-card class="mb-4 pa-0">
     <EventToolbar
       v-model="events"
