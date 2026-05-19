@@ -1,12 +1,10 @@
 <script setup>
 
 import PanelList from "~/components/dashboard/common/main/PanelList.vue";
-import {shallowRef} from 'vue'
 import SummaryList from "~/components/dashboard/common/main/SummaryList.vue";
-import EditCommon from "~/components/dashboard/common/generic/EditCommon.vue";
 import MassiveActions from "~/components/dashboard/common/utils/MassiveActions.vue";
+import DialogEdit from "~/components/dashboard/common/dialog/DialogEdit.vue";
 import {useMainStore} from "~/store/index.js";
-import MassiveEdit from "~/components/dashboard/common/MassiveEdit.vue";
 
 const mainStore = useMainStore()
 const { mergeSimple } = mainStore
@@ -33,20 +31,15 @@ const sel = ref({"selected_elems": [], "show_order": false})
 const edit_type = ref({
   key: 'edit', title: 'Agregar registro', btn: 'Guardar'})
 
-const editRef = ref(null)
+const dialogEditRef = ref(null)
 const dialog_edit = ref(false)
 const element_to_edit = ref(null)
 const selected_results = ref([])
 const page_number = ref(1)
 const showing = ref(15)
 
-const edit_component = shallowRef('')
 defineExpose({ addItem, resetPage })
 const emits = defineEmits(['select-item', 'update-page-number'])
-
-const route_key = computed(() => props.collection_data.app_label)
-const snake_name = computed(() => props.collection_data.snake_name)
-const edit_name = computed(() => `${props.collection_data.model_name}Edit`)
 
 const init_indirect = computed(() => {
   return !props.results.length && props.total_count
@@ -55,17 +48,6 @@ const init_indirect = computed(() => {
 const final_main_action = computed(() => {
   return sel.value.show_order ? 'order' : props.main_action
 })
-
-import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${edit_name.value}.vue`)
-  .then(module => {
-    edit_component.value = module.default
-  })
-  .catch(e => {
-    import(`~/components/dashboard/common/generic/EditGeneric.vue`).then(module => {
-      edit_component.value = module.default
-    })
-    // edit_component.value = null
-  })
 
 const results_showed = computed(() => {
   if (props.in_sheet)
@@ -169,8 +151,7 @@ function mergeItems(res_main) {
       props.results.splice(idx, 1)
     })
   })
-  if (editRef.value)
-    editRef.value.finishSave()
+  dialogEditRef.value?.finishSave()
   closeDialog()
   sel.value.selected_elems = []
 }
@@ -321,53 +302,19 @@ function selectItem(item) {
       title="No encontramos coincidencias."
     ></v-empty-state>
   </v-card>
-  <v-dialog
-    v-model="dialog_edit"
-    max-width="1200"
-  >
-    <v-card v-if="element_to_edit">
-      <v-card-title>
-        {{edit_type.title}}
-      </v-card-title>
-      <v-card-text>
-        <MassiveEdit
-          v-if="edit_type.key === 'massive_edit'"
-          v-model="element_to_edit"
-          :collection_data="collection_data"
-          @massive-finish="massiveFinish"
-          ref="editRef"
-          :ids_to_edit="sel.selected_elems"
-        >
-        </MassiveEdit>
-        <EditCommon
-          v-else
-          v-model="element_to_edit"
-          :collection_data="collection_data"
-          @item-saved="saveNewElement"
-          :edit_type="edit_type"
-          @merge-items="mergeItems"
-          ref="editRef"
-        >
-          <template #edit>
-            <component
-              :is="edit_component"
-              v-model="element_to_edit"
-              :is_massive_edit="false"
-            ></component>
-          </template>
-        </EditCommon>
-        <template v-if="edit_type.key !== 'edit'">
-          <v-divider></v-divider>
-          <PanelList
-            :results="selected_results"
-            :collection_data="collection_data"
-            :show_details="show_details"
-            :sel="sel"
-          />
-        </template>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
+  <DialogEdit
+    ref="dialogEditRef"
+    v-model="element_to_edit"
+    v-model:open="dialog_edit"
+    :collection_data="collection_data"
+    :edit_type="edit_type"
+    :selected_results="selected_results"
+    :ids_to_edit="sel.selected_elems"
+    @close-dialog="closeDialog"
+    @item-saved="saveNewElement"
+    @merge-items="mergeItems"
+    @massive-finish="massiveFinish"
+  />
 </template>
 
 <style scoped>

@@ -288,17 +288,9 @@ async function discardLocation(pre_item) {
               :full_main="mention.project_full"
               :full_article="full_article"
               :note_id="note_id"
-              :show_base="true"
               :init_filters="project_init_filters"
               @selected-item="closeSearchDialog"
             />
-<!--                <v-btn-->
-<!--                  color="red"-->
-<!--                  variant="text"-->
-<!--                  @click="closeSearchDialog(); newTest"-->
-<!--                >-->
-<!--                  Descartar mención-->
-<!--                </v-btn>-->
           </template>
         </CardCommon>
       </v-col>

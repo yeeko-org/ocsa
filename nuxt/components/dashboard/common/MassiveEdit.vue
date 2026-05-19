@@ -83,9 +83,6 @@ function sendMassiveEdit() {
     <span
       class="mr-2 text-subtitle-1"
     >Selecciona los campos a editar masivamente:</span>
-<!--    <v-code>-->
-<!--      {{merged_params}}-->
-<!--    </v-code>-->
     <v-chip-group
       v-model="active_fields"
       class="mr-2"

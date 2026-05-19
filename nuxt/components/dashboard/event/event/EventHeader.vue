@@ -97,6 +97,17 @@ const final_event_types = computed(() => {
         color="teal"
         class="ml-2"
       />
+      <span v-if="main.reclassification_confidence">
+        <v-icon
+          icon="check_circle"
+          color="green"
+          size="small"
+          class="ml-2"
+        ></v-icon>
+       {{Math.round(main.reclassification_confidence)}}%
+
+
+      </span>
     </template>
   </HeaderCommon>
 
