@@ -1,11 +1,12 @@
 from ps_schema.registry import (
     catalog_registry, CatalogSchema,
     collection_registry, CollectionSchema, FilterRef,
-    FilterGroupSchema
+    FilterGroupSchema, ComponentFilter
 )
 from api.views.common_views import MassiveEdit
 from event.models import (
-    InvolvedRole, EventGroup, EventType, Purpose, Event, Involved)
+    InvolvedRole, EventGroup, EventType, Purpose, Event, Involved,
+    RECLASSIFICATION_STAGE_CHOICES)
 
 
 @catalog_registry.register
@@ -95,6 +96,15 @@ class EventSchema(CollectionSchema):
         FilterRef("sectors", hidden=True),
         FilterRef("involved_roles", hidden=True),
         FilterRef("participant_types", hidden=True),
+        ComponentFilter(
+            title="Reclasificación",
+            field="reclassification_stage",
+            component="OnlyByFilter",
+            hidden=True,
+            custom_options=[
+                {"plural_name": label, "value": value}
+                for value, label in RECLASSIFICATION_STAGE_CHOICES
+            ]),
     ]
 
 

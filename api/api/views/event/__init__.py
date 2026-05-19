@@ -46,6 +46,7 @@ class EventFilter(FilterSet):
         fields = {
             'event_type': ['exact'],
             'purpose': ['exact'],
+            'reclassification_stage': ['exact'],
         }
 
 
@@ -72,7 +73,7 @@ class EventViewSet(
 
     search_fields = ["description"]
     ordering_fields = ['id', 'date']
-    ordering = ['id']
+    ordering = ['reclassification_confidence', 'id']
 
     def get_serializer_class(self):
         action_serializer = {
