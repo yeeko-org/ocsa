@@ -174,11 +174,24 @@ export const useMainStore = defineStore('main', {
     async deleteSimple([group, id]) {
       const { $api } = useNuxtApp()
       try {
-        await $api.delete(`/${group}/${id}/`);
+        await $api.delete(`/${group}/${id}/`)
         return {success: true}
       } catch (error) {
-        console.error(error);
-        return {errors: error.response.data}
+        const data = error.response?.data
+        if (error.response?.status === 400 && data?.report_data)
+          return {report_data: data.report_data}
+        console.error(error)
+        return {errors: data}
+      }
+    },
+    async confirmDeleteSimple([group, id]) {
+      const { $api } = useNuxtApp()
+      try {
+        await $api.delete(`/${group}/${id}/confirm-delete/`)
+        return {success: true}
+      } catch (error) {
+        console.error(error)
+        return {errors: error.response?.data}
       }
     },
     async deleteCatalog([collection_data, id]) {

@@ -114,7 +114,7 @@ function closeSearchDialog(new_item) {
       />
     </slot>
     <span v-else class="text-h6 mr-2 text-warning">
-      Sin {{title || collection_data.name}}
+      Sin {{title || final_collection_data.name}}
     </span>
     <v-spacer></v-spacer>
     <div

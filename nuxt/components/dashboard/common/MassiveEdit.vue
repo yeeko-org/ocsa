@@ -7,6 +7,7 @@ import { saveElement } from "~/composables/save_elements.js";
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from 'pinia'
 import SelectSubtype from "~/components/dashboard/common/select/SelectSubtype.vue";
+import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
 
@@ -28,15 +29,26 @@ const final_collection_data = computed(() => {
 })
 
 const visible_filters = computed(() => {
-  // console.log("collection_data", final_collection_data.value)
-  // console.log("filters", final_collection_data.value.collection_filters)
   return final_collection_data.value.collection_filters.filter(
     coll => active_fields.value.includes(coll.name))
-  // let collection_filters =
-  // if (!final_collection_data.value)
-  //   return []
-  // return final_collection_data.value.filters_list.filter(
-  //   filter_box => filter_box.visible)
+})
+
+const extra_fields = computed(() => {
+  return final_collection_data.value.extra_massive_edit_fields || []
+})
+
+const available_fields = computed(() => {
+  const coll = final_collection_data.value
+  let massive_fields = coll.collection_filters.filter(f=>
+      !f.is_custom && f.can_massive_edit !== false)
+  // coll.extra_massive_edit_fields || []
+  // const extra_fields = coll.extra_massive_edit_fields || []
+  extra_fields.value.forEach(ef => {
+    const full_field = coll.fields.find(f => f.name === ef)
+    if (full_field)
+      massive_fields.push(full_field)
+  })
+  return massive_fields
 })
 
 const merged_params = computed(() => {
@@ -47,12 +59,11 @@ const merged_params = computed(() => {
       'category_subtype',
   ]
   visible_filters.value.forEach(filter_box => {
-    const models = all_levels.reduce((acc, level) => {
+    let models = all_levels.reduce((acc, level) => {
       if (filter_box[level])
         acc.push(filter_box[level])
       return acc
     }, [])
-    // console.log("models", models)
     final_collection_data.value.fields.forEach(field => {
       if (!field.related_snake_name || field.relation_type === 'one_to_many')
         return
@@ -60,14 +71,30 @@ const merged_params = computed(() => {
         params[field.name] = full_main.value[field.name]
     })
   })
-  // console.log("params", params)
+  active_fields.value.forEach(field_name => {
+    if (extra_fields.value.includes(field_name))
+      params[field_name] = full_main.value[field_name] || null
+  })
+  visible_filters.value.forEach(filter_box => {
+    if (filter_box.collection)
+      params[filter_box.collection] = full_main.value[filter_box.collection]
+  })
+
   return params
 })
 
+const full_related = ref({})
+
+function selectItem(field, item) {
+  // console.log("selectItem", field, item)
+  full_main.value[field.name] = item.id
+  full_related.value[field.name] = item
+}
+
 function sendMassiveEdit() {
   saving.value = true
-  // console.log("merged_params", merged_params.value)
   const final_params = {...merged_params.value, elems_ids: props.ids_to_edit}
+  // console.log("final_params", final_params)
   saveElement(final_collection_data.value, final_params).then((res) => {
     // console.log("res", res)
     saving.value = false
@@ -91,7 +118,7 @@ function sendMassiveEdit() {
       direction="vertical"
     >
       <div
-        v-for="field in final_collection_data.collection_filters"
+        v-for="field in available_fields"
         :key="field.name"
         class="d-flex align-center mt-2"
       >
@@ -139,6 +166,14 @@ function sendMassiveEdit() {
               :main_collection="final_collection_data"
             />
           </div>
+          <CardCommon
+            v-else-if="field.related_snake_name"
+            :collection_name="field.related_snake_name"
+            :full_main="full_related[field.name]"
+            class="my-2"
+            indirect_get
+            @selected-item="selectItem(field, $event)"
+          />
           <h5 v-else>{{field.title || field.name}}</h5>
         </template>
       </div>

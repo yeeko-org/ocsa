@@ -7,12 +7,21 @@ const dashboardStore = useDashboardStore()
 import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
 
 import { useSaveElements } from "~/composables/save_elements.js";
+import { useDeleteWithReport } from "~/composables/delete_with_report.js";
 import { savePreItem, discardPreItem, saveItemMixed } from "~/composables/mix_pre_capture.js";
 import DialogDelete from "~/components/dashboard/common/dialog/DialogDelete.vue";
 import ToolbarHeader from "~/components/dashboard/capture/ToolbarHeader.vue";
 import DiscardButtons from "~/components/dashboard/capture/DiscardButtons.vue";
 import ParagraphFilter from "~/components/dashboard/capture/ParagraphFilter.vue";
 const { saveComplex, save_errors } = useSaveElements()
+const {
+  report_data: delete_report_data,
+  deleting,
+  delete_errors,
+  tryDelete,
+  confirmForceDelete,
+  reset: resetDelete,
+} = useDeleteWithReport()
 
 const props = defineProps({
   parent_id: {
@@ -62,7 +71,7 @@ const selectGroupRef = ref(null)
 // const touched_index = ref({})
 
 const { schemas } = storeToRefs(mainStore)
-const { deleteSimple, saveSimple } = mainStore
+const { saveSimple } = mainStore
 const { showSnackbar } = dashboardStore
 
 const emits = defineEmits(['add-item'])
@@ -296,23 +305,31 @@ const discarded_count = computed(() => {
 
 const wantDeleteRecord = (item, index) => {
   record_to_delete.value = { item, index, saved: !!item.id }
+  save_errors.value = []
+  resetDelete()
   dialog_delete.value = true
 }
 
-const deleteRecord = () => {
+const deleteRecord = async () => {
   const {item, index, saved} = record_to_delete.value
   if (saved && delete_text.value !== 'eliminar')
     return
-  if (item.id){
-    deleteSimple([child_collection.value.snake_name, item.id])
-      .then(() => {
-        main_array.value.splice(index, 1)
-      })
-  }
-  else
+  if (!item.id) {
     main_array.value.splice(index, 1)
-  dialog_delete.value = false
-  record_to_delete.value = {}
+    dialog_delete.value = false
+    record_to_delete.value = {}
+    return
+  }
+  const snake = child_collection.value.snake_name
+  const action = delete_report_data.value
+    ? confirmForceDelete : tryDelete
+  const res = await action(snake, item.id)
+  if (res.success) {
+    main_array.value.splice(index, 1)
+    dialog_delete.value = false
+    record_to_delete.value = {}
+    resetDelete()
+  }
 }
 
 const total_count = computed(() => {
@@ -571,6 +588,9 @@ const color_child_card = computed(() => {
       v-model="dialog_delete"
       v-model:delete_text="delete_text"
       :is_saved="record_to_delete.saved"
+      :loading="deleting"
+      :report_data="delete_report_data"
+      :delete_errors="delete_errors"
       @confirm-delete="deleteRecord"
     />
   </v-col>

@@ -69,7 +69,8 @@ function wantMassiveEdit() {
     key: 'massive_edit', title: 'Edición masiva', btn: 'Guardar cambios'}
   selected_results.value = props.results.filter(
       res => sel.value.selected_elems.includes(res[props.collection_data.pk]))
-  element_to_edit.value = {...{}, ...selected_results.value[0]}
+  // element_to_edit.value = {...{}, ...selected_results.value[0]}
+  element_to_edit.value = {}
   dialog_edit.value = true
 }
 

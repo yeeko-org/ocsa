@@ -5,6 +5,8 @@ import {useMainStore} from "~/store/index.js";
 import {useDashboardStore} from "~/store/dash.js";
 import EditCommonFields from "~/components/dashboard/common/generic/EditCommonFields.vue";
 import AlertInfo from "~/components/dashboard/common/utils/AlertInfo.vue";
+import DialogDelete from "~/components/dashboard/common/dialog/DialogDelete.vue";
+import { useDeleteWithReport } from "~/composables/delete_with_report.js";
 
 const mainStore = useMainStore()
 const dashboardStore = useDashboardStore()
@@ -27,10 +29,24 @@ const props = defineProps({
 const full_main = defineModel({type: Object, required: true})
 
 const saving = ref(false)
-const deleting = ref(false)
 const editForm = ref(null)
 const dialog_delete = ref(false)
 const errors = ref(null)
+
+const {
+  report_data: delete_report_data,
+  deleting,
+  delete_errors,
+  tryDelete,
+  confirmForceDelete,
+  reset: resetDelete,
+} = useDeleteWithReport()
+
+function openDeleteDialog() {
+  resetDelete()
+  errors.value = null
+  dialog_delete.value = true
+}
 
 const emits = defineEmits([
     'new-item', 'item-deleted', 'item-saved', 'merge-items'])
@@ -99,27 +115,30 @@ function updateComments(res){
     emits('item-saved', {res, is_new: false})
 }
 
-function deleteRecord() {
-  errors.value = null
-  deleting.value = true
+async function deleteRecord() {
   const id_to_delete = full_main.value[props.collection_data.pk]
-  deleteElement(final_collection_data.value, id_to_delete)
-    .then((res) => {
-      if (res.errors) {
-        // const error_msg = "No se pudo eliminar el registro si tiene datos relacionados"
-        // errors.value = `${error_msg}: \n${
-        //   JSON.stringify(res.errors.report_data)}`
-        let error_msg = "No se pudo eliminar el registro:\n"
-        error_msg += JSON.stringify(res.errors)
-        errors.value = error_msg
-        deleting.value = false
-        dialog_delete.value = false
-        return
-      }
-      deleting.value = false
-      dialog_delete.value = false
-      emits('item-deleted', id_to_delete)
-    })
+  if (final_collection_data.value.is_category) {
+    deleting.value = true
+    const res = await deleteElement(
+      final_collection_data.value, id_to_delete)
+    deleting.value = false
+    if (res.errors) {
+      delete_errors.value = res.errors
+      return
+    }
+    dialog_delete.value = false
+    emits('item-deleted', id_to_delete)
+    return
+  }
+  const snake = final_collection_data.value.snake_name
+  const action = delete_report_data.value
+    ? confirmForceDelete : tryDelete
+  const res = await action(snake, id_to_delete)
+  if (res.success) {
+    dialog_delete.value = false
+    emits('item-deleted', id_to_delete)
+    resetDelete()
+  }
 }
 
 
@@ -161,7 +180,7 @@ function deleteRecord() {
           v-if="final_collection_data.level !== 'secondary'"
           color="error"
           variant="outlined"
-          @click="dialog_delete = true"
+          @click="openDeleteDialog"
         >
           Eliminar
         </v-btn>
@@ -197,38 +216,14 @@ function deleteRecord() {
         </v-btn>
       </v-card-actions>
     </v-form>
-    <v-dialog
+    <DialogDelete
       v-model="dialog_delete"
-      max-width="500"
-    >
-      <v-card class="pa-3">
-        <v-card-title>
-          ¿Confirmas la eliminación de este registro?
-        </v-card-title>
-        <v-card-subtitle>
-          Esta acción no se puede deshacer
-        </v-card-subtitle>
-        <v-card-actions class="py-4">
-          <v-btn
-            color="accent"
-            variant="outlined"
-            @click="dialog_delete = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn
-            v-if="can_delete"
-            color="error"
-            variant="elevated"
-            :loading="deleting"
-            @click="deleteRecord"
-          >
-            Sí eliminar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      :can_delete="can_delete"
+      :loading="deleting"
+      :report_data="delete_report_data"
+      :delete_errors="delete_errors"
+      @confirm-delete="deleteRecord"
+    />
   </v-card>
 </template>
 

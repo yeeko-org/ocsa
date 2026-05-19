@@ -16,7 +16,7 @@ const props = defineProps({
   show_sheet: {type: Boolean, default: false},
 })
 
-const full_main = defineModel({type: Object, required: true})
+const full_main = defineModel({type: Object, default: null})
 const is_open = defineModel('open', {type: Boolean, default: false})
 
 const emits = defineEmits([
