@@ -100,6 +100,17 @@ class EventGroupEnum(enum.Enum):
     defense_acts = "defense_acts"
 
 
+class PurposeEnum(enum.Enum):
+    spoliation = "spoliation"
+    defense = "defense"
+
+
+purpose_mapping = {
+    "spoliation": 1,
+    "defense": 2,
+}
+
+
 position_mapping = {
     "oppose": 1,
     "support": 3,
@@ -309,6 +320,19 @@ class MentionFull(MentionBase, CommonFull):
 
 class NoteBase(RootModel):
     root: list[MentionBase] = []
+
+
+class LegalReclassifyItemBase(BaseModel):
+    event_id: int
+    purpose_str: PurposeEnum
+    description: str = Field(max_length=300)
+    confidence: int = Field(ge=0, le=100)
+    actual_group_str: EventGroupEnum | None = None
+    paragraphs: list[int] = []
+
+
+class LegalReclassifyResult(RootModel):
+    root: list[LegalReclassifyItemBase] = []
 
 
 class NoteHydrated(RootModel, PathMixin):

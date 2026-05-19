@@ -56,6 +56,14 @@ class Purpose(CatalogGroup):
         verbose_name_plural = 'Propósitos de Eventos'
 
 
+RECLASSIFICATION_STAGE_CHOICES = (
+    ('pending', 'Pendiente'),
+    ('reclassified', 'Reclasificado'),
+    ('problematic', 'Problemático'),
+    ('confirmed', 'Confirmado'),
+    ('discarded', 'Descartado'),
+)
+
 class Event(models.Model):
     mention = models.ForeignKey(
         Mention, on_delete=models.CASCADE, related_name='events')
@@ -68,6 +76,14 @@ class Event(models.Model):
     purpose = models.ForeignKey(
         Purpose, on_delete=models.CASCADE, blank=True, null=True,
         related_name='events')
+    reclassification_stage = models.CharField(
+        max_length=12, choices=RECLASSIFICATION_STAGE_CHOICES,
+        blank=True, null=True)
+    reclassification_confidence = models.SmallIntegerField(
+        blank=True, null=True, help_text="Confianza en la reclasificación (0-100)")
+    reclassification_data = models.JSONField(
+        blank=True, null=True,
+        help_text="Snapshot original + propuesta IA, para comparar")
 
     description = models.TextField(blank=True, null=True)
 
