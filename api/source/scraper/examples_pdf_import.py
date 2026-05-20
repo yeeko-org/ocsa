@@ -12,7 +12,7 @@ from source.pdf_import.clean import PdfAiCleaner
 # --- 1) Extracción del crudo (sin IA) -----------------------------------
 # Usar limit=N para una primera corrida acotada de prueba.
 extractor = PdfTextExtractor()
-extractor.run(limit=2)
+extractor.run()
 
 # --- 2) Limpieza asistida por IA ----------------------------------------
 cleaner = PdfAiCleaner(ai_engine="gemini-3-flash-preview")

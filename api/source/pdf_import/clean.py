@@ -72,6 +72,8 @@ class PdfAiCleaner:
         note = article.note
         lines = ["## ORIENTACIÓN (extrae SOLO esta nota del crudo)"]
         lines.append(f"Título: {note.title}")
+        if note.subtitle:
+            lines.append(f"Subtítulo: {note.subtitle}")
         if note.author:
             lines.append(f"Autor (capturado): {note.author}")
         if note.date:

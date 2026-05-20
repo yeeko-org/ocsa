@@ -31,3 +31,5 @@ El usuario te enviará:
 - **No inventes**: si la nota referida no está en el crudo, `note_found=false` y `paragraphs` vacío. Es preferible declararlo a fabricar contenido.
 - **No resumas**: `paragraphs` es el texto íntegro y literal del cuerpo, solo reordenado y des-hifenizado.
 - **Solo lo que está en el crudo**: no completes con conocimiento externo.
+ - **Ortografía intacta**: conserva acentos, ñ, ¿¡ y mayúsculas tal como vienen. No "normalices" ni corrijas erratas del PDF: pertenecen al texto fuente y se auditan después.
+- **Tipografía**: respeta comillas («», " ", ' '), guiones largos (—) y signos especiales originales; no los sustituyas por equivalentes ASCII.
