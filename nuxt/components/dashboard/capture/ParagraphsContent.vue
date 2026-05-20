@@ -42,6 +42,7 @@ function showAll(value){
 
 const full_paragraphs = computed(() => {
   const criteria_values = props.full_main.criteria || []
+
   let paragraphs = props.full_main.paragraphs.map((p, idx) => {
     return {
       "idx": idx + 1,
@@ -50,6 +51,14 @@ const full_paragraphs = computed(() => {
       "projects": [],
     }
   })
+  if (props.full_main.subtitle){
+    paragraphs.unshift({
+      "idx": 0,
+      "text": props.full_main.subtitle,
+      "criteria": [],
+      "projects": [],
+    })
+  }
   let image_idx = paragraphs.length + 1
   const images = props.full_main.images || []
   images.forEach((image, idx) => {
@@ -73,7 +82,8 @@ const full_paragraphs = computed(() => {
       })
     })
   })
-  criteria_values.projects.forEach((project) => {
+  const projects = criteria_values.projects || []
+  projects.forEach((project) => {
     const name_types = project.types
     let extractivism_types = name_types.map(type => {
       return ai_extractivism_types[type]
@@ -120,7 +130,6 @@ const full_paragraphs = computed(() => {
         párrafos
       </v-btn>
     </v-card-title>
-
     <v-card-text
       class="px-0 d-flex flex-wrap"
       v-if="show_init || forced_show"
