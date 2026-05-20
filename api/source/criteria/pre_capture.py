@@ -57,7 +57,7 @@ class PreCaptureManager(BaseCriteriaManager):
 
         # bounded_int = List[Annotated[int, Field(ge=1, le=p_count)]]
         class ParagraphReference(BaseModel):
-            paragraphs: List[Annotated[int, Field(ge=1, le=p_count)]] = Field(
+            paragraphs: List[Annotated[int, Field(ge=0, le=p_count)]] = Field(
                 default_factory=list)
 
         class ProjectDataFinal(ParagraphReference, ProjectDataBase):

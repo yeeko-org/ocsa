@@ -97,7 +97,7 @@ class EventSchema(CollectionSchema):
         FilterRef("involved_roles", hidden=True),
         FilterRef("participant_types", hidden=True),
         ComponentFilter(
-            title="Reclasificación",
+            title="Reclasificación IA",
             field="reclassification_stage",
             component="OnlyByFilter",
             hidden=True,

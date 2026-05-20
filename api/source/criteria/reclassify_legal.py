@@ -15,13 +15,6 @@ class ReclassifyLegalManager(BaseCriteriaManager):
     como contexto. No crea Note/Mention: solo corrige FKs existentes.
     """
 
-    # Pista de propósito según el tipo de origen del evento.
-    ORIGIN_PURPOSE = {
-        "Variado (despojo)": "despojo",
-        "Variado (defensa)": "defensa",
-        "Demandas (varias)": "abierto (decídelo según el contenido)",
-    }
-
     def __init__(
             self, ai_engine: str | None = None, is_test: bool = False,
             user: User | None = None
@@ -59,10 +52,6 @@ class ReclassifyLegalManager(BaseCriteriaManager):
         ).exclude(
             reclassification_stage='pending'
         ).select_related('event_type', 'purpose', 'mention__project'))
-
-    def _purpose_hint(self, origin_name: str) -> str:
-        return self.ORIGIN_PURPOSE.get(
-            origin_name, "abierto (decídelo según el contenido)")
 
     def _project_name(self, ev) -> str:
         proj = ev.mention.project
@@ -107,22 +96,16 @@ class ReclassifyLegalManager(BaseCriteriaManager):
             f"## ACCIONES COLECTIVAS (NO son mecanismo legal): {collectives}")
         return "\n".join(lines)
 
-    # ------------------------------------------------------------------
-    # Contenido variable por nota (NO cacheado)
-    # ------------------------------------------------------------------
     def get_additional_content(self, article: Article) -> str:
         events = self._pending_events(article)
         if not events:
             return ""
         lines = ["\n## EVENTOS A RECLASIFICAR EN ESTA NOTA"]
         for ev in events:
-            origin = ev.event_type.name if ev.event_type else "?"
             desc = (ev.description or "").strip()
             lines.append(
                 f"- event_id {ev.id} "
                 f"| proyecto: {self._project_name(ev)} "
-                f"| origen: {origin} "
-                f"| propósito sugerido: {self._purpose_hint(origin)} "
                 f"| descripción actual: {desc}")
 
         classified = self._classified_legal_events(article)
@@ -154,9 +137,8 @@ class ReclassifyLegalManager(BaseCriteriaManager):
         LegalEventTypeEnum = enum.Enum("LegalEventTypeEnum", legal_enum_dict)
 
         class LegalReclassifyItemFinal(LegalReclassifyItemBase):
-            event_type_str: LegalEventTypeEnum
-            paragraphs: List[Annotated[
-                int, Field(ge=1, le=p_count)]] = []
+            event_type_str: LegalEventTypeEnum | None = None
+            paragraphs: List[Annotated[int, Field(ge=0, le=p_count)]] = []
 
         class LegalReclassifyResultFinal(RootModel):
             root: List[LegalReclassifyItemFinal] = []
@@ -192,6 +174,12 @@ class ReclassifyLegalManager(BaseCriteriaManager):
             actual_group = (
                 item.actual_group_str.value
                 if item.actual_group_str else None)
+            et_value = (
+                item.event_type_str.value
+                if item.event_type_str else None)
+            purpose_value = (
+                item.purpose_str.value
+                if item.purpose_str else None)
             event.reclassification_data = {
                 "original": {
                     "event_type_id": event.event_type_id,
@@ -205,8 +193,8 @@ class ReclassifyLegalManager(BaseCriteriaManager):
                     "description": event.description,
                 },
                 "ai": {
-                    "event_type": item.event_type_str.value,
-                    "purpose": item.purpose_str.value,
+                    "event_type": et_value,
+                    "purpose": purpose_value,
                     "confidence": item.confidence,
                     "description": item.description,
                     "actual_group": actual_group,
@@ -215,14 +203,14 @@ class ReclassifyLegalManager(BaseCriteriaManager):
             }
             event.reclassification_confidence = item.confidence
 
-            new_type_id = legal_types.get(item.event_type_str.value)
+            new_type_id = legal_types.get(et_value)
             if actual_group in NON_LEGAL_GROUPS or not new_type_id:
                 event.reclassification_stage = 'problematic'
                 event.save()
                 continue
 
             event.event_type_id = new_type_id
-            event.purpose_id = purpose_mapping.get(item.purpose_str.value)
+            event.purpose_id = purpose_mapping.get(purpose_value)
             event.description = item.description
             event.reclassification_stage = 'reclassified'
             event.save()

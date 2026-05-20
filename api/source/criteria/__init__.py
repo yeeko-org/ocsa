@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Type, Any
+from typing import List, Type, Any, Protocol
 import json
 import enum
 from tqdm import tqdm
@@ -18,6 +18,34 @@ class EnumEncoder(json.JSONEncoder):
         elif isinstance(obj, datetime.date):
             return obj.isoformat()
         return super().default(obj)
+
+
+class GeminiPromptOwner(Protocol):
+    """Atributos que ``make_gemini_request`` lee del caller."""
+    prompt_name: str
+    version: str | None
+    ai_engine: str | None
+    seconds_cache: int
+
+
+def make_gemini_request(
+        owner: GeminiPromptOwner, len_articles: int = 1,
+        prompt_segment: str = "criteria",
+) -> RequestGemini:
+    """Construye un ``RequestGemini`` listo (chat + cache opcional).
+
+    ``prompt_segment`` permite reutilizar este helper en flujos que no
+    son clasificación (p. ej. ``pdf_cleanup`` pasa ``""``).
+    """
+    seg = f"_{prompt_segment}" if prompt_segment else ""
+    prompt_file = f"gemini_{owner.prompt_name}{seg}_{owner.version}.txt"
+    request = RequestGemini(engine=owner.ai_engine)
+    request.build_chat(f"source/prompts/{prompt_file}")
+    if len_articles > 1:
+        total = len_articles * owner.seconds_cache
+        cache_name = f"{owner.prompt_name}{seg}_{owner.version}"
+        request.create_cache(cache_name, total)
+    return request
 
 
 class BaseCriteriaManager(ABC):
@@ -50,7 +78,7 @@ class BaseCriteriaManager(ABC):
         content = f"Título: {article.title.strip()}\n"
 
         if subtitle := article.subtitle:
-            content += f"Subtítulo: {subtitle.strip()}\n"
+            content += f"[0]: {subtitle.strip()} (subtítulo)\n"
 
         p_idx = 0
         for paragraph in article.paragraphs:
@@ -103,15 +131,7 @@ class BaseCriteriaManager(ABC):
             self.add_errors(self.classify_request.errors)
 
     def build_gemini_request(self, len_articles: int = 1) -> None:
-
-        prompt_file = f"gemini_{self.prompt_name}_criteria_{self.version}.txt"
-        self.classify_request = RequestGemini(engine=self.ai_engine)
-        self.classify_request.build_chat(f"source/prompts/{prompt_file}")
-
-        if len_articles > 1:
-            total_seconds_cache = len_articles * self.seconds_cache
-            cache_name = f"{self.prompt_name}_criteria_{self.version}"
-            self.classify_request.create_cache(cache_name, total_seconds_cache)
+        self.classify_request = make_gemini_request(self, len_articles)
 
     def get_ai_criteria(self, article: Article) -> None:
         if not article.paragraphs and not article.images:

@@ -324,7 +324,7 @@ class NoteBase(RootModel):
 
 class LegalReclassifyItemBase(BaseModel):
     event_id: int
-    purpose_str: PurposeEnum
+    purpose_str: PurposeEnum | None = None
     description: str = Field(max_length=300)
     confidence: int = Field(ge=0, le=100)
     actual_group_str: EventGroupEnum | None = None
@@ -333,6 +333,25 @@ class LegalReclassifyItemBase(BaseModel):
 
 class LegalReclassifyResult(RootModel):
     root: list[LegalReclassifyItemBase] = []
+
+
+class PdfCleanResult(BaseModel):
+    """Salida de Gemini al limpiar el crudo de un PDF legado.
+
+    `note_found` distingue el caso en que el material crudo no contiene
+    la nota orientada por el título (fallo explícito, no se inventan
+    párrafos). `published_date`/`pages` son lo detectado en el PDF, solo
+    para auditoría: la `Note` sigue siendo la fuente de verdad.
+    """
+    note_found: bool
+    not_found_reason: str | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    author: str | None = None
+    section: str | None = None
+    pages: str | None = None
+    published_date: str | None = None
+    paragraphs: list[str] = []
 
 
 class NoteHydrated(RootModel, PathMixin):
