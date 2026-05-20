@@ -154,6 +154,12 @@ SHOW_TEST_PROMPTS = getenv_bool("SHOW_TEST_PROMPTS", False)
 
 ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS", ["*"])
 DEBUG = True
+IS_LOCAL = getenv_bool("IS_LOCAL", False)
+
+# Base remota de los archivos legados (NoteFile.file) cuando se corre en
+# local: los PDF viejos no están en disco local, solo en producción
+LEGACY_FILES_BASE_URL = os.getenv(
+    "LEGACY_FILES_BASE_URL", "https://apiocsa.yeeko.org")
 
 # ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS")
 # ALLOWED_HOSTS = []
@@ -235,4 +241,4 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:63
 CELERY_TASK_RESULT_EXPIRES = getenv_int("CELERY_TASK_RESULT_EXPIRES", 3600)
 
 
-LAJORNADA_SOURCE_ID = os.getenv("LAJORNADA_SOURCE_ID", 4)
+LAJORNADA_SOURCE_ID = os.getenv("LAJORNADA_SOURCE_ID", 2)
