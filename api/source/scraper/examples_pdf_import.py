@@ -16,7 +16,7 @@ extractor.run()
 
 # --- 2) Limpieza asistida por IA ----------------------------------------
 cleaner = PdfAiCleaner(ai_engine="gemini-3-flash-preview")
-cleaner.run(limit=2)
+cleaner.run()
 
 # --- Inspección de una muestra (monitoreo en localhost) -----------------
 # from source.models import Article

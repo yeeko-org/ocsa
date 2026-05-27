@@ -1,6 +1,7 @@
 from django.urls import include, path
 
-from api.views.project.map_views import ProjectMapViewSet, ProjectLocationViewSet
+from api.views.map.views import (
+    ProjectMapViewSet, ProjectLocationViewSet, NoteMapViewSet)
 from api.views.generic_merge.views import MergeRecordsView
 from api.views.auth.login_views import UserLoginAPIView
 from api.views.scraping.views import ScrapingDatesView
@@ -13,6 +14,8 @@ from ps_schema.registry import collection_registry
 router = DefaultRouter()
 
 router.register(r'project_map', ProjectMapViewSet, basename='project map')
+
+router.register(r'note_map', NoteMapViewSet, basename='note_map')
 
 router.register(r'project_location', ProjectLocationViewSet,
                 basename='project_location')

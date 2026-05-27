@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from django_filters import FilterSet, NumberFilter
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
@@ -5,13 +6,14 @@ from rest_framework import mixins, permissions, viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 
 from space_time.models import Location
-from . import LocationVizSerializer
-from .map_serializers import (
+from api.views.project import LocationVizSerializer
+from .serializers import (
     ProjectMapSerializer, MentionMapSerializer, ImpactMapSerializer,
-    EventMapSerializer)
+    EventMapSerializer, NoteDeepMapSerializer)
 from api.views.common_views import UnaccentSearchFilter
 from project.models import Project
-from ...permissions import LocationPermission
+from source.models import Note, Mention
+from api.permissions import LocationPermission
 
 
 class ProjectMapViewSet(GenericViewSet, mixins.ListModelMixin):
@@ -97,6 +99,38 @@ class ProjectMapViewSet(GenericViewSet, mixins.ListModelMixin):
         data['events'] = events_serializer.data
 
         return Response(data)
+
+
+class NoteMapViewSet(GenericViewSet, mixins.RetrieveModelMixin):
+    """Endpoint público de solo lectura para una nota tal como se
+    muestra en el mapa. Devuelve metadatos de la nota (sin cuerpo del
+    artículo, por restricción de copyright) más las menciones que la
+    nota contiene, cada una con su proyecto y sus impactos, eventos e
+    historial de estatus anidados.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = NoteDeepMapSerializer
+
+    queryset = Note.objects.all().select_related('source').prefetch_related(
+        Prefetch(
+            'mentions',
+            queryset=Mention.objects.select_related(
+                'project',
+                'project__megaproject_type',
+                'project__parent_project',
+            ).prefetch_related(
+                'status_history',
+                'impacts',
+                'events',
+            ),
+        ),
+    )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_authenticated:
+            qs = qs.filter(status_register__is_public=True)
+        return qs
 
 
 class ProjectLocationFilter(FilterSet):
