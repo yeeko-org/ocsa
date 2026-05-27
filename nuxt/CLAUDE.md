@@ -27,3 +27,6 @@ Each data domain is a "collection" (e.g. `actores`, `proyectos`, `eventos`). Cat
 
 ### Maps
 Mapbox GL (`mapbox-gl` + `@mapbox/mapbox-gl-draw`) used in `pages/mapa.vue` and `components/map/`.
+
+### Content & Copyright
+- Notes carry copyrighted source text — never render `paragraphs` / article body in `components/map/` or any public-facing view. Only metadata (title, date, source) is allowed.

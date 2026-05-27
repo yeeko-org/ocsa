@@ -72,16 +72,11 @@ export function setupInteractions(map, buildFullProjectData) {
             "
           >
             <i
-              class="material-icons notranslate"
+              class="material-symbols-outlined notranslate"
               style="font-size: 14px;
               vertical-align: middle;"
-            >
-              ${et_obj.icon}
-            </i>
-            <span style="vertical-align: middle;">
-
-              ${et_obj.short_name || et_obj.name}
-            </span>
+            >${et_obj.icon}</i>
+            <span style="vertical-align: middle;">${et_obj.short_name || et_obj.name}</span>
           </div>
         `;
       }

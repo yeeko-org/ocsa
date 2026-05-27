@@ -175,7 +175,12 @@ function buildFullProjectData(properties) {
         color: '',
         project: res.parent_project_full
       };
-      parentProject.value = res.parent_project_full;
+      parentProject.value = {
+        ...res.parent_project_full,
+        mentions: res.mentions,
+        events: res.events,
+        impacts: res.impacts,
+      };
       const new_project = separateCollections(res, selectedChildProject.value.project);
       childProject.value = {color: '', project: new_project};
     }

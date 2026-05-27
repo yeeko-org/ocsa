@@ -7,6 +7,7 @@ import ProjectMiniCard from "~/components/map/ProjectMiniCard.vue";
 import ConflictCard from "~/components/dashboard/project/conflict/ConflictCard.vue";
 import NoteTitle from "~/components/dashboard/source/note/NoteTitle.vue";
 import CollectionListMap from "~/components/map/CollectionListMap.vue";
+import NoteCardMap from "~/components/map/NoteCardMap.vue";
 const mainStore = useMainStore()
 const { megaproject_types_dict } = storeToRefs(mainStore)
 
@@ -98,6 +99,14 @@ const main_card_class = computed(() => {
 function openChildProjectCard(child_project){
   // console.log('child_project', child_project)
   emits('open-child-project', child_project)
+}
+
+const note_dialog = ref(false)
+const selected_note = ref(null)
+
+function openNoteDialog(note) {
+  selected_note.value = note
+  note_dialog.value = true
 }
 
 </script>
@@ -218,6 +227,8 @@ function openChildProjectCard(child_project){
         <CollectionListMap
           v-if="full_main?.impacts?.length > 0"
           :objects="full_main.impacts"
+          :mentions="full_main.mentions"
+          :current_project_id="selectedProject.project.id"
           node_name="impact_types"
           type_key="impact_type"
           subtype_key="impact_subtype"
@@ -225,6 +236,8 @@ function openChildProjectCard(child_project){
         <CollectionListMap
           v-if="full_main?.events?.length > 0"
           :objects="full_main.events"
+          :mentions="full_main.mentions"
+          :current_project_id="selectedProject.project.id"
           node_name="event_types"
           type_key="event_type"
           subtype_key="event_subtype"
@@ -241,6 +254,9 @@ function openChildProjectCard(child_project){
           class="mb-2 py-1 px-1"
           variant="tonal"
           color="purple"
+          v-ripple
+          style="cursor: pointer;"
+          @click="openNoteDialog(note_id)"
         >
           <NoteTitle
             :main="note_id"
@@ -272,6 +288,12 @@ function openChildProjectCard(child_project){
       </template>
 
     </v-card-text>
+
+    <NoteCardMap
+      v-model="note_dialog"
+      :note="selected_note"
+      :current_project_id="selectedProject?.project?.id"
+    />
   </v-card>
 </template>
 

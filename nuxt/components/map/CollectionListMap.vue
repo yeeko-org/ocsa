@@ -2,6 +2,8 @@
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
+import CategoryNotesDialog from "~/components/map/CategoryNotesDialog.vue";
+
 const mainStore = useMainStore()
 const { all_nodes } = storeToRefs(mainStore)
 
@@ -13,7 +15,27 @@ const props = defineProps({
   node_name: String,
   type_key: String,
   subtype_key: String,
+  mentions: {
+    type: Array,
+    default: () => [],
+  },
+  current_project_id: Number,
+  clickable: {
+    type: Boolean,
+    default: true,
+  },
 })
+
+const dialog_open = ref(false)
+const selected_group = ref(null)
+const selected_type_elem = ref(null)
+
+function openCategoryDialog(group, type_elem) {
+  if (!props.clickable) return
+  selected_group.value = group
+  selected_type_elem.value = type_elem
+  dialog_open.value = true
+}
 
 function calcFinalGroup(group, title='', extra_filter=null){
   // console.log("props.objects", props.objects)
@@ -23,19 +45,9 @@ function calcFinalGroup(group, title='', extra_filter=null){
       return object[props.type_key] === elem_type.data.id
         && (!extra_filter || object.purpose === extra_filter)
     })
-    const descriptions = filter_objects.reduce((acc, object) => {
-      const key = object.description || "Sin descripción"
-      acc[key] = (acc[key] || 0) + 1
-      return acc
-    }, {})
-    const list_descriptions = Object.entries(descriptions)
-      .map(([description, count]) => ({description, count}))
-      .sort((a, b) => b.count - a.count)
 
     if (filter_objects.length > 0)
-      final_types.push({
-        ...elem_type.data, filter_objects, descriptions: list_descriptions
-      })
+      final_types.push({...elem_type.data, filter_objects})
   })
   final_types.sort(
     (a, b) => b.filter_objects.length - a.filter_objects.length)
@@ -129,93 +141,42 @@ const hierarchical_objects = computed(() => {
     <v-card
       v-for="type_elem in group.final_types"
       :key="type_elem.id"
-      class=" pl-2 mb-1 py-1"
+      class=" pl-2 pr-1 mb-1 py-1"
       variant="text"
+      :ripple="clickable"
+      :style="clickable ? 'cursor: pointer;' : ''"
+      @click="openCategoryDialog(group, type_elem)"
     >
 
       <span class="text-subtitle-1 font-weight-medium text-black">
         {{type_elem.name}}
       </span>
-      <span class="ml-1 text-caption text-grey">
-        ({{type_elem.filter_objects.length}} notas)
+      <span class="text-caption text-grey text-no-wrap">
+        ({{type_elem.filter_objects.length}}
+        nota{{ type_elem.filter_objects.length === 1 ? '' : 's' }})
       </span>
       <v-tooltip
         activator="parent"
         location="left"
         max-width="340"
       >
-        <div class="mb-2">
+        <div>
           <b>{{type_elem.name}}:</b>
           {{ type_elem.description }}
-
-        </div>
-        <div
-          v-for="description in type_elem.descriptions"
-          :key="description.description"
-          class="mb-1"
-        >
-          <span class="font-weight-bold mr-2">
-            {{description.count}}
-          </span>
-          <span>
-            {{description.description}}
-          </span>
         </div>
       </v-tooltip>
     </v-card>
-<!--    <v-expansion-panels elevation="0">-->
-<!--      <v-expansion-panel-->
-<!--        v-for="type_elem in group.final_types"-->
-<!--        :key="type_elem.id"-->
-<!--        xclass="mb-1"-->
-<!--        :color="`${group.color}-lighten-4`"-->
-<!--      >-->
-<!--        <v-expansion-panel-title-->
-<!--          class="pl-2 py-0"-->
-<!--          height="40"-->
-<!--          min-height="40"-->
-<!--        >-->
-<!--          <span class="text-subtitle-1 font-weight-medium text-black">-->
-<!--            {{type_elem.name}}-->
-<!--          </span>-->
-<!--          <span class="ml-1 text-caption text-grey">-->
-<!--            ({{type_elem.filter_objects.length}} notas)-->
-<!--          </span>-->
-<!--          <v-tooltip-->
-<!--            activator="parent"-->
-<!--            location="left"-->
-<!--            max-width="340"-->
-<!--          >-->
-<!--            <div class="mb-2">-->
-<!--              <b>{{type_elem.name}}:</b>-->
-<!--              {{ type_elem.description }}-->
-
-<!--            </div>-->
-<!--            <div-->
-<!--              v-for="description in type_elem.descriptions"-->
-<!--              :key="description.description"-->
-<!--              class="mb-1"-->
-<!--            >-->
-<!--              <span class="font-weight-bold mr-2">-->
-<!--                {{description.count}}-->
-<!--              </span>-->
-<!--              <span>-->
-<!--                {{description.description}}-->
-<!--              </span>-->
-<!--            </div>-->
-<!--          </v-tooltip>-->
-<!--        </v-expansion-panel-title>-->
-<!--        <v-expansion-panel-text-->
-<!--          class="pa-0"-->
-<!--        >-->
-<!--          <v-card color="transparent" variant="text" class="text-green">-->
-
-<!--            Hola descripciones-->
-<!--          </v-card>-->
-<!--        </v-expansion-panel-text>-->
-<!--      </v-expansion-panel>-->
-<!--    </v-expansion-panels>-->
   </v-card>
+  
+  <CategoryNotesDialog
+    v-if="clickable"
+    v-model="dialog_open"
+    :type_elem="selected_type_elem"
+    :group="selected_group"
+    :filter_objects="selected_type_elem?.filter_objects || []"
+    :mentions="mentions"
+    :current_project_id="current_project_id"
+  />
 </template>
 
 <style scoped>
