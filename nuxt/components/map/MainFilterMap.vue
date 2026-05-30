@@ -4,15 +4,11 @@
 import {storeToRefs} from "pinia";
 
 import {useMainStore} from "~/store/index.js";
+import {useMapStore} from "~/store/map.js";
 const mainStore = useMainStore()
 const { cats } = storeToRefs(mainStore)
-
-const props = defineProps({
-  selectedExtractivismTypes: {
-    type: Array,
-    default: () => [],
-  },
-})
+const mapStore = useMapStore()
+const { selectedExtractivismTypes } = storeToRefs(mapStore)
 
 const extractivism_types_list = computed(() => {
   if (!cats.value) return [];
@@ -24,38 +20,54 @@ const extractivism_types_list = computed(() => {
 <template>
   <v-sheet
     color="#FFFFFF60"
-    class="sheet-filters px-3 pt-2"
+    class="sheet-filters pl-3 pt-1 pb-1"
   >
     <div v-if="false" class="text-h6 pt-2">
       Filtros
     </div>
 
-    <v-chip-group
-      :model-value="selectedExtractivismTypes"
-      column
-      multiple
-      @update:model-value="$emit('update:selectedExtractivismTypes', $event)"
-    >
-      <div class="text-subtitle-1 pt-1 pr-3 font-weight-medium">
+    <div class="d-flex align-center">
+      <div class="text-subtitle-2 pr-3 font-weight-medium flex-shrink-0">
         Tipos de extractivismo:
       </div>
-      <v-chip
-        v-for="e_type in extractivism_types_list"
-        :key="e_type.id"
-        :value="e_type.id"
-        :color="e_type.color"
-        :base-color="`${e_type.color}C9`"
-        class="mt-0 mb-2"
-        variant="flat"
-        filter
+      <v-chip-group
+        v-model="selectedExtractivismTypes"
+        show-arrows
+        multiple
+        class="flex-grow-1"
+        style="min-width: 0;"
       >
-        {{ e_type.short_name || e_type.name }}
-        <template v-slot:prepend>
-          <v-icon color="white" class="mr-1">{{ e_type.icon }}</v-icon>
-        </template>
-      </v-chip>
-
-    </v-chip-group>
+        <v-chip
+          v-for="e_type in extractivism_types_list"
+          :key="e_type.id"
+          :value="e_type.id"
+          :color="e_type.color"
+          :base-color="`${e_type.color}C9`"
+          class="mt-0 mb-0"
+          variant="flat"
+          size="small"
+          filter
+        >
+          {{ e_type.short_name || e_type.name }}
+          <template v-slot:prepend>
+            <v-icon color="white" class="mr-1">{{ e_type.icon }}</v-icon>
+          </template>
+          <v-tooltip
+            activator="parent"
+            location="bottom"
+            max-width="300"
+          >
+            <v-card
+              :color="e_type.color"
+              class="mx-n4 my-n2 px-4 py-2"
+              flat
+            >
+              {{ e_type.name }}
+            </v-card>
+          </v-tooltip>
+        </v-chip>
+      </v-chip-group>
+    </div>
   </v-sheet>
 </template>
 <style>
@@ -64,8 +76,9 @@ const extractivism_types_list = computed(() => {
   position: absolute !important;
   top: 0;
   left: 0;
+  right: 40px;
+  max-width: 1130px;
   z-index: 1;
-  margin-right: 40px;
 }
 
 

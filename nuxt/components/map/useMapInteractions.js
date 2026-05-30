@@ -83,7 +83,7 @@ export function setupInteractions(map, buildFullProjectData) {
     });
     description += `
       <div class="mt-2 font-caption text-grey">
-        (Dale click para ver más detalles)
+        (Da clic para ver sus detalles)
       </div>
     `;
 

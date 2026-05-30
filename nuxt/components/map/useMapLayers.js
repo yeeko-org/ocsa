@@ -1,10 +1,12 @@
 import { useMainStore } from "~/store/index.js";
+import { useMapStore } from "~/store/map.js";
 import { storeToRefs } from "pinia";
 import { GEOMETRY_TYPES } from "~/composables/location_types.js";
 
 export function useMapLayers(map) {
   const mainStore = useMainStore()
   const { cats } = storeToRefs(mainStore)
+  const mapStore = useMapStore()
   function initializeMapLayers() {
     // Separate points, lines, multilinestrings, and polygons from the data
     let cluster_properties = {};
@@ -114,10 +116,10 @@ export function useMapLayers(map) {
     });
   }
 
-  function updateMapData(projectLocations, selectedExtractivismTypes) {
-    const project_locations = projectLocations.value;
+  function updateMapData() {
+    const project_locations = mapStore.projectLocations;
 
-    const selected_et = selectedExtractivismTypes.value;
+    const selected_et = mapStore.selectedExtractivismTypes;
     const select_all = selected_et.length === 0;
 
     const features_filtered = project_locations.features.filter(f => {

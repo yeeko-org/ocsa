@@ -5,9 +5,9 @@ import {storeToRefs} from "pinia";
 import ProjectMiniCard from "~/components/map/ProjectMiniCard.vue";
 
 import ConflictCard from "~/components/dashboard/project/conflict/ConflictCard.vue";
-import NoteTitle from "~/components/dashboard/source/note/NoteTitle.vue";
 import CollectionListMap from "~/components/map/CollectionListMap.vue";
-import NoteCardMap from "~/components/map/NoteCardMap.vue";
+import ChildProjectsListMap from "~/components/map/ChildProjectsListMap.vue";
+import NotesListMap from "~/components/map/NotesListMap.vue";
 const mainStore = useMainStore()
 const { megaproject_types_dict } = storeToRefs(mainStore)
 
@@ -27,47 +27,10 @@ const props = defineProps({
   is_child: Boolean,
 });
 
-const showing = ref(10)
-
 const emits = defineEmits([
   'update:selectedProject',
   'open-child-project',
 ]);
-
-const related_notes = computed(() => {
-  let note_ids = new Set()
-  let direct_notes = []
-  let indirect_notes = []
-  if (!props.full_main || !props.full_main.mentions)
-    return {direct: direct_notes, indirect: indirect_notes, count: 0}
-  const is_grouper = props.selectedProject?.project?.is_grouper || false
-  props.full_main.mentions.forEach(mention => {
-    if (!note_ids.has(mention.note)){
-      // direct_notes.push(mention.note_full)
-      if (is_grouper){
-        if (mention.project === props.selectedProject.project.id){
-          direct_notes.push(mention.note_full)
-        }
-        else {
-          indirect_notes.push(mention.note_full)
-        }
-      }
-      else
-        direct_notes.push(mention.note_full)
-
-    }
-    note_ids.add(mention.note)
-  })
-  return {direct: direct_notes, indirect: indirect_notes, count: note_ids.size}
-})
-
-const filtered_notes = computed(() => {
-  return related_notes.value.direct.slice(0, showing.value)
-})
-
-const plural_comp = computed(() => {
-  return related_notes.value.direct.length !== 1 ? 's' : ''
-})
 
 const final_color = computed(() => {
   if (props.selectedProject.color)
@@ -99,14 +62,6 @@ const main_card_class = computed(() => {
 function openChildProjectCard(child_project){
   // console.log('child_project', child_project)
   emits('open-child-project', child_project)
-}
-
-const note_dialog = ref(false)
-const selected_note = ref(null)
-
-function openNoteDialog(note) {
-  selected_note.value = note
-  note_dialog.value = true
 }
 
 </script>
@@ -158,8 +113,8 @@ function openNoteDialog(note) {
       v-if="full_main"
       class="px-1 py-2"
     >
-      <span class="text-grey-darken-1 mr-2">
-        Conflicto:
+      <span class="text-grey-darken-1 ml-1">
+        Conflicto socioambiental:
       </span>
 
       <v-card
@@ -175,54 +130,11 @@ function openNoteDialog(note) {
           in_map
         />
       </v-card>
-      <template v-if="full_main.children_projects_full?.length > 0">
-        <div class="d-flex align-center mb-1">
-          <v-icon color="grey" class="mr-2">
-            hub
-          </v-icon>
-          <span class="text-subtitle-1 text-grey">
-            {{ full_main.children_projects_full.length }} proyectos vinculados:
-          </span>
-        </div>
-        <div>
-          <v-card
-            v-for="child_project in full_main.children_projects_full"
-            :key="child_project.id"
-            variant="elevated"
-            :color="child_project.id === childProject?.id ? 'light-blue' : 'white'"
-            elevation="3"
-            v-ripple
-            class="mb-2 px-3 d-flex align-center"
-            @click="openChildProjectCard(child_project)"
-          >
-            <v-icon
-              class="mr-2"
-              :color="child_project.id === childProject?.id ? 'white' : 'light-blue'"
-            >
-              graph_4
-<!--              subdirectory_arrow_right-->
-            </v-icon>
-            <ProjectMiniCard
-              :full_main="child_project"
-              title="Detalles del Proyecto"
-              from_parent_project
-            />
-            <v-tooltip
-              activator="parent"
-              location="left"
-            >
-              <div style="max-width: 200px;">
-                <div class="font-weight-bold">
-                  {{ child_project.name }}
-                </div>
-                <div class="text-caption mt-2">
-                  (Haz clic para ver más detalles)
-                </div>
-              </div>
-            </v-tooltip>
-          </v-card>
-        </div>
-      </template>
+      <ChildProjectsListMap
+        :full_main="full_main"
+        :child-project="childProject"
+        @open-child-project="openChildProjectCard"
+      />
       <template v-if="full_main">
         <CollectionListMap
           v-if="full_main?.impacts?.length > 0"
@@ -243,57 +155,13 @@ function openNoteDialog(note) {
           subtype_key="event_subtype"
         />
 
-
-        <span class="text-subtitle-1 text-deep-purple mt-2">
-          Mencionado directamente en {{related_notes.direct.length}}
-          Nota{{plural_comp}}:
-        </span>
-        <v-card
-          :key="note_id.id"
-          v-for="note_id in filtered_notes"
-          class="mb-2 py-1 px-1"
-          variant="tonal"
-          color="purple"
-          v-ripple
-          style="cursor: pointer;"
-          @click="openNoteDialog(note_id)"
-        >
-          <NoteTitle
-            :main="note_id"
-            forced_title
-          />
-        </v-card>
-        <v-card-actions class="py-0">
-          <v-spacer></v-spacer>
-          <v-btn
-            v-if="related_notes.direct.length > showing"
-            variant="outlined"
-            color="purple"
-            @click="showing += 15"
-            append-icon="expand_more"
-          >
-            Mostrar más
-          </v-btn>
-          <v-btn
-            v-if="showing > 10"
-            variant="text"
-            color="red"
-            @click="showing = 10"
-            append-icon="expand_less"
-          >
-            Mostrar menos
-          </v-btn>
-          <v-spacer></v-spacer>
-        </v-card-actions>
+        <NotesListMap
+          :full_main="full_main"
+          :selected-project="selectedProject"
+        />
       </template>
 
     </v-card-text>
-
-    <NoteCardMap
-      v-model="note_dialog"
-      :note="selected_note"
-      :current_project_id="selectedProject?.project?.id"
-    />
   </v-card>
 </template>
 

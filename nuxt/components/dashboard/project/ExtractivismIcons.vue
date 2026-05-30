@@ -44,7 +44,7 @@ const original_types = computed(() => {
 </script>
 
 <template>
-  <div class="d-flex">
+  <div class="d-flex align-center">
     <div
       v-for="text_type in original_types"
       :key="text_type.id"
@@ -52,7 +52,7 @@ const original_types = computed(() => {
       <v-icon
         :color="text_type.color"
         :class="small_icons ? '' : 'mr-1'"
-        :size="small_icons ? '16' : 'default'"
+        :size="small_icons ? '18' : 'default'"
       >
         {{ text_type.icon }}
       </v-icon>
@@ -65,7 +65,7 @@ const original_types = computed(() => {
     </div>
     <v-chip
       v-if="show_name && megaproject_type_node"
-      class="mr-1"
+      class="ml-1"
       :color="megaproject_type_node.parent.data.color"
       :size="chip_size"
       :variant="chip_variant"

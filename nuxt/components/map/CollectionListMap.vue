@@ -141,14 +141,13 @@ const hierarchical_objects = computed(() => {
     <v-card
       v-for="type_elem in group.final_types"
       :key="type_elem.id"
-      class=" pl-2 pr-1 mb-1 py-1"
+      class="pl-2 pr-1 mb-1 py-1"
       variant="text"
       :ripple="clickable"
       :style="clickable ? 'cursor: pointer;' : ''"
       @click="openCategoryDialog(group, type_elem)"
     >
-
-      <span class="text-subtitle-1 font-weight-medium text-black">
+      <span class="text-subtitle-2 font-weight-medium text-black">
         {{type_elem.name}}
       </span>
       <span class="text-caption text-grey text-no-wrap">

@@ -13,17 +13,19 @@ const props = defineProps({
     type: String,
     default: 'ml-2 font-weight-bold',
   },
+  max_height: {
+    type: Number,
+    default: 54,
+  },
 })
 
 </script>
 
 <template>
-  <v-card
+  <div
     :class="card_class"
-    variant="flat"
-    color="transparent"
-    style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
-    :style="`width: ${title_width}px;`"
+    style="text-wrap: pretty; overflow: hidden;"
+    :style="`width: ${title_width}px; max-height: ${max_height}px;`"
   >
     {{ title_text }}
     <v-tooltip
@@ -33,7 +35,7 @@ const props = defineProps({
     >
       {{ title_text }}
     </v-tooltip>
-  </v-card>
+  </div>
 </template>
 
 <style scoped>

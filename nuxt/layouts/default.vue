@@ -1,10 +1,13 @@
 <script setup>
 import { storeToRefs } from 'pinia'
 import {useMainStore} from '~/store/index'
+import {useMapStore} from '~/store/map.js'
 const mainStore = useMainStore()
+const mapStore = useMapStore()
 
 const { exportData } = mainStore
-const { searchable_projects, target_project_id } = storeToRefs(mainStore)
+const { target_project_id } = storeToRefs(mainStore)
+const { searchableProjects } = storeToRefs(mapStore)
 const q_value = ref('')
 const loading_export = ref(false)
 
@@ -41,24 +44,36 @@ function downloadProjects(all_records = true) {
       height="52"
     >
       <v-app-bar-nav-icon
-        v-if="false"
+        v-if="true"
         xclick.stop="menu_drawer = !menu_drawer"
         color="white"
         class="mt-1"
       ></v-app-bar-nav-icon>
       <client-only>
-        <v-toolbar-title class="d-flex align-center mt-1">
+        <v-toolbar-title class="d-flex align-center mt-0">
           <div class="d-flex align-center">
-            <a href="https://ocsa.ibero.mx" class="text-decoration-none">
+            <v-card
+              variant="flat"
+              color="transparent"
+              class="cursor-pointer mt-1"
+              href="https://ocsa.ibero.mx"
+              min-width="100"
+            >
               <span
                 class="text-white text-h4 font-weight-bold"
               >
                 OCSA
               </span>
-            </a>
+              <v-tooltip
+                activator="parent"
+                location="bottom"
+              >
+                Ir al Inicio de la página del OCSA
+              </v-tooltip>
+            </v-card>
             <v-autocomplete
               v-model="target_project_id"
-              :items="searchable_projects"
+              :items="searchableProjects"
               item-title="label"
               item-value="id"
               label="Buscar proyectos"

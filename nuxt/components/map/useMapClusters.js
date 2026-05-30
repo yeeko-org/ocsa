@@ -3,10 +3,12 @@ import mapboxgl from 'mapbox-gl';
 import * as d3 from 'd3';
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
+import {useMapStore} from "~/store/map.js";
 
 export function useMapClusters(map) {
   const mainStore = useMainStore();
   const { cats } = storeToRefs(mainStore);
+  const mapStore = useMapStore();
 
   // Create a specific popup instance for clusters
   const clusterPopup = new mapboxgl.Popup({
@@ -106,9 +108,24 @@ export function useMapClusters(map) {
     return donutDiv;
   }
 
-  function setupClusterMarkers(selectedExtractivismTypes, extractivism_type_props) {
+  function setupClusterMarkers() {
     const markers = {};
     let markersOnScreen = {};
+
+    // ID del cluster actualmente bajo el cursor. Sirve como "token de
+    // validez" para descartar resultados asíncronos obsoletos y para
+    // saber si el marcador que se va a destruir es el que tiene popup.
+    const hoveredClusterId = ref(null);
+
+    function closeClusterPopup() {
+      hoveredClusterId.value = null;
+      clusterPopup.remove();
+    }
+
+    // Punto 5 (defensivo): cualquier movimiento/zoom del mapa cierra el
+    // popup, por si algún caso límite se escapa de los handlers del DOM.
+    map.value.on('movestart', closeClusterPopup);
+    map.value.on('zoomstart', closeClusterPopup);
 
     map.value.on('render', () => {
       if (!map.value.isSourceLoaded('proyectos'))
@@ -128,7 +145,7 @@ export function useMapClusters(map) {
 
         let marker = markers[id];
         if (!marker) {
-          const el = createDonutChart(props, extractivism_type_props.value);
+          const el = createDonutChart(props, mapStore.extractivismTypeProps);
 
           // ---------------------------------------------------------
           // 1. INTERACTION: CLICK TO ZOOM
@@ -158,6 +175,7 @@ export function useMapClusters(map) {
           // ---------------------------------------------------------
           el.addEventListener('mouseenter', () => {
              el.style.cursor = 'pointer';
+             hoveredClusterId.value = id;
 
              // Fetch the "leaves" (individual points) inside this cluster
              // We limit to 10 items to keep the popup manageable
@@ -166,10 +184,15 @@ export function useMapClusters(map) {
              source.getClusterLeaves(id, 10, 0, (err, leaves) => {
                if (err) return;
 
+               // Guard: si el mouse ya salió (o entró a otro cluster)
+               // antes de que resolviera esta llamada asíncrona, no
+               // mostramos un popup obsoleto.
+               if (hoveredClusterId.value !== id) return;
+
                // Build HTML for the list of projects
                let description = `
                  <div class="font-weight-bold mb-2 border-b pb-1">
-                   Cluster: ${props.point_count} Proyectos
+                   ${props.point_count} Proyectos:
                  </div>
                  <div style="max-height: 200px; overflow-y: auto;">
                `;
@@ -211,7 +234,7 @@ export function useMapClusters(map) {
 
           el.addEventListener('mouseleave', () => {
             el.style.cursor = '';
-            clusterPopup.remove();
+            closeClusterPopup();
           });
 
           // Create the marker with the element
@@ -226,8 +249,16 @@ export function useMapClusters(map) {
       }
 
       for (const id in markersOnScreen) {
-        if (!newMarkers[id])
+        if (!newMarkers[id]) {
+          // Si el marcador que se destruye es el que está en hover,
+          // quitar el nodo del DOM no dispara su 'mouseleave', así que
+          // cerramos el popup manualmente para que no quede colgado.
+          // (id de markersOnScreen es string; cluster_id es número)
+          if (hoveredClusterId.value !== null &&
+              String(hoveredClusterId.value) === id)
+            closeClusterPopup();
           markersOnScreen[id].remove();
+        }
       }
       markersOnScreen = newMarkers;
     }

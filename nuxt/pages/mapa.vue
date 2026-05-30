@@ -4,10 +4,11 @@ import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import ProjectCardMap from "~/components/map/ProjectCardMap.vue";
 import MainFilterMap from "~/components/map/MainFilterMap.vue";
-import { useMapData } from "~/components/map/useMapData.js";
+import { useMapStore } from "~/store/map.js";
 import { useMapLayers } from "~/components/map/useMapLayers.js";
 import { setupInteractions } from "~/components/map/useMapInteractions.js";
 import { useMapClusters } from "~/components/map/useMapClusters.js";
+import ProjectsDisplayMap from "~/components/map/ProjectsDisplayMap.vue";
 
 const mainStore = useMainStore()
 const { getSimple } = mainStore
@@ -24,18 +25,17 @@ const selectedChildProject = ref(null);
 const childProject = ref(null);
 const parentProject = ref(null);
 
+const mapStore = useMapStore()
+const { loadData, hydrateProjectLocations } = mapStore
 const {
   projectLocations,
-  ready_gets,
+  readyGets,
   selectedExtractivismTypes,
-  extractivism_type_props,
-  hydrateProjectLocations,
-  loadData
-} = useMapData();
+} = storeToRefs(mapStore)
 
 const {
   initializeMapLayers,
-  updateMapData: updateLayersData
+  updateMapData
 } = useMapLayers(map);
 
 const { setupClusterMarkers } = useMapClusters(map);
@@ -54,12 +54,14 @@ onUnmounted(() => {
   }
 });
 
-watch(ready_gets, (newVal) => {
+watch(readyGets, (newVal) => {
   if (newVal === 2) {
     hydrateProjectLocations();
     initBuildMap();
   }
 });
+
+watch(selectedExtractivismTypes, updateMapData);
 
 watch(target_project_id, (newId) => {
   if (!newId || !map.value) return;
@@ -119,15 +121,15 @@ function buildPreMap() {
   map.value = new mapboxgl.Map({
     container: mapContainer.value,
     style: 'mapbox://styles/rickrebel/cm6ls9un800kr01qqdu1g48nq',
-    center: [-102.552784, 23.634501], // Centro de México
-    zoom: 4.5
+    // center: [-102.552784, 23.634501], // Centro de México
+    // zoom: 4.5,
+    // Encuadre inicial por bounding box: Mapbox calcula el zoom según
+    // el tamaño del contenedor, así México siempre abarca la pantalla.
+    bounds: [[-118.4, 14.5], [-86.7, 32.7]], // [SW, NE] de México
+    fitBoundsOptions: { padding: 20 },
+    logoPosition: 'bottom-right',
   });
   map.value.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-}
-
-function updateMapData() {
-  updateLayersData(
-    projectLocations, selectedExtractivismTypes);
 }
 
 function initBuildMap() {
@@ -149,7 +151,7 @@ function buildMap(){
   initializeMapLayers();
   updateMapData();
   setupInteractions(map, buildFullProjectData);
-  setupClusterMarkers(selectedExtractivismTypes, extractivism_type_props);
+  setupClusterMarkers();
 }
 
 function buildFullProjectData(properties) {
@@ -216,10 +218,8 @@ function openChildProject(project) {
 </script>
 
 <template>
-  <MainFilterMap
-    v-model:selectedExtractivismTypes="selectedExtractivismTypes"
-    @update:selectedExtractivismTypes="updateMapData"
-  />
+  <MainFilterMap/>
+  <ProjectsDisplayMap/>
   <ProjectCardMap
     v-if="selectedParentProject"
     :selectedProject="selectedParentProject"
@@ -244,13 +244,14 @@ function openChildProject(project) {
 
 <style>
 @import 'mapbox-gl/dist/mapbox-gl.css';
-.mapboxgl-popup {
-  width: 220px;
+
+html {
+  overflow: hidden;
 }
 
 .map-container {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - var(--v-layout-top, 52px));
 }
 
 
