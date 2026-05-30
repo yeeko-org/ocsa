@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     }
   },
   build: {
-    transpile: ['vuetify'],
+    transpile: ['vuetify', 'vaul-vue', 'reka-ui'],
   },
   // devtools: { enabled: true }
   modules: [

@@ -1,20 +1,14 @@
 <script setup>
 import mapboxgl from 'mapbox-gl';
 import {storeToRefs} from "pinia";
-import {useMainStore} from "~/store/index.js";
-import ProjectCardMap from "~/components/map/ProjectCardMap.vue";
 import MainFilterMap from "~/components/map/MainFilterMap.vue";
 import { useMapStore } from "~/store/map.js";
 import { useMapLayers } from "~/components/map/useMapLayers.js";
 import { setupInteractions } from "~/components/map/useMapInteractions.js";
 import { useMapClusters } from "~/components/map/useMapClusters.js";
-import ProjectsDisplayMap from "~/components/map/ProjectsDisplayMap.vue";
+import ProjectsPanelMap from "~/components/map/ProjectsPanelMap.vue";
 import MapTopControls from "~/components/map/MapTopControls.vue";
 import MapLayerSwitch from "~/components/map/MapLayerSwitch.vue";
-
-const mainStore = useMainStore()
-const { getSimple } = mainStore
-const { target_project_id } = storeToRefs(mainStore)
 
 definePageMeta({
   layout: 'map',
@@ -22,10 +16,6 @@ definePageMeta({
 
 const mapContainer = ref(null);
 let map = ref(null);
-const selectedParentProject = ref(null);
-const selectedChildProject = ref(null);
-const childProject = ref(null);
-const parentProject = ref(null);
 
 const mapStore = useMapStore()
 const { loadData, hydrateProjectLocations } = mapStore
@@ -33,6 +23,7 @@ const {
   projectLocations,
   readyGets,
   selectedExtractivismTypes,
+  targetProjectId,
 } = storeToRefs(mapStore)
 
 const {
@@ -65,7 +56,7 @@ watch(readyGets, (newVal) => {
 
 watch(selectedExtractivismTypes, updateMapData);
 
-watch(target_project_id, (newId) => {
+watch(targetProjectId, (newId) => {
   if (!newId || !map.value) return;
 
   // 1. Filtrar todas las geometrías asociadas a ese ID
@@ -104,15 +95,13 @@ watch(target_project_id, (newId) => {
   // 3. Mover el mapa
   if (!bounds.isEmpty()) {
     map.value.fitBounds(bounds, {
-      padding: { top: 100, bottom: 100, left: 100, right: 350 },
+      // El detalle vive ahora en el panel abajo-izq: reservamos ese
+      // costado (y el inferior para el pill) en vez de la derecha.
+      padding: { top: 80, bottom: 120, left: 420, right: 80 },
       maxZoom: 14,
       duration: 1500
     });
   }
-
-  // 4. Abrir la tarjeta del proyecto
-  // Usamos las propiedades del primer feature encontrado
-  buildFullProjectData(features[0].properties);
 });
 
 function buildPreMap() {
@@ -152,69 +141,8 @@ function initBuildMap() {
 function buildMap(){
   initializeMapLayers();
   updateMapData();
-  setupInteractions(map, buildFullProjectData);
+  setupInteractions(map);
   setupClusterMarkers();
-}
-
-function buildFullProjectData(properties) {
-  const projectData = typeof properties.project === 'string'
-      ? JSON.parse(properties.project)
-      : properties.project;
-  // console.log('Building full project data for:', projectData);
-  parentProject.value = null;
-  childProject.value = null;
-  selectedChildProject.value = null
-  selectedParentProject.value = null;
-  if (projectData.parent_project){
-    // console.log('Project has parent, fetching parent project data.');
-    selectedChildProject.value = { ...properties, project: projectData };
-  }
-  else{
-    selectedParentProject.value = { ...properties, project: projectData };
-  }
-  getSimple(['project_map', projectData.id]).then(res => {
-    // console.log('Fetched full project data:', res);
-    if (res.parent_project_full){
-      selectedParentProject.value = {
-        color: '',
-        project: res.parent_project_full
-      };
-      parentProject.value = {
-        ...res.parent_project_full,
-        mentions: res.mentions,
-        events: res.events,
-        impacts: res.impacts,
-      };
-      const new_project = separateCollections(res, selectedChildProject.value.project);
-      childProject.value = {color: '', project: new_project};
-    }
-    else{
-      parentProject.value = res;
-    }
-  })
-}
-
-function separateCollections(all_project_data, current_project) {
-  // console.log('Separating collections for project:', current_project.id);
-  // console.log('All project data:', all_project_data);
-  const mentions = all_project_data.mentions.filter(mention => {
-    return mention.project === current_project.id;
-  });
-  const mention_ids = mentions.map(mention => mention.id);
-  const events = all_project_data.events.filter(event => {
-    return mention_ids.includes(event.mention);
-  });
-  const impacts = all_project_data.impacts.filter(impact => {
-    return mention_ids.includes(impact.mention);
-  });
-  return { ...current_project, mentions, events, impacts };
-
-}
-
-function openChildProject(project) {
-  selectedChildProject.value = {color: '', project: project};
-  const new_project = separateCollections(parentProject.value, project);
-  childProject.value = {color: '', project: new_project};
 }
 
 </script>
@@ -226,23 +154,8 @@ function openChildProject(project) {
   <!-- Sesión 3: aquí se monta la franja de cápsulas de filtros activos -->
 
   <MainFilterMap/>
-  <ProjectsDisplayMap/>
+  <ProjectsPanelMap/>
   <MapLayerSwitch/>
-  <ProjectCardMap
-    v-if="selectedParentProject"
-    :selectedProject="selectedParentProject"
-    :childProject="childProject?.project"
-    :full_main="parentProject"
-    @update:selectedProject="selectedParentProject = $event"
-    @open-child-project="openChildProject($event)"
-  />
-  <ProjectCardMap
-    v-if="childProject"
-    :selectedProject="selectedChildProject"
-    :full_main="childProject?.project"
-    is_child
-    @update:selectedProject="childProject = $event"
-  />
 
   <div class="map-container" ref="mapContainer">
 

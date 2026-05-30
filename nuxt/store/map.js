@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, shallowRef, computed } from 'vue'
 import { useMainStore } from '~/store/index.js'
 
 export const useMapStore = defineStore('map', () => {
@@ -8,11 +8,18 @@ export const useMapStore = defineStore('map', () => {
   // --- Estado crudo ---
   // Fuente de verdad: las ubicaciones (features). Varias pueden
   // pertenecer al mismo proyecto.
-  const projectLocations = ref({ type: 'FeatureCollection', features: [] })
+  // shallowRef (no ref): el GeoJSON se asigna una sola vez y se entrega a
+  // Mapbox de forma imperativa; hacerlo profundamente reactivo convertía
+  // cada feature en un proxy y disparaba un O(n^2) en hydrateProjectLocations
+  // (~121 s con 950 features). Con shallowRef solo la reasignación de .value
+  // es reactiva; los features quedan como objetos planos.
+  const projectLocations = shallowRef({ type: 'FeatureCollection', features: [] })
   // Filtro de tipos de extractivismo seleccionados (ids).
   const selectedExtractivismTypes = ref([])
   // Contador de cargas listas (locations + catálogos = 2).
   const readyGets = ref(0)
+  // Id del proyecto cuyo detalle está abierto. Fuente de verdad única
+  const targetProjectId = ref(null)
 
   // Resuelve color/ícono/extractivismo a partir del megaproject_type.
   // Espejo exacto de la lógica original de hidratación: si no hay
@@ -103,6 +110,7 @@ export const useMapStore = defineStore('map', () => {
     projectLocations,
     selectedExtractivismTypes,
     readyGets,
+    targetProjectId,
     uniqueProjects,
     searchableProjects,
     extractivismTypeProps,

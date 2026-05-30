@@ -36,7 +36,6 @@ export const useMainStore = defineStore('main', {
     current_collection_data: null,
     // groups: menu_content,
     full_geo: {"state": {}, "municipality": {}},
-    target_project_id: null,
     activities: [],
     spend_groups: [],
     content_paragraphs: {},

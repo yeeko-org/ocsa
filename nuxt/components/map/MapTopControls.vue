@@ -1,16 +1,10 @@
 <script setup>
 import { storeToRefs } from 'pinia'
-import { useMainStore } from '~/store/index.js'
 import { useMapStore } from '~/store/map.js'
 
-const mainStore = useMainStore()
 const mapStore = useMapStore()
 
-const { exportData } = mainStore
-const { target_project_id } = storeToRefs(mainStore)
-const { searchableProjects } = storeToRefs(mapStore)
-
-const loading_export = ref(false)
+const { targetProjectId, searchableProjects } = storeToRefs(mapStore)
 
 // Enlaces al sitio público (antes en el menú "⋮" del app-bar global).
 const public_links = [
@@ -24,15 +18,6 @@ const public_links = [
   },
   { title: 'Contacto', href: 'https://ocsa.ibero.mx/contacto' },
 ]
-
-// TEMP (Sesión 1): el botón de descarga se consolidará en el panel de
-// proyectos en la Sesión 2. Mantiene la función disponible mientras tanto.
-function downloadProjects() {
-  loading_export.value = true
-  exportData(['project', {}]).then(() => {
-    loading_export.value = false
-  })
-}
 </script>
 
 <template>
@@ -74,7 +59,7 @@ function downloadProjects() {
     </v-menu>
 
     <v-autocomplete
-      v-model="target_project_id"
+      v-model="targetProjectId"
       :items="searchableProjects"
       item-title="label"
       item-value="id"
@@ -90,19 +75,6 @@ function downloadProjects() {
       clearable
     ></v-autocomplete>
   </v-sheet>
-
-  <!-- TEMP (Sesión 1): descarga flotante; pasa al panel en la Sesión 2 -->
-  <v-btn
-    class="map-export-temp"
-    color="accent"
-    append-icon="download"
-    variant="elevated"
-    size="small"
-    :loading="loading_export"
-    @click="downloadProjects"
-  >
-    Descargar proyectos
-  </v-btn>
 </template>
 
 <style scoped>
@@ -112,12 +84,5 @@ function downloadProjects() {
   left: 10px;
   z-index: 3;
   background-color: #ffffffe6;
-}
-
-.map-export-temp {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 3;
 }
 </style>

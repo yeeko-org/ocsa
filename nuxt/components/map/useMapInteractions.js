@@ -1,11 +1,13 @@
 // components/map/useMapInteractions.js
 import mapboxgl from 'mapbox-gl';
 import { useMainStore } from "~/store/index.js";
+import { useMapStore } from "~/store/map.js";
 import {storeToRefs} from "pinia";
 import { GEOMETRY_TYPES } from "~/composables/location_types.js";
 
-export function setupInteractions(map, buildFullProjectData) {
+export function setupInteractions(map) {
   const mainStore = useMainStore()
+  const { targetProjectId } = storeToRefs(useMapStore())
   const {cats, megaproject_types_dict } = storeToRefs(mainStore)
 
   const popup = new mapboxgl.Popup({
@@ -16,8 +18,13 @@ export function setupInteractions(map, buildFullProjectData) {
 
   GEOMETRY_TYPES.forEach(gt => {
     map.value.on('click', gt.main_layer, (e) => {
-      console.log('Feature clicked:', e.features[0]);
-      buildFullProjectData(e.features[0].properties);
+      // Fuente de verdad única: el panel observa targetProjectId y arma
+      // el detalle
+      const props = e.features[0].properties;
+      const project = typeof props.project === 'string'
+        ? JSON.parse(props.project)
+        : props.project;
+      targetProjectId.value = project.id;
     });
     if (gt.type === "Point") return;
     map.value.on('mouseenter', gt.main_layer, () => {
