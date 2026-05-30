@@ -9,13 +9,15 @@ import { useMapLayers } from "~/components/map/useMapLayers.js";
 import { setupInteractions } from "~/components/map/useMapInteractions.js";
 import { useMapClusters } from "~/components/map/useMapClusters.js";
 import ProjectsDisplayMap from "~/components/map/ProjectsDisplayMap.vue";
+import MapTopControls from "~/components/map/MapTopControls.vue";
+import MapLayerSwitch from "~/components/map/MapLayerSwitch.vue";
 
 const mainStore = useMainStore()
 const { getSimple } = mainStore
 const { target_project_id } = storeToRefs(mainStore)
 
 definePageMeta({
-  layout: 'default',
+  layout: 'map',
 })
 
 const mapContainer = ref(null);
@@ -218,8 +220,14 @@ function openChildProject(project) {
 </script>
 
 <template>
+  <MapTopControls/>
+
+  <!-- Sesión 3: aquí se monta el rail de íconos de filtro (borde izq) -->
+  <!-- Sesión 3: aquí se monta la franja de cápsulas de filtros activos -->
+
   <MainFilterMap/>
   <ProjectsDisplayMap/>
+  <MapLayerSwitch/>
   <ProjectCardMap
     v-if="selectedParentProject"
     :selectedProject="selectedParentProject"
@@ -251,7 +259,8 @@ html {
 
 .map-container {
   width: 100%;
-  height: calc(100vh - var(--v-layout-top, 52px));
+  /* Sin app-bar: el mapa ocupa todo el viewport (dvh = mejor en móvil). */
+  height: 100dvh;
 }
 
 

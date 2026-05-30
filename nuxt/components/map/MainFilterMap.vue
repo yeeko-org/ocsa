@@ -74,7 +74,9 @@ const extractivism_types_list = computed(() => {
 
 .sheet-filters {
   position: absolute !important;
-  top: 0;
+  /* TEMP (Sesión 1): bajada para no chocar con la isla superior
+     (logo + búsqueda). La Sesión 3 la integra al rail de filtros. */
+  top: 64px;
   left: 0;
   right: 40px;
   max-width: 1130px;
