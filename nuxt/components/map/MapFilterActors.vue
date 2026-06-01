@@ -9,7 +9,7 @@ import { useMapStore } from '~/store/map.js'
 //     viven en la colección /actor/, no en cats; el fetch real es Sesión 4).
 //  2. Posiciones (ParticipantGroup) como chips toggle; al activar una
 //     posición despliega sus sub-posiciones (ParticipantType del grupo).
-const { mobile } = useDisplay()
+ const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
 
 const isOpen = computed({
@@ -28,7 +28,7 @@ const titleOf = o => o.short_name || o.name
 
 <template>
   <component
-    :is="mobile ? VBottomSheet : VMenu"
+    :is="smAndDown ? VBottomSheet : VMenu"
     v-model="isOpen"
     :close-on-content-click="false"
     location="end"

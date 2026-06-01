@@ -2,12 +2,14 @@
 <script setup>
 
 import {storeToRefs} from "pinia";
+import {useDisplay} from "vuetify";
 
 import {useMainStore} from "~/store/index.js";
 import {useMapStore} from "~/store/map.js";
 const mainStore = useMainStore()
 const { cats } = storeToRefs(mainStore)
 const mapStore = useMapStore()
+const { smAndDown } = useDisplay()
 
 const extractivism_types_list = computed(() => {
   if (!cats.value) return [];
@@ -19,7 +21,10 @@ const extractivism_types_list = computed(() => {
 <template>
   <v-sheet
     color="#FFFFFF60"
-    class="sheet-filters pl-3 pt-1 pb-1 d-flex align-center"
+    :class="[
+      'sheet-filters pl-3 pt-1 pb-1 d-flex align-center',
+      smAndDown ? 'legend-mobile' : 'legend-desktop',
+    ]"
   >
     <div class="text-subtitle-2 pr-3 font-weight-medium flex-shrink-0">
       Tipos de extractivismo:
@@ -65,16 +70,27 @@ const extractivism_types_list = computed(() => {
 </template>
 <style>
 
+/* Leyenda de extractivismo (decisions §5): sheet semitransparente flotante.
+   Su visibilidad la controla el rail (showExtractivismLegend). El encaje
+   fino se afina en la Sesión 5. */
 .sheet-filters {
   position: absolute !important;
-  /* Leyenda de extractivismo (decisions §5): bajo la isla superior. Su
-     visibilidad la controla el rail (showExtractivismLegend). El encaje
-     fino con la franja de cápsulas se afina en la Sesión 5. */
-  top: 64px;
-  left: 0;
-  right: 40px;
-  max-width: 1130px;
   z-index: 1;
+}
+
+/* md+: a la derecha de la isla superior (logo + buscador), NO dentro. */
+.legend-desktop {
+  top: 12px;
+  left: 410px;
+  right: 12px;
+  max-width: 1130px;
+}
+
+/* sm/xs: franja bajo la isla, sobre el rail horizontal (top: 112px). */
+.legend-mobile {
+  top: 64px;
+  left: 8px;
+  right: 8px;
 }
 
 

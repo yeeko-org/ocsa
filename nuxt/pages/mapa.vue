@@ -103,9 +103,9 @@ watch(targetProjectId, (newId) => {
   // 3. Mover el mapa
   if (!bounds.isEmpty()) {
     map.value.fitBounds(bounds, {
-      // El detalle vive ahora en el panel abajo-izq: reservamos ese
-      // costado (y el inferior para el pill) en vez de la derecha.
-      padding: { top: 80, bottom: 120, left: 420, right: 80 },
+      // El panel de proyectos vive abajo-derecha: reservamos ese costado
+      // (y el inferior para el pill) para que el encuadre no quede tapado.
+      padding: { top: 80, bottom: 120, left: 80, right: 420 },
       maxZoom: 14,
       duration: 1500
     });
@@ -126,9 +126,14 @@ function buildPreMap() {
     // el tamaño del contenedor, así México siempre abarca la pantalla.
     bounds: [[-118.4, 14.5], [-86.7, 32.7]], // [SW, NE] de México
     fitBoundsOptions: { padding: 20 },
-    logoPosition: 'bottom-right',
+    // Controles y leyendas de Mapbox abajo-izquierda (el panel de proyectos
+    // ocupa la esquina inferior derecha). La atribución por defecto sale
+    // abajo-derecha, así que la desactivamos y la re-añadimos a la izquierda.
+    logoPosition: 'bottom-left',
+    attributionControl: false,
   });
-  map.value.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+  map.value.addControl(new mapboxgl.AttributionControl(), 'bottom-left');
+  map.value.addControl(new mapboxgl.NavigationControl(), 'bottom-left');
 }
 
 function initBuildMap() {
@@ -161,8 +166,9 @@ function buildMap(){
   <MapFilterRail/>
   <MapActiveCapsules/>
 
-  <!-- Leyenda de extractivismo: chips de color = leyenda del mapa (§5).
-       La togglea el primer ícono del rail vía showExtractivismLegend. -->
+  <!-- Leyenda de extractivismo: sheet semitransparente flotante. En md+, a
+       la derecha de la isla superior; en sm/xs, franja bajo la isla (§5).
+       La togglea el primer ícono del rail (showExtractivismLegend). -->
   <MainFilterMap v-show="mapStore.showExtractivismLegend"/>
   <ProjectsPanelMap/>
   <MapLayerSwitch/>

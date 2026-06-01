@@ -15,7 +15,7 @@ function notImplementedYet() {
     @click="notImplementedYet"
   >
     <v-icon>layers</v-icon>
-    <v-tooltip activator="parent" location="start">
+    <v-tooltip activator="parent" location="end">
       Cambiar vista satélite / mapa (próximamente)
     </v-tooltip>
   </v-btn>
@@ -24,8 +24,8 @@ function notImplementedYet() {
 <style scoped>
 .map-layer-switch {
   position: absolute;
-  bottom: 170px; /* por encima del NavigationControl (abajo-derecha) */
-  right: 10px;
+  bottom: 170px; /* por encima del NavigationControl (abajo-izquierda) */
+  left: 10px;
   z-index: 3;
 }
 </style>

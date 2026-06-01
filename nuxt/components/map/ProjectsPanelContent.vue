@@ -190,14 +190,14 @@ function exportProjects() {
       <span class="text-h6 font-weight-bold">{{ countLabel }}</span>
       <v-spacer/>
       <v-btn
-        v-if="view === 'list'"
+        v-if="view === 'list' || view === 'pill'"
         prepend-icon="download"
         variant="tonal"
         color="green-darken-2"
         size="small"
         class="mr-2"
         :loading="loadingExport"
-        v-tooltip="'Descargar datos en Excel'"
+        v-tooltip:top="'Descargar datos en Excel'"
         @click="exportProjects"
       >
         Excel
@@ -209,7 +209,7 @@ function exportProjects() {
           : 'keyboard_double_arrow_up'"
         variant="text"
         density="comfortable"
-        v-tooltip="expanded ? 'Ocultar lista' : 'Ver lista de proyectos'"
+        v-tooltip:top="expanded ? 'Ocultar lista' : 'Ver lista de proyectos'"
         @click="expanded = !expanded"
       />
     </div>

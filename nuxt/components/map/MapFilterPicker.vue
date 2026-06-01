@@ -19,7 +19,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const { mobile } = useDisplay()
+const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
 
 const localModel = computed({
@@ -56,7 +56,7 @@ const titleOf = o => o.short_name || o.name
 
 <template>
   <component
-    :is="mobile ? VBottomSheet : VMenu"
+    :is="smAndDown ? VBottomSheet : VMenu"
     v-model="isOpen"
     :close-on-content-click="false"
     location="end"

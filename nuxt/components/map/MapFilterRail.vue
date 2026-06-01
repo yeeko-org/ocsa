@@ -8,7 +8,7 @@ import MapFilterActors from '~/components/map/MapFilterActors.vue'
 // (escritorio), tira horizontal arriba (móvil). El extractivismo es el
 // primer ícono y es especial: no abre un picker, sino que muestra/oculta su
 // leyenda de chips de color (MainFilterMap). El resto son MapFilterPicker.
-const { mobile } = useDisplay()
+const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
 
 // Definición declarativa de los filtros con picker. `optionsKey` apunta al
@@ -50,7 +50,7 @@ const FILTER_DEFS = [
 <template>
   <client-only>
     <v-sheet
-      :class="['map-filter-rail', mobile ? 'rail-horizontal' : 'rail-vertical']"
+      :class="['map-filter-rail', smAndDown ? 'rail-horizontal' : 'rail-vertical']"
       color="#FFFFFFE6"
       rounded="lg"
       elevation="6"
@@ -104,11 +104,11 @@ const FILTER_DEFS = [
   padding: 4px;
 }
 
-/* Escritorio: columna vertical centrada en el borde izquierdo. */
+/* Escritorio: columna vertical en el borde izquierdo, bajo la barra
+   superior (logo + buscador + leyenda). */
 .rail-vertical {
   left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 76px;
   flex-direction: column;
   gap: 2px;
 }

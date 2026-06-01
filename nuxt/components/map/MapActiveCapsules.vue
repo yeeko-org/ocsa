@@ -7,7 +7,7 @@ import { useMapStore } from '~/store/map.js'
 // clic en su cuerpo reabre el picker que la originó (§4.4). Al final,
 // "limpiar todo" vacía todos los filtros de golpe (§4).
 // El extractivismo NO aparece aquí: tiene su propia tira de chips (§5).
-const { mobile } = useDisplay()
+const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
 
 // Qué picker reabrir desde una cápsula. Posiciones, sub-posiciones y
@@ -24,7 +24,7 @@ function pickerKeyFor(cap) {
   <client-only>
     <v-sheet
       v-if="mapStore.activeCapsules.length"
-      :class="['map-capsules', mobile ? 'capsules-mobile' : 'capsules-desktop']"
+      :class="['map-capsules', smAndDown ? 'capsules-mobile' : 'capsules-desktop']"
       color="#FFFFFFE6"
       rounded="lg"
       elevation="4"
@@ -66,11 +66,11 @@ function pickerKeyFor(cap) {
   padding: 2px 4px;
 }
 
-/* Escritorio: banda bajo la leyenda de extractivismo, librando el rail. */
+/* Escritorio: banda bajo la barra superior, a la derecha del rail. */
 .capsules-desktop {
-  top: 112px;
+  top: 76px;
   left: 64px;
-  right: 56px;
+  right: 12px;
 }
 
 /* Móvil: bajo la tira de íconos. `top` tentativo (encaje fino → Sesión 5). */

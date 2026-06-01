@@ -6,7 +6,7 @@ import {useMapStore} from "~/store/map.js";
 import { DrawerRoot, DrawerPortal, DrawerContent, DrawerHandle } from "vaul-vue";
 import ProjectsPanelContent from "~/components/map/ProjectsPanelContent.vue";
 
-const { mobile } = useDisplay()
+const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
 const { targetProjectId } = storeToRefs(mapStore)
 
@@ -26,9 +26,9 @@ watch(targetProjectId, (id) => {
 
 <template>
   <client-only>
-    <!-- Escritorio: tarjeta flotante abajo-izquierda -->
+    <!-- Escritorio: tarjeta flotante abajo-derecha -->
     <v-card
-      v-if="!mobile"
+      v-if="!smAndDown"
       class="projects-panel"
       width="400"
       elevation="8"
@@ -60,7 +60,7 @@ watch(targetProjectId, (id) => {
 
 .projects-panel {
   position: absolute;
-  left: 12px;
+  right: 12px;
   bottom: 0;
   z-index: 2;
 }
