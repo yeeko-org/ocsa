@@ -9,6 +9,9 @@ import { useMapClusters } from "~/components/map/useMapClusters.js";
 import ProjectsPanelMap from "~/components/map/ProjectsPanelMap.vue";
 import MapTopControls from "~/components/map/MapTopControls.vue";
 import MapLayerSwitch from "~/components/map/MapLayerSwitch.vue";
+import MapFilterRail from "~/components/map/MapFilterRail.vue";
+import MapActiveCapsules from "~/components/map/MapActiveCapsules.vue";
+import { useMapFilterUrl } from "~/components/map/useMapFilterUrl.js";
 
 definePageMeta({
   layout: 'map',
@@ -22,7 +25,6 @@ const { loadData, hydrateProjectLocations } = mapStore
 const {
   projectLocations,
   readyGets,
-  selectedExtractivismTypes,
   targetProjectId,
 } = storeToRefs(mapStore)
 
@@ -32,6 +34,10 @@ const {
 } = useMapLayers(map);
 
 const { setupClusterMarkers } = useMapClusters(map);
+
+// Filtros ↔ URL: hidrata desde los query params al cargar y los mantiene
+// sincronizados (vistas compartibles, decisions §15).
+useMapFilterUrl();
 
 // onMounted(async () => {
 onMounted(() => {
@@ -54,7 +60,9 @@ watch(readyGets, (newVal) => {
   }
 });
 
-watch(selectedExtractivismTypes, updateMapData);
+// El extractivismo vive ahora en el objeto `filters` (store/map.js). Un
+// getter + deep capta tanto la reasignación del array como mutaciones in-place.
+watch(() => mapStore.filters.extractivism, updateMapData, { deep: true });
 
 watch(targetProjectId, (newId) => {
   if (!newId || !map.value) return;
@@ -150,10 +158,12 @@ function buildMap(){
 <template>
   <MapTopControls/>
 
-  <!-- Sesión 3: aquí se monta el rail de íconos de filtro (borde izq) -->
-  <!-- Sesión 3: aquí se monta la franja de cápsulas de filtros activos -->
+  <MapFilterRail/>
+  <MapActiveCapsules/>
 
-  <MainFilterMap/>
+  <!-- Leyenda de extractivismo: chips de color = leyenda del mapa (§5).
+       La togglea el primer ícono del rail vía showExtractivismLegend. -->
+  <MainFilterMap v-show="mapStore.showExtractivismLegend"/>
   <ProjectsPanelMap/>
   <MapLayerSwitch/>
 

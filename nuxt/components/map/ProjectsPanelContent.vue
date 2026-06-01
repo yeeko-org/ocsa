@@ -18,7 +18,6 @@ const { getSimple, exportData } = mainStore
 const mapStore = useMapStore()
 const {
   uniqueProjects,
-  selectedExtractivismTypes,
   targetProjectId,
   projectLocations,
   readyGets,
@@ -42,7 +41,7 @@ const loadingExport = ref(false)
 
 // --- Lista / contador ---
 const filteredProjects = computed(() => {
-  const selected = selectedExtractivismTypes.value
+  const selected = mapStore.filters.extractivism
   if (!selected.length)
     return uniqueProjects.value
   return uniqueProjects.value.filter(p =>
@@ -51,7 +50,7 @@ const filteredProjects = computed(() => {
 })
 
 const total = computed(() => uniqueProjects.value.length)
-const hasFilter = computed(() => selectedExtractivismTypes.value.length > 0)
+const hasFilter = computed(() => mapStore.filters.extractivism.length > 0)
 
 const countLabel = computed(() => {
   const n = filteredProjects.value.length

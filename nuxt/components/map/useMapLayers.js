@@ -119,7 +119,7 @@ export function useMapLayers(map) {
   function updateMapData() {
     const project_locations = mapStore.projectLocations;
 
-    const selected_et = mapStore.selectedExtractivismTypes;
+    const selected_et = mapStore.filters.extractivism;
     const select_all = selected_et.length === 0;
 
     const features_filtered = project_locations.features.filter(f => {
