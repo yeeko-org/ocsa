@@ -1,5 +1,6 @@
 import _debounce from "lodash/debounce.js";
 import { useMapStore } from "~/store/map.js";
+import { FILTER_REGISTRY } from "~/components/map/filterRegistry.js";
 
 // Sincroniza el estado de filtros con los query params de la URL para que una
 // vista filtrada sea compartible/recuperable por link (decisions §15).
@@ -9,10 +10,15 @@ import { useMapStore } from "~/store/map.js";
 // actores guardan solo el id (su nombre vive en /actor/, fuera de cats); al
 // hidratar desde la URL mostramos "Actor #id" hasta el cableado de Sesión 4.
 
-// Filtros que son arrays simples de ids.
+// Filtros que son arrays simples de ids, derivados del registro: todos los
+// stateKeys de los selects (incluye los subtipos de afectación) + el
+// purposeKey de legal. `extractivism` se elige en la leyenda (no es un select
+// del registro), pero sigue siendo un filtro array → se añade a mano.
+// Actores/posiciones se serializan aparte (abajo).
 const ARRAY_KEYS = [
-  'extractivism', 'megaproject', 'violence', 'collectiveActions', 'legal',
-  'legalPurpose', 'socialImpacts', 'environmentalImpacts', 'states',
+  'extractivism',
+  ...FILTER_REGISTRY.flatMap(g => (g.selects || []).map(s => s.stateKey)),
+  ...FILTER_REGISTRY.filter(g => g.purposeKey).map(g => g.purposeKey),
 ]
 
 export function useMapFilterUrl() {

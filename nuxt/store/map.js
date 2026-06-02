@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, reactive, shallowRef, computed } from 'vue'
+import { ref, reactive, shallowRef, computed, watch } from 'vue'
 import { useMainStore } from '~/store/index.js'
+import { FILTER_REGISTRY } from '~/components/map/filterRegistry.js'
 
 export const useMapStore = defineStore('map', () => {
   const mainStore = useMainStore()
@@ -18,27 +19,34 @@ export const useMapStore = defineStore('map', () => {
   // Cada clave es un filtro; los arrays guardan ids. `extractivism` vacío
   // = "todos" (sin filtrar), igual que el ref aislado que reemplaza.
   const filters = reactive({
-    extractivism: [],          // ids extractivism_type (vacío = todos)
-    megaproject: [],           // ids megaproject_type
-    violence: [],              // ids event_type (grupo violencia)
-    collectiveActions: [],     // ids event_type (grupo acciones colectivas)
-    legal: [],                 // ids event_type (grupo mecanismos legales)
-    legalPurpose: [],          // ids purpose (toggle despojo/defensa)
-    socialImpacts: [],         // ids impact_type (grupo social)
-    environmentalImpacts: [],  // ids impact_type (grupo ambiental)
-    states: [],                // ids state (múltiple)
-    actors: [],                // [{ id, name }] aplicados (stub hasta sesión 4)
-    positions: [],             // ids participant_group activos
-    positionTypes: {},         // { [groupId]: [participant_type ids] }
+    extractivism: [],                 // ids extractivism_type (vacío = todos)
+    megaproject: [],                  // ids megaproject_type
+    violence: [],                     // ids event_type (grupo violencia)
+    collectiveActions: [],            // ids event_type (acciones colectivas)
+    legal: [],                        // ids event_type (mecanismos legales)
+    legalPurpose: [],                 // ids purpose (toggle despojo/defensa)
+    socialImpacts: [],                // ids impact_type (grupo social)
+    socialImpactSubtypes: [],         // ids impact_subtype (social, condic.)
+    environmentalImpacts: [],         // ids impact_type (grupo ambiental)
+    environmentalImpactSubtypes: [],  // ids impact_subtype (ambiental, cond.)
+    states: [],                       // ids state (múltiple)
+    actors: [],                       // [{ id, name }] (stub hasta sesión 4)
+    positions: [],                    // ids participant_group activos
+    positionTypes: {},                // { [groupId]: [participant_type ids] }
   })
 
-  // Estado de UI compartido entre el rail y las cápsulas (no es estado de
-  // datos, pero lo coordinan dos componentes hermanos → vive en el store).
-  // Un solo picker abierto a la vez (decisions §4.2); null = ninguno.
+  // Estado de UI compartido por componentes hermanos (rail + filas de
+  // chips), no es estado de datos → vive en el store. Un solo picker
+  // abierto a la vez (decisions §4.2); null = ninguno.
   const activePickerKey = ref(null)
-  // Extractivismo pre-activado/expandido por defecto (decisions §5): su
-  // tira de chips de color (la leyenda) se ve al cargar.
-  const showExtractivismLegend = ref(true)
+  // Rail expandido (muestra nombres) y modo "etiquetas comprimidas" (un solo
+  // chip "{n} filtros" por grupo). Estado de UI compartido rail ↔ chips.
+  const railExpanded = ref(false)
+  const chipsCompact = ref(false)
+  const toggleRailExpanded = () => { railExpanded.value = !railExpanded.value }
+  const toggleChipsCompact = () => { chipsCompact.value = !chipsCompact.value }
+  // Abrir un picker colapsa el rail expandido.
+  watch(activePickerKey, key => { if (key) railExpanded.value = false })
   // Contador de cargas listas (locations + catálogos = 2).
   const readyGets = ref(0)
   // Id del proyecto cuyo detalle está abierto. Fuente de verdad única
@@ -110,127 +118,190 @@ export const useMapStore = defineStore('map', () => {
     return et_props
   })
 
-  // --- Opciones de filtros (derivadas de cats/geo) ---
-  const extractivismOptions = computed(
-    () => mainStore.cats?.extractivism_type || [])
+  // --- Resolución del registro de filtros (decisions §4, "mixin") ---
+  // El registro estático vive en `components/map/filterRegistry.js`; aquí
+  // solo la parte reactiva: navegar `all_nodes` y heredar metadatos.
+  const groupById = id => FILTER_REGISTRY.find(g => g.id === id)
+
+  // Nodo d3 base (nivel 'type') de un grupo: la raíz del filter_group o, si
+  // declara `groupId`, el CatalogGroup con ese id (event_group/impact_group).
+  function baseNode(rg) {
+    const root = mainStore.all_nodes?.[rg.filterGroup]
+    if (!root) return null
+    if (!rg.groupId) return root
+    return (root.children || []).find(c => c.data.id === rg.groupId) || null
+  }
+
+  // Mixin: funde la entrada del registro con el filter_group de schemas
+  // (name/plural/description) y, para eventos/afectaciones, deriva
+  // label/icon/color del nodo de grupo cuando el registro no los declara.
+  // Precedencia: override del registro → nodo de grupo → meta del filter_group.
+  const resolveGroup = id => {
+    const rg = groupById(id)
+    if (!rg) return null
+    const meta = mainStore.schemas?.filters_dict?.[rg.filterGroup] || {}
+    const node = rg.groupId ? baseNode(rg)?.data : null
+    return {
+      ...meta, ...rg,
+      label: rg.label || node?.name || meta.name,
+      icon: rg.icon || node?.icon,
+      color: rg.color || node?.color,
+      description: node?.description || meta.description,
+    }
+  }
+
+  // Opciones (.data de los nodos) de un `select` concreto del grupo.
+  // Resuelve el nivel del árbol y los casos especiales: drill-down de
+  // megaproyecto (hojas filtradas por el extractivismo activo) y subtipos
+  // condicionales de afectación (hijos de los tipos seleccionados).
+  function optionsFor(id, stateKey) {
+    const rg = groupById(id)
+    if (!rg || !rg.selects) return []
+    const sel = rg.selects.find(s => s.stateKey === stateKey) || rg.selects[0]
+    const root = mainStore.all_nodes?.[rg.filterGroup]
+    const base = baseNode(rg)
+    if (!base) return []
+    if (sel.level === 'type')
+      return (base.children || []).map(c => c.data)
+    if (sel.conditional) {
+      const typeKey = rg.selects.find(s => s.level === 'type')?.stateKey
+      const selected = filters[typeKey] || []
+      return (base.children || [])
+        .filter(t => selected.includes(t.data.id))
+        .flatMap(t => (t.children || []).map(c => c.data))
+    }
+    if (id === 'megaproject') {
+      const ext = filters.extractivism
+      const extNodes = ext.length
+        ? (root.children || []).filter(e => ext.includes(e.data.id))
+        : (root.children || [])
+      return extNodes.flatMap(e => (e.children || []).map(c => c.data))
+    }
+    return (base.children || []).map(c => c.data)
+  }
+
   const purposeOptions = computed(() => mainStore.cats?.purpose || [])
-  const stateOptions = computed(() => mainStore.cats?.state || [])
-
-  // Megaproyecto: drill-down. Solo los MegaprojectType cuyos
-  // extractivism_types (M2M) intersecten con el extractivismo activo. Sin
-  // extractivismo activo → sin opciones (el ícono queda deshabilitado, §6).
-  const megaprojectOptions = computed(() => {
-    const active = filters.extractivism
-    if (!active.length) return []
-    return (mainStore.cats?.megaproject_type || []).filter(mp =>
-      (mp.extractivism_types || []).some(id => active.includes(id)))
-  })
-
-  // Eventos: cada grupo se resuelve por su bandera de catálogo y se listan
-  // sus EventType (FK event_type.event_group → event_group.id).
-  const eventGroups = computed(() => mainStore.cats?.event_group || [])
-  const violenceGroup = computed(() =>
-    eventGroups.value.find(g => g.model_origin === 'HechosViolencia'))
-  const collectiveActionsGroup = computed(() =>
-    eventGroups.value.find(g => g.model_origin === 'FormaAC'))
-  const legalGroup = computed(() =>
-    eventGroups.value.find(g => g.show_position))
-  const eventTypesByGroup = groupId =>
-    (mainStore.cats?.event_type || []).filter(et => et.event_group === groupId)
-  const violenceOptions = computed(() =>
-    violenceGroup.value ? eventTypesByGroup(violenceGroup.value.id) : [])
-  const collectiveActionOptions = computed(() =>
-    collectiveActionsGroup.value
-      ? eventTypesByGroup(collectiveActionsGroup.value.id) : [])
-  const legalOptions = computed(() =>
-    legalGroup.value ? eventTypesByGroup(legalGroup.value.id) : [])
-
-  // Impactos: grupo social (is_social) vs ambiental (el resto).
-  const impactGroups = computed(() => mainStore.cats?.impact_group || [])
-  const impactTypesByGroup = groupId =>
-    (mainStore.cats?.impact_type || []).filter(it => it.impact_group === groupId)
-  const socialImpactGroup = computed(() =>
-    impactGroups.value.find(g => g.is_social))
-  const environmentalImpactGroup = computed(() =>
-    impactGroups.value.find(g => !g.is_social))
-  const socialImpactOptions = computed(() =>
-    socialImpactGroup.value
-      ? impactTypesByGroup(socialImpactGroup.value.id) : [])
-  const environmentalImpactOptions = computed(() =>
-    environmentalImpactGroup.value
-      ? impactTypesByGroup(environmentalImpactGroup.value.id) : [])
-
   // Actores/posiciones: ParticipantGroup y sus ParticipantType.
   const positionGroups = computed(() => mainStore.cats?.participant_group || [])
   const positionTypeOptions = groupId =>
     (mainStore.cats?.participant_type || [])
       .filter(pt => pt.participant_group === groupId)
 
-  // --- Helpers de filtros (cápsulas, limpiar, payload) ---
-  // Resuelve un id a su etiqueta legible dentro de un catálogo.
-  function labelFrom(list, id) {
-    const item = list.find(x => x.id === id)
-    return item ? (item.short_name || item.name) : `#${id}`
+  // --- Helpers de chips/cápsulas (decisions §4.3) ---
+  // Recorta a 40 caracteres con elipsis (38 + …) para los chips de fila.
+  function truncate(text) {
+    const t = String(text ?? '')
+    return t.length > 40 ? `${t.slice(0, 38)}…` : t
   }
 
-  // Cápsulas activas (decisions §4.3). Excluye extractivismo: ese tiene su
-  // propia tira de chips de color (la leyenda, §5). Cada cápsula lleva su
-  // filterKey para poder cerrarla o reabrir su picker.
-  const activeCapsules = computed(() => {
-    const caps = []
-    const add = (filterKey, ids, list) => ids.forEach(id =>
-      caps.push({ filterKey, value: id, label: labelFrom(list, id) }))
-    add('megaproject', filters.megaproject, mainStore.cats?.megaproject_type || [])
-    add('violence', filters.violence, violenceOptions.value)
-    add('collectiveActions', filters.collectiveActions, collectiveActionOptions.value)
-    add('legal', filters.legal, legalOptions.value)
-    add('legalPurpose', filters.legalPurpose, purposeOptions.value)
-    add('socialImpacts', filters.socialImpacts, socialImpactOptions.value)
-    add('environmentalImpacts', filters.environmentalImpacts, environmentalImpactOptions.value)
-    add('states', filters.states, stateOptions.value)
-    add('positions', filters.positions, positionGroups.value)
-    // Sub-posiciones: la cápsula recuerda su grupo para poder cerrarla.
-    Object.entries(filters.positionTypes).forEach(([groupId, ids]) =>
-      (ids || []).forEach(id => caps.push({
-        filterKey: 'positionTypes', groupId: Number(groupId), value: id,
-        label: labelFrom(positionTypeOptions(Number(groupId)), id),
-      })))
-    // Actores: ya traen su nombre (no están en cats).
-    filters.actors.forEach(a =>
-      caps.push({ filterKey: 'actors', value: a.id, label: a.name }))
-    return caps
-  })
+  const positionGroupById = id => positionGroups.value.find(g => g.id === id)
+  const positionTypeById = (groupId, id) =>
+    positionTypeOptions(groupId).find(pt => pt.id === id)
 
-  // ¿Hay algún filtro activo? Controla la franja y "limpiar todo".
+  // Construye un chip a partir de una categoría resuelta. `value` siempre
+  // guarda el id (aunque la categoría no esté cargada) para poder cerrarlo.
+  function makeChip(rg, stateKey, id, item, extra = {}) {
+    const raw = item?.[rg.chipField] || item?.short_name || item?.name
+    return {
+      groupId: rg.id, stateKey, value: id,
+      label: truncate(raw ?? `#${id}`),
+      full: item?.name ?? `#${id}`, description: item?.description || '',
+      color: item?.color || rg.color, icon: item?.icon || null, ...extra,
+    }
+  }
+
+  // Cápsulas agrupadas por rail-group (Capa B). Cada grupo expone `blocks`:
+  // un array de "bloques" de chips. Los grupos normales tienen un único
+  // bloque; Actores tiene dos (actores | posiciones) cuando ambos están
+  // activos, para poder pintar una banda por cada uno. Cada bloque se dibuja
+  // como una cuadrícula adaptativa (ver MapFilterChips), limitada a `maxCells`.
+  const capsulesByGroup = computed(() => FILTER_REGISTRY.map(reg => {
+    const rg = resolveGroup(reg.id)   // con label/icon/color derivados
+    const maxCells = reg.maxCells || 4
+    let blocks
+    if (rg.custom) {
+      const actorChips = filters.actors.map(a => ({
+        groupId: rg.id, stateKey: 'actors', value: a.id,
+        label: truncate(a.name), full: a.name, description: '',
+        color: rg.color, icon: null,
+      }))
+      const positionChips = []
+      filters.positions.forEach(id => {
+        const grp = positionGroupById(id)
+        positionChips.push(makeChip(rg, 'positions', id, grp,
+          { label: truncate(grp?.name ?? `#${id}`) }))
+      })
+      Object.entries(filters.positionTypes).forEach(([gid, ids]) =>
+        (ids || []).forEach(id => {
+          const pt = positionTypeById(Number(gid), id)
+          positionChips.push(makeChip(rg, 'positionTypes', id, pt,
+            { label: truncate(pt?.name ?? `#${id}`), subGroupId: Number(gid) }))
+        }))
+      // Dos bandas solo si ambos tipos están activos; si no, una sola.
+      blocks = (actorChips.length && positionChips.length)
+        ? [actorChips, positionChips]
+        : [actorChips.concat(positionChips)]
+    } else {
+      const chips = []
+      rg.selects.forEach(sel => {
+        const opts = optionsFor(rg.id, sel.stateKey)
+        ;(filters[sel.stateKey] || []).forEach(id => {
+          // Megaproyecto: color por su tipo de extractivismo (no por el nodo).
+          const extra = rg.id === 'megaproject'
+            ? { kind: 'megaproject', color: resolveExtractivism(id).color }
+            : {}
+          chips.push(makeChip(rg, sel.stateKey, id, opts.find(o => o.id === id),
+            extra))
+        })
+      })
+      if (rg.purposeKey)
+        (filters[rg.purposeKey] || []).forEach(id => chips.push(makeChip(
+          rg, rg.purposeKey, id, purposeOptions.value.find(o => o.id === id))))
+      blocks = [chips]
+    }
+    return {
+      id: rg.id, label: rg.label, icon: rg.icon, color: rg.color,
+      maxCells, blocks,
+    }
+  }))
+
+  // Total de chips de un grupo (todos sus bloques) para el badge del rail.
+  const chipCount = g => g.blocks.reduce((n, b) => n + b.length, 0)
+
+  // Conteo por grupo para el badge del rail (Capa A).
+  const countFor = id => {
+    const g = capsulesByGroup.value.find(g => g.id === id)
+    return g ? chipCount(g) : 0
+  }
+
+  // ¿Hay algún filtro activo? Controla la Capa B y "limpiar todo".
   const hasActiveFilters = computed(() =>
-    activeCapsules.value.length > 0 || filters.extractivism.length > 0)
+    capsulesByGroup.value.some(g => chipCount(g) > 0))
 
-  // Quita un valor concreto de un filtro (cerrar una cápsula).
+  // ¿Algún grupo muestra dos chips lado a lado? (un bloque con ≥3 chips, que
+  // es cuando la cuadrícula coloca 2 en una fila). Controla si tiene sentido
+  // ofrecer "comprimir etiquetas".
+  const anyAdjacentChips = computed(() =>
+    capsulesByGroup.value.some(g => g.blocks.some(b => b.length >= 3)))
+
+  // Quita un valor concreto de un filtro (cerrar un chip).
   function removeCapsule(cap) {
-    const { filterKey, value, groupId } = cap
-    if (filterKey === 'actors')
-      filters.actors = filters.actors.filter(a => a.id !== value)
-    else if (filterKey === 'positionTypes')
-      filters.positionTypes[groupId] =
-        (filters.positionTypes[groupId] || []).filter(v => v !== value)
-    else if (Array.isArray(filters[filterKey]))
-      filters[filterKey] = filters[filterKey].filter(v => v !== value)
+    if (cap.stateKey === 'actors')
+      filters.actors = filters.actors.filter(a => a.id !== cap.value)
+    else if (cap.stateKey === 'positionTypes')
+      filters.positionTypes[cap.subGroupId] =
+        (filters.positionTypes[cap.subGroupId] || [])
+          .filter(v => v !== cap.value)
+    else if (Array.isArray(filters[cap.stateKey]))
+      filters[cap.stateKey] = filters[cap.stateKey].filter(v => v !== cap.value)
   }
 
   // Vacía todos los filtros de golpe (decisions §4 "limpiar todo").
+  // Genérico: arrays → [], objetos (positionTypes) → {}.
   function clearAllFilters() {
-    filters.extractivism = []
-    filters.megaproject = []
-    filters.violence = []
-    filters.collectiveActions = []
-    filters.legal = []
-    filters.legalPurpose = []
-    filters.socialImpacts = []
-    filters.environmentalImpacts = []
-    filters.states = []
-    filters.actors = []
-    filters.positions = []
-    filters.positionTypes = {}
+    Object.keys(filters).forEach(k => {
+      filters[k] = Array.isArray(filters[k]) ? [] : {}
+    })
   }
 
   // Payload listo para el backend (punto de integración de la Sesión 4).
@@ -279,22 +350,21 @@ export const useMapStore = defineStore('map', () => {
     // --- Filtros ---
     filters,
     activePickerKey,
-    showExtractivismLegend,
-    // Opciones derivadas
-    extractivismOptions,
-    megaprojectOptions,
-    violenceOptions,
-    collectiveActionOptions,
-    legalOptions,
-    socialImpactOptions,
-    environmentalImpactOptions,
-    stateOptions,
+    railExpanded,
+    chipsCompact,
+    toggleRailExpanded,
+    toggleChipsCompact,
+    FILTER_REGISTRY,
+    resolveGroup,
+    optionsFor,
     purposeOptions,
     positionGroups,
     positionTypeOptions,
-    // Helpers
-    activeCapsules,
+    // Cápsulas / conteo
+    capsulesByGroup,
+    countFor,
     hasActiveFilters,
+    anyAdjacentChips,
     removeCapsule,
     clearAllFilters,
     filterPayload,

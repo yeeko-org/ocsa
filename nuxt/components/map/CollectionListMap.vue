@@ -3,6 +3,7 @@
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
 import CategoryNotesDialog from "~/components/map/CategoryNotesDialog.vue";
+import MapHelpTooltip from "~/components/map/MapHelpTooltip.vue";
 
 const mainStore = useMainStore()
 const { all_nodes } = storeToRefs(mainStore)
@@ -114,29 +115,11 @@ const hierarchical_objects = computed(() => {
       </v-icon>
       {{group.title}}:
       <v-spacer></v-spacer>
-      <v-sheet
-        class="d-flex align-center"
-        v-if="group.description"
-      >
-        <v-icon :color="group.color" class="ml-2">
-          help_outline
-        </v-icon>
-        <v-tooltip
-          activator="parent"
-          location="bottom left"
-          max-width="400"
-          color="primary"
-          class="py-3 px-2"
-          :content-props="{ background: 'white' }"
-        >
-          <div class="font-weight-bold pt-3 pb-2">
-            {{group.title}}:
-          </div>
-          <div class="text-subtitle-2 pb-3">
-            {{ group.description }}
-          </div>
-        </v-tooltip>
-      </v-sheet>
+      <MapHelpTooltip
+        :title="group.title"
+        :description="group.description"
+        :color="group.color"
+      />
     </div>
     <v-card
       v-for="type_elem in group.final_types"

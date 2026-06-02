@@ -2,7 +2,7 @@ import colors from 'vuetify/lib/util/colors';
 
 const SHADE_KEYWORDS = ['lighten', 'darken']
 
-function parseVuetifyColor(raw) {
+export function parseVuetifyColor(raw) {
   const parts = raw.split('-')
   const shadeIdx = parts.findIndex((p) => SHADE_KEYWORDS.includes(p))
 
@@ -18,6 +18,21 @@ function parseVuetifyColor(raw) {
   const shadeJs = shadeParts.length ? shadeParts.join('') : 'base'
 
   return { baseCss, baseJs, shadeCss, shadeJs }
+}
+
+// Resuelve cualquier color a hex (#rrggbb). Deja pasar los que ya son hex y
+// traduce los nombres Vuetify ('deep-purple', 'brown', 'blue-lighten-3'…) con
+// el mismo parser/lookup que usa getComplementColor. Devuelve null si no
+// reconoce el color.
+export function colorToHex(color) {
+  if (!color) return null
+  if (color.startsWith('#')) return color
+  const { baseJs, shadeJs } = parseVuetifyColor(color)
+  try {
+    return colors[baseJs][shadeJs] || null
+  } catch (e) {
+    return null
+  }
 }
 
 let colorMixin = {

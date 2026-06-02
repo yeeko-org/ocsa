@@ -2,56 +2,60 @@
 import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
 import { VMenu, VBottomSheet } from 'vuetify/components'
+import { useMainStore } from '~/store/index.js'
 import { useMapStore } from '~/store/map.js'
+import MapMultiSelect from '~/components/map/MapMultiSelect.vue'
+import MapHelpTooltip from '~/components/map/MapHelpTooltip.vue'
 
-// Picker genérico de un filtro (decisions §4): botón-ícono en el rail +
-// popover transitorio. El popover es un v-menu anclado en escritorio y un
-// bottom-sheet en móvil; el cuerpo (checkboxes / autocomplete / toggle) es
-// el mismo en ambos, así que usamos <component :is> para no duplicarlo.
+// Picker de un rail-group (decisions §4, Capa D): botón-ícono persistente
+// (Capa A) + popover transitorio (v-menu en escritorio / v-bottom-sheet en
+// móvil). El cuerpo compone un MapMultiSelect por cada `select` del grupo
+// (megaproyecto = extractivismo + megaproyecto; afectaciones = tipo +
+// subtipo condicional) más, en legal, el toggle de propósito.
 const props = defineProps({
-  // Definición declarativa del filtro (ver FILTER_DEFS en MapFilterRail).
-  //   { key, label, icon, pickerType, indented, dependsOn, purposeToggle }
-  def: { type: Object, required: true },
-  // Catálogo de opciones { id, name, short_name?, icon?, color? }.
-  options: { type: Array, default: () => [] },
-  // v-model: ids seleccionados (vive en mapStore.filters[def.key]).
-  modelValue: { type: Array, default: () => [] },
+  group: { type: String, required: true },  // id del rail-group
 })
-const emit = defineEmits(['update:modelValue'])
 
 const { smAndDown } = useDisplay()
+const mainStore = useMainStore()
 const mapStore = useMapStore()
 
-const localModel = computed({
-  get: () => props.modelValue,
-  set: v => emit('update:modelValue', v),
+// Grupo resuelto (label/icon/color heredados + selects/purposeKey).
+const rg = computed(() => mapStore.resolveGroup(props.group) || {})
+const count = computed(() => mapStore.countFor(props.group))
+const hasSelection = computed(() => count.value > 0)
+
+// Un solo picker abierto a la vez: el estado vive en el store, así una fila
+// de la Capa B/C también puede reabrirlo poniendo activePickerKey.
+const isOpen = computed({
+  get: () => mapStore.activePickerKey === props.group,
+  set: v => { mapStore.activePickerKey = v ? props.group : null },
 })
 
-// Toggle despojo/defensa (solo el filtro legal lo usa).
+// Selects visibles: los condicionales (subtipo de afectación) solo si hay
+// opciones (algún tipo seleccionado tiene hijos).
+const visibleSelects = computed(() =>
+  (rg.value.selects || []).filter(sel =>
+    !sel.conditional ||
+    mapStore.optionsFor(props.group, sel.stateKey).length > 0))
+
+// Colección (schema) de un select según su nivel (type/subtype).
+const collectionOf = sel => {
+  const snake = sel.level === 'type'
+    ? rg.value.category_type : rg.value.category_subtype
+  return mainStore.schemas?.collections_dict?.[snake] || null
+}
+// Etiqueta de cada select = nombre de su colección.
+const labelFor = sel => collectionOf(sel)?.name || rg.value.label
+// Descripción de ayuda por select (solo se muestra si hay >1 select).
+const helpFor = sel => collectionOf(sel)?.description || ''
+const multiSelect = computed(() => visibleSelects.value.length > 1)
+
+// Toggle despojo/defensa (solo el grupo legal lo usa).
 const purposeModel = computed({
   get: () => mapStore.filters.legalPurpose,
   set: v => { mapStore.filters.legalPurpose = v },
 })
-
-// Un solo picker abierto a la vez: el estado vive en el store, así una
-// cápsula también puede reabrir este picker poniendo activePickerKey.
-const isOpen = computed({
-  get: () => mapStore.activePickerKey === props.def.key,
-  set: v => { mapStore.activePickerKey = v ? props.def.key : null },
-})
-
-// Megaproyecto se habilita solo con ≥1 extractivismo activo (decisions §6).
-const disabled = computed(() => {
-  if (!props.def.dependsOn) return false
-  return (mapStore.filters[props.def.dependsOn] || []).length === 0
-})
-
-// Badge ● cuando el filtro aporta algo (selección o, en legal, un purpose).
-const hasSelection = computed(() =>
-  (props.modelValue?.length || 0) > 0 ||
-  (props.def.purposeToggle && mapStore.filters.legalPurpose.length > 0))
-
-const titleOf = o => o.short_name || o.name
 </script>
 
 <template>
@@ -63,104 +67,100 @@ const titleOf = o => o.short_name || o.name
     :offset="8"
   >
     <template #activator="{ props: actProps }">
-      <div :class="['rail-btn', { indented: def.indented }]">
+      <div class="d-flex align-center">
         <v-badge
           :model-value="hasSelection"
-          dot
-          color="primary"
-          offset-x="6"
-          offset-y="6"
+          :content="count"
+          :color="rg.color"
+          location="bottom end"
+          offset-x="2"
+          offset-y="2"
         >
           <v-btn
-            :icon="def.icon"
-            :disabled="disabled"
-            :color="isOpen ? 'primary' : undefined"
-            variant="text"
-            density="comfortable"
+            :icon="rg.icon"
+            :color="rg.color"
+            :variant="hasSelection ? 'tonal' : 'text'"
+            :active="isOpen"
+            size="large"
             v-bind="actProps"
           />
         </v-badge>
-        <v-tooltip activator="parent" :text="def.label" location="end"/>
+        <v-tooltip activator="parent" :text="rg.label" location="end"/>
       </div>
     </template>
 
-    <v-card min-width="260" max-width="360" class="pa-2">
-      <div class="text-subtitle-2 font-weight-medium px-2 pt-1 pb-2">
-        {{ def.label }}
+    <v-card min-width="340" max-width="460" class="pa-2">
+      <div class="text-subtitle-1 font-weight-bold px-2 pt-1 pb-2 d-flex
+        align-center">
+        <v-icon :color="rg.color" :icon="rg.icon" class="mr-2"/>
+        {{ rg.label }}
+        <MapHelpTooltip
+          :title="rg.label"
+          :description="rg.description"
+          :color="rg.color"
+        />
       </div>
 
-      <!-- Mecanismos legales: subtoggle despojo / defensa (decisions §7). -->
-      <v-btn-toggle
-        v-if="def.purposeToggle"
-        v-model="purposeModel"
-        multiple
-        divided
-        density="compact"
-        variant="outlined"
-        class="mb-2 mx-2"
-      >
-        <v-btn
-          v-for="p in mapStore.purposeOptions"
-          :key="p.id"
-          :value="p.id"
+      <!-- Mecanismos legales: propósito despojo / defensa (decisions §7). -->
+      <div v-if="rg.purposeKey" class="d-flex align-center mb-3 mx-2">
+        <span class="text-body-2 mr-3 flex-shrink-0">Propósito del Mecanismo:</span>
+        <v-btn-toggle
+          v-model="purposeModel"
+          multiple
+          divided
+          density="compact"
+          variant="outlined"
+        >
+          <v-btn
+            v-for="p in mapStore.purposeOptions"
+            :key="p.id"
+            :value="p.id"
+            :color="p.color"
+            :prepend-icon="p.icon"
+            size="small"
+          >
+            {{ p.name }}
+          </v-btn>
+        </v-btn-toggle>
+      </div>
+
+      <div class="px-2">
+        <div v-for="sel in visibleSelects" :key="sel.stateKey">
+          <!-- Con >1 select, cada uno lleva su título + ayuda. -->
+          <div v-if="multiSelect" class="d-flex align-center mt-1">
+            <span class="text-subtitle-2 font-weight-medium">
+              {{ labelFor(sel) }}
+            </span>
+            <MapHelpTooltip
+              :title="labelFor(sel)"
+              :description="helpFor(sel)"
+              :color="rg.color"
+            />
+          </div>
+          <MapMultiSelect
+            :group="group"
+            :state-key="sel.stateKey"
+            :picker="sel.picker"
+            :label="multiSelect ? '' : labelFor(sel)"
+            :autofocus="group === 'states'"
+            v-model="mapStore.filters[sel.stateKey]"
+          />
+        </div>
+      </div>
+
+      <div class="d-flex justify-end px-2 pt-1">
+        <v-btn 
+          variant="text"
           size="small"
+          color="primary"
+          @click="isOpen = false"
         >
-          {{ p.short_name || p.name }}
+          Aplicar
         </v-btn>
-      </v-btn-toggle>
-
-      <div
-        v-if="!options.length"
-        class="text-caption text-medium-emphasis px-2 py-3"
-      >
-        Sin opciones disponibles.
       </div>
-
-      <!-- Lista larga → autocomplete múltiple. -->
-      <v-autocomplete
-        v-else-if="def.pickerType === 'autocomplete'"
-        v-model="localModel"
-        :items="options"
-        :item-title="titleOf"
-        item-value="id"
-        :label="def.label"
-        multiple
-        chips
-        closable-chips
-        density="compact"
-        variant="outlined"
-        hide-details
-        class="mx-2 mb-1"
-      ></v-autocomplete>
-
-      <!-- Lista corta → checkboxes. -->
-      <v-list
-        v-else
-        v-model:selected="localModel"
-        select-strategy="leaf"
-        density="compact"
-        max-height="320"
-        class="py-0"
-      >
-        <v-list-item
-          v-for="opt in options"
-          :key="opt.id"
-          :value="opt.id"
-          :title="titleOf(opt)"
-        >
-          <template #prepend="{ isSelected }">
-            <v-checkbox-btn :model-value="isSelected" density="compact"/>
-          </template>
-        </v-list-item>
-      </v-list>
     </v-card>
   </component>
 </template>
 
 <style scoped>
-/* El botón se indenta cuando el filtro cuelga de otro (megaproyecto bajo
-   extractivismo, decisions §6) para insinuar la relación padre-hijo. */
-.rail-btn.indented {
-  margin-left: 14px;
-}
 </style>

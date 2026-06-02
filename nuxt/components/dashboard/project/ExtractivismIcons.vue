@@ -26,7 +26,7 @@ const props = defineProps({
 const megaproject_type_node = computed(() => {
   const mp_type_id = props.megaproject_type ?
     props.megaproject_type.id : props.project.megaproject_type
-  return all_nodes.value.project_types.find(
+  return all_nodes.value?.project_types?.find(
     pt => pt.id === `subtype_${mp_type_id}`)
 })
 

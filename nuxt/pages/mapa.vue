@@ -10,7 +10,7 @@ import ProjectsPanelMap from "~/components/map/ProjectsPanelMap.vue";
 import MapTopControls from "~/components/map/MapTopControls.vue";
 import MapLayerSwitch from "~/components/map/MapLayerSwitch.vue";
 import MapFilterRail from "~/components/map/MapFilterRail.vue";
-import MapActiveCapsules from "~/components/map/MapActiveCapsules.vue";
+import MapFilterChips from "~/components/map/MapFilterChips.vue";
 import { useMapFilterUrl } from "~/components/map/useMapFilterUrl.js";
 
 definePageMeta({
@@ -164,12 +164,12 @@ function buildMap(){
   <MapTopControls/>
 
   <MapFilterRail/>
-  <MapActiveCapsules/>
+  <MapFilterChips/>
 
-  <!-- Leyenda de extractivismo: sheet semitransparente flotante. En md+, a
-       la derecha de la isla superior; en sm/xs, franja bajo la isla (§5).
-       La togglea el primer ícono del rail (showExtractivismLegend). -->
-  <MainFilterMap v-show="mapStore.showExtractivismLegend"/>
+  <!-- Leyenda de extractivismo: sheet semitransparente flotante, siempre
+       visible (decisions §5). En md+, a la derecha de la isla superior;
+       en sm/xs, franja bajo la isla. -->
+  <MainFilterMap/>
   <ProjectsPanelMap/>
   <MapLayerSwitch/>
 

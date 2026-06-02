@@ -157,7 +157,7 @@ export function useMapClusters(map) {
 
             source.getClusterExpansionZoom(id, (err, zoom) => {
               if (err) return;
-              console.log("Zooming to cluster:", id, "at zoom level:", zoom);
+              // console.log("Zooming to cluster:", id, "at zoom level:", zoom);
               const final_zoom = Math.max(zoom + 1, 8);
 
               clusterPopup.remove();
