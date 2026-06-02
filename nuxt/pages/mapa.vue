@@ -106,7 +106,7 @@ watch(targetProjectId, (newId) => {
       // El panel de proyectos vive abajo-derecha: reservamos ese costado
       // (y el inferior para el pill) para que el encuadre no quede tapado.
       padding: { top: 80, bottom: 120, left: 80, right: 420 },
-      maxZoom: 14,
+      maxZoom: 12,
       duration: 1500
     });
   }

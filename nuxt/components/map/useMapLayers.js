@@ -51,6 +51,35 @@ export function useMapLayers(map) {
     addLineLayer('proyectos-lineas', 'proyectos-lineas');
     addLineLayer('proyectos-multilineas', 'proyectos-multilineas');
 
+    // Ícono del tipo de extractivismo al centro de cada línea. Se fuerza
+    // 'viewport' para que el pin quede vertical (si no, Mapbox lo rota al
+    // ángulo de la línea) y el icon-offset lo levanta por encima del trazo,
+    // igual que el pin de los puntos.
+    map.value.addLayer({
+      id: 'proyectos-lineas-icon',
+      type: 'symbol',
+      source: 'proyectos-lineas',
+      layout: {
+        'symbol-placement': 'line-center',
+        'icon-rotation-alignment': 'viewport',
+        'icon-image': [
+            'image',
+            ['get', 'icon_pin'],
+            { params: { icon_color: ['get', 'color'] } }
+        ],
+        'icon-size': [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          5, 0.6,
+          11, 0.9,
+          15, 1.2
+        ],
+        'icon-offset': [0, -15],
+        'icon-allow-overlap': true
+      },
+    });
+
 
     map.value.addLayer({
       id: 'proyectos-poligonos-fill',
