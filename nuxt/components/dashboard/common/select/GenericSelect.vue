@@ -150,7 +150,7 @@ function openDialog(is_add=true){
     @update:model-value="changeValue"
     @update:search="searchQuery = $event"
   >
-    <template #item="{ item, props: {onClick, title, value} }">
+    <template #item="{ internalItem: item, props: {onClick, title, value} }">
       <v-list-item
         @click="onClick"
         :title="title"
@@ -202,7 +202,7 @@ function openDialog(is_add=true){
         </template>
       </v-list-item>
     </template>
-    <template #selection="{ item }" v-if="!is_multiple">
+    <template #selection="{ internalItem: item }" v-if="!is_multiple">
       <v-icon
         v-if="item.raw.icon"
         :color="item.raw.color || 'grey-darken-3'"

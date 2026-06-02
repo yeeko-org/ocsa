@@ -157,7 +157,7 @@ const label_other_reason = computed(() => {
   >
 
     <div class="d-flex flex-column ml-6 justify-center">
-      <span class="text-caption text-grey-darken-1">
+      <span class="text-body-small text-grey-darken-1">
         ¿Cumple los criterios de selección?
       </span>
 
@@ -173,7 +173,7 @@ const label_other_reason = computed(() => {
           v-for="option in valid_options"
           :key="option.id"
           :color="option.color"
-          class="text-caption"
+          class="text-body-small"
           :value="option.id"
           :prepend-icon="option.icon"
           disabled
@@ -204,7 +204,7 @@ const label_other_reason = computed(() => {
             :value="option.value"
             :prepend-icon="option.icon"
             :loading="sending_link"
-            class="text-caption"
+            class="text-body-small"
           >
             {{option.name}}
 
@@ -252,7 +252,7 @@ const label_other_reason = computed(() => {
     class="px-0"
     :order="col_order"
   >
-    <span class="text-subtitle-1 font-weight-bold">
+    <span class="text-title-medium font-weight-bold">
       Nota en la que se menciona:
     </span>
     <PanelList

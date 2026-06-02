@@ -66,7 +66,7 @@ const final_state = computed(() => {
         <TitleCommon
           :title_text="main.project_full.name"
           :title_width="300"
-          card_class="ml-2 text-body-1"
+          card_class="ml-2 text-body-large"
         />
       </template>
       <span v-else class="font-weight-bold">
@@ -82,8 +82,8 @@ const final_state = computed(() => {
     </template>
     <template #details>
       <div class="d-flex flex-column ml-3" v-if="final_state">
-        <div class="text-caption">Estado:</div>
-        <div class="text-subtitle-1">{{final_state.name}}</div>
+        <div class="text-body-small">Estado:</div>
+        <div class="text-title-medium">{{final_state.name}}</div>
       </div>
       <span v-else class="ml-3">Estado no definido</span>
     </template>

@@ -105,7 +105,7 @@ const full_paragraphs = computed(() => {
 <template>
   <v-card variant="flat">
     <v-card-title
-      class="text-subtitle-1 mt-4 d-flex align-center px-2 flex-wrap"
+      class="text-title-medium mt-4 d-flex align-center px-2 flex-wrap"
     >
       <span class="font-weight-bold">
         Párrafos de la pre-nota:
@@ -159,7 +159,7 @@ const full_paragraphs = computed(() => {
               />
             </div>
             <b v-if="paragraph.image">[IMAGEN]</b>
-            <span v-html="paragraph.text" class="text-body-1">
+            <span v-html="paragraph.text" class="text-body-large">
               </span>
           </v-card-text>
         </v-card>
@@ -181,7 +181,7 @@ const full_paragraphs = computed(() => {
             <v-card
               class="mx-n4 my-n2"
             >
-              <v-card-title class="text-subtitle-1">
+              <v-card-title class="text-title-medium">
                 {{ paragraph.idx }}. Click para ver todos los párrafos
               </v-card-title>
               <v-card-text>

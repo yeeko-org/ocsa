@@ -12,6 +12,7 @@ import MapLayerSwitch from "~/components/map/MapLayerSwitch.vue";
 import MapFilterRail from "~/components/map/MapFilterRail.vue";
 import MapFilterChips from "~/components/map/MapFilterChips.vue";
 import { useMapFilterUrl } from "~/components/map/useMapFilterUrl.js";
+import { useMapStyle, MAP_STYLE } from "~/components/map/useMapStyle.js";
 
 definePageMeta({
   layout: 'map',
@@ -34,6 +35,17 @@ const {
 } = useMapLayers(map);
 
 const { setupClusterMarkers } = useMapClusters(map);
+
+// Alterna mapa ↔ satélite. setStyle borra las capas custom, así que las
+// reconstruimos al cargar el nuevo estilo.
+const { isSatelliteView, isSwitching, toggleMapStyle } = useMapStyle(map, {
+  onStyleReload: rebuildAfterStyleChange
+});
+
+function rebuildAfterStyleChange() {
+  initializeMapLayers();
+  updateMapData();
+}
 
 // Filtros ↔ URL: hidrata desde los query params al cargar y los mantiene
 // sincronizados (vistas compartibles, decisions §15).
@@ -119,7 +131,7 @@ function buildPreMap() {
 
   map.value = new mapboxgl.Map({
     container: mapContainer.value,
-    style: 'mapbox://styles/rickrebel/cm6ls9un800kr01qqdu1g48nq',
+    style: MAP_STYLE,
     // center: [-102.552784, 23.634501], // Centro de México
     // zoom: 4.5,
     // Encuadre inicial por bounding box: Mapbox calcula el zoom según
@@ -171,7 +183,10 @@ function buildMap(){
        en sm/xs, franja bajo la isla. -->
   <MainFilterMap/>
   <ProjectsPanelMap/>
-  <MapLayerSwitch/>
+  <MapLayerSwitch
+    :is_satellite="isSatelliteView"
+    :is_switching="isSwitching"
+    @toggle="toggleMapStyle"/>
 
   <div class="map-container" ref="mapContainer">
 

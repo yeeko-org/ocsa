@@ -32,7 +32,7 @@ const width = computed(() => {
         Tipo de ubicación:
       </div>
     </template>
-    <template #item="{ item, props: {onClick, title, value} }">
+    <template #item="{ internalItem: item, props: {onClick, title, value} }">
       <v-list-item
         @click="onClick"
         :title="title"
@@ -47,7 +47,7 @@ const width = computed(() => {
       </v-list-item>
     </template>
 
-    <template #selection="{ item }">
+    <template #selection="{ internalItem: item }">
       <v-icon
         v-if="item.raw.icon"
         color="primary"

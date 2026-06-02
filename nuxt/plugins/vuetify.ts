@@ -10,7 +10,7 @@ import { h } from 'vue'
 import { aliases as mdAliases } from 'vuetify/iconsets/md'
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
-import { VDateInput } from "vuetify/labs/VDateInput"
+import { VDateInput } from "vuetify/components/VDateInput"
 
 const materialSymbols = {
   component: (props: { tag: string; icon: string }) =>
@@ -24,6 +24,7 @@ export default defineNuxtPlugin((app) => {
       VDateInput
     },
     theme: {
+      defaultTheme: 'light',
       themes: {
         light: {
           dark: false,

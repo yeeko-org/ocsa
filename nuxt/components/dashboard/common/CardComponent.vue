@@ -38,7 +38,7 @@ import(`~/components/dashboard/${route_key.value}/${snake_name.value}/${card_nam
     :title="title"
     :note_id="note_id"
   />
-  <span v-else class="text-h6 mr-2 text-warning">
+  <span v-else class="text-title-large mr-2 text-warning">
     Sin {{title || collection_data.name}}
   </span>
 </template>

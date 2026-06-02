@@ -105,7 +105,7 @@ const hierarchical_objects = computed(() => {
     :color="group.color"
   >
     <div
-      class="text-subtitle-1 mt-2 mb-1 font-weight-bold d-flex"
+      class="text-title-medium mt-2 mb-1 font-weight-bold d-flex"
     >
       <v-icon
         :color="group.color"
@@ -130,10 +130,10 @@ const hierarchical_objects = computed(() => {
       :style="clickable ? 'cursor: pointer;' : ''"
       @click="openCategoryDialog(group, type_elem)"
     >
-      <span class="text-subtitle-2 font-weight-medium text-black">
+      <span class="text-title-small font-weight-medium text-black">
         {{type_elem.name}}
       </span>
-      <span class="text-caption text-grey text-no-wrap">
+      <span class="text-body-small text-grey text-no-wrap">
         ({{type_elem.filter_objects.length}}
         nota{{ type_elem.filter_objects.length === 1 ? '' : 's' }})
       </span>

@@ -26,7 +26,7 @@ const full_belongs = computed(() => {
     :class="{ 'py-2': !is_simple}"
   >
     <div class="d-flex flex-wrap align-center">
-      <span v-if="title" class="text-caption mr-2 text-grey-darken-2">
+      <span v-if="title" class="text-body-small mr-2 text-grey-darken-2">
         ({{ title }})
       </span>
       <v-card
@@ -68,13 +68,13 @@ const full_belongs = computed(() => {
     </div>
     <div class="d-flex align-center">
       <span
-        :class="is_simple ? 'text-body-2 font-weight-medium' : 'text-h6'"
+        :class="is_simple ? 'text-body-medium font-weight-medium' : 'text-title-large'"
       >
         {{ full_main.name }}
       </span>
       <span
         v-if="!is_simple && full_main.alternative_names"
-        class="text-caption ml-2 mt-1"
+        class="text-body-small ml-2 mt-1"
       >
         ({{ full_main.alternative_names }})
       </span>

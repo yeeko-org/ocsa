@@ -501,7 +501,7 @@ function changeSubtypeValue(value){
     max-width="1020"
   >
     <v-card>
-      <v-card-title class="text-h5 d-flex">
+      <v-card-title class="text-headline-small d-flex">
         {{ collections[level_dialog].plural_name }}
         <v-spacer></v-spacer>
         <v-btn

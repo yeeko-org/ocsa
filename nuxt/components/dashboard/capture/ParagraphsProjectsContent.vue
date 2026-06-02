@@ -209,7 +209,7 @@ watch(content_paragraphs, (new_content) => {
 <template>
   <v-card variant="flat">
     <v-card-title
-      class="text-subtitle-1 mt-4 d-flex align-center px-2 flex-wrap ga-2"
+      class="text-title-medium mt-4 d-flex align-center px-2 flex-wrap ga-2"
     >
       <span class="font-weight-bold">
         Párrafos de la pre-nota:

@@ -54,7 +54,7 @@ function openNoteDialog(note) {
 </script>
 
 <template>
-  <span class="text-subtitle-1 text-deep-purple mt-2 ml-1">
+  <span class="text-title-medium text-deep-purple mt-2 ml-1">
     Mencionado directamente en {{related_notes.length}}
     nota{{plural_comp}}:
   </span>

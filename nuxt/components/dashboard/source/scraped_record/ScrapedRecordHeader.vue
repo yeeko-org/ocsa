@@ -36,7 +36,7 @@ const is_init_ready = computed(() => {
   >
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
-        <div class="text-caption text-purple-darken-1">
+        <div class="text-body-small text-purple-darken-1">
           {{main.source_full?.name}}
         </div>
         <div class="font-weight-medium">
@@ -47,7 +47,7 @@ const is_init_ready = computed(() => {
     <template #details>
       <div class="d-flex flex-column align-center">
         <span
-          class="text-caption text-grey"
+          class="text-body-small text-grey"
         >
           Recolección:
         </span>

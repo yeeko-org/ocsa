@@ -171,7 +171,7 @@ function selectItem(item) {
 
 <template>
   <div class="d-flex align-center">
-    <span v-if="in_sheet" class="text-h6 text-black mr-6">
+    <span v-if="in_sheet" class="text-title-large text-black mr-6">
       <slot name="title">
       </slot>
     </span>
@@ -237,7 +237,7 @@ function selectItem(item) {
     </v-card>
   </div>
   <v-card class="mt-2" v-if="results.length">
-    <span v-if="!in_sheet" class="text-grey-darken-1 text-caption">
+    <span v-if="!in_sheet" class="text-grey-darken-1 text-body-small">
       Página {{page_number}} de {{Math.ceil(total_count / final_filters.page_size)}}
       | {{total_count}} Resultados
     </span>

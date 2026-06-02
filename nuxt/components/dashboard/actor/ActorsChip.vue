@@ -46,7 +46,7 @@ const actor_by_position = computed(() => {
     >
       <span
         v-if="!is_simple"
-        class="text-caption"
+        class="text-body-small"
         :class="`text-${position.color}`"
       >
         {{ position.count }}
@@ -66,7 +66,7 @@ const actor_by_position = computed(() => {
           class="mx-n4 my-n2"
         >
           <v-card-title
-            class="text-subtitle-1"
+            class="text-title-medium"
             _class="`text-${position.color}`"
           >
             {{ position.name }}
@@ -75,7 +75,7 @@ const actor_by_position = computed(() => {
             <div
               v-for="element in position.elements"
               :key="element"
-              class="text-body-2"
+              class="text-body-medium"
             >
               {{ element }}
             </div>
@@ -87,7 +87,7 @@ const actor_by_position = computed(() => {
       v-if="!actor_by_position.length"
       class="d-flex flex-column align-center"
     >
-      <div class="text-warning text-body-2">
+      <div class="text-warning text-body-medium">
         0
       </div>
       <v-icon color="warning">
@@ -102,7 +102,7 @@ const actor_by_position = computed(() => {
           class="mx-n4 my-n2"
         >
           <v-card-title
-            class="text-subtitle-1"
+            class="text-title-medium"
             _class="`text-${position.color}`"
           >
             No hay ningún actor participante

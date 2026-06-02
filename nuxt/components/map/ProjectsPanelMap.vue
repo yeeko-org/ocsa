@@ -31,7 +31,7 @@ watch(targetProjectId, (id) => {
       v-if="!smAndDown"
       class="projects-panel"
       width="400"
-      elevation="8"
+      elevation="5"
     >
       <ProjectsPanelContent/>
     </v-card>

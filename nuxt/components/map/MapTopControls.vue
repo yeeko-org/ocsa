@@ -41,7 +41,7 @@ const public_links = [
   <v-sheet
     class="map-top-left d-flex align-center pa-1"
     rounded="lg"
-    elevation="6"
+    elevation="4"
   >
     <v-card
       variant="text"
@@ -50,7 +50,7 @@ const public_links = [
       min-width="0"
     >
       <span
-        class="text-h4 font-weight-bold text-primary"
+        class="text-headline-large font-weight-bold text-primary"
       >
         OCSA
       </span>

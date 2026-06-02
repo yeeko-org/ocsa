@@ -126,7 +126,7 @@ function validate(){
                 :main_object="item.event_full"
               />
             </div>
-            <div class="text-caption text-grey-darken-2">
+            <div class="text-body-small text-grey-darken-2">
               {{item.event_full.description}}
             </div>
           </v-card>

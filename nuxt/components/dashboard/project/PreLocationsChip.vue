@@ -40,7 +40,7 @@ const discarded_count = computed(() => {
     v-if="final_locations.length > 0"
     variant="tonal"
     color="indigo-accent-2"
-    class="text-body-2 px-2 py-1 mt-2"
+    class="text-body-medium px-2 py-1 mt-2"
   >
     <div
       v-for="location in final_locations"

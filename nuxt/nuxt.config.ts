@@ -1,6 +1,7 @@
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineNuxtConfig({
+  css: ['~/assets/styles/vuetify-overrides.css'],
   runtimeConfig: {
     mapboxToken: process.env.NUXT_MAPBOX_TOKEN,
     public: {

@@ -30,7 +30,7 @@ const props = defineProps({
 
     <template #title>
       <div class="d-flex flex-column align-center">
-        <div class="text-caption text-grey-darken-1">
+        <div class="text-body-small text-grey-darken-1">
 
           <span v-if="main.date">
             {{dayjs(main.date).format('DD/MM/YYYY')}}
@@ -60,7 +60,7 @@ const props = defineProps({
       <TitleCommon
         :title_text="main.project_full?.name"
         :title_width="260"
-        card_class="ml-2 text-body-1"
+        card_class="ml-2 text-body-large"
       />
 
     </template>

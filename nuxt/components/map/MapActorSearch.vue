@@ -15,7 +15,7 @@
     prepend-inner-icon="search"
   >
     <template #no-data>
-      <div class="text-caption text-medium-emphasis pa-3">
+      <div class="text-body-small text-medium-emphasis pa-3">
         La búsqueda de actores se conecta al backend en una próxima fase.
       </div>
     </template>

@@ -79,7 +79,7 @@ defineExpose({finishSave})
 <template>
   <v-dialog v-model="is_open" max-width="1200">
     <v-card v-if="full_main">
-      <v-card-title class="text-h5 d-flex">
+      <v-card-title class="text-headline-small d-flex">
         {{ title }}
         <v-spacer></v-spacer>
         <v-btn

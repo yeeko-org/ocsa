@@ -96,7 +96,7 @@ const discarded_reason = computed(() => {
   >
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
-        <div class="ml-2 text-caption">
+        <div class="ml-2 text-body-small">
           <span class="text-grey-darken-1">
             {{pretty_date}}
           </span>
@@ -105,7 +105,7 @@ const discarded_reason = computed(() => {
           </span>
         </div>
         <v-card
-          class="ml-2 text-body-1"
+          class="ml-2 text-body-large"
           variant="flat"
           color="transparent"
           style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
@@ -130,7 +130,7 @@ const discarded_reason = computed(() => {
       >
         <v-btn
           variant="outlined"
-          class="text-body-2"
+          class="text-body-medium"
           :color="valid_value.color"
           :prepend-icon="valid_value.icon"
           size="small"
@@ -147,7 +147,7 @@ const discarded_reason = computed(() => {
               class="mx-n4 my-n2"
             >
               <v-card-title
-                class="text-subtitle-1 text-uppercase"
+                class="text-title-medium text-uppercase"
               >
                 Motivo de descarte:
               </v-card-title>
@@ -168,7 +168,7 @@ const discarded_reason = computed(() => {
                 </div>
                 <div
                   v-if="main.other_discarded_reason"
-                  class="text-subtitle-1"
+                  class="text-title-medium"
                 >
                   {{ main.other_discarded_reason }}
                 </div>
@@ -179,7 +179,7 @@ const discarded_reason = computed(() => {
         <v-btn
           readonly
           variant="plain"
-          class="text-body-2 mt-n1"
+          class="text-body-medium mt-n1"
           :color="pre_valid_value.color"
           :prepend-icon="pre_valid_value.icon"
           size="small"
@@ -195,7 +195,7 @@ const discarded_reason = computed(() => {
           <span
             v-for="qualification in main.qualifications"
             :key="qualification.id"
-            class="text-caption mr-1 text-grey-darken-1"
+            class="text-body-small mr-1 text-grey-darken-1"
           >
             {{ qualification.certainty_degree }}
           </span>

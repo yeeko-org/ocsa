@@ -75,7 +75,7 @@ const show_displacement = computed(() => {
         >
         </v-select>
       </div>
-      <div class="mt-2 text-subtitle-1">
+      <div class="mt-2 text-title-medium">
         Origen del desplazamiento:
       </div>
       <div class="d-flex flex-wrap">
@@ -88,7 +88,7 @@ const show_displacement = computed(() => {
       </div>
       <div
         v-if="item.dimension"
-        class="mt-2 text-subtitle-1"
+        class="mt-2 text-title-medium"
       >
         Destino del desplazamiento:
       </div>

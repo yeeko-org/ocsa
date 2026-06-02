@@ -109,7 +109,7 @@ const saveOrder = (val) => {
         class="mt-0 px-0 pt-2 pb-1 text-center"
         width="44"
       >
-        <div class="text-caption">Orden:</div>
+        <div class="text-body-small">Orden:</div>
         <div>{{main.order}}</div>
       </v-card>
       <v-card

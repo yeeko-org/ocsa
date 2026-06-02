@@ -113,7 +113,7 @@ function closeSearchDialog(new_item) {
         :note_id="note_id"
       />
     </slot>
-    <span v-else class="text-h6 mr-2 text-warning">
+    <span v-else class="text-title-large mr-2 text-warning">
       Sin {{title || final_collection_data.name}}
     </span>
     <v-spacer></v-spacer>

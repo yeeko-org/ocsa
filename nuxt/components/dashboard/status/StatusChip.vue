@@ -65,7 +65,7 @@ const item_built = computed(() => {
         color: "grey",
         color_text: "white",
         icon: "help",
-        back_text: "grey--text text--darken-1",
+        back_text: "text-grey-darken-1",
       };
   }
   catch (e){
@@ -90,12 +90,12 @@ const label = computed(() => {
 <template>
   <div
     v-if="item_built"
-    class="d-flex text-body-3 align-center"
+    class="d-flex text-body-medium align-center"
     :class="custom_class"
   >
     <span
       v-if="!props.hide_details"
-      class="text-caption text-grey-darken-1"
+      class="text-body-small text-grey-darken-1"
       :class="props.left_label ? 'mr-1' : 'mb-n1'"
     >
       {{ label }}

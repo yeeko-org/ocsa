@@ -145,7 +145,7 @@ async function deleteRecord() {
 </script>
 
 <template>
-  <v-card class="mb-3 pa-3" elevation="8">
+  <v-card class="mb-3 pa-3" elevation="5">
     <v-alert
       v-if="errors"
       type="error"

@@ -55,7 +55,7 @@ const isOpen = computed({
     </template>
 
     <v-card min-width="340" max-width="460" class="pa-2">
-      <div class="text-subtitle-1 font-weight-bold px-2 pt-1 pb-2 d-flex
+      <div class="text-title-medium font-weight-bold px-2 pt-1 pb-2 d-flex
         align-center">
         <v-icon :color="rg.color" :icon="rg.icon" class="mr-2"/>
         {{ rg.label }}
@@ -72,7 +72,7 @@ const isOpen = computed({
       </div>
 
       <!-- 2. Posiciones: chips toggle (siempre seleccionables). -->
-      <div class="text-subtitle-2 font-weight-medium px-2">Posiciones</div>
+      <div class="text-title-small font-weight-medium px-2">Posiciones</div>
       <v-chip-group
         v-model="mapStore.filters.positions"
         multiple
@@ -102,7 +102,7 @@ const isOpen = computed({
           v-if="mapStore.filters.positions.includes(grp.id)"
           class="mt-1"
         >
-          <div class="text-caption text-medium-emphasis px-2">
+          <div class="text-body-small text-medium-emphasis px-2">
             {{ grp.name }}
           </div>
           <v-list

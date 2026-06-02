@@ -98,10 +98,10 @@ function trashFile(file){
           @click:close="trashFile(item.file)"
           prepend-icon="picture_as_pdf"
         >
-          <span class="white--text" v-if="item.url">
+          <span class="text-white" v-if="item.url">
             {{item.name}}
           </span>
-          <span class="white--text" v-else>
+          <span class="text-white" v-else>
             {{item.file.name}}
           </span>
         </v-chip>

@@ -64,7 +64,7 @@ const mention_counts = computed(() => {
     </template>
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
-        <div class="ml-2 text-caption" v-if="main.parent_project_full">
+        <div class="ml-2 text-body-small" v-if="main.parent_project_full">
           <v-icon
             size="small"
             color="deep-purple"
@@ -76,7 +76,7 @@ const mention_counts = computed(() => {
             {{main.parent_project_full.name}}
           </span>
         </div>
-        <div v-else-if="main.is_grouper" class="ml-2 text-caption">
+        <div v-else-if="main.is_grouper" class="ml-2 text-body-small">
           <v-icon
             class="mr-1"
             color="deep-purple"
@@ -91,7 +91,7 @@ const mention_counts = computed(() => {
         <TitleCommon
           :title_text="main.name"
           :title_width="300"
-          card_class="ml-2 text-body-1"
+          card_class="ml-2 text-body-large"
         />
       </div>
     </template>
@@ -153,10 +153,10 @@ const mention_counts = computed(() => {
         class="ml-2"
       />
       <div class="ml-1 d-flex flex-column align-center">
-        <div class="text-grey text-caption">
+        <div class="text-grey text-body-small">
           {{main.proyecto_id_ref}}
         </div>
-        <div class="text-grey-lighten-1 text-caption">
+        <div class="text-grey-lighten-1 text-body-small">
           {{main.id}}
         </div>
       </div>

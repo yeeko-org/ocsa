@@ -285,7 +285,7 @@ function selectItem(item) {
     style="width: 100%;"
   >
     <template v-if="is_mini">
-      <v-card-title class="text-h5 d-flex align-center">
+      <v-card-title class="text-headline-small d-flex align-center">
         Busca y elige un {{ collection_data.name }}
         <v-spacer></v-spacer>
         <v-btn
@@ -300,7 +300,7 @@ function selectItem(item) {
         <v-spacer></v-spacer>
       </v-card-subtitle>
     </template>
-    <div class="text-h6">
+    <div class="text-title-large">
       <slot name="title">
       </slot>
     </div>

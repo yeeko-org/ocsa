@@ -187,7 +187,7 @@ function exportProjects() {
       class="d-flex align-center px-3 py-2"
       :class="{ 'panel-header': view === 'list' }"
     >
-      <span class="text-h6 font-weight-bold">{{ countLabel }}</span>
+      <span class="text-title-large font-weight-bold">{{ countLabel }}</span>
       <v-spacer/>
       <v-btn
         v-if="view === 'list' || view === 'pill'"
@@ -226,7 +226,7 @@ function exportProjects() {
         v-tooltip="view === 'child' ? 'Volver al agrupador' : 'Volver a la lista'"
         @click="view === 'child' ? backToParent() : backToList()"
       />
-      <div class="breadcrumb text-truncate text-body-2 d-flex align-center">
+      <div class="breadcrumb text-truncate text-body-medium d-flex align-center">
         <template v-if="view === 'child'">
           <v-btn
             variant="text"

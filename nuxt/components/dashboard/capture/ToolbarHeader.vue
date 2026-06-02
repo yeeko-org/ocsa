@@ -61,7 +61,7 @@ const addItem = (group=null) => {
     :height="second_level ? 32 : 46"
   >
     <v-toolbar-title
-      :class="second_level ? '' : 'text-h6'"
+      :class="second_level ? '' : 'text-title-large'"
     >
       {{ child_collection.plural_name }} ({{ total_count }})
     </v-toolbar-title>

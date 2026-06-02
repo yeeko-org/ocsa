@@ -61,7 +61,7 @@ function formatDate(date) {
       v-if="mention.status_history?.length > 0"
       class="mt-2"
     >
-      <div class="text-subtitle-2 text-grey-darken-1 mb-1 d-flex align-center">
+      <div class="text-title-small text-grey-darken-1 mb-1 d-flex align-center">
         <v-icon size="small" class="mr-1">history_toggle_off</v-icon>
         Historial de estatus
       </div>
@@ -76,7 +76,7 @@ function formatDate(date) {
         <span class="font-weight-medium">
           {{ statusName(entry.status_project) }}
         </span>
-        <span class="ml-2 text-caption">
+        <span class="ml-2 text-body-small">
           {{ formatDate(entry.date) }}
         </span>
       </v-chip>

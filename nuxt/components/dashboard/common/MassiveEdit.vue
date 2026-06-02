@@ -106,9 +106,9 @@ function sendMassiveEdit() {
 </script>
 
 <template>
-  <v-card class="mb-3 pa-3" elevation="8">
+  <v-card class="mb-3 pa-3" elevation="5">
     <span
-      class="mr-2 text-subtitle-1"
+      class="mr-2 text-title-medium"
     >Selecciona los campos a editar masivamente:</span>
     <v-chip-group
       v-model="active_fields"

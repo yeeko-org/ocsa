@@ -5,6 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import {LOCATION_TYPES} from "~/composables/location_types.js";
+import {MAP_STYLE, SATELLITE_STYLE} from "~/components/map/useMapStyle.js";
 
 const props = defineProps({
   location_type: {
@@ -91,9 +92,7 @@ function initializeMap() {
 
   map.value = new mapboxgl.Map({
     container: mapContainer.value,
-    style: isSatelliteView.value
-      ? 'mapbox://styles/rickrebel/cm83y5cbp004301s5861t18gi'
-      : 'mapbox://styles/rickrebel/cm6ls9un800kr01qqdu1g48nq',
+    style: isSatelliteView.value ? SATELLITE_STYLE : MAP_STYLE,
     center: center,
     zoom: zoom
   });
@@ -382,9 +381,7 @@ function calculateBounds(geometry) {
 function toggleMapStyle(val) {
   if (!map.value) return;
 
-  const newStyle = isSatelliteView.value
-    ? 'mapbox://styles/rickrebel/cm83y5cbp004301s5861t18gi'
-    : 'mapbox://styles/rickrebel/cm6ls9un800kr01qqdu1g48nq'
+  const newStyle = isSatelliteView.value ? SATELLITE_STYLE : MAP_STYLE
 
   try {
     const features = draw.value ? draw.value.getAll().features : [];
@@ -414,7 +411,7 @@ function toggleMapStyle(val) {
 
 <template>
   <v-card>
-    <v-card-title class="text-h5 d-flex">
+    <v-card-title class="text-headline-small d-flex">
       {{ full_main.id ? 'Editar' : 'Agregar' }}
       {{ location_type_full.name || 'Ubicación' }}
       <v-switch

@@ -140,7 +140,7 @@ function sendReprocess() {
    :order="col_order"
   >
     <div v-if="full_main.date_start">
-      <span class="text-caption">
+      <span class="text-body-small">
         Última actualización:
       </span>
       {{dayjs(full_main.date_start).fromNow()}}

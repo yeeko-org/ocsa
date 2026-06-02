@@ -21,7 +21,7 @@ defineProps({
       :content-props="{ background: 'white' }"
     >
       <div v-if="title" class="font-weight-bold pt-3 pb-2">{{ title }}:</div>
-      <div class="text-subtitle-2 pb-3">{{ description }}</div>
+      <div class="text-title-small pb-3">{{ description }}</div>
     </v-tooltip>
   </v-sheet>
 </template>

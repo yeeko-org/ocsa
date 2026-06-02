@@ -97,7 +97,7 @@ const participants = computed(() => {
     </template>
     <template #title>
       <div class="d-flex flex-column align-start justify-start">
-        <div class="ml-2 text-caption" v-if="main.parent_actor_full">
+        <div class="ml-2 text-body-small" v-if="main.parent_actor_full">
           <span class="text-grey-darken-1">
             Padre:
           </span>
@@ -106,7 +106,7 @@ const participants = computed(() => {
           </span>
         </div>
         <div
-          class="ml-2 text-body-1"
+          class="ml-2 text-body-large"
           style="text-wrap: pretty; max-height: 54px; overflow: hidden;"
           v-tooltip:bottom="main.name"
         >
@@ -160,7 +160,7 @@ const participants = computed(() => {
       />
       <span v-if="actor.network_seq" class="ml-2">
         <v-icon color="deep-purple">lan</v-icon>
-        <span class="text-body-2">Red {{ actor.network_seq }}</span>
+        <span class="text-body-medium">Red {{ actor.network_seq }}</span>
       </span>
     </template>
   </HeaderCommon>

@@ -87,7 +87,7 @@ function wantRecovery(val=true){
         <SectionTitle
           :title="texts.title"
         />
-        <div class="text-h6 text-grey-darken-1 my-2">
+        <div class="text-title-large text-grey-darken-1 my-2">
           {{texts.alternative_title}}
         </div>
       </div>

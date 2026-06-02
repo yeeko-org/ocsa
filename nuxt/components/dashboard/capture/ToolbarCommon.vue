@@ -365,7 +365,7 @@ const color_child_card = computed(() => {
   <v-col :cols="cols" class="py-2 px-2">
     <v-card
       :class="second_level ? 'mt-2' : ''"
-      elevation="4"
+      elevation="3"
       variant="elevated"
       :color="`${color}-lighten-${second_level ? 4 : 3}`"
     >

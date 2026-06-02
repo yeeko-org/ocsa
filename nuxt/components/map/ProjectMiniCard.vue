@@ -54,7 +54,7 @@ const props = defineProps({
       </div>
       <div
         v-if="!from_parent_project && full_main.parent_project_full && false"
-        class="text-caption"
+        class="text-body-small"
       >
         <v-icon
           size="small"
@@ -80,7 +80,7 @@ const props = defineProps({
         />
         <div
           v-else
-          :class="from_parent_project ? 'text-body-1' : 'text-h6 font-weight-bold'"
+          :class="from_parent_project ? 'text-body-large' : 'text-title-large font-weight-bold'"
           class="mt-1"
         >
             {{ full_main.name }}

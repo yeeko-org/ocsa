@@ -178,7 +178,7 @@ function confirmInherit() {
   />
   <v-dialog v-model="dialog_inherit_open" max-width="800">
     <v-card>
-      <v-card-title class="text-h5 d-flex">
+      <v-card-title class="text-headline-small d-flex">
         Heredar conflicto del Proyecto agrupador
         <v-spacer></v-spacer>
         <v-btn

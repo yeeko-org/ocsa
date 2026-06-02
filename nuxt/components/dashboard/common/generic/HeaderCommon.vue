@@ -93,7 +93,7 @@ const emits = defineEmits(['open-panel'])
       </v-icon>
     </slot>
     <v-toolbar-title
-      class="text-subtitle-1 mr-4"
+      class="text-title-medium mr-4"
       :style="`max-width: ${title_width + 10}px;`"
     >
       <div class="d-flex align-center">

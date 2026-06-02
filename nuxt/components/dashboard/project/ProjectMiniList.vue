@@ -30,7 +30,7 @@ const show_criteria = computed(() => {
 
 <template>
   <div
-    class="text-body-2 mr-6"
+    class="text-body-medium mr-6"
     style="overflow: hidden;"
     :style="{ 'max-width': show_criteria ? '410px' : '260px',
             'max-height': show_full ? 'none' : '80px'}"

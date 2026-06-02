@@ -44,17 +44,16 @@ let colorMixin = {
         return st
       }
 
-      const { baseCss, baseJs, shadeCss, shadeJs } =
-        parseVuetifyColor(st.color)
+      const { baseJs, shadeJs } = parseVuetifyColor(st.color)
 
-      st.color_text = shadeCss
-        ? `${baseCss}--text text--${shadeCss}`
-        : `${baseCss}--text`
-
+      // color_text: nombre de color (no clase) para la prop :color del icono.
+      // back_text: clase de texto Vuetify 4 para el contenido del chip/tooltip.
+      // Ambos derivan del contraste YIQ contra el color de fondo del status.
       try {
         const hex = colors[baseJs][shadeJs]
         if (!hex) {
-          st.back_text = 'black--text'
+          st.color_text = 'black'
+          st.back_text = 'text-black'
           return st
         }
         const h = hex.replace('#', '')
@@ -62,10 +61,13 @@ let colorMixin = {
         const g = parseInt(h.substr(2, 2), 16)
         const b = parseInt(h.substr(4, 2), 16)
         const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000
-        st.back_text = yiq >= 128 ? 'black--text' : 'white--text'
+        const is_light = yiq >= 128
+        st.color_text = is_light ? 'black' : 'white'
+        st.back_text = is_light ? 'text-black' : 'text-white'
       } catch (e) {
         console.log(e, 'baseJs:', baseJs, 'shadeJs:', shadeJs)
-        st.back_text = 'black--text'
+        st.color_text = 'black'
+        st.back_text = 'text-black'
       }
 
       return st

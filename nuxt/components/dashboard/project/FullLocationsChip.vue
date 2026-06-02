@@ -41,7 +41,7 @@ const locations_count = computed(() => {
     v-if="saved_locations.length > 0"
     variant="tonal"
     color="indigo"
-    class="text-body-2 px-2 d-flex align-center py-1"
+    class="text-body-medium px-2 d-flex align-center py-1"
   >
     <v-icon
       size="20"

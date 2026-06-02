@@ -74,7 +74,7 @@ const emits = defineEmits(['change-status'])
     :loading="loading"
     @update:modelValue="emits('change-status', $event)"
   >
-    <template #item="{ item, props: {onClick, title, value} }">
+    <template #item="{ internalItem: item, props: {onClick, title, value} }">
       <v-list-item
         @click="onClick"
         :title="title"
@@ -90,7 +90,7 @@ const emits = defineEmits(['change-status'])
         </template>
       </v-list-item>
     </template>
-    <template #selection="{ item }">
+    <template #selection="{ internalItem: item }">
       <div
         :class="`text-${item.raw.color || 'grey'}`"
         class="d-flex pb-1 pt-2"

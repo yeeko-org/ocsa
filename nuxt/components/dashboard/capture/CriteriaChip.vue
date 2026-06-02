@@ -189,7 +189,7 @@ const total_count = computed(() => {
           class="mx-n4 my-n2"
         >
           <v-card-title
-            class="text-subtitle-1"
+            class="text-title-medium"
           >
             {{ field.name }}
           </v-card-title>

@@ -22,15 +22,15 @@ const registered_actors = computed(() => props.all_actors.filter(a => a.id))
     class="mr-2"
     :rules="[rules.required]"
   >
-    <template #item="{ item, props: { onClick, value } }">
+    <template #item="{ internalItem: item, props: { onClick, value } }">
       <v-list-item @click="onClick" :value="value">
         <template v-slot:default>
           <ActorCard :full_main="item.raw" :title="item.title" is_simple />
         </template>
       </v-list-item>
     </template>
-    <template #selection="{ item }">
-      <ActorCard :full_main="item.raw" :title="item.name" is_simple />
+    <template #selection="{ internalItem: item }">
+      <ActorCard :full_main="item.raw" :title="item.title" is_simple />
     </template>
   </v-select>
 </template>

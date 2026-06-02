@@ -23,7 +23,7 @@ const pretty_date = computed(() => {
 
 <template>
   <div class="d-flex flex-column align-start justify-start">
-    <div class="ml-2 text-caption">
+    <div class="ml-2 text-body-small">
       <span class="text-grey-darken-1">
         {{pretty_date}}
       </span>
@@ -33,14 +33,14 @@ const pretty_date = computed(() => {
     </div>
     <div
       v-if="forced_title"
-      class="ml-2 text-body-1 text-purple-darken-3"
+      class="ml-2 text-body-large text-purple-darken-3"
     >
       {{ main.title }}
     </div>
     <TitleCommon
       v-else
       :title_text="main.title"
-      card_class="ml-2 font-weight-normal text-body-1 mt-n1"
+      card_class="ml-2 font-weight-normal text-body-large mt-n1"
     />
   </div>
 

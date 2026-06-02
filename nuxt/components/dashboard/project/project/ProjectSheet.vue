@@ -176,7 +176,7 @@ const event_init_filters = computed(() => {
 </script>
 
 <template>
-  <v-card class="mb-4" elevation="4" variant="elevated" color="blue-grey-lighten-4">
+  <v-card class="mb-4" elevation="3" variant="elevated" color="blue-grey-lighten-4">
     <LocationsToolbar
       v-model="locations"
       :parent_id="full_main.id"
@@ -204,7 +204,7 @@ const event_init_filters = computed(() => {
   </v-card>
   <v-card
     class="mb-4"
-    elevation="4"
+    elevation="3"
     variant="elevated"
     color="brown-lighten-4"
   >

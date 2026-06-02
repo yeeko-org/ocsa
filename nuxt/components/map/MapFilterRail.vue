@@ -34,7 +34,7 @@ function collapseRail() {
       class="map-rail pa-1 d-flex"
       color="#FFFFFFD9"
       rounded="lg"
-      elevation="6"
+      elevation="4"
     >
       <!-- Botón menu → expande/colapsa el rail (Capa C). -->
       <div class="rail-item d-flex align-center">
@@ -79,7 +79,7 @@ function collapseRail() {
         <v-expand-x-transition>
           <div
             v-if="mapStore.railExpanded"
-            class="text-overline text-medium-emphasis px-2 text-no-wrap"
+            class="text-label-small text-medium-emphasis px-2 text-no-wrap"
           >
             Acciones
           </div>

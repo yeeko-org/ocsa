@@ -15,7 +15,7 @@ const props = defineProps({
     >
       local_fire_department
     </v-icon>
-    <div class="text-subtitle-1">
+    <div class="text-title-medium">
       {{ full_main.name }}
     </div>
   </div>

@@ -29,7 +29,7 @@ function openChildProjectCard(child_project) {
       <v-icon color="grey" class="mr-2">
         hub
       </v-icon>
-      <span class="text-subtitle-1 text-grey">
+      <span class="text-title-medium text-grey">
         {{ full_main.children_projects_full.length }} proyectos vinculados:
       </span>
     </div>
@@ -64,7 +64,7 @@ function openChildProjectCard(child_project) {
             <div class="font-weight-bold">
               {{ child_project.name }}
             </div>
-            <div class="text-caption mt-2">
+            <div class="text-body-small mt-2">
               (Haz clic para ver más detalles)
             </div>
           </div>

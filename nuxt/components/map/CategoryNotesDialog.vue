@@ -68,7 +68,7 @@ function openNote(note) {
           <v-icon :color="group.color" class="mr-2">
             {{ group.icon }}
           </v-icon>
-          <span class="text-subtitle-2 text-grey-darken-2">
+          <span class="text-title-small text-grey-darken-2">
             {{ group.title }}
           </span>
           <v-spacer></v-spacer>
@@ -79,12 +79,12 @@ function openNote(note) {
             @click="dialog = false"
           ></v-btn>
         </div>
-        <div class="text-h6 font-weight-bold">
+        <div class="text-title-large font-weight-bold">
           {{ type_elem.name }}
         </div>
         <div
           v-if="type_elem.description"
-          class="text-body-2 text-grey-darken-1 mt-1"
+          class="text-body-medium text-grey-darken-1 mt-1"
           style="white-space: normal;"
         >
           {{ type_elem.description }}
@@ -94,7 +94,7 @@ function openNote(note) {
       <v-card-text class="py-3 px-2">
         <div
           v-if="notes_with_snippets.length === 0"
-          class="text-body-2 text-grey text-center py-4"
+          class="text-body-medium text-grey text-center py-4"
         >
           No hay notas asociadas.
         </div>
@@ -113,7 +113,7 @@ function openNote(note) {
             <div
               v-for="(snippet, idx) in entry.snippets"
               :key="snippet.id || idx"
-              class="text-body-2 d-flex align-start mb-1"
+              class="text-body-medium d-flex align-start mb-1"
             >
               <v-icon size="x-small" class="mr-1 mt-1">
                 fiber_manual_record

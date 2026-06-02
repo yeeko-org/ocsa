@@ -133,7 +133,7 @@ function indirectSelectDay(day) {
       :class="month.month === 'ene' ? 'mt-4' : ''"
     >
       <div
-        class="text-subtitle-1 mr-3 text-left"
+        class="text-title-medium mr-3 text-left"
         style="width: 60px;"
       >
         {{month.month}}
@@ -163,7 +163,7 @@ function indirectSelectDay(day) {
           <v-avatar
             :color="day.is_between?.color || 'cyan-lighten-4'"
             size="x-small"
-            class="mr-1 text-caption text-grey-darken-3"
+            class="mr-1 text-body-small text-grey-darken-3"
           >
             {{day.number}}
           </v-avatar>
@@ -172,7 +172,7 @@ function indirectSelectDay(day) {
           v-else
           :color="day.is_between?.color || 'cyan-lighten-4'"
           size="x-small"
-          class="mr-1 text-caption text-grey-darken-2 cursor-pointer"
+          class="mr-1 text-body-small text-grey-darken-2 cursor-pointer"
           @click="indirectSelectDay(day)"
         >
           {{day.number}}

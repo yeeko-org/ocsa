@@ -90,7 +90,7 @@ const purposeModel = computed({
     </template>
 
     <v-card min-width="340" max-width="460" class="pa-2">
-      <div class="text-subtitle-1 font-weight-bold px-2 pt-1 pb-2 d-flex
+      <div class="text-title-medium font-weight-bold px-2 pt-1 pb-2 d-flex
         align-center">
         <v-icon :color="rg.color" :icon="rg.icon" class="mr-2"/>
         {{ rg.label }}
@@ -103,7 +103,7 @@ const purposeModel = computed({
 
       <!-- Mecanismos legales: propósito despojo / defensa (decisions §7). -->
       <div v-if="rg.purposeKey" class="d-flex align-center mb-3 mx-2">
-        <span class="text-body-2 mr-3 flex-shrink-0">Propósito del Mecanismo:</span>
+        <span class="text-body-medium mr-3 flex-shrink-0">Propósito del Mecanismo:</span>
         <v-btn-toggle
           v-model="purposeModel"
           multiple
@@ -128,7 +128,7 @@ const purposeModel = computed({
         <div v-for="sel in visibleSelects" :key="sel.stateKey">
           <!-- Con >1 select, cada uno lleva su título + ayuda. -->
           <div v-if="multiSelect" class="d-flex align-center mt-1">
-            <span class="text-subtitle-2 font-weight-medium">
+            <span class="text-title-small font-weight-medium">
               {{ labelFor(sel) }}
             </span>
             <MapHelpTooltip

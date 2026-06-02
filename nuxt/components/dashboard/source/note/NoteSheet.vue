@@ -188,7 +188,7 @@ const two_columns = ref(true)
       <v-card
         v-if="full_main"
         class="mb-4"
-        elevation="4"
+        elevation="3"
         variant="elevated"
         color="brown-lighten-4"
       >
@@ -221,7 +221,7 @@ const two_columns = ref(true)
       :cols="two_columns ? 8 : 12"
       :class="[two_columns ? 'pa-0' : '', { 'scroll-column': two_columns }]"
     >
-      <v-card v-if="all_mentions" elevation="5">
+      <v-card v-if="all_mentions" elevation="3">
         <v-card-title>
           <div class="d-flex">
             {{ all_mentions.length }} menciones de proyectos
@@ -258,7 +258,7 @@ const two_columns = ref(true)
                 variant="tonal"
                 color="red-lighten-4"
               >
-                <div class="text-h6">
+                <div class="text-title-large">
                   Mención de "{{mention.project_full.name}}" descartada
                 </div>
                 <v-spacer></v-spacer>
@@ -333,7 +333,7 @@ const two_columns = ref(true)
               variant="tonal"
               color="purple"
             >
-              <div class="text-h6">
+              <div class="text-title-large">
 
                 {{mention.project_full.name}}
               </div>

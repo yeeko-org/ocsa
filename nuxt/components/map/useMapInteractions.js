@@ -28,7 +28,7 @@ export function setupInteractions(map) {
         ${projectData.name || 'Proyecto sin nombre'}
       </div>
       <div class="mb-1">
-        <div class="text-caption text-grey-darken-1">
+        <div class="text-body-small text-grey-darken-1">
           Tipo de megaproyecto:
         </div>
         <span class="font-weight-bold">

@@ -56,7 +56,7 @@ const final_height = computed(() => {
   <v-card
     variant="tonal"
     :color="final_color"
-    class="text-body-2 d-flex align-center justify-center"
+    class="text-body-medium d-flex align-center justify-center"
     :height="final_height"
     :class="horizontal ? 'py-2 px-3' : 'py-1 px-2'"
   >
@@ -87,7 +87,7 @@ const final_height = computed(() => {
             warning_amber
           </v-icon>
         </template>
-        <div v-else :class="{'text-subtitle-1': horizontal}">
+        <div v-else :class="{'text-title-medium': horizontal}">
           {{count}}
           <span v-if="is_simple">
             /&nbsp;∞
@@ -114,7 +114,7 @@ const final_height = computed(() => {
         <span v-if="is_simple">
           con relación <br>
         </span>
-        <span v-if="is_simple" class="text-caption text-warning">
+        <span v-if="is_simple" class="text-body-small text-warning">
           (El total real puede ser mayor)
         </span>
       </div>

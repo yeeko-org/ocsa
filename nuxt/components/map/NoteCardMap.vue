@@ -86,7 +86,7 @@ const ordered_mentions = computed(() => {
           </v-card>
 
           <template v-if="ordered_mentions.others.length > 0">
-            <div class="text-subtitle-2 text-grey-darken-1 mb-2 ml-1">
+            <div class="text-title-small text-grey-darken-1 mb-2 ml-1">
               Otras menciones en esta nota:
             </div>
             <v-expansion-panels variant="accordion">

@@ -73,7 +73,7 @@ const show_paragraph = computed(() => {
         >
         </v-img>
       </template>
-      <span v-html="paragraph.text" class="text-body-1">
+      <span v-html="paragraph.text" class="text-body-large">
       </span>
     </v-card-text>
   </v-card>
@@ -95,7 +95,7 @@ const show_paragraph = computed(() => {
       <v-card
         class="mx-n4 my-n2"
       >
-        <v-card-title class="text-subtitle-1">
+        <v-card-title class="text-title-medium">
           {{ paragraph.idx }}. Click para ver todos los párrafos
         </v-card-title>
         <v-card-text>

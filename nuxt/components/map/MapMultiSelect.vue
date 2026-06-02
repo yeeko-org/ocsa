@@ -61,7 +61,7 @@ onMounted(() => {
     hide-details
     class="mb-2"
   >
-    <template #item="{ props: itemProps, item }">
+    <template #item="{ props: itemProps, internalItem: item }">
       <v-list-item v-bind="itemProps" :title="null" class="ms-item">
         <template #prepend>
           <v-checkbox-btn

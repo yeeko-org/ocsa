@@ -1,0 +1,12 @@
+/* Overrides de compatibilidad con el look previo a Vuetify 4 (MD3). */
+
+/*
+ * MD3 quitó el text-transform: uppercase por defecto de los botones.
+ * Lo restauramos globalmente. La regla vive FUERA de las CSS layers de
+ * Vuetify, así gana sobre el `.v-btn { text-transform: none }` base
+ * (que está en una layer). El `:not(.text-none)` preserva los botones
+ * que piden minúsculas explícitamente con la utilidad `text-none`.
+ */
+.v-btn:not(.text-none):not(.text-lowercase):not(.text-capitalize) {
+  text-transform: uppercase;
+}

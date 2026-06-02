@@ -26,7 +26,7 @@ const extractivism_types_list = computed(() => {
       smAndDown ? 'legend-mobile' : 'legend-desktop',
     ]"
   >
-    <div class="text-subtitle-2 pr-3 font-weight-medium flex-shrink-0">
+    <div class="text-title-small pr-3 font-weight-medium flex-shrink-0">
       Tipos de extractivismo:
     </div>
     <v-chip-group

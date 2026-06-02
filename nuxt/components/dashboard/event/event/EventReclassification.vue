@@ -141,7 +141,7 @@ async function setStage(new_stage) {
         Confianza: {{ Math.round(confidence) }}%
       </v-chip>
       <v-spacer />
-      <span v-if="reclassified_at" class="text-caption text-grey">
+      <span v-if="reclassified_at" class="text-body-small text-grey">
         Reclasificado: {{ reclassified_at }}
       </span>
     </div>
@@ -159,7 +159,7 @@ async function setStage(new_stage) {
       <div class="font-weight-bold" v-else>
         La IA no pudo resolver un tipo de mecanismo legal válido.
       </div>
-      <div class="text-body-2 mt-1">
+      <div class="text-body-medium mt-1">
         El tipo del evento NO se modificó (conserva los valores
         anteriores).
       </div>
@@ -172,7 +172,7 @@ async function setStage(new_stage) {
         cols="12"
         md="6"
       >
-        <div class="text-overline">{{ col.title }}</div>
+        <div class="text-label-small">{{ col.title }}</div>
         <v-card variant="tonal" :color="col.color" class="pa-2">
           <div
             v-for="row in ROWS"
@@ -180,11 +180,11 @@ async function setStage(new_stage) {
             class="py-1"
             :class="{ 'reclass-diff': diff[row.key] }"
           >
-            <div class="text-caption text-medium-emphasis">
+            <div class="text-body-small text-medium-emphasis">
               {{ row.label }}
             </div>
             <div
-              class="text-body-2"
+              class="text-body-medium"
               :class="{ 'font-weight-bold': diff[row.key] }"
             >
               {{ col.view[row.key] }}

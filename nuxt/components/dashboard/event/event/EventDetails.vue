@@ -49,7 +49,7 @@ const purpose_options = computed(() => {
   >
   </v-textarea>
   <template v-if="full_main.event_group === event_group_violence.id">
-    <div class="text-subtitle-1 mt-4">Número de víctimas:</div>
+    <div class="text-title-medium mt-4">Número de víctimas:</div>
     <div class="d-flex mr-8">
       <v-text-field
         v-model="full_main.number_women"
@@ -84,7 +84,7 @@ const purpose_options = computed(() => {
     </div>
   </template>
   <template v-if="event_group_show_purpose.includes(full_main.event_group)">
-    <div class="text-subtitle-1 mt-4 text-grey-darken-2">
+    <div class="text-title-medium mt-4 text-grey-darken-2">
       Intencionalidad del mecanismo:
     </div>
     <div class="d-flex mr-8">

@@ -100,7 +100,7 @@ defineExpose({
         </v-card-title>
         <v-card-title
           v-if="day"
-          class="text-h6 text-primary pt-0"
+          class="text-title-large text-primary pt-0"
         >
           {{ day.date.format('DD-MMMM-YYYY') }} ({{ day.day_of_week }})
         </v-card-title>

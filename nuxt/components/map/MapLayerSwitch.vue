@@ -1,22 +1,25 @@
 <script setup>
-// Stub (Sesión 1): reserva el espacio del cambio de capa satélite/mapa.
-// La implementación real (map.setStyle) llega en la Sesión 5.
-function notImplementedYet() {
-  // Placeholder: aún sin lógica de cambio de estilo.
-}
+// Botón flotante que alterna entre el estilo "mapa" y "satélite".
+defineProps({
+  is_satellite: { type: Boolean, default: false },
+  is_switching: { type: Boolean, default: false }
+});
+const emit = defineEmits(['toggle']);
 </script>
 
 <template>
   <v-btn
     class="map-layer-switch"
-    icon="layers"
+    icon
     variant="elevated"
     size="small"
-    @click="notImplementedYet"
+    :loading="is_switching"
+    :disabled="is_switching"
+    @click="emit('toggle')"
   >
-    <v-icon>layers</v-icon>
+    <v-icon>{{ is_satellite ? 'map' : 'satellite_alt' }}</v-icon>
     <v-tooltip activator="parent" location="end">
-      Cambiar vista satélite / mapa (próximamente)
+      {{ is_satellite ? 'Ver mapa' : 'Ver satélite' }}
     </v-tooltip>
   </v-btn>
 </template>

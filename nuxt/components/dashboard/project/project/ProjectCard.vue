@@ -27,7 +27,7 @@ const parent_project = computed(() => {
   <div class="py-2">
     <div
       v-if="parent_project || full_main.status_validation || full_main.project_type_text"
-      class="text-caption d-flex ga-4"
+      class="text-body-small d-flex ga-4"
     >
       <div v-if="parent_project" class="mt-n1">
         <v-icon
@@ -73,13 +73,13 @@ const parent_project = computed(() => {
         >
           hub
         </v-icon>
-        <div class="text-h6">
+        <div class="text-title-large">
             {{ full_main.name }}
         </div>
       </div>
       <div
         v-if="full_main.alternative_name"
-        class="text-caption"
+        class="text-body-small"
       >
         ({{ full_main.alternative_name }})
       </div>

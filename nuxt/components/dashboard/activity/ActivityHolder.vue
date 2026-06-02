@@ -155,7 +155,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-card class="px-3" elevation="10" height="100%">
+  <v-card class="px-3" elevation="5" height="100%">
     <v-card-title class="d-flex align-center flex-wrap">
       Actividades
       <v-text-field
@@ -204,7 +204,7 @@ onMounted(() => {
       <v-col
         v-if="day.is_sunday"
         cols="12"
-        class="text-subtitle-1 font-weight-bold py-2"
+        class="text-title-medium font-weight-bold py-2"
       >
         Semana {{ day.human_month }}
         <span class="text-primary font-weight-bold">
@@ -218,7 +218,7 @@ onMounted(() => {
         >
           <div>
             <div
-              class="d-flex align-center text-subtitle-1
+              class="d-flex align-center text-title-medium
                 font-weight-bold pt-1"
               style="max-height: 18px; min-width: 96px;"
             >
@@ -233,13 +233,13 @@ onMounted(() => {
                 <v-icon size="small">add</v-icon>
               </v-btn>
             </div>
-            <div class="text-caption">
+            <div class="text-body-small">
               {{ day.day_of_week }}
             </div>
           </div>
           <div
             v-if="day.hours > 0"
-            class="text-body-2 text-primary font-weight-bold"
+            class="text-body-medium text-primary font-weight-bold"
           >
             {{ day.hours.toFixed(2) }} hrs
           </div>

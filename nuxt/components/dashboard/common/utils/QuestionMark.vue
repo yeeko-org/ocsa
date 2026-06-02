@@ -29,7 +29,7 @@ function saveDefinition() {
 
 <template>
   <v-btn
-    class="hidden-xs-only px-0"
+    class="d-none d-sm-flex px-0"
     icon
     :size="size"
     @click="dialog = true"

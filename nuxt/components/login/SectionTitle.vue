@@ -11,7 +11,7 @@ export default {
 </script>
 
 <template>
-  <span class="text-h4 my-3 text-accent">
+  <span class="text-headline-large my-3 text-accent">
     {{title}}
   </span>
 </template>

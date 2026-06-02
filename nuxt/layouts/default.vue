@@ -30,7 +30,7 @@ const public_links = [
           href="https://ocsa.ibero.mx"
           min-width="100"
         >
-          <span class="text-white text-h5 font-weight-bold">OCSA</span>
+          <span class="text-white text-headline-small font-weight-bold">OCSA</span>
           <v-tooltip activator="parent" location="bottom">
             Ir al inicio del sitio del OCSA
           </v-tooltip>

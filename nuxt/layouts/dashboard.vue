@@ -200,7 +200,7 @@ const main_collections = computed(() => {
           <template v-slot:prepend v-if="false">
             <v-icon>dashboard</v-icon>
           </template>
-          <v-list-item-title class="text-h6">
+          <v-list-item-title class="text-title-large">
             Dashboard OCSA
           </v-list-item-title>
           <v-list-item-subtitle>

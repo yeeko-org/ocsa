@@ -204,7 +204,7 @@ export function useMapClusters(map) {
                     : leaf.properties.project;
 
                  description += `
-                   <div class="mb-1 text-caption d-flex align-center">
+                   <div class="mb-1 text-body-small d-flex align-center">
                      <span class="mr-1">•</span>
                      <span>${projectData.name}</span>
                    </div>
@@ -213,10 +213,10 @@ export function useMapClusters(map) {
 
                if (props.point_count > 10) {
                  description += `
-                   <div class="text-caption text-grey mt-2 font-italic">
+                   <div class="text-body-small text-grey mt-2 font-italic">
                      ... y ${props.point_count - 10} más.
                    </div>
-                   <div class="text-caption text-blue font-weight-bold mt-1">
+                   <div class="text-body-small text-blue font-weight-bold mt-1">
                      (Haz clic para acercar)
                    </div>
                  `;
