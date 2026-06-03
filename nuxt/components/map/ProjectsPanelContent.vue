@@ -40,17 +40,13 @@ const childProject = ref(null)
 const loadingExport = ref(false)
 
 // --- Lista / contador ---
-const filteredProjects = computed(() => {
-  const selected = mapStore.filters.extractivism
-  if (!selected.length)
-    return uniqueProjects.value
-  return uniqueProjects.value.filter(p =>
-    selected.some(set => p.extractivism_type_ids.includes(set))
-  )
-})
+// Filtrado centralizado: el mismo Set que pinta el mapa (store/map.js) recorta
+// la lista, así panel y mapa nunca divergen.
+const filteredProjects = computed(() =>
+  uniqueProjects.value.filter(p => mapStore.visibleProjectIds.has(p.id)))
 
 const total = computed(() => uniqueProjects.value.length)
-const hasFilter = computed(() => mapStore.filters.extractivism.length > 0)
+const hasFilter = computed(() => mapStore.hasActiveFilters)
 
 const countLabel = computed(() => {
   const n = filteredProjects.value.length

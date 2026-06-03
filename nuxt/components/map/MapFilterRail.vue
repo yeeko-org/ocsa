@@ -31,8 +31,8 @@ function collapseRail() {
     <v-sheet
       v-click-outside="collapseRail"
       :class="smAndDown ? 'rail-horizontal' : 'rail-vertical'"
-      class="map-rail pa-1 d-flex"
-      color="#FFFFFFD9"
+      class="map-rail pa-1 d-flex ga-2"
+      color="#FFFFFFA9"
       rounded="lg"
       elevation="4"
     >
@@ -47,7 +47,7 @@ function collapseRail() {
         />
         <v-tooltip
           activator="parent"
-          text="Menú de filtros"
+          text="Filtrar proyectos por..."
           location="end"
         />
       </div>
@@ -158,7 +158,7 @@ function collapseRail() {
   left: 8px;
   top: 76px;
   flex-direction: column;
-  gap: 4px;
+  //gap: 4px;
   align-items: flex-start;
 }
 

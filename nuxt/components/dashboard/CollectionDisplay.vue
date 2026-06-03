@@ -304,7 +304,7 @@ function selectItem(item) {
       <slot name="title">
       </slot>
     </div>
-    <v-row class="mx-0" v-if="collection_data">
+    <v-row class="mx-0" density="compact" v-if="collection_data">
       <v-col cols="12" class="px-0" v-if="!simplified_filters">
         <v-chip-group
           v-model="visible_filters"
@@ -332,7 +332,7 @@ function selectItem(item) {
         :visible_filters="visible_filters"
       />
     </v-row>
-    <v-row>
+    <v-row density="compact" class="mt-2">
       <v-col
         cols="12"
         class="d-flex mb-2 mt-0 flex-wrap"

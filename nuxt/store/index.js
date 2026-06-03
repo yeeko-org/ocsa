@@ -39,6 +39,9 @@ export const useMainStore = defineStore('main', {
     activities: [],
     spend_groups: [],
     content_paragraphs: {},
+    // Índice de facetas por proyecto para el filtrado del mapa en cliente
+    // (Sesión 4.1, api-contract §1). { built_at, facets: { [projId]: {e,i,s,p} } }
+    projectFacets: null,
   }),
   actions: {
     // setHeader() {
@@ -395,6 +398,20 @@ export const useMainStore = defineStore('main', {
       } catch (error) {
         console.error(error)
         ;
+      }
+    },
+    // Índice directo de facetas por proyecto (evento/afectación/subtipo/
+    // participación). Se pide una sola vez por sesión: el front construye el
+    // índice invertido en memoria a partir de esto (store/map.js).
+    async fetchProjectFacets() {
+      if (this.projectFacets) return this.projectFacets
+      const { $api } = useNuxtApp()
+      try {
+        const { data } = await $api.get('/map/project_facets/')
+        this.projectFacets = data
+        return data
+      } catch (error) {
+        console.error(error)
       }
     },
     async sendReprocessScrapedRecord(scraped_id) {

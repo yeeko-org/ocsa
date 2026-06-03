@@ -19,7 +19,7 @@ const chipCount = group => group.blocks.reduce((n, b) => n + b.length, 0)
 // Desplazamiento: los chips se corren a la derecha cuando el rail se expande.
 const chipsLeft = computed(() =>
   RAIL_GEOMETRY.chipsLeft +
-  (mapStore.railExpanded ? RAIL_GEOMETRY.expandedExtra : 0) + 'px')
+  (mapStore.railExpanded ? RAIL_GEOMETRY.expandedExtra : 4) + 'px')
 
 // Cuadrícula adaptativa de un bloque → array de filas (cada fila = 1-2 celdas).
 // Celda = chip normal o celda de overflow ({ overflow, hidden }).
@@ -93,10 +93,11 @@ function openPicker(id) {
                   :key="`${cell.stateKey}-${cell.value}`"
                   size="small"
                   variant="tonal"
+                  base-color="white"
                   :color="cell.color"
                   close-icon="clear"
                   closable
-                  class="cursor-pointer"
+                  class="cursor-pointer special-chip"
                   @click="openPicker(group.id)"
                   @click:close="mapStore.removeCapsule(cell)"
                 >
@@ -179,5 +180,12 @@ function openPicker(id) {
 
 .chip-line:last-child {
   margin-bottom: 0;
+}
+
+.special-chip .v-chip__underlay {
+  opacity: 0.6 !important;
+  backdrop-filter: blur(2px);
+   -webkit-backdrop-filter: blur(2px);
+  background-color: rgba(0, 150, 136, 0.2);
 }
 </style>

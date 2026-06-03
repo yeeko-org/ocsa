@@ -72,9 +72,10 @@ watch(readyGets, (newVal) => {
   }
 });
 
-// El extractivismo vive ahora en el objeto `filters` (store/map.js). Un
-// getter + deep capta tanto la reasignación del array como mutaciones in-place.
-watch(() => mapStore.filters.extractivism, updateMapData, { deep: true });
+// Filtrado centralizado: `visibleProjectIds` es un computed que devuelve un Set
+// nuevo ante cualquier cambio de filtros (y al poblarse el índice de facetas),
+// así que un watch por identidad basta para re-pintar (sin deep).
+watch(() => mapStore.visibleProjectIds, updateMapData);
 
 watch(targetProjectId, (newId) => {
   if (!newId || !map.value) return;
@@ -168,6 +169,9 @@ function buildMap(){
   updateMapData();
   setupInteractions(map);
   setupClusterMarkers();
+  // Carga diferida del índice de facetas: ya pintamos el mapa, no bloquea el
+  // primer paint. Al llegar, visibleProjectIds cambia y el watch re-pinta.
+  mapStore.ensureFacets();
 }
 
 </script>
@@ -196,10 +200,6 @@ function buildMap(){
 
 <style>
 @import 'mapbox-gl/dist/mapbox-gl.css';
-
-html {
-  overflow: hidden;
-}
 
 .map-container {
   width: 100%;

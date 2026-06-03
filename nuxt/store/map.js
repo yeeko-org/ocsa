@@ -15,6 +15,11 @@ export const useMapStore = defineStore('map', () => {
   // (~121 s con 950 features). Con shallowRef solo la reasignación de .value
   // es reactiva; los features quedan como objetos planos.
   const projectLocations = shallowRef({ type: 'FeatureCollection', features: [] })
+  // Índice invertido de facetas en memoria (Sesión 4.1). Se construye una sola
+  // vez al cargar el payload; shallowRef porque son Maps grandes que se asignan
+  // de golpe (mismo criterio que projectLocations: evitar proxies por feature).
+  const facetIndex = shallowRef(null)  // { e:Map, i:Map, s:Map, p:Map }
+  const facetsReady = ref(false)
   // Estado de filtros unificado y URL-serializable (decisions §4, §15).
   // Cada clave es un filtro; los arrays guardan ids. `extractivism` vacío
   // = "todos" (sin filtrar), igual que el ref aislado que reemplaza.
@@ -118,6 +123,150 @@ export const useMapStore = defineStore('map', () => {
     return et_props
   })
 
+  // --- Índices y filtrado en cliente (Sesión 4.1, api-contract) ---
+  // Construye Map<catId, Set<projectId>> desde un accessor que da el/los id(s)
+  // de la dimensión para cada proyecto. Normaliza escalar|array.
+  function buildIndexFromProjects(projects, accessor) {
+    const index = new Map()
+    for (const p of projects) {
+      const raw = accessor(p)
+      if (raw == null) continue
+      const ids = Array.isArray(raw) ? raw : [raw]
+      for (const id of ids) {
+        if (id == null) continue
+        let set = index.get(id)
+        if (!set) index.set(id, set = new Set())
+        set.add(p.id)
+      }
+    }
+    return index
+  }
+
+  // Dimensiones derivadas del geojson (siempre disponibles, sin backend nuevo).
+  const extractivismIndex = computed(() =>
+    buildIndexFromProjects(uniqueProjects.value, p => p.extractivism_type_ids))
+  const megaprojectIndex = computed(() =>
+    buildIndexFromProjects(uniqueProjects.value, p => p.megaproject_type))
+  const stateIndex = computed(() =>
+    buildIndexFromProjects(uniqueProjects.value, p => p.state))
+
+  // Universo: todos los ids de proyecto (base de la intersección sin filtros).
+  const allProjectIds = computed(() =>
+    new Set(uniqueProjects.value.map(p => p.id)))
+
+  // participant_group → [participant_type ids]: resuelve el filtro de
+  // "posiciones" (guardado por grupo) contra las facetas `p` (por tipo).
+  const participantTypesByGroup = computed(() => {
+    const map = new Map()
+    ;(mainStore.cats?.participant_type || []).forEach(pt => {
+      let arr = map.get(pt.participant_group)
+      if (!arr) map.set(pt.participant_group, arr = [])
+      arr.push(pt.id)
+    })
+    return map
+  })
+
+  // Una pasada sobre el payload directo → un índice invertido por cada
+  // dimensión (letra) presente. NO hardcodea las letras: construye las que
+  // existan (e/i/s/p hoy; p.ej. 'u' de purpose cuando el backend la agregue,
+  // sin tocar este código). Clave ausente = el proyecto no contribuye a ella.
+  function buildFacetIndex(facets) {
+    const dims = {}
+    for (const [projId, dimObj] of Object.entries(facets)) {
+      const pid = Number(projId)
+      for (const [letter, ids] of Object.entries(dimObj)) {
+        if (!ids) continue
+        let target = dims[letter]
+        if (!target) dims[letter] = target = new Map()
+        for (const id of ids) {
+          let set = target.get(id)
+          if (!set) target.set(id, set = new Set())
+          set.add(pid)
+        }
+      }
+    }
+    return dims
+  }
+
+  // OR dentro de un grupo: unión de los Sets de los ids seleccionados. null si
+  // no hay ids (dimensión inactiva → no recorta). Un Set vacío sí recorta (ids
+  // que no matchean nada vacían la intersección).
+  function unionFromIndex(index, ids) {
+    if (!ids || !ids.length) return null
+    const out = new Set()
+    for (const id of ids) {
+      const set = index.get(id)
+      if (set) for (const v of set) out.add(v)
+    }
+    return out
+  }
+
+  // Intersección AND iterando el Set menor.
+  function intersect(a, b) {
+    const [small, big] = a.size <= b.size ? [a, b] : [b, a]
+    const out = new Set()
+    for (const v of small) if (big.has(v)) out.add(v)
+    return out
+  }
+
+  // Índice (Map<catId, Set<projId>>) de una faceta del payload; null si esa
+  // letra aún no existe (p.ej. 'u' antes de que el backend la emita) → ese
+  // filtro simplemente no recorta.
+  const indexForFacet = letter => facetIndex.value?.[letter] || null
+
+  // Proyectos visibles: AND entre grupos de las uniones OR de cada dimensión
+  // activa (api-contract "OR intra, AND inter"). Sin filtros → todos. El Set es
+  // de project.id únicos, así que sirve también de contador de proyectos.
+  //
+  // El mapeo dimensión→índice se DERIVA del registro declarativo
+  // (filterRegistry.js): cada select trae `facet` (payload) o `geoIndex`
+  // (geojson). Los tres grupos de evento, al ser entradas separadas con la
+  // misma faceta 'e', dan AND entre ellos y OR dentro de cada uno (decisions
+  // §7) sin lógica especial. Añadir un filtro nuevo no obliga a tocar esto.
+  const visibleProjectIds = computed(() => {
+    const groups = []
+    const push = set => { if (set) groups.push(set) }
+    const geo = {
+      extractivism: extractivismIndex.value,
+      megaproject: megaprojectIndex.value,
+      state: stateIndex.value,
+    }
+    const indexFor = sel =>
+      sel.facet ? indexForFacet(sel.facet) : geo[sel.geoIndex]
+
+    // Extractivismo no vive en el registro (se elige en la leyenda, §5).
+    push(unionFromIndex(geo.extractivism, filters.extractivism))
+
+    for (const reg of FILTER_REGISTRY) {
+      for (const sel of reg.selects || []) {
+        const idx = indexFor(sel)
+        if (idx) push(unionFromIndex(idx, filters[sel.stateKey]))
+      }
+      // Toggle de propósito (legal): faceta aparte del select. Mientras el
+      // backend no emita `purposeFacet`, indexForFacet devuelve null y no
+      // recorta (el chip sigue visible).
+      if (reg.purposeKey && reg.purposeFacet) {
+        const idx = indexForFacet(reg.purposeFacet)
+        if (idx) push(unionFromIndex(idx, filters[reg.purposeKey]))
+      }
+    }
+
+    // Actores/posiciones (grupo custom, faceta de participación 'p').
+    const fp = indexForFacet('p')
+    if (fp) {
+      // Sub-posiciones: ids de participant_type directos.
+      push(unionFromIndex(fp, Object.values(filters.positionTypes).flat()))
+      // Posiciones: cada grupo se expande a sus participant_type ids.
+      const posIds = filters.positions.flatMap(
+        g => participantTypesByGroup.value.get(g) || [])
+      push(unionFromIndex(fp, posIds))
+    }
+    // TODO(Fase B): `actors` → intersección con actor_projects.
+
+    if (!groups.length) return allProjectIds.value
+    return groups.reduce(intersect)
+  })
+
   // --- Resolución del registro de filtros (decisions §4, "mixin") ---
   // El registro estático vive en `components/map/filterRegistry.js`; aquí
   // solo la parte reactiva: navegar `all_nodes` y heredar metadatos.
@@ -191,7 +340,7 @@ export const useMapStore = defineStore('map', () => {
   // Recorta a 40 caracteres con elipsis (38 + …) para los chips de fila.
   function truncate(text) {
     const t = String(text ?? '')
-    return t.length > 40 ? `${t.slice(0, 38)}…` : t
+    return t.length > 36 ? `${t.slice(0, 32)}…` : t
   }
 
   const positionGroupById = id => positionGroups.value.find(g => g.id === id)
@@ -330,6 +479,16 @@ export const useMapStore = defineStore('map', () => {
     })
   }
 
+  // Carga diferida del payload de facetas + construcción del índice invertido.
+  // Idempotente: una sola vez por sesión. Se dispara tras el primer pintado.
+  async function ensureFacets() {
+    if (facetsReady.value) return
+    const data = await mainStore.fetchProjectFacets()
+    if (!data?.facets) return
+    facetIndex.value = buildFacetIndex(data.facets)
+    facetsReady.value = true
+  }
+
   // Decora cada feature con color/ícono/power para las capas del mapa.
   function hydrateProjectLocations() {
     projectLocations.value.features.forEach(feature => {
@@ -347,6 +506,9 @@ export const useMapStore = defineStore('map', () => {
     extractivismTypeProps,
     loadData,
     hydrateProjectLocations,
+    ensureFacets,
+    facetsReady,
+    visibleProjectIds,
     // --- Filtros ---
     filters,
     activePickerKey,

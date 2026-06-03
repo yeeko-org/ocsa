@@ -148,15 +148,11 @@ export function useMapLayers(map) {
   function updateMapData() {
     const project_locations = mapStore.projectLocations;
 
-    const selected_et = mapStore.filters.extractivism;
-    const select_all = selected_et.length === 0;
-
-    const features_filtered = project_locations.features.filter(f => {
-      if (select_all)
-        return true;
-      const extractivism_types = f.properties.extractivism_types;
-      return selected_et.some(set => extractivism_types.includes(set));
-    });
+    // Filtrado centralizado: un único Set de project.id resuelve TODAS las
+    // dimensiones (store/map.js). Sin filtros = todos los proyectos.
+    const visible = mapStore.visibleProjectIds;
+    const features_filtered = project_locations.features.filter(
+      f => visible.has(f.properties.project.id));
 
     let data = {};
     GEOMETRY_TYPES.forEach(gt => {
