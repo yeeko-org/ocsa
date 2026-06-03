@@ -1,11 +1,11 @@
-// components/map/useMapClusters.js
+// components/map/useClusters.js
 import mapboxgl from 'mapbox-gl';
 import * as d3 from 'd3';
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import {useMapStore} from "~/store/map.js";
 
-export function useMapClusters(map) {
+export function useClusters(map) {
   const mainStore = useMainStore();
   const { cats } = storeToRefs(mainStore);
   const mapStore = useMapStore();

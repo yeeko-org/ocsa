@@ -3,8 +3,8 @@
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import {useMapStore} from "~/store/map.js";
-import ProjectMiniCard from "~/components/map/ProjectMiniCard.vue";
-import ProjectDetailMap from "~/components/map/ProjectDetailMap.vue";
+import ProjectMiniCard from "~/components/map/panel/ProjectMiniCard.vue";
+import ProjectDetail from "~/components/map/panel/ProjectDetail.vue";
 
 // `embedded` = el contenido vive dentro del bottom-sheet (móvil). En ese
 // modo el sheet (vaul) gobierna mostrar/ocultar vía snap points, así que
@@ -301,7 +301,7 @@ function exportProjects() {
           class="overflow-y"
           :style="{ maxHeight: embedded ? 'calc(92vh - 64px)' : '78vh' }"
         >
-          <ProjectDetailMap
+          <ProjectDetail
             :selectedProject="view === 'child'
               ? selectedChildProject
               : selectedParentProject"

@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import {LOCATION_TYPES} from "~/composables/location_types.js";
-import {MAP_STYLE, SATELLITE_STYLE} from "~/components/map/useMapStyle.js";
+import {MAP_STYLE, SATELLITE_STYLE} from "~/components/map/engine/useMapStyle.js";
 
 const props = defineProps({
   location_type: {

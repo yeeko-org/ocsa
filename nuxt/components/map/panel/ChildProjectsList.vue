@@ -1,6 +1,6 @@
 <script setup>
 
-import ProjectMiniCard from "~/components/map/ProjectMiniCard.vue";
+import ProjectMiniCard from "~/components/map/panel/ProjectMiniCard.vue";
 
 const props = defineProps({
   full_main: {

@@ -3,11 +3,11 @@ import { computed, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { VMenu, VBottomSheet } from 'vuetify/components'
 import { useMapStore } from '~/store/map.js'
-import MapActorSearch from '~/components/map/MapActorSearch.vue'
-import MapHelpTooltip from '~/components/map/MapHelpTooltip.vue'
+import ActorSearch from '~/components/map/filters/custom/ActorSearch.vue'
+import HelpTooltip from '~/components/map/common/HelpTooltip.vue'
 
 // Grupo de actores del rail (decisions §10, Capas A/D): botón-ícono + popover
-// con dos controles —búsqueda de actor por nombre (MapActorSearch, stub) y
+// con dos controles —búsqueda de actor por nombre (ActorSearch, stub) y
 // posiciones (participant_group) como chips toggle que despliegan sus
 // sub-posiciones (participant_type del grupo).
 const { smAndDown } = useDisplay()
@@ -63,7 +63,7 @@ watch(isOpen, open => { if (open) mapStore.ensureActors() })
         align-center">
         <v-icon :color="rg.color" :icon="rg.icon" class="mr-2"/>
         {{ rg.label }}
-        <MapHelpTooltip
+        <HelpTooltip
           :title="rg.label"
           :description="rg.description"
           :color="rg.color"
@@ -72,7 +72,7 @@ watch(isOpen, open => { if (open) mapStore.ensureActors() })
 
       <!-- 1. Búsqueda de actor por nombre (componente stub). -->
       <div class="px-2 mb-3">
-        <MapActorSearch/>
+        <ActorSearch/>
       </div>
 
       <!-- 2. Posiciones: chips toggle (siempre seleccionables). -->

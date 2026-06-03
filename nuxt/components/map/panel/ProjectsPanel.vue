@@ -4,7 +4,7 @@ import {storeToRefs} from "pinia";
 import {useDisplay} from "vuetify";
 import {useMapStore} from "~/store/map.js";
 import { DrawerRoot, DrawerPortal, DrawerContent, DrawerHandle } from "vaul-vue";
-import ProjectsPanelContent from "~/components/map/ProjectsPanelContent.vue";
+import ProjectsPanelContent from "~/components/map/panel/ProjectsPanelContent.vue";
 
 const { smAndDown } = useDisplay()
 const mapStore = useMapStore()

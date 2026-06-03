@@ -2,12 +2,12 @@
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import ProjectMiniCard from "~/components/map/ProjectMiniCard.vue";
+import ProjectMiniCard from "~/components/map/panel/ProjectMiniCard.vue";
 
 import ConflictCard from "~/components/dashboard/project/conflict/ConflictCard.vue";
-import CollectionListMap from "~/components/map/CollectionListMap.vue";
-import ChildProjectsListMap from "~/components/map/ChildProjectsListMap.vue";
-import NotesListMap from "~/components/map/NotesListMap.vue";
+import CollectionList from "~/components/map/mentions/CollectionList.vue";
+import ChildProjectsList from "~/components/map/panel/ChildProjectsList.vue";
+import NotesList from "~/components/map/mentions/NotesList.vue";
 
 const mainStore = useMainStore()
 const { megaproject_types_dict } = storeToRefs(mainStore)
@@ -100,13 +100,13 @@ function openChildProjectCard(child_project){
         />
       </v-card>
 
-      <ChildProjectsListMap
+      <ChildProjectsList
         :full_main="full_main"
         :child-project="childProject"
         @open-child-project="openChildProjectCard"
       />
 
-      <CollectionListMap
+      <CollectionList
         v-if="full_main?.impacts?.length > 0"
         :objects="full_main.impacts"
         :mentions="full_main.mentions"
@@ -115,7 +115,7 @@ function openChildProjectCard(child_project){
         type_key="impact_type"
         subtype_key="impact_subtype"
       />
-      <CollectionListMap
+      <CollectionList
         v-if="full_main?.events?.length > 0"
         :objects="full_main.events"
         :mentions="full_main.mentions"
@@ -125,7 +125,7 @@ function openChildProjectCard(child_project){
         subtype_key="event_subtype"
       />
 
-      <NotesListMap
+      <NotesList
         :full_main="full_main"
         :selected-project="selectedProject"
       />

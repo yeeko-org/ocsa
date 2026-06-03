@@ -1,18 +1,18 @@
 <script setup>
 import mapboxgl from 'mapbox-gl';
 import {storeToRefs} from "pinia";
-import MainFilterMap from "~/components/map/MainFilterMap.vue";
+import ExtractivismLegend from "~/components/map/filters/custom/ExtractivismLegend.vue";
 import { useMapStore } from "~/store/map.js";
-import { useMapLayers } from "~/components/map/useMapLayers.js";
-import { setupInteractions } from "~/components/map/useMapInteractions.js";
-import { useMapClusters } from "~/components/map/useMapClusters.js";
-import ProjectsPanelMap from "~/components/map/ProjectsPanelMap.vue";
-import MapTopControls from "~/components/map/MapTopControls.vue";
-import MapLayerSwitch from "~/components/map/MapLayerSwitch.vue";
-import MapFilterRail from "~/components/map/MapFilterRail.vue";
-import MapFilterChips from "~/components/map/MapFilterChips.vue";
-import { useMapFilterUrl } from "~/components/map/useMapFilterUrl.js";
-import { useMapStyle, MAP_STYLE } from "~/components/map/useMapStyle.js";
+import { useLayers } from "~/components/map/engine/useLayers.js";
+import { setupInteractions } from "~/components/map/engine/mapInteractions.js";
+import { useClusters } from "~/components/map/engine/useClusters.js";
+import ProjectsPanel from "~/components/map/panel/ProjectsPanel.vue";
+import TopControls from "~/components/map/TopControls.vue";
+import LayerSwitch from "~/components/map/engine/LayerSwitch.vue";
+import FilterRail from "~/components/map/filters/FilterRail.vue";
+import FilterChips from "~/components/map/filters/FilterChips.vue";
+import { useMapFilterUrl } from "~/components/map/filters/useMapFilterUrl.js";
+import { useMapStyle, MAP_STYLE } from "~/components/map/engine/useMapStyle.js";
 
 definePageMeta({
   layout: 'map',
@@ -32,9 +32,9 @@ const {
 const {
   initializeMapLayers,
   updateMapData
-} = useMapLayers(map);
+} = useLayers(map);
 
-const { setupClusterMarkers } = useMapClusters(map);
+const { setupClusterMarkers } = useClusters(map);
 
 // Alterna mapa ↔ satélite. setStyle borra las capas custom, así que las
 // reconstruimos al cargar el nuevo estilo.
@@ -181,17 +181,17 @@ function buildMap(){
 </script>
 
 <template>
-  <MapTopControls/>
+  <TopControls/>
 
-  <MapFilterRail/>
-  <MapFilterChips/>
+  <FilterRail/>
+  <FilterChips/>
 
   <!-- Leyenda de extractivismo: sheet semitransparente flotante, siempre
        visible (decisions §5). En md+, a la derecha de la isla superior;
        en sm/xs, franja bajo la isla. -->
-  <MainFilterMap/>
-  <ProjectsPanelMap/>
-  <MapLayerSwitch
+  <ExtractivismLegend/>
+  <ProjectsPanel/>
+  <LayerSwitch
     :is_satellite="isSatelliteView"
     :is_switching="isSwitching"
     @toggle="toggleMapStyle"/>

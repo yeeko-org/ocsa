@@ -4,12 +4,12 @@ import { useDisplay } from 'vuetify'
 import { VMenu, VBottomSheet } from 'vuetify/components'
 import { useMainStore } from '~/store/index.js'
 import { useMapStore } from '~/store/map.js'
-import MapMultiSelect from '~/components/map/MapMultiSelect.vue'
-import MapHelpTooltip from '~/components/map/MapHelpTooltip.vue'
+import MultiSelectMap from '~/components/map/filters/MultiSelectMap.vue'
+import HelpTooltip from '~/components/map/common/HelpTooltip.vue'
 
 // Picker de un rail-group (decisions §4, Capa D): botón-ícono persistente
 // (Capa A) + popover transitorio (v-menu en escritorio / v-bottom-sheet en
-// móvil). El cuerpo compone un MapMultiSelect por cada `select` del grupo
+// móvil). El cuerpo compone un MultiSelectMap por cada `select` del grupo
 // (megaproyecto = extractivismo + megaproyecto; afectaciones = tipo +
 // subtipo condicional) más, en legal, el toggle de propósito.
 const props = defineProps({
@@ -94,7 +94,7 @@ const purposeModel = computed({
         align-center">
         <v-icon :color="rg.color" :icon="rg.icon" class="mr-2"/>
         {{ rg.label }}
-        <MapHelpTooltip
+        <HelpTooltip
           :title="rg.label"
           :description="rg.description"
           :color="rg.color"
@@ -131,13 +131,13 @@ const purposeModel = computed({
             <span class="text-title-small font-weight-medium">
               {{ labelFor(sel) }}
             </span>
-            <MapHelpTooltip
+            <HelpTooltip
               :title="labelFor(sel)"
               :description="helpFor(sel)"
               :color="rg.color"
             />
           </div>
-          <MapMultiSelect
+          <MultiSelectMap
             :group="group"
             :state-key="sel.stateKey"
             :picker="sel.picker"

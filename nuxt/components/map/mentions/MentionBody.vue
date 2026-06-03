@@ -3,7 +3,7 @@ import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import dayjs from "dayjs";
 
-import CollectionListMap from "~/components/map/CollectionListMap.vue";
+import CollectionList from "~/components/map/mentions/CollectionList.vue";
 
 const mainStore = useMainStore()
 const { all_nodes } = storeToRefs(mainStore)
@@ -42,14 +42,14 @@ function formatDate(date) {
   <div
     class="px-1 py-2"
   >
-    <CollectionListMap
+    <CollectionList
       v-if="mention.impacts?.length > 0"
       :objects="mention.impacts"
       node_name="impact_types"
       type_key="impact_type"
       :clickable="false"
     />
-    <CollectionListMap
+    <CollectionList
       v-if="mention.events?.length > 0"
       :objects="mention.events"
       node_name="event_types"

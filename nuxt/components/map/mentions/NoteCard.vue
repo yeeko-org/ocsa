@@ -2,8 +2,8 @@
 import {useMainStore} from "~/store/index.js";
 
 import NoteTitle from "~/components/dashboard/source/note/NoteTitle.vue";
-import ProjectMiniCard from "~/components/map/ProjectMiniCard.vue";
-import MentionBodyMap from "~/components/map/MentionBodyMap.vue";
+import ProjectMiniCard from "~/components/map/panel/ProjectMiniCard.vue";
+import MentionBody from "~/components/map/mentions/MentionBody.vue";
 
 const mainStore = useMainStore()
 const { getSimple } = mainStore
@@ -82,7 +82,7 @@ const ordered_mentions = computed(() => {
             <ProjectMiniCard
               :full_main="ordered_mentions.main.project_full"
             />
-            <MentionBodyMap :mention="ordered_mentions.main" />
+            <MentionBody :mention="ordered_mentions.main" />
           </v-card>
 
           <template v-if="ordered_mentions.others.length > 0">
@@ -101,7 +101,7 @@ const ordered_mentions = computed(() => {
                   />
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
-                  <MentionBodyMap :mention="mention" />
+                  <MentionBody :mention="mention" />
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>

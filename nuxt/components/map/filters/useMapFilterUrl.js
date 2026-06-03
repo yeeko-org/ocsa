@@ -1,6 +1,6 @@
 import _debounce from "lodash/debounce.js";
 import { useMapStore } from "~/store/map.js";
-import { FILTER_REGISTRY } from "~/components/map/filterRegistry.js";
+import { FILTER_REGISTRY } from "~/components/map/filters/filterRegistry.js";
 
 // Sincroniza el estado de filtros con los query params de la URL para que una
 // vista filtrada sea compartible/recuperable por link (decisions §15).

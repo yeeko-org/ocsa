@@ -2,8 +2,8 @@
 
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
-import CategoryNotesDialog from "~/components/map/CategoryNotesDialog.vue";
-import MapHelpTooltip from "~/components/map/MapHelpTooltip.vue";
+import MentionCollectionList from "~/components/map/mentions/MentionCollectionList.vue";
+import HelpTooltip from "~/components/map/common/HelpTooltip.vue";
 
 const mainStore = useMainStore()
 const { all_nodes } = storeToRefs(mainStore)
@@ -115,7 +115,7 @@ const hierarchical_objects = computed(() => {
       </v-icon>
       {{group.title}}:
       <v-spacer></v-spacer>
-      <MapHelpTooltip
+      <HelpTooltip
         :title="group.title"
         :description="group.description"
         :color="group.color"
@@ -150,7 +150,7 @@ const hierarchical_objects = computed(() => {
     </v-card>
   </v-card>
   
-  <CategoryNotesDialog
+  <MentionCollectionList
     v-if="clickable"
     v-model="dialog_open"
     :type_elem="selected_type_elem"

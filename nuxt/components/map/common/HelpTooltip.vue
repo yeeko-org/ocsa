@@ -1,6 +1,6 @@
 <script setup>
 // Ícono de ayuda (help_outline) con tooltip de título + descripción.
-// Extraído de CollectionListMap.vue (líneas 117-139) para no duplicar el
+// Extraído de CollectionList.vue (líneas 117-139) para no duplicar el
 // patrón en los títulos de los pickers/grupos de filtros del mapa.
 // Se auto-oculta si no hay descripción que mostrar.
 defineProps({

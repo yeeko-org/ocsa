@@ -1,6 +1,6 @@
 <script setup>
 import NoteTitle from "~/components/dashboard/source/note/NoteTitle.vue";
-import NoteCardMap from "~/components/map/NoteCardMap.vue";
+import NoteCard from "~/components/map/mentions/NoteCard.vue";
 
 const props = defineProps({
   type_elem: {
@@ -124,7 +124,7 @@ function openNote(note) {
         </v-card>
       </v-card-text>
     </v-card>
-    <NoteCardMap
+    <NoteCard
       v-model="note_dialog"
       :note="selected_note"
       :current_project_id="current_project_id"

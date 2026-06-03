@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useMapStore } from '~/store/map.js'
-import MapFilterPicker from '~/components/map/MapFilterPicker.vue'
-import MapFilterActors from '~/components/map/MapFilterActors.vue'
+import FilterPicker from '~/components/map/filters/FilterPicker.vue'
+import FilterActors from '~/components/map/filters/custom/FilterActors.vue'
 
 // Rail de íconos de filtro (decisions §4, Capa A): columna delgada siempre
 // visible — botón menu + 8 íconos (uno por rail-group) + zona inferior de
@@ -31,7 +31,7 @@ function collapseRail() {
     <v-sheet
       v-click-outside="collapseRail"
       :class="smAndDown ? 'rail-horizontal' : 'rail-vertical'"
-      class="map-rail pa-1 d-flex ga-2"
+      class="map-rail pa-1 d-flex ga-2 align-center"
       color="#FFFFFFA9"
       rounded="lg"
       elevation="4"
@@ -59,8 +59,8 @@ function collapseRail() {
         :key="g.id"
         class="rail-item d-flex align-center"
       >
-        <MapFilterActors v-if="g.id === 'actors'"/>
-        <MapFilterPicker v-else :group="g.id"/>
+        <FilterActors v-if="g.id === 'actors'"/>
+        <FilterPicker v-else :group="g.id"/>
         <v-expand-x-transition>
           <span
             v-if="mapStore.railExpanded"
@@ -88,9 +88,8 @@ function collapseRail() {
         <div class="rail-item d-flex align-center">
           <v-btn
             icon="filter_alt_off"
-            variant="flat"
+            variant="outlined"
             color="error"
-            size="large"
             @click="mapStore.clearAllFilters()"
           />
           <v-expand-x-transition>

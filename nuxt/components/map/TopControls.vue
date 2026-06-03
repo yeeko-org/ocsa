@@ -60,7 +60,7 @@ const public_links = [
 
 <template>
   <!-- Isla superior izquierda: marca OCSA + búsqueda global. La leyenda de
-       extractivismo flota aparte, a su derecha (MainFilterMap). -->
+       extractivismo flota aparte, a su derecha (ExtractivismLegend). -->
   <v-sheet
     class="map-top-left d-flex align-center pa-1"
     rounded="lg"

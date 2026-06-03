@@ -3,7 +3,7 @@ import { useMapStore } from "~/store/map.js";
 import { storeToRefs } from "pinia";
 import { GEOMETRY_TYPES } from "~/composables/location_types.js";
 
-export function useMapLayers(map) {
+export function useLayers(map) {
   const mainStore = useMainStore()
   const { cats } = storeToRefs(mainStore)
   const mapStore = useMapStore()

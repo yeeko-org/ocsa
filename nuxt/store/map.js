@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, reactive, shallowRef, computed, watch } from 'vue'
 import { useMainStore } from '~/store/index.js'
-import { FILTER_REGISTRY } from '~/components/map/filterRegistry.js'
+import { FILTER_REGISTRY } from '~/components/map/filters/filterRegistry.js'
 import {
   buildProjectIndex, buildActorIndex, runSearch,
-} from '~/components/map/useMapSearch.js'
+} from '~/components/map/common/searchIndex.js'
 
 export const useMapStore = defineStore('map', () => {
   const mainStore = useMainStore()
@@ -385,7 +385,7 @@ export const useMapStore = defineStore('map', () => {
   // un array de "bloques" de chips. Los grupos normales tienen un único
   // bloque; Actores tiene dos (actores | posiciones) cuando ambos están
   // activos, para poder pintar una banda por cada uno. Cada bloque se dibuja
-  // como una cuadrícula adaptativa (ver MapFilterChips), limitada a `maxCells`.
+  // como una cuadrícula adaptativa (ver FilterChips), limitada a `maxCells`.
   const capsulesByGroup = computed(() => FILTER_REGISTRY.map(reg => {
     const rg = resolveGroup(reg.id)   // con label/icon/color derivados
     const maxCells = reg.maxCells || 4
@@ -476,7 +476,7 @@ export const useMapStore = defineStore('map', () => {
   }
 
   // Payload listo para el backend (punto de integración de la Sesión 4).
-  // Hoy solo `extractivism` se aplica de verdad (useMapLayers); el resto se
+  // Hoy solo `extractivism` se aplica de verdad (useLayers); el resto se
   // acumula aquí a la espera del contrato de la API de filtros.
   const filterPayload = computed(() => {
     const payload = {}

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useMapStore } from '~/store/map.js'
-import { RAIL_GEOMETRY } from '~/components/map/filterRegistry.js'
+import { RAIL_GEOMETRY } from '~/components/map/filters/filterRegistry.js'
 import ExtractivismIcons from '~/components/dashboard/project/ExtractivismIcons.vue'
 
 // Filas de chips de filtros activos (decisions §4.3, Capa B): a la derecha del
