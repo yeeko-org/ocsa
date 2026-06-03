@@ -10,3 +10,13 @@
 .v-btn:not(.text-none):not(.text-lowercase):not(.text-capitalize) {
   text-transform: uppercase;
 }
+
+/*
+ * Bloqueo de scroll del documento para la vista de mapa. La clase la
+ * activa/desactiva `layouts/map.vue` vía useHead, así el overflow:hidden
+ * solo vive mientras el mapa está montado (antes era un `html { overflow:
+ * hidden }` global que se filtraba a todo el dashboard).
+ */
+html.map-no-scroll {
+  overflow: hidden;
+}

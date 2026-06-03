@@ -62,7 +62,12 @@ onMounted(() => {
     class="mb-2"
   >
     <template #item="{ props: itemProps, internalItem: item }">
-      <v-list-item v-bind="itemProps" :title="null" class="ms-item">
+      <v-list-item
+        v-bind="itemProps"
+        :title="null"
+        class="ms-item"
+        max-width="400"
+      >
         <template #prepend>
           <v-checkbox-btn
             :model-value="isSelected(item.raw.id)"

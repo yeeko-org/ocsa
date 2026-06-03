@@ -2,6 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, reactive, shallowRef, computed, watch } from 'vue'
 import { useMainStore } from '~/store/index.js'
 import { FILTER_REGISTRY } from '~/components/map/filterRegistry.js'
+import {
+  buildProjectIndex, buildActorIndex, runSearch,
+} from '~/components/map/useMapSearch.js'
 
 export const useMapStore = defineStore('map', () => {
   const mainStore = useMainStore()
@@ -20,6 +23,19 @@ export const useMapStore = defineStore('map', () => {
   // de golpe (mismo criterio que projectLocations: evitar proxies por feature).
   const facetIndex = shallowRef(null)  // { e:Map, i:Map, s:Map, p:Map }
   const facetsReady = ref(false)
+  // Actores (Fase B, api-contract §2). shallowRef por el mismo motivo que
+  // facetIndex: Maps grandes que se asignan de golpe.
+  const actorProjects = shallowRef(null)  // Map<actorId, Set<projId>> (invertido)
+  const actorsById = shallowRef(null)     // Map<id, actor>
+  const actorsReady = ref(false)
+  // Instancias MiniSearch compartidas (buscador global ↔ actores). shallowRef:
+  // el índice es un objeto pesado que se reemplaza entero al construirse.
+  const projectSearchIndex = shallowRef(null)
+  const actorSearchIndex = shallowRef(null)
+  // Guard de build concurrente: dos ensureActors() simultáneos (focus del
+  // buscador + apertura del picker) comparten esta promesa y no reconstruyen
+  // los índices dos veces. Variable de instancia del store (no reactiva).
+  let actorsPromise = null
   // Estado de filtros unificado y URL-serializable (decisions §4, §15).
   // Cada clave es un filtro; los arrays guardan ids. `extractivism` vacío
   // = "todos" (sin filtrar), igual que el ref aislado que reemplaza.
@@ -261,7 +277,13 @@ export const useMapStore = defineStore('map', () => {
         g => participantTypesByGroup.value.get(g) || [])
       push(unionFromIndex(fp, posIds))
     }
-    // TODO(Fase B): `actors` → intersección con actor_projects.
+    // Actores: OR entre los actores elegidos (unión de sus conjuntos de
+    // proyectos). `actorProjects` ya viene invertido (actor→proyectos), así que
+    // se reusa `unionFromIndex` igual que cualquier otra dimensión. Si el
+    // payload aún no cargó (actorProjects null), no recorta; al poblarse el
+    // shallowRef, este computed se reevalúa solo.
+    if (actorProjects.value)
+      push(unionFromIndex(actorProjects.value, filters.actors.map(a => a.id)))
 
     if (!groups.length) return allProjectIds.value
     return groups.reduce(intersect)
@@ -489,6 +511,54 @@ export const useMapStore = defineStore('map', () => {
     facetsReady.value = true
   }
 
+  // Carga lazy del payload de actores + construcción de índices (invertido para
+  // filtrar, MiniSearch para buscar). Idempotente: `actorsReady` corta tras la
+  // primera vez; `actorsPromise` comparte una descarga en vuelo entre llamadas
+  // concurrentes (buscador + picker) para no reconstruir dos veces.
+  async function ensureActors() {
+    if (actorsReady.value) return
+    if (actorsPromise) return actorsPromise
+    actorsPromise = (async () => {
+      const data = await mainStore.fetchMapActors()
+      if (!data?.actors) return
+      const byId = new Map()
+      for (const a of data.actors) byId.set(a.id, a)
+      actorsById.value = byId
+      // actor_projects llega keyed por string → Number; arrays → Set.
+      const ap = new Map()
+      for (const [actorId, projIds] of Object.entries(data.actor_projects || {}))
+        ap.set(Number(actorId), new Set(projIds))
+      actorProjects.value = ap
+      actorSearchIndex.value = buildActorIndex(data.actors)
+      actorsReady.value = true
+      // Nombres reales para los actores hidratados desde la URL (Fase B5).
+      reconcileActorNames()
+    })()
+    try { await actorsPromise } finally { actorsPromise = null }
+  }
+
+  // Remapea `filters.actors` con el nombre real de cada actor (los hidratados
+  // desde la URL llegan como "Actor #id"). La URL no cambia: serialize() usa
+  // solo el id; los chips leen `a.name` → se actualizan solos. Reasignar el
+  // array dispara la reactividad de los chips.
+  function reconcileActorNames() {
+    if (!actorsById.value || !filters.actors.length) return
+    filters.actors = filters.actors.map(a => {
+      const real = actorsById.value.get(a.id)
+      return real ? { id: a.id, name: real.name } : a
+    })
+  }
+
+  // Índice de proyectos para el buscador global: se construye una sola vez, al
+  // primer geojson cargado. `immediate` cubre el caso de que ya haya datos.
+  watch(uniqueProjects, projects => {
+    if (projects.length && !projectSearchIndex.value)
+      projectSearchIndex.value = buildProjectIndex(projects)
+  }, { immediate: true })
+
+  const searchProjects = q => runSearch(projectSearchIndex.value, q)
+  const searchActors = q => runSearch(actorSearchIndex.value, q)
+
   // Decora cada feature con color/ícono/power para las capas del mapa.
   function hydrateProjectLocations() {
     projectLocations.value.features.forEach(feature => {
@@ -508,6 +578,11 @@ export const useMapStore = defineStore('map', () => {
     hydrateProjectLocations,
     ensureFacets,
     facetsReady,
+    ensureActors,
+    actorsReady,
+    actorsById,
+    searchProjects,
+    searchActors,
     visibleProjectIds,
     // --- Filtros ---
     filters,

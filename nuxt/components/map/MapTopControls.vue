@@ -1,10 +1,9 @@
 <script setup>
-import { storeToRefs } from 'pinia'
+import _debounce from 'lodash/debounce.js'
 import { useDisplay } from 'vuetify'
 import { useMapStore } from '~/store/map.js'
 
 const mapStore = useMapStore()
-const { searchableProjects } = storeToRefs(mapStore)
 const { xs } = useDisplay()
 
 // El buscador es solo un vehículo (decisions §3): al elegir, dispara la
@@ -14,11 +13,35 @@ const search = ref(null)
 // En xs el buscador se compacta a un ícono que expande la caja.
 const searchOpen = ref(false)
 
+// Resultados de MiniSearch (búsqueda 100% en cliente). Vacío hasta teclear:
+// no precargamos la lista completa de proyectos en el autocomplete.
+const searchResults = ref([])
+// Texto del input controlado (v-model:search): con `no-filter` el
+// autocomplete no lo limpia solo al seleccionar, así que lo gobernamos para
+// poder vaciarlo y que el buscador nunca quede lleno (§3).
+const searchText = ref('')
+
+const runSearch = _debounce(q => {
+  searchResults.value = q ? mapStore.searchProjects(q) : []
+}, 250)
+function onSearchInput(val) {
+  searchText.value = val
+  runSearch(val)
+}
+
 function onSearchSelect(id) {
   if (id == null) return
   mapStore.targetProjectId = id
   if (xs.value) searchOpen.value = false
-  nextTick(() => { search.value = null })
+  nextTick(() => {
+    search.value = null
+    searchText.value = ''
+    searchResults.value = []
+    // Al seleccionar, Vuetify emite update:search con el label completo, que
+    // reprograma una búsqueda fuzzy del título. Se cancela aquí (en el
+    // microtask, ya disparados los emits) para que el menú no quede poblado.
+    runSearch.cancel()
+  })
 }
 
 // Enlaces al sitio público (antes en el menú "⋮" del app-bar global).
@@ -89,13 +112,15 @@ const public_links = [
     <v-autocomplete
       v-else
       v-model="search"
-      :items="searchableProjects"
+      :items="searchResults"
       item-title="label"
       item-value="id"
       label="Buscar proyecto"
       density="compact"
       variant="outlined"
       hide-details
+      no-filter
+      :search="searchText"
       menu-icon=""
       append-inner-icon="search"
       :autofocus="xs"
@@ -103,6 +128,7 @@ const public_links = [
       max-width="300"
       class="ml-1"
       clearable
+      @update:search="onSearchInput"
       @update:model-value="onSearchSelect"
     ></v-autocomplete>
   </v-sheet>

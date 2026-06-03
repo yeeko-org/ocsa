@@ -3,6 +3,11 @@
 import { defineStore } from 'pinia'
 import axios from "axios";
 let request = axios.CancelToken.source();
+// Guard in-flight del payload de actores (~836 KB): si el buscador y el picker
+// disparan a la vez, ambos esperan la MISMA promesa en lugar de pedir dos
+// veces. Variable de módulo (mismo patrón que `request`); se limpia al
+// resolver para que una recarga futura pueda reintentar si falló.
+let mapActorsPromise = null;
 import { useGeoNewStore } from "~/store/geo.js";
 import { calculateNewCats, hydrateFilterGroup } from "~/composables/nodes.js";
 import { calculateSchemas } from "~/composables/cats.js";
@@ -42,6 +47,10 @@ export const useMainStore = defineStore('main', {
     // Índice de facetas por proyecto para el filtrado del mapa en cliente
     // (Sesión 4.1, api-contract §1). { built_at, facets: { [projId]: {e,i,s,p} } }
     projectFacets: null,
+    // Payload de actores del mapa (Sesión 4.1 Fase B, api-contract §2). Lazy:
+    // no bloquea el primer paint. { built_at, actors, actor_projects }
+    mapActors: null,
+    mapActorsLoading: false,
   }),
   actions: {
     // setHeader() {
@@ -413,6 +422,26 @@ export const useMainStore = defineStore('main', {
       } catch (error) {
         console.error(error)
       }
+    },
+    // Catálogo de actores + mapeo actor→proyectos (api-contract §2). Lazy y
+    // con doble guard: (1) si ya está cargado, lo devuelve sin red; (2) si una
+    // descarga está en vuelo, devuelve esa misma promesa (sin segundo GET).
+    async fetchMapActors() {
+      if (this.mapActors) return this.mapActors
+      if (mapActorsPromise) return mapActorsPromise
+      const { $api } = useNuxtApp()
+      this.mapActorsLoading = true
+      mapActorsPromise = $api.get('/map/actors/')
+        .then(({ data }) => {
+          this.mapActors = data
+          return data
+        })
+        .catch(error => { console.error(error) })
+        .finally(() => {
+          this.mapActorsLoading = false
+          mapActorsPromise = null
+        })
+      return mapActorsPromise
     },
     async sendReprocessScrapedRecord(scraped_id) {
       const { $api } = useNuxtApp()

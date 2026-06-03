@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { VMenu, VBottomSheet } from 'vuetify/components'
 import { useMapStore } from '~/store/map.js'
@@ -21,6 +21,10 @@ const isOpen = computed({
   get: () => mapStore.activePickerKey === 'actors',
   set: v => { mapStore.activePickerKey = v ? 'actors' : null },
 })
+
+// Al abrir el picker, carga lazy el payload de actores (idempotente con el
+// @focus del buscador: solo se descarga una vez).
+watch(isOpen, open => { if (open) mapStore.ensureActors() })
 </script>
 
 <template>

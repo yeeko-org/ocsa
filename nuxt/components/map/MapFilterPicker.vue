@@ -49,7 +49,7 @@ const collectionOf = sel => {
 const labelFor = sel => collectionOf(sel)?.name || rg.value.label
 // Descripción de ayuda por select (solo se muestra si hay >1 select).
 const helpFor = sel => collectionOf(sel)?.description || ''
-const multiSelect = computed(() => visibleSelects.value.length > 1)
+const hasMultiSelects = computed(() => visibleSelects.value.length > 1)
 
 // Toggle despojo/defensa (solo el grupo legal lo usa).
 const purposeModel = computed({
@@ -127,7 +127,7 @@ const purposeModel = computed({
       <div class="px-2">
         <div v-for="sel in visibleSelects" :key="sel.stateKey">
           <!-- Con >1 select, cada uno lleva su título + ayuda. -->
-          <div v-if="multiSelect" class="d-flex align-center mt-1">
+          <div v-if="hasMultiSelects" class="d-flex align-center mt-1">
             <span class="text-title-small font-weight-medium">
               {{ labelFor(sel) }}
             </span>
@@ -141,7 +141,7 @@ const purposeModel = computed({
             :group="group"
             :state-key="sel.stateKey"
             :picker="sel.picker"
-            :label="multiSelect ? '' : labelFor(sel)"
+            :label="hasMultiSelects ? '' : labelFor(sel)"
             :autofocus="group === 'states'"
             v-model="mapStore.filters[sel.stateKey]"
           />

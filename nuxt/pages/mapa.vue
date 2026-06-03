@@ -51,6 +51,10 @@ function rebuildAfterStyleChange() {
 // sincronizados (vistas compartibles, decisions §15).
 useMapFilterUrl();
 
+// Si la URL trae actores, carga el payload de inmediato para reconciliar sus
+// nombres (llegan como "Actor #id"); ensureActors() llama reconcileActorNames.
+if (mapStore.filters.actors.length) mapStore.ensureActors();
+
 // onMounted(async () => {
 onMounted(() => {
   buildPreMap();
