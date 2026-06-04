@@ -49,7 +49,6 @@ function openChildProjectCard(child_project) {
           :color="child_project.id === childProject?.id ? 'white' : 'light-blue'"
         >
           graph_4
-<!--              subdirectory_arrow_right-->
         </v-icon>
         <ProjectMiniCard
           :full_main="child_project"

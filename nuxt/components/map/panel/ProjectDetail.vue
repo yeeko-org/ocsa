@@ -5,7 +5,7 @@ import {storeToRefs} from "pinia";
 import ProjectMiniCard from "~/components/map/panel/ProjectMiniCard.vue";
 
 import ConflictCard from "~/components/dashboard/project/conflict/ConflictCard.vue";
-import CollectionList from "~/components/map/mentions/CollectionList.vue";
+import MentionCollectionList from "~/components/map/mentions/MentionCollectionList.vue";
 import ChildProjectsList from "~/components/map/panel/ChildProjectsList.vue";
 import NotesList from "~/components/map/mentions/NotesList.vue";
 
@@ -106,7 +106,7 @@ function openChildProjectCard(child_project){
         @open-child-project="openChildProjectCard"
       />
 
-      <CollectionList
+      <MentionCollectionList
         v-if="full_main?.impacts?.length > 0"
         :objects="full_main.impacts"
         :mentions="full_main.mentions"
@@ -115,7 +115,7 @@ function openChildProjectCard(child_project){
         type_key="impact_type"
         subtype_key="impact_subtype"
       />
-      <CollectionList
+      <MentionCollectionList
         v-if="full_main?.events?.length > 0"
         :objects="full_main.events"
         :mentions="full_main.mentions"

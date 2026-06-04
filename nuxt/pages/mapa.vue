@@ -55,10 +55,8 @@ useMapFilterUrl();
 // nombres (llegan como "Actor #id"); ensureActors() llama reconcileActorNames.
 if (mapStore.filters.actors.length) mapStore.ensureActors();
 
-// onMounted(async () => {
 onMounted(() => {
   buildPreMap();
-  // console.log("Mounted mapa.vue");
   loadData();
 });
 
@@ -131,14 +129,11 @@ watch(targetProjectId, (newId) => {
 
 function buildPreMap() {
   if (!mapContainer.value) return;
-  // mapboxgl.accessToken= 'pk.eyJ1Ijoicmlja3JlYmVsIiwiYSI6ImNrZDRtM2pkaDE2Mm4ycW8zbjl4NmhqNnkifQ.fXsECn7EtVBuGs9sidf94Q';
   mapboxgl.accessToken = 'pk.eyJ1Ijoicmlja3JlYmVsIiwiYSI6ImNrZDRtM2pkaDE2Mm4ycW8zbjl4NmhqNnkifQ.fXsECn7EtVBuGs9sidf94Q';
 
   map.value = new mapboxgl.Map({
     container: mapContainer.value,
     style: MAP_STYLE,
-    // center: [-102.552784, 23.634501], // Centro de México
-    // zoom: 4.5,
     // Encuadre inicial por bounding box: Mapbox calcula el zoom según
     // el tamaño del contenedor, así México siempre abarca la pantalla.
     bounds: [[-118.4, 14.5], [-86.7, 32.7]], // [SW, NE] de México

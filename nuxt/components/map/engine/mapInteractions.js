@@ -1,4 +1,3 @@
-// components/map/mapInteractions.js
 import mapboxgl from 'mapbox-gl';
 import { useMainStore } from "~/store/index.js";
 import { useMapStore } from "~/store/map.js";

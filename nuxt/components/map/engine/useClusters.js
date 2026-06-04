@@ -1,4 +1,3 @@
-// components/map/useClusters.js
 import mapboxgl from 'mapbox-gl';
 import * as d3 from 'd3';
 import {storeToRefs} from "pinia";
@@ -10,7 +9,6 @@ export function useClusters(map) {
   const { cats } = storeToRefs(mainStore);
   const mapStore = useMapStore();
 
-  // Create a specific popup instance for clusters
   const clusterPopup = new mapboxgl.Popup({
     closeButton: false,
     closeOnClick: false,
@@ -28,9 +26,6 @@ export function useClusters(map) {
     .range([12,16]);
 
   function createDonutChart(props, extractivism_type_props) {
-    // console.log("Creating donut chart for cluster:", props);
-    // Prepare data
-
     const et_props = extractivism_type_props;
     let counts = et_props.ids.map(et_id => props[`sum_${et_id}`] || 0);
 
@@ -56,7 +51,6 @@ export function useClusters(map) {
     const w = r * 2;
 
     const donutDiv = document.createElement('div');
-    // Add a class for easier CSS targeting if needed
     donutDiv.className = 'cluster-marker';
 
     const svg = d3.select(donutDiv)
@@ -86,7 +80,6 @@ export function useClusters(map) {
         .append('path')
         .attr('d', arc)
         .attr('fill', (d, i) => et_props.colors[i])
-        // Optional: internal hover effect on segments
         .on('mouseenter', function(event, d) {
             d3.select(this).attr('opacity', 0.7);
         })
@@ -147,38 +140,28 @@ export function useClusters(map) {
         if (!marker) {
           const el = createDonutChart(props, mapStore.extractivismTypeProps);
 
-          // ---------------------------------------------------------
-          // 1. INTERACTION: CLICK TO ZOOM
-          // ---------------------------------------------------------
           el.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent clicking through to the map
+            e.stopPropagation();
 
             const source = map.value.getSource('proyectos');
 
             source.getClusterExpansionZoom(id, (err, zoom) => {
               if (err) return;
-              // console.log("Zooming to cluster:", id, "at zoom level:", zoom);
               const final_zoom = Math.max(zoom + 1, 8);
 
               clusterPopup.remove();
               map.value.easeTo({
                 center: coords,
-                // zoom: zoom,
                 zoom: final_zoom,
-                duration: 500 // Smooth animation
+                duration: 500
               });
             });
           });
 
-          // ---------------------------------------------------------
-          // 2. INTERACTION: HOVER POPUP
-          // ---------------------------------------------------------
           el.addEventListener('mouseenter', () => {
              el.style.cursor = 'pointer';
              hoveredClusterId.value = id;
 
-             // Fetch the "leaves" (individual points) inside this cluster
-             // We limit to 10 items to keep the popup manageable
              const source = map.value.getSource('proyectos');
 
              source.getClusterLeaves(id, 10, 0, (err, leaves) => {
@@ -189,7 +172,6 @@ export function useClusters(map) {
                // mostramos un popup obsoleto.
                if (hoveredClusterId.value !== id) return;
 
-               // Build HTML for the list of projects
                let description = `
                  <div class="font-weight-bold mb-2 border-b pb-1">
                    ${props.point_count} Proyectos:
@@ -198,7 +180,6 @@ export function useClusters(map) {
                `;
 
                leaves.forEach(leaf => {
-                 // Parse JSON just like in useMapInteractions
                  const projectData = typeof leaf.properties.project === 'string'
                     ? JSON.parse(leaf.properties.project)
                     : leaf.properties.project;
@@ -224,7 +205,6 @@ export function useClusters(map) {
                  description += `</div>`;
                }
 
-               // Show the popup
                clusterPopup
                  .setLngLat(coords)
                  .setHTML(description)
@@ -237,7 +217,6 @@ export function useClusters(map) {
             closeClusterPopup();
           });
 
-          // Create the marker with the element
           marker = markers[id] = new mapboxgl.Marker({
               element: el
           }).setLngLat(coords);

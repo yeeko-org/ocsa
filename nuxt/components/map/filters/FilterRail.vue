@@ -157,7 +157,6 @@ function collapseRail() {
   left: 8px;
   top: 76px;
   flex-direction: column;
-  //gap: 4px;
   align-items: flex-start;
 }
 
@@ -177,7 +176,7 @@ function collapseRail() {
   width: 100%;
 }
 
-/* Móvil: tira horizontal arriba. `top` tentativo (encaje fino → Sesión 5). */
+/* Móvil: tira horizontal arriba. */
 .rail-horizontal {
   left: 8px;
   right: 8px;

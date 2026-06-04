@@ -47,7 +47,7 @@ function openPicker(id) {
 
 <template>
   <client-only>
-    <!-- En móvil el layout cambia (Sesión 5); por ahora solo escritorio. -->
+    <!-- Por ahora solo escritorio; en móvil el layout cambia. -->
     <div
       v-if="!smAndDown"
       class="map-chips d-flex flex-column"
@@ -167,8 +167,7 @@ function openPicker(id) {
 }
 
 /* Cada grupo ocupa al menos la banda de un ícono (pitch del rail) y centra su
-   contenido; crece si el bloque tiene más filas (estados 2×4, actores 2 bloques).
-   El encaje fino chips↔íconos lo afina Ricardo en otra sesión. */
+   contenido; crece si el bloque tiene más filas (estados 2×4, actores 2 bloques). */
 .chip-group {
   min-height: v-bind('RAIL_GEOMETRY.rowH + "px"');
 }

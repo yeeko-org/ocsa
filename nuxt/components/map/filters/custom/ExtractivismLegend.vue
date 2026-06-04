@@ -70,9 +70,8 @@ const extractivism_types_list = computed(() => {
 </template>
 <style>
 
-/* Leyenda de extractivismo (decisions §5): sheet semitransparente flotante,
-   siempre visible (es la clave de color del mapa). El encaje fino se afina
-   en la Sesión 5. */
+/* Leyenda de extractivismo: sheet semitransparente flotante, siempre visible
+   (es la clave de color del mapa). */
 .sheet-filters {
   position: absolute !important;
   z-index: 1;

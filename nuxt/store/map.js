@@ -18,13 +18,13 @@ export const useMapStore = defineStore('map', () => {
   // (~121 s con 950 features). Con shallowRef solo la reasignación de .value
   // es reactiva; los features quedan como objetos planos.
   const projectLocations = shallowRef({ type: 'FeatureCollection', features: [] })
-  // Índice invertido de facetas en memoria (Sesión 4.1). Se construye una sola
-  // vez al cargar el payload; shallowRef porque son Maps grandes que se asignan
-  // de golpe (mismo criterio que projectLocations: evitar proxies por feature).
+  // Índice invertido de facetas en memoria. Se construye una sola vez al cargar
+  // el payload; shallowRef porque son Maps grandes que se asignan de golpe
+  // (mismo criterio que projectLocations: evitar proxies por feature).
   const facetIndex = shallowRef(null)  // { e:Map, i:Map, s:Map, p:Map }
   const facetsReady = ref(false)
-  // Actores (Fase B, api-contract §2). shallowRef por el mismo motivo que
-  // facetIndex: Maps grandes que se asignan de golpe.
+  // Actores (api-contract §2). shallowRef por el mismo motivo que facetIndex:
+  // Maps grandes que se asignan de golpe.
   const actorProjects = shallowRef(null)  // Map<actorId, Set<projId>> (invertido)
   const actorsById = shallowRef(null)     // Map<id, actor>
   const actorsReady = ref(false)
@@ -139,7 +139,7 @@ export const useMapStore = defineStore('map', () => {
     return et_props
   })
 
-  // --- Índices y filtrado en cliente (Sesión 4.1, api-contract) ---
+  // --- Índices y filtrado en cliente (api-contract) ---
   // Construye Map<catId, Set<projectId>> desde un accessor que da el/los id(s)
   // de la dimensión para cada proyecto. Normaliza escalar|array.
   function buildIndexFromProjects(projects, accessor) {
@@ -475,7 +475,7 @@ export const useMapStore = defineStore('map', () => {
     })
   }
 
-  // Payload listo para el backend (punto de integración de la Sesión 4).
+  // Payload listo para el backend (punto de integración de filtros).
   // Hoy solo `extractivism` se aplica de verdad (useLayers); el resto se
   // acumula aquí a la espera del contrato de la API de filtros.
   const filterPayload = computed(() => {
@@ -531,7 +531,7 @@ export const useMapStore = defineStore('map', () => {
       actorProjects.value = ap
       actorSearchIndex.value = buildActorIndex(data.actors)
       actorsReady.value = true
-      // Nombres reales para los actores hidratados desde la URL (Fase B5).
+      // Nombres reales para los actores hidratados desde la URL.
       reconcileActorNames()
     })()
     try { await actorsPromise } finally { actorsPromise = null }

@@ -1,6 +1,5 @@
 // Geometría compartida entre el rail (Capa A) y las filas de chips (Capa B)
-// para que cada fila de chips quede alineada a su ícono. Valores tentativos;
-// el encaje fino responsive es de la Sesión 5.
+// para que cada fila de chips quede alineada a su ícono.
 //   rowH: alto de cada fila (≈ v-btn size large). chipsTop salta el botón
 //   menu (primera fila del rail). chipsLeft libra el ancho del rail.
 export const RAIL_GEOMETRY = {

@@ -8,7 +8,7 @@ import { FILTER_REGISTRY } from "~/components/map/filters/filterRegistry.js";
 // Formato: cada filtro de array → CSV de ids (`extractivism=1,2`). Las
 // sub-posiciones (objeto {grupo: [ids]}) → `positionTypes=1:4.5;2:7`. Los
 // actores guardan solo el id (su nombre vive en /actor/, fuera de cats); al
-// hidratar desde la URL mostramos "Actor #id" hasta el cableado de Sesión 4.
+// hidratar desde la URL mostramos "Actor #id" como marcador.
 
 // Filtros que son arrays simples de ids, derivados del registro: todos los
 // stateKeys de los selects (incluye los subtipos de afectación) + el

@@ -1,13 +1,11 @@
-// components/map/useMapStyle.js
 // Estilos Mapbox custom de OCSA y la mecánica para alternar entre ellos.
 // Centraliza las dos URLs (antes duplicadas en mapa.vue y LocationMapDialog)
 // y el patrón setStyle → reconstruir capas en 'style.load'.
 
-// Estilo "mapa": base custom con el sprite de pines (*-pin) de extractivismo.
+// Estilo "mapa": base custom
 export const MAP_STYLE =
   'mapbox://styles/rickrebel/cm6ls9un800kr01qqdu1g48nq';
-// Estilo "satélite": imágenes + calles; debe traer el mismo sprite de pines
-// (añadido en Studio) para que los proyectos se vean igual que en el mapa.
+// Estilo "satélite": imágenes + calles
 export const SATELLITE_STYLE =
   'mapbox://styles/rickrebel/cm83y5cbp004301s5861t18gi';
 

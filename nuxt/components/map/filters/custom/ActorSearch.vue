@@ -1,7 +1,7 @@
 <script setup>
-// Búsqueda de actor por nombre (decisions §10). Al seleccionar, añade el actor
-// como cápsula de filtro (filters.actors). El payload de actores (~836 KB) se
-// carga lazy al primer foco; MiniSearch resuelve la búsqueda en cliente.
+// Al seleccionar, añade el actor como cápsula de filtro (filters.actors). El
+// payload de actores (~836 KB) se carga lazy al primer foco; MiniSearch
+// resuelve la búsqueda en cliente.
 import { storeToRefs } from 'pinia'
 import _debounce from 'lodash/debounce.js'
 import { useMapStore } from '~/store/map.js'

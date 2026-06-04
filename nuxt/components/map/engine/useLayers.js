@@ -8,7 +8,6 @@ export function useLayers(map) {
   const { cats } = storeToRefs(mainStore)
   const mapStore = useMapStore()
   function initializeMapLayers() {
-    // Separate points, lines, multilinestrings, and polygons from the data
     let cluster_properties = {};
     cats.value.extractivism_type.forEach(et => {
       cluster_properties[`sum_${et.id}`] = [
@@ -92,32 +91,6 @@ export function useLayers(map) {
       }
     });
 
-    // map.value.addLayer({
-    //     id: 'clusters',
-    //     type: 'circle',
-    //     source: 'proyectos',
-    //     filter: ['has', 'point_count'],
-    //     // filter: ['=', 'cluster', true],
-    //     paint: {
-    //         'circle-opacity': 0.6,
-    //         'circle-color': [
-    //             'step',
-    //             ['get', 'point_count'],
-    //             '#51bbd6',
-    //             20, '#f1f075',
-    //             60, '#f28cb1'
-    //         ],
-    //         'circle-radius': [
-    //             'step',
-    //             ['get', 'point_count'],
-    //             15,
-    //             20, 22,
-    //             60, 29
-    //         ],
-    //         'circle-emissive-strength': 1
-    //     }
-    // });
-
     map.value.addLayer({
       id: 'unclustered-point',
       type: 'symbol',
@@ -129,7 +102,6 @@ export function useLayers(map) {
             ['get', 'icon_pin'],
             { params: { icon_color: ['get', 'color'] } }
         ],
-        // 'icon-size': 0.6,
         'icon-size': [
           "interpolate",
           ["linear"],

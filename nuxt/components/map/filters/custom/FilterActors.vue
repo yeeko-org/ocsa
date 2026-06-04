@@ -6,10 +6,6 @@ import { useMapStore } from '~/store/map.js'
 import ActorSearch from '~/components/map/filters/custom/ActorSearch.vue'
 import HelpTooltip from '~/components/map/common/HelpTooltip.vue'
 
-// Grupo de actores del rail (decisions §10, Capas A/D): botón-ícono + popover
-// con dos controles —búsqueda de actor por nombre (ActorSearch, stub) y
-// posiciones (participant_group) como chips toggle que despliegan sus
-// sub-posiciones (participant_type del grupo).
 const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
 
@@ -70,12 +66,10 @@ watch(isOpen, open => { if (open) mapStore.ensureActors() })
         />
       </div>
 
-      <!-- 1. Búsqueda de actor por nombre (componente stub). -->
       <div class="px-2 mb-3">
         <ActorSearch/>
       </div>
 
-      <!-- 2. Posiciones: chips toggle (siempre seleccionables). -->
       <div class="text-title-small font-weight-medium px-2">Posiciones</div>
       <v-chip-group
         v-model="mapStore.filters.positions"
@@ -97,7 +91,7 @@ watch(isOpen, open => { if (open) mapStore.ensureActors() })
         </v-chip>
       </v-chip-group>
 
-      <!-- Sub-posiciones: solo de las posiciones activas (decisions §10). -->
+      <!-- Sub-posiciones: solo de las posiciones activas. -->
       <template
         v-for="grp in mapStore.positionGroups"
         :key="`sub-${grp.id}`"

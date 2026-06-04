@@ -138,7 +138,7 @@ onMounted(() => {
 
 <style scoped>
 /* Checkbox pegado a la izquierda sin empujar el texto: recortamos el padding
-   inicial del list-item y el gap del prepend (punto 10). */
+   inicial del list-item y el gap del prepend. */
 .ms-item :deep(.v-list-item__spacer) {
   width: 8px;
 }
