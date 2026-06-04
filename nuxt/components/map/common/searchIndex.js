@@ -39,7 +39,6 @@ export function buildProjectIndex(projects) {
   return index
 }
 
-// Índice de actores: solo por nombre.
 export function buildActorIndex(actors) {
   const index = new MiniSearch({
     fields: ['name'],

@@ -15,8 +15,7 @@ export function setupInteractions(map) {
     anchor: 'top'
   });
 
-  // Arma el HTML del tooltip a partir de las properties de una feature.
-  // Fuente única para puntos, líneas y polígonos.
+  // Fuente única del HTML del tooltip para puntos, líneas y polígonos.
   function buildPopupHTML(props) {
     const projectData = JSON.parse(props.project);
     const extractivism_types = JSON.parse(props.extractivism_types);

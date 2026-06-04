@@ -40,7 +40,7 @@ export const useMapStore = defineStore('map', () => {
   // Cada clave es un filtro; los arrays guardan ids. `extractivism` vacío
   // = "todos" (sin filtrar), igual que el ref aislado que reemplaza.
   const filters = reactive({
-    extractivism: [],                 // ids extractivism_type (vacío = todos)
+    extractivism: [],                 // ids extractivism_type
     megaproject: [],                  // ids megaproject_type
     violence: [],                     // ids event_type (grupo violencia)
     collectiveActions: [],            // ids event_type (acciones colectivas)
@@ -50,8 +50,8 @@ export const useMapStore = defineStore('map', () => {
     socialImpactSubtypes: [],         // ids impact_subtype (social, condic.)
     environmentalImpacts: [],         // ids impact_type (grupo ambiental)
     environmentalImpactSubtypes: [],  // ids impact_subtype (ambiental, cond.)
-    states: [],                       // ids state (múltiple)
-    actors: [],                       // [{ id, name }] (stub hasta sesión 4)
+    states: [],                       // ids state
+    actors: [],                       // [{ id, name }]
     positions: [],                    // ids participant_group activos
     positionTypes: {},                // { [groupId]: [participant_type ids] }
   })
@@ -231,14 +231,12 @@ export const useMapStore = defineStore('map', () => {
   const indexForFacet = letter => facetIndex.value?.[letter] || null
 
   // Proyectos visibles: AND entre grupos de las uniones OR de cada dimensión
-  // activa (api-contract "OR intra, AND inter"). Sin filtros → todos. El Set es
-  // de project.id únicos, así que sirve también de contador de proyectos.
+  // activa ("OR intra, AND inter", decisions §7). Sin filtros → todos. El Set
+  // es de project.id únicos, así que sirve también de contador.
   //
-  // El mapeo dimensión→índice se DERIVA del registro declarativo
-  // (filterRegistry.js): cada select trae `facet` (payload) o `geoIndex`
-  // (geojson). Los tres grupos de evento, al ser entradas separadas con la
-  // misma faceta 'e', dan AND entre ellos y OR dentro de cada uno (decisions
-  // §7) sin lógica especial. Añadir un filtro nuevo no obliga a tocar esto.
+  // El mapeo dimensión→índice se DERIVA del registro (filterRegistry.js): cada
+  // select trae `facet` (payload) o `geoIndex` (geojson). Añadir un filtro no
+  // obliga a tocar esta lógica.
   const visibleProjectIds = computed(() => {
     const groups = []
     const push = set => { if (set) groups.push(set) }
@@ -359,7 +357,7 @@ export const useMapStore = defineStore('map', () => {
       .filter(pt => pt.participant_group === groupId)
 
   // --- Helpers de chips/cápsulas (decisions §4.3) ---
-  // Recorta a 40 caracteres con elipsis (38 + …) para los chips de fila.
+  // Acorta etiquetas largas para los chips de fila (corta en 32 + …).
   function truncate(text) {
     const t = String(text ?? '')
     return t.length > 36 ? `${t.slice(0, 32)}…` : t
