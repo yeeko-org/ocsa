@@ -28,3 +28,4 @@ logs
 
 written
 components/written/written.vue
+.playwright-mcp
