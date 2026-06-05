@@ -1,10 +1,10 @@
-# Ejecucion de pruebas de scraping por pasos completos, y sus formas de ver la informacion.
+# Ejecución de pruebas de scraping por pasos completos, y sus formas de ver la informacion.
 
 from pprint import pprint
 
 from source.models import Article, ScrapedRecord
 from source.scraper.jornada import JornadaManagerScraper
-from source.scraper.proceso import ProcesoManagerScraper, close_all_pressreader_sessions
+from source.scraper.proceso import ProcesoManagerScraper
 
 
 def examples_base():
@@ -29,8 +29,7 @@ def examples_base():
         "", "", recover_record=ScrapedRecord.objects.last(),
         ai_engine="gpt-4o-mini")
     manager_scraper = JornadaManagerScraper(
-        "", "", recover_record=ScrapedRecord.objects.get(pk=10),
-        ai_engine="gpt-4o-mini")
+        "", "", recover_record=ScrapedRecord.objects.get(pk=128))
 
     # record articles genera los registros de los articulos con get_or_create
     # basado en el uid y el source, tambien genera los datos de las listas

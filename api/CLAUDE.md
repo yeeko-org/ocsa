@@ -25,14 +25,9 @@ All ViewSets registered in `api/urls.py`. Views organized as subpackages: `api/v
 `api/` is **not** in `INSTALLED_APPS` — it's a views/urls/serializers package only. Put management commands in a registered app (`work_flux/management/commands/`). Importable logic can still live under `api/`.
 
 ### Key Base Classes (`api/views/common_views.py`)
-- `BaseViewSet` — extends `ModelViewSet` with `CustomPagination`,
-  `UnaccentSearchFilter`, `DjangoFilterBackend`, `OrderingFilter`, and a
-  delete confirmation mixin.
-- `UnaccentSearchFilter` — uses `unaccent__icontains` for accent-insensitive
-  search (PostgreSQL only; falls back on SQLite).
-- `AdvancedConditionalFieldsViewMixin` — excludes serializer fields based on
-  `field_permissions` dict keyed by role (`anonymous`, `authenticated`,
-  `staff`).
+- `BaseViewSet` — extends `ModelViewSet` with `CustomPagination`, `UnaccentSearchFilter`, `DjangoFilterBackend`, `OrderingFilter`, and a delete confirmation mixin.
+- `UnaccentSearchFilter` — uses `unaccent__icontains` for accent-insensitive search (PostgreSQL only; falls back on SQLite).
+- `AdvancedConditionalFieldsViewMixin` — excludes serializer fields based on `field_permissions` dict keyed by role (`anonymous`, `authenticated`, `staff`).
 
 ### Permissions (`profile_auth/`)
 - `IsFullEditorOrReadOnly` — default; full editors can write, others read-only
@@ -40,6 +35,9 @@ All ViewSets registered in `api/urls.py`. Views organized as subpackages: `api/v
 - `IsEditorOrCreateOrRead` — allows creation with validation
 - `DynamicCatalogPermission` — for catalog endpoints
 - `LocationPermission` — for geographic data
+
+### Catalog/Collection Registry
+Register a ViewSet in `catalog_registry`/`collection_registry` only when the model is a catalog of options (`category_*`) or a main collection entity (`primary/secondary/relational`). Cross-cutting/infrastructure ViewSets (e.g. `StatusControl`, `InvolvedRole`) stay as manual registrations, even if trivial — they have distinct semantics. See the `manage-collections` skill.
 
 ### Settings & Database
 - Settings: `core/settings/__init__.py` (single file)

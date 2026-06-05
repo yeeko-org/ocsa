@@ -2,7 +2,6 @@ from datetime import date
 
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-from typing import List
 
 from source.models import ScrapedRecord, Source
 from profile_auth.models import User
@@ -34,7 +33,7 @@ class JornadaManagerScraper(ManagerScraper):
 
 
 class JornadaMainScraper(MainScraper):
-    need_proxy = False
+    need_proxy = True
 
     def __init__(self, scraper_date: date | str):
         self.scraper_date = self.date_in_str(scraper_date)
@@ -85,11 +84,13 @@ class JornadaMainScraper(MainScraper):
 
 
 class JornadaSectionScraper:
+    need_proxy = True
     soup_content: BeautifulSoup
     articles: list[dict]
 
     def __init__(self, url: str):
-        self.soup_content = get_content(f"https://www.jornada.com.mx{url}")
+        self.soup_content = get_content(
+            f"https://www.jornada.com.mx{url}", with_proxy=self.need_proxy)
         self.get_articles()
 
     def get_articles(self):
@@ -133,7 +134,7 @@ class JornadaSectionScraper:
 
 
 class JornadaArticleScraper(ArticleScraper):
-    need_proxy = False
+    need_proxy = True
 
     def get_article_data(self):
 

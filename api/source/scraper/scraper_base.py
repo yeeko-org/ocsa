@@ -1,9 +1,11 @@
 import re
 from abc import ABC, abstractmethod
-from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Type
+from datetime import date, datetime
+from typing import Any, Dict, List
 
 import requests
+from curl_cffi import requests as cffi_requests
+from curl_cffi.requests.exceptions import ProxyError
 from bs4 import BeautifulSoup
 from bs4.element import PageElement, Tag
 from django.conf import settings
@@ -68,25 +70,28 @@ def get_content(
     import time
 
     proxy_key = settings.PROXY_KEY
+    proxies = None
     if with_proxy and proxy_key:
-        proxies = {
-            "http": f"http://{proxy_key}",
-            "https": f"https://{proxy_key}",
-        }
-        response = requests.get(
-            url, headers=REQUESTS_DEFAULT_HEADERS, proxies=proxies)
-    else:
-        response = requests.get(url, headers=REQUESTS_DEFAULT_HEADERS)
+        # El valor lleva esquema http:// aunque el destino sea HTTPS: al
+        # proxy se llega por HTTP y desde ahí abre el túnel CONNECT.
+        proxies = {"https": f"http://{proxy_key}"}
+
+    # impersonate="chrome" replica el handshake TLS de un Chrome real.
+    try:
+        response = cffi_requests.get(
+            url, impersonate="chrome", proxies=proxies, timeout=40)
+    except ProxyError as exc:
+        raise Exception(
+            f"Error de proxy al acceder a {url}: {exc}") from exc
+
     if response.status_code == 200:
         return BeautifulSoup(response.text, parser)
-    else:
-        if attempts <= 3 and with_proxy:
-            print(f"Intento {attempts} fallido para {url}.")
-            time.sleep(2**attempts)
-            return get_content(url, parser, with_proxy, attempts + 1)
-        else:
-            raise Exception(
-                f"Error al acceder a la página: {response.status_code}")
+    if attempts <= 3 and with_proxy:
+        print(f"Intento {attempts} fallido para {url}.")
+        time.sleep(2**attempts)
+        return get_content(url, parser, with_proxy, attempts + 1)
+    raise Exception(
+        f"Error al acceder a la página: {response.status_code}")
 
 
 def get_clean_text(elem: PageElement) -> str:
