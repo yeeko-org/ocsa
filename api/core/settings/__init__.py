@@ -136,6 +136,26 @@ if DATABASE_LEGACY_NAME:
     DATABASE_ROUTERS = ["core.routers.LegacyRouter"]
 # ---------------------end Legacy database configuration----------------------
 
+# ------------------------------------CACHE-----------------------------------
+# En servidor: Redis compartido (ya corre en el EC2), respalda los índices
+# del mapa con TTL de 24 h. En local (IS_LOCAL): caché en memoria, para no
+# exigir un Redis corriendo en Windows. rebuild_map_index refresca a diario.
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+if getenv_bool("IS_LOCAL", False):
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
+    }
+# ----------------------------------end CACHE---------------------------------
+
 # ---------------------------------SECURITY-----------------------------------
 
 SECRET_KEY = "***REMOVED***"

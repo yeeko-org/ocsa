@@ -20,10 +20,9 @@ Impact types: social · environmental
 
 ### API Layer (`api/`)
 
-All ViewSets registered in `api/urls.py`. Views organized as subpackages:
-`api/views/note/`, `api/views/project/`, etc. Serializers go in
-`api/views/{sub-package}/serializers.py`. Import serializers and common
-elements at the top of each view file.
+All ViewSets registered in `api/urls.py`. Views organized as subpackages: `api/views/note/`, `api/views/project/`, etc. Serializers go in `api/views/{sub-package}/serializers.py`. Import serializers and common elements at the top of each view file.
+
+`api/` is **not** in `INSTALLED_APPS` — it's a views/urls/serializers package only. Put management commands in a registered app (`work_flux/management/commands/`). Importable logic can still live under `api/`.
 
 ### Key Base Classes (`api/views/common_views.py`)
 - `BaseViewSet` — extends `ModelViewSet` with `CustomPagination`,

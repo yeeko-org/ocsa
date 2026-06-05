@@ -2,6 +2,8 @@ from django.urls import include, path
 
 from api.views.map.views import (
     ProjectMapViewSet, ProjectLocationViewSet, NoteMapViewSet)
+from api.views.map.index_views import (
+    ProjectFacetsView, MapActorsView, RebuildMapIndexView)
 from api.views.generic_merge.views import MergeRecordsView
 from api.views.auth.login_views import UserLoginAPIView
 from api.views.scraping.views import ScrapingDatesView
@@ -33,6 +35,11 @@ urlpatterns = [
     path('activity/', ActivityView.as_view(), name='activity'),
     path('catalogs/', include('api.views.catalogs.urls')),
     path('space_time/', include('api.views.space_time.urls')),
+    path('map/project_facets/', ProjectFacetsView.as_view(),
+         name='map-project-facets'),
+    path('map/actors/', MapActorsView.as_view(), name='map-actors'),
+    path('map/index/rebuild/', RebuildMapIndexView.as_view(),
+         name='map-index-rebuild'),
     path('generic_merge/', MergeRecordsView.as_view(), name='generic-merge'),
     path('scraped_date/', ScrapingDatesView.as_view(), name='scraping-dates'),
     path('', include(router.urls)),

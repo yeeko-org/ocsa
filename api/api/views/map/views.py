@@ -153,8 +153,7 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
 
     # queryset = Project.objects.all().prefetch_related("locations").distinct()
     serializer_class = LocationVizSerializer
-    filter_backends = [
-        UnaccentSearchFilter, DjangoFilterBackend]
+    filter_backends = [UnaccentSearchFilter, DjangoFilterBackend]
     search_fields = ['state__name',
                      'municipality__name',
                      'locality__name',

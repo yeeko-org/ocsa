@@ -5,6 +5,23 @@ en notas curadas con menciones estructuradas.
 
 ---
 
+## Scraping — gotchas de acceso
+
+**La Jornada está detrás de Cloudflare con *challenge* por fingerprint
+TLS.** `requests`/`urllib3` recibe siempre 403 ("Just a moment...",
+header `cf-mitigated: challenge`) sin importar User-Agent ni IP. El helper
+central `get_content` (`scraper/scraper_base.py`) debe acceder con
+`curl_cffi` e `impersonate="chrome"`; pasa con o sin proxy.
+
+El proxy `PROXY_KEY` (.env, DataImpulse, sufijo `__cr.mx` = ruta México)
+**no evade Cloudflare**, solo aporta rotación de IP para volumen. Un `407
+NO_USER` = credenciales rechazadas (password caduco), no un bug de código.
+
+Diagnóstico: `python source/scraper/scraper_access_test.py [YYYY/MM/DD]`
+(modo Jornada) o `... <url> [--proxy] [--xml]` (cualquier otra fuente).
+
+---
+
 ## Ciclo de vida de un artículo
 
 ```
