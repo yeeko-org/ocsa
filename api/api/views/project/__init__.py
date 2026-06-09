@@ -35,6 +35,8 @@ class ProjectFilter(FilterSet):
         field_name='mentions__impacts__impact_type', lookup_expr='exact')
     impact_subtype = NumberFilter(
         field_name='mentions__impacts__impact_subtype', lookup_expr='exact')
+    event_group = NumberFilter(
+        field_name='mentions__events__event_type__event_group', lookup_expr='exact')
     event_type = NumberFilter(
         field_name='mentions__events__event_type', lookup_expr='exact')
     # extractivism_type = NumberFilter(
