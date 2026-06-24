@@ -92,6 +92,9 @@ class Project(CommentsMixin):
     editors = models.ManyToManyField(
         User, blank=True, related_name='projects')
 
+    incongruent = models.BooleanField(default=False)
+    prev_status_loc = models.CharField(max_length=60, blank=True, null=True)
+
     files: models.QuerySet["ProjectFile"]
     status_location_id: str | None
     locations: models.QuerySet["Location"]

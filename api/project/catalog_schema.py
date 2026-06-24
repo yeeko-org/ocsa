@@ -85,6 +85,9 @@ class ProjectSchema(CollectionSchema):
             title="Es agrupador", field="is_grouper",
             component="TripleBooleanFilter", hidden=True),
         ComponentFilter(
+            title="Es incongruente", field="incongruent",
+            component="TripleBooleanFilter", hidden=True),
+        ComponentFilter(
             title="Editor", field="editor",
             component="UserSelect", hidden=True),
         ComponentFilter(
