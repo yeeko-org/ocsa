@@ -160,10 +160,12 @@ function selectDay(day) {
       <v-spacer></v-spacer>
       <v-card
         class="ml-4 pa-2"
-        style="width: 560px;"
+        style="width: 460px;"
         color="grey-lighten-3"
       >
-        Periodos extraídos de noticias:
+        <span class="ml-3">
+          Periodos extraídos de noticias:
+        </span>
         <v-form
           ref="recordForm"
           class="d-flex align-center"
@@ -197,7 +199,7 @@ function selectDay(day) {
               Traer periodo
             </v-btn>
           </v-col>
-          <v-col cols="12">
+          <v-col cols="12" v-if="false">
             Hola info
           </v-col>
         </v-form>

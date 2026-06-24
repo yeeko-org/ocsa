@@ -48,124 +48,128 @@ function saveStatus(new_status, status_group) {
   <v-card-text
     class="d-flex flex-wrap"
   >
-    <v-col
-      cols="12"
-      class="d-flex pa-0"
-      order="1"
-    >
-      <v-text-field
-        v-if="final_collection_data.has.order"
-        v-model="full_main.order"
-        label="Orden"
-        type="number"
-        variant="outlined"
-        class="mr-2"
-        style="max-width: 70px;"
+    <v-row>
+      <v-col
+        cols="12"
+        class="d-flex pa-0"
+        order="1"
       >
-      </v-text-field>
-      <v-text-field
-        v-if="final_collection_data.name_field"
-        v-model="full_main[final_collection_data.name_field]"
-        label="Nombre/Título"
-        class="mr-2"
-        variant="outlined"
-        style="width: 300px;"
-        :rules="[rules.required]"
-      />
-      <v-spacer></v-spacer>
-      <template v-if="final_collection_data.status_groups">
-        <StatusDetail
-          v-for="status_group in final_collection_data.status_groups"
-          v-model="full_main"
-          :collection="status_group"
-          style="max-width: 300px;"
-          density="default"
-          class="mr-1"
-          :loading="loading_edition"
-          @change-status="saveStatus($event, status_group)"
+        <v-text-field
+          v-if="final_collection_data.has.order"
+          v-model="full_main.order"
+          label="Orden"
+          type="number"
+          variant="outlined"
+          class="mr-2"
+          style="max-width: 70px;"
+        >
+        </v-text-field>
+        <v-text-field
+          v-if="final_collection_data.name_field"
+          v-model="full_main[final_collection_data.name_field]"
+          label="Nombre/Título"
+          class="mr-2"
+          variant="outlined"
+          style="width: 300px;"
+          :rules="[rules.required]"
         />
-      </template>
-      <Comments
-        v-if="final_collection_data.has.comments"
-        :main="full_main"
-        :final_collection_data="final_collection_data"
-        @update-comments="emits('update-comments', $event)"
-      />
-    </v-col>
-    <v-col
-      v-if="final_collection_data.has.icon || final_collection_data.has.color"
-      cols="12"
-      class="d-flex pa-0"
-      order="3"
-    >
-      <v-text-field
-        v-if="final_collection_data.has.icon"
-        v-model="full_main.icon"
-        label="Ícono (material icons)"
-        variant="outlined"
-        style="max-width: 260px;"
-        :rules="[rules.required]"
-      >
-        <template v-slot:append>
-          <v-icon
-            @click="openLink('icon')"
-          >open_in_new</v-icon>
+        <v-spacer></v-spacer>
+        <template v-if="final_collection_data.status_groups">
+          <StatusDetail
+            v-for="status_group in final_collection_data.status_groups"
+            v-model="full_main"
+            :collection="status_group"
+            style="max-width: 300px;"
+            density="default"
+            class="mr-1"
+            :loading="loading_edition"
+            @change-status="saveStatus($event, status_group)"
+          />
         </template>
-      </v-text-field>
-      <v-text-field
-        v-if="final_collection_data.has.color"
-        v-model="full_main.color"
-        label="Color"
-        variant="outlined"
-        class="ml-6"
-        style="max-width: 220px;"
-        :rules="[rules.required]"
+        <Comments
+          v-if="final_collection_data.has.comments"
+          :main="full_main"
+          :final_collection_data="final_collection_data"
+          @update-comments="emits('update-comments', $event)"
+        />
+      </v-col>
+      <v-col
+        v-if="final_collection_data.has.icon || final_collection_data.has.color"
+        cols="12"
+        class="d-flex pa-0"
+        order="3"
       >
-        <template v-slot:append>
-          <v-icon
-            @click="openLink('color')"
-          >open_in_new</v-icon>
-        </template>
-      </v-text-field>
-    </v-col>
-    <slot name="edit">
-      EDICIÓN 2 (REVISAR SI APARECE PORQUE NO ES NORMAL)
-    </slot>
-    <v-col
-      v-if="final_collection_data.has.description
-        && final_collection_data.name_field !== 'description'"
-      cols="12"
-      class="d-flex pa-0"
-      order="7"
-    >
-      <v-textarea
-        v-model="full_main.description"
-        label="Descripción"
-        rows="1"
-        auto-grow
-        class="mr-2"
-        variant="outlined"
-      ></v-textarea>
-    </v-col>
-    <v-col
-      cols="12"
-      class="d-flex pa-0"
-      order="9"
-    >
-      <v-textarea
-        v-if="final_collection_data.has.help_text"
-        v-model="full_main.help_text"
-        class="mb-4"
-        label="Texto visible de ayuda"
-        variant="outlined"
-        rows="2"
-        auto-grow
-        hint="Aparecerá una 'alerta' cuando se seleccione esta categoría"
-        persistent-hint
-        _hide-details
+        <v-text-field
+          v-if="final_collection_data.has.icon"
+          v-model="full_main.icon"
+          label="Ícono (material icons)"
+          variant="outlined"
+          style="max-width: 260px;"
+          :rules="[rules.required]"
+        >
+          <template v-slot:append>
+            <v-icon
+              @click="openLink('icon')"
+              class="ml-n2"
+            >open_in_new</v-icon>
+          </template>
+        </v-text-field>
+        <v-text-field
+          v-if="final_collection_data.has.color"
+          v-model="full_main.color"
+          label="Color"
+          variant="outlined"
+          class="ml-6"
+          style="max-width: 220px;"
+          :rules="[rules.required]"
+        >
+          <template v-slot:append>
+            <v-icon
+              @click="openLink('color')"
+              class="ml-n2"
+            >open_in_new</v-icon>
+          </template>
+        </v-text-field>
+      </v-col>
+      <slot name="edit">
+        EDICIÓN 2 (REVISAR SI APARECE PORQUE NO ES NORMAL)
+      </slot>
+      <v-col
+        v-if="final_collection_data.has.description
+          && final_collection_data.name_field !== 'description'"
+        cols="12"
+        class="d-flex pa-0"
+        order="7"
       >
-      </v-textarea>
-    </v-col>
+        <v-textarea
+          v-model="full_main.description"
+          label="Descripción"
+          rows="1"
+          auto-grow
+          class="mr-2"
+          variant="outlined"
+        ></v-textarea>
+      </v-col>
+      <v-col
+        cols="12"
+        class="d-flex pa-0"
+        order="9"
+      >
+        <v-textarea
+          v-if="final_collection_data.has.help_text"
+          v-model="full_main.help_text"
+          class="mb-4"
+          label="Texto visible de ayuda"
+          variant="outlined"
+          rows="2"
+          auto-grow
+          hint="Aparecerá una 'alerta' cuando se seleccione esta categoría"
+          persistent-hint
+          _hide-details
+        >
+        </v-textarea>
+      </v-col>
+    </v-row>
   </v-card-text>
 </template>
 

@@ -22,6 +22,13 @@ const full_main = defineModel({type: Object, required: true})
       variant="outlined"
       style="max-width: 400px;"
     ></v-text-field>
+    <v-text-field
+      v-model="full_main.short_name"
+      label="Nombre corto"
+      variant="outlined"
+      class="ml-6"
+      style="max-width: 400px;"
+    ></v-text-field>
   </v-col>
 </template>
 
