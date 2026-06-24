@@ -40,4 +40,8 @@ class LocationSchema(CollectionSchema):
             title="Tipo de ubicación", field="type_location",
             component="LocationType", hidden=True,
         ),
+        ComponentFilter(
+            title="Con geometría", field="has_geo_data",
+            component="TripleBooleanFilter", hidden=True,
+        ),
     ]

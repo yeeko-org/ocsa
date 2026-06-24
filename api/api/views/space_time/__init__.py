@@ -1,4 +1,6 @@
 from rest_framework import viewsets, permissions
+from django.db.models import Q
+from django_filters import BooleanFilter
 
 from api.pagination import CustomPagination
 from api.permissions import LocationPermission
@@ -49,6 +51,18 @@ class MunicipalityListViewSet(ListSetMixin):
 
 
 class LocationFilter(OnlyByFilterMixin):
+
+    has_geo_data = BooleanFilter(method='filter_has_geo_data')
+
+    def filter_has_geo_data(self, queryset, name, value):
+        # "Tiene geometría" = par completo de coordenadas (lat Y lon, porque
+        # una sola no ubica) O un geojson presente. Basta cualquiera.
+        has_geo = (
+            Q(latitude__isnull=False) & Q(longitude__isnull=False)
+        ) | Q(geojson__isnull=False)
+        if value:
+            return queryset.filter(has_geo)
+        return queryset.exclude(has_geo)
 
     class Meta:
         model = Location
