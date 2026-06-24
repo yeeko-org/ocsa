@@ -404,7 +404,7 @@ class CollectionRegistry:
                 **_base_collection_dict(snake_name, schema_cls),
                 'icon': schema_cls.icon,
                 'color': schema_cls.color,
-                'open_insertion': None,
+                'open_insertion': schema_cls.open_insertion,
                 'optional_category': False,
                 'available_actions': [
                     a for a, flag in (

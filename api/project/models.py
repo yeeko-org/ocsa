@@ -39,8 +39,8 @@ class StatusProject(CatalogType):
 
     class Meta:
         ordering = ["order", "name"]
-        verbose_name = 'Status Project'
-        verbose_name_plural = 'Status Projects'
+        verbose_name = 'Estatus del Proyecto'
+        verbose_name_plural = 'Estatus de proyectos'
 
 
 class Conflict(models.Model):

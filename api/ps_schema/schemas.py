@@ -156,6 +156,7 @@ class CollectionSchema(BaseSchema):
     level: MainLevel = None
 
     # --- UI metadata (exclusive to non-catalog collections) -----------------
+    open_insertion: bool = None
     color: str = None
     icon: str = None
     all_filters: list = []     # List[FilterRef | ComponentFilter]

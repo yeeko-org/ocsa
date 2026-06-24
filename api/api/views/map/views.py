@@ -146,7 +146,7 @@ class ProjectLocationFilter(FilterSet):
 class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [LocationPermission]
 
-    queryset = Location.objects.all()
+    queryset = Location.objects.all().order_by('project__name')
         # .filter(project__isnull=False)\
         # .select_related("project")
         # .select_related("project", "project__megaproject_type")
