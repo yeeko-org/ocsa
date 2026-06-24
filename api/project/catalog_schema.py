@@ -94,6 +94,14 @@ class ProjectSchema(CollectionSchema):
             title="Con ubicaciones", field="has_locations",
             component="TripleBooleanFilter", hidden=True),
         ComponentFilter(
+            title="Geometría de ubicaciones", field="geom_status",
+            component="OnlyByFilter", hidden=True,
+            custom_options=[
+                {"plural_name": "Todas con geometría", "value": "all_geo"},
+                {"plural_name": "Ninguna con geometría", "value": "none_geo"},
+                {"plural_name": "Mix: con y sin geometría", "value": "mixed"},
+            ]),
+        ComponentFilter(
             title="Conflictos", field="is_grouper",
             component="ConflictFilter", hidden=True),
     ]

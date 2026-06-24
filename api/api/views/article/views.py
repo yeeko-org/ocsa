@@ -13,6 +13,7 @@ from .serializers import (
     ArticleSuperDetailSerializer, ArticleListSuperSerializer,
     ArticleSelectedSerializer, ArticleStatusSerializer)
 
+
 class ArticleFilter(FilterSet):
     scraped_record = NumberFilter(
         field_name="scraped__id", lookup_expr="exact")

@@ -48,6 +48,30 @@ class ProjectFilter(FilterSet):
     extractivism_type = CharFilter(method='filter_extractivism_type')
     has_locations = BooleanFilter(
         field_name='locations', lookup_expr='isnull', exclude=True)
+    geom_status = CharFilter(method='filter_geom_status')
+
+    def filter_geom_status(self, queryset, name, value):
+        from django.db.models import Q
+        if not value:
+            return queryset
+        # Una ubicación "tiene geometría" si trae el par completo de
+        # coordenadas (lat Y lon) o un geojson; "sin geometría" es su
+        # negación exacta. Los tres buckets particionan el universo.
+        has_geo = (
+            Q(locations__latitude__isnull=False)
+            & Q(locations__longitude__isnull=False)
+        ) | Q(locations__geojson__isnull=False)
+        no_geo = (
+            Q(locations__latitude__isnull=True)
+            | Q(locations__longitude__isnull=True)
+        ) & Q(locations__geojson__isnull=True)
+        if value == "all_geo":
+            return queryset.filter(has_geo).exclude(no_geo).distinct()
+        if value == "none_geo":
+            return queryset.filter(no_geo).exclude(has_geo).distinct()
+        if value == "mixed":
+            return queryset.filter(has_geo).filter(no_geo).distinct()
+        return queryset
 
     def filter_extractivism_type(self, queryset, name, value):
         # print("Filtering by extractivism_type:", value)
