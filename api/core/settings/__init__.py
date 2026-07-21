@@ -259,11 +259,17 @@ STORAGES = {
     },
 }
 if USE_S3_FILES:
+    # custom_domain: fuerza el endpoint regional en file.url; sin él,
+    # boto3 genera el endpoint global y S3 responde 307 (redirect) en
+    # buckets fuera de us-east-1
+    _s3_domain = (
+        f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com")
     STORAGES["docs"] = {
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
             "bucket_name": AWS_STORAGE_BUCKET_NAME,
             "region_name": AWS_S3_REGION_NAME,
+            "custom_domain": _s3_domain,
             "location": AWS_LOCATION,
             # ACLs deshabilitadas en la práctica: el acceso público lo da
             # la bucket policy, no una ACL por objeto
