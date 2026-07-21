@@ -2,6 +2,7 @@
 celery==5.5.3
 Django~=5.2.5
 django-filter==25.1
+django-storages[s3]==1.14.6
 pandas==2.3.2
 bs4
 djangorestframework==3.16.1
@@ -14,7 +15,7 @@ openai==1.107.2
 python-dotenv==1.1.1
 google-genai~=1.57.0
 pytz==2025.2
-tiktoken==0.11.0
+tiktoken==0.13.0
 numpy==2.3.3
 openpyxl==3.1.5
 lxml==6.0.1

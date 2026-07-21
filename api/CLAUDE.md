@@ -47,3 +47,7 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
 - **OpenAI / Google Generative AI**: AI-assisted record pre-classification
 - **BeautifulSoup / lxml**: news scraping from multiple sources
 - **openpyxl / yeekooxlsx_export**: Excel exports
+- **S3 (django-storages)**: `NoteFile`/`ProjectFile` files in production
+  (`USE_S3_FILES=1`, class `INTELLIGENT_TIERING`, public read via bucket
+  policy on `data_files/*`); local dev keeps disk storage. Storage per
+  field via `core/storages.py::select_docs_storage`

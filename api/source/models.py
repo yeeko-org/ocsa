@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 import requests
 
+from core.storages import select_docs_storage
 from project.models import Project, StatusProject
 from source.base_models import FeaturesBase, ProjectSelect, ArticleBase
 from work_flux.models import StatusControl, CommentsMixin
@@ -167,7 +168,9 @@ def upload_to_note_file(instance, filename):
 class NoteFile(models.Model):
     note = models.ForeignKey(
         Note, on_delete=models.CASCADE, related_name='files')
-    file = models.FileField(upload_to=upload_to_note_file, max_length=255)
+    file = models.FileField(
+        upload_to=upload_to_note_file, max_length=255,
+        storage=select_docs_storage)
     old_ref = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

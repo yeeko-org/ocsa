@@ -1,5 +1,6 @@
 from django.db import models
 # from space_time.models import Location
+from core.storages import select_docs_storage
 from work_flux.models import StatusControl, CommentsMixin
 from profile_auth.models import User
 from utils.mix_models import CatalogGroup, CatalogType
@@ -132,7 +133,9 @@ def upload_to_project_file(instance, filename):
 class ProjectFile(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name='files')
-    file = models.FileField(upload_to=upload_to_project_file, max_length=255)
+    file = models.FileField(
+        upload_to=upload_to_project_file, max_length=255,
+        storage=select_docs_storage)
     old_ref = models.CharField(max_length=255, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

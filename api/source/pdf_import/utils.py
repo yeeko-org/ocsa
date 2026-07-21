@@ -24,14 +24,14 @@ LEGACY_TO_DATE = date(2023, 5, 31)
 def resolve_pdf_bytes(notefile: NoteFile) -> bytes:
     """Devuelve los bytes del PDF de un ``NoteFile``.
 
-    En local los archivos legados no están en disco: se descargan del
-    backend real concatenando ``LEGACY_FILES_BASE_URL`` (sin slash
-    final, con ``rstrip`` defensivo) con ``file.url`` (que ya inicia en
-    ``/media/``). En producción se leen del storage de Django.
+    En local los archivos legados no están en disco: se descargan de S3
+    concatenando ``LEGACY_FILES_BASE_URL`` (incluye el prefijo
+    ``data_files``) con ``file.name`` (``note_file/<pk>/<archivo>``).
+    En producción se leen del storage de Django (S3 con USE_S3_FILES).
     """
     if settings.IS_LOCAL:
         base = settings.LEGACY_FILES_BASE_URL.rstrip("/")
-        url = f"{base}{notefile.file.url}"
+        url = f"{base}/{notefile.file.name}"
         resp = requests.get(
             url, headers=REQUESTS_DEFAULT_HEADERS, timeout=60)
         resp.raise_for_status()

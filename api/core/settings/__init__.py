@@ -177,9 +177,13 @@ DEBUG = True
 IS_LOCAL = getenv_bool("IS_LOCAL", False)
 
 # Base remota de los archivos legados (NoteFile.file) cuando se corre en
-# local: los PDF viejos no están en disco local, solo en producción
+# local: los PDF viejos no están en disco local, solo en S3. Se concatena
+# con file.name (p. ej. note_file/123/x.pdf), por eso incluye el prefijo
+# data_files (AWS_LOCATION del bucket)
 LEGACY_FILES_BASE_URL = os.getenv(
-    "LEGACY_FILES_BASE_URL", "https://apiocsa.yeeko.org")
+    "LEGACY_FILES_BASE_URL",
+    "https://ocsa-docs-032892915740-us-west-2-an.s3.us-west-2"
+    ".amazonaws.com/data_files")
 
 # ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS")
 # ALLOWED_HOSTS = []
@@ -234,6 +238,46 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# ------------------------------FILE STORAGE----------------------------------
+# Documentos de NoteFile/ProjectFile (alias "docs"): en producción van a
+# S3 con clase INTELLIGENT_TIERING (baja sola de tier tras 30/90 días sin
+# acceso) y lectura pública vía bucket policy sobre AWS_LOCATION. En local
+# USE_S3_FILES=0 mantiene el FileSystemStorage de siempre. Las credenciales
+# (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) las toma boto3 del entorno.
+USE_S3_FILES = getenv_bool("USE_S3_FILES", False)
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-west-2")
+AWS_LOCATION = os.getenv("AWS_LOCATION", "data_files")
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+if USE_S3_FILES:
+    STORAGES["docs"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "region_name": AWS_S3_REGION_NAME,
+            "location": AWS_LOCATION,
+            # ACLs deshabilitadas en la práctica: el acceso público lo da
+            # la bucket policy, no una ACL por objeto
+            "default_acl": None,
+            "querystring_auth": False,
+            "file_overwrite": False,
+            "object_parameters": {"StorageClass": "INTELLIGENT_TIERING"},
+        },
+    }
+else:
+    STORAGES["docs"] = {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    }
+# ----------------------------end FILE STORAGE--------------------------------
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
