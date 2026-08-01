@@ -7,10 +7,17 @@ from source.models import ScrapedRecord, Source
 from profile_auth.models import User
 from source.scraper.articles import (
     ArticleScraper, MainScraper, ManagerScraper)
-from source.scraper.scraper_base import get_content, get_clean_text
+from source.scraper.scraper_base import (
+    get_content, get_clean_text, ScraperSession)
+
+
+# Secciones cuya URL no sirve un listado sino el artículo mismo: el
+# editorial del día y la recopilación de cartas de lectores.
+SINGLE_ARTICLE_SECTIONS = {"Editorial", "El Correo Ilustrado"}
 
 
 class JornadaManagerScraper(ManagerScraper):
+    warmup_url = "https://www.jornada.com.mx/"
 
     def __init__(
             self, from_date: str | date | None, to_date: str | date | None,
@@ -35,12 +42,14 @@ class JornadaManagerScraper(ManagerScraper):
 class JornadaMainScraper(MainScraper):
     need_proxy = True
 
-    def __init__(self, scraper_date: date | str):
+    def __init__(
+            self, scraper_date: date | str,
+            session: ScraperSession | None = None):
         self.scraper_date = self.date_in_str(scraper_date)
         self.soup_content = get_content(
-            self.main_url(), self.parser, self.need_proxy)
+            self.main_url(), self.parser, self.need_proxy, session=session)
 
-        super().__init__(scraper_date)
+        super().__init__(scraper_date, session=session)
 
         for _, section_data in self.sections_dict.items():
             if "articles" not in section_data:
@@ -74,13 +83,39 @@ class JornadaMainScraper(MainScraper):
                                 "url": section_url}
 
     def get_articles(self):
-        for _, section_data in self.sections_dict.items():
+        for section_name, section_data in self.sections_dict.items():
             section_url = section_data["url"]
+            if section_name in SINGLE_ARTICLE_SECTIONS:
+                section_data["articles"] = [
+                    self.single_article(section_name, section_url)]
+                continue
             try:
                 section_data["articles"] = JornadaSectionScraper(
-                    section_url).articles
+                    section_url, session=self.session,
+                    referer=self.main_url()).articles
             except Exception as e:
                 section_data["error"] = str(e)
+                continue
+            if not section_data["articles"]:
+                # Sin error pero sin artículos: casi siempre es el selector
+                # que dejó de coincidir, no una sección vacía de verdad.
+                section_data["empty"] = True
+
+    def single_article(self, section_name: str, section_url: str) -> dict:
+        """
+        Artículo único para una sección que no lista nada.
+
+        Devuelve `uid` y `url` relativos al día porque `__init__` les
+        antepone la fecha y el dominio, igual que a los del listado.
+        """
+        slug = section_url.rstrip("/").split("/")[-1]
+        return {
+            "uid": slug,
+            "title": section_name,
+            "url": slug,
+            "images": [],
+            "content": "",
+        }
 
 
 class JornadaSectionScraper:
@@ -88,9 +123,12 @@ class JornadaSectionScraper:
     soup_content: BeautifulSoup
     articles: list[dict]
 
-    def __init__(self, url: str):
+    def __init__(
+            self, url: str, session: ScraperSession | None = None,
+            referer: str | None = None):
         self.soup_content = get_content(
-            f"https://www.jornada.com.mx{url}", with_proxy=self.need_proxy)
+            f"https://www.jornada.com.mx{url}", with_proxy=self.need_proxy,
+            session=session, referer=referer)
         self.get_articles()
 
     def get_articles(self):
@@ -174,14 +212,16 @@ class JornadaArticleScraper(ArticleScraper):
                 })
         author_classes = ['credito-autor', 'credito-articulo']
         try:
-            self.author = article.find('div', class_=author_classes)\
-                .find('span').get_text()
+            self.author = get_clean_text(
+                article.find('div', class_=author_classes).find('span'))
         except AttributeError:
             self.author = None
         if not self.author:
             span_author = article.find('span', itemprop='name')
-            if span_author:
-                self.author = span_author.get_text()
+            # get_clean_text normaliza: los spans vacíos traen "\n", que es
+            # truthy y se guardaba tal cual como autor.
+            self.author = get_clean_text(span_author) if span_author else None
+        self.author = self.author or None
 
     def get_main_body(self) -> Tag:
         return self.soup_content.find('article')

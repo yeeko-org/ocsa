@@ -10,7 +10,8 @@ from source.models import ScrapedRecord, Source
 from profile_auth.models import User
 from source.scraper.articles import (
     ArticleScraper, MainScraper, ManagerScraper)
-from source.scraper.scraper_base import get_content, get_clean_text
+from source.scraper.scraper_base import (
+    get_content, get_clean_text, ScraperSession)
 
 
 MAIN_URL = (
@@ -85,14 +86,16 @@ class ReformaMainScraper(MainScraper):
     parser = "xml"
     date_format = "%Y%m%d"
 
-    def __init__(self, scraper_date: date | str):
+    def __init__(
+            self, scraper_date: date | str,
+            session: ScraperSession | None = None):
         self.parser = "xml"
         self.scraper_date = self.date_in_str(scraper_date)
         self.soup_content = get_content(
-            self.main_url(), self.parser, self.need_proxy)
+            self.main_url(), self.parser, self.need_proxy, session=session)
         print("main url", self.main_url())
         print("scraping date", self.scraper_date)
-        super().__init__(scraper_date)
+        super().__init__(scraper_date, session=session)
 
         for _, section_data in self.sections_dict.items():
             if "articles" not in section_data:
@@ -141,9 +144,14 @@ class ReformaMainScraper(MainScraper):
                         "directorio": section_data["directorio"],
                         "id_seccion": section_data["id_seccion"],
                         "pagina": section_data["pagina"],
-                    }).articles
+                    }, session=self.session).articles
             except Exception as e:
                 section_data["error"] = str(e)
+                continue
+            if not section_data["articles"]:
+                # Sin error pero sin artículos: casi siempre es el selector
+                # que dejó de coincidir, no una sección vacía de verdad.
+                section_data["empty"] = True
 
 
 class ReformaSectionScraper:
@@ -151,9 +159,12 @@ class ReformaSectionScraper:
     articles: list[dict]
     meta_section: dict
 
-    def __init__(self, url: str, meta_section: dict | None = None):
+    def __init__(
+            self, url: str, meta_section: dict | None = None,
+            session: ScraperSession | None = None):
         self.meta_section = meta_section or {}
-        self.soup_content = get_content(url, parser="xml", with_proxy=True)
+        self.soup_content = get_content(
+            url, parser="xml", with_proxy=True, session=session)
         self.get_articles()
 
     def get_articles(self):

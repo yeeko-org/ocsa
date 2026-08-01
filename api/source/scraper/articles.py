@@ -3,7 +3,8 @@ from datetime import date, datetime, timedelta
 from typing import Dict, List, Type
 from tqdm import tqdm
 from source.models import Article, ScrapedRecord, Source
-from source.scraper.scraper_base import MainScraper, ArticleScraper
+from source.scraper.scraper_base import (
+    MainScraper, ArticleScraper, ScraperSession)
 from profile_auth.models import User
 
 
@@ -69,6 +70,11 @@ class ManagerScraper(ABC):
     articles_by_date: Dict[str, dict]
     overlapping_dates: list
     errors: list
+    session: ScraperSession
+    # URL que la sesión visita primero para obtener la cookie de Cloudflare.
+    # Solo aplica a fuentes servidas como sitio web; las que atacan un
+    # endpoint de datos la dejan en None.
+    warmup_url: str | None = None
 
     def __init__(
             self, from_date: str | date | None, to_date: str | date | None,
@@ -83,6 +89,11 @@ class ManagerScraper(ABC):
         self.overlapping_dates = []
         self.errors = []
         self.scraped_record = None
+        # Una sola sesión por lote: el challenge se paga una vez, no una
+        # vez por día ni por sección.
+        self.session = ScraperSession(
+            with_proxy=main_scraper_class.need_proxy,
+            warmup_url=self.warmup_url)
 
         if recover_record:
             self.scraped_record = recover_record
@@ -155,7 +166,8 @@ class ManagerScraper(ABC):
 
         for date_ in str_dates:
             try:
-                sections_dict = self.main_scraper_class(date_).sections_dict
+                sections_dict = self.main_scraper_class(
+                    date_, session=self.session).sections_dict
             except Exception as e:
                 self.add_error(
                     f"Error getting sections for date {date_}",
@@ -225,7 +237,7 @@ class ManagerScraper(ABC):
         if not article.content:
             try:
                 article_scraper = self.article_scraper_class(
-                    article, update=update)
+                    article, update=update, session=self.session)
             except Exception as e:
                 raise CriteriaError(
                     article, "Error scraping article", e)

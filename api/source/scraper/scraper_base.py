@@ -1,4 +1,5 @@
 import re
+import threading
 from abc import ABC, abstractmethod
 from datetime import date, datetime
 from typing import Any, Dict, List
@@ -13,6 +14,10 @@ from django.conf import settings
 from source.models import Article
 
 REQUESTS_DEFAULT_HEADERS = {"User-Agent": "Mozilla/4.0"}
+
+# Intentos por URL y punto en el que se renueva la sesión. Ver get_content.
+MAX_ATTEMPTS = 6
+RENEW_AT = 3
 
 
 def get_json_content(
@@ -64,34 +69,113 @@ def get_json_content(
             )
 
 
+class ScraperSession:
+    """
+    Sesión HTTP con cookies persistentes.
+
+    Cloudflare no evalúa peticiones sueltas sino sesiones: al primer
+    acceso emite una cookie `cf_clearance` ligada al par (IP,
+    fingerprint TLS) y a partir de ahí deja pasar el resto del dominio.
+    Sin cookies compartidas cada URL vuelve a caer en el challenge, y
+    desde una IP de proxy —con reputación de sobra para ser sospechosa—
+    eso significa 403 permanente.
+    """
+
+    def __init__(
+            self, with_proxy: bool = False, warmup_url: str | None = None
+    ) -> None:
+        self.with_proxy = with_proxy
+        self.warmup_url = warmup_url
+        self.last_url: str | None = None
+        self._session = self._build_session()
+        self._warmup()
+
+    def _build_session(self) -> cffi_requests.Session:
+        proxies = None
+        if self.with_proxy and settings.PROXY_KEY:
+            # El valor lleva esquema http:// aunque el destino sea HTTPS:
+            # al proxy se llega por HTTP y de ahí abre el túnel CONNECT.
+            proxies = {"https": f"http://{settings.PROXY_KEY}"}
+        # impersonate="chrome" replica el handshake TLS de un Chrome real.
+        return cffi_requests.Session(impersonate="chrome", proxies=proxies)
+
+    def _warmup(self) -> None:
+        """Paga el challenge una sola vez para todo el dominio."""
+        if not self.warmup_url:
+            return
+        try:
+            self.get(self.warmup_url)
+        except Exception as exc:
+            print(f"Warmup fallido para {self.warmup_url}: {exc}")
+
+    def renew(self) -> None:
+        """Descarta la sesión quemada; al reconectar el proxy asigna otra IP."""
+        try:
+            self._session.close()
+        except Exception:
+            pass
+        self.last_url = None
+        self._session = self._build_session()
+        self._warmup()
+
+    def get(self, url: str, referer: str | None = None, timeout: int = 40):
+        headers = {}
+        # Encadenar el Referer imita la navegación real: sin él, Cloudflare
+        # trata cada sección como una entrada directa y la vuelve a retar.
+        actual_referer = referer or self.last_url
+        if actual_referer:
+            headers["Referer"] = actual_referer
+        response = self._session.get(
+            url, headers=headers or None, timeout=timeout)
+        if response.status_code == 200:
+            self.last_url = url
+        return response
+
+
+_thread_local = threading.local()
+
+
+def get_thread_session(with_proxy: bool = False) -> ScraperSession:
+    """
+    Sesión de respaldo para llamadores que no gestionan la suya. Cada lote
+    de scraping corre en su propio hilo, así que equivale a una por lote.
+    """
+    key = f"session_proxy_{int(with_proxy)}"
+    session = getattr(_thread_local, key, None)
+    if session is None:
+        session = ScraperSession(with_proxy=with_proxy)
+        setattr(_thread_local, key, session)
+    return session
+
+
 def get_content(
-    url, parser="html.parser", with_proxy: bool = False, attempts: int = 1
+    url: str,
+    parser: str = "html.parser",
+    with_proxy: bool = False,
+    session: ScraperSession | None = None,
+    referer: str | None = None,
 ) -> BeautifulSoup:
-    import time
+    sess = session or get_thread_session(with_proxy)
+    last_status = None
 
-    proxy_key = settings.PROXY_KEY
-    proxies = None
-    if with_proxy and proxy_key:
-        # El valor lleva esquema http:// aunque el destino sea HTTPS: al
-        # proxy se llega por HTTP y desde ahí abre el túnel CONNECT.
-        proxies = {"https": f"http://{proxy_key}"}
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            response = sess.get(url, referer=referer)
+        except ProxyError as exc:
+            raise Exception(
+                f"Error de proxy al acceder a {url}: {exc}") from exc
+        if response.status_code == 200:
+            return BeautifulSoup(response.text, parser)
+        last_status = response.status_code
+        # Se reintenta de inmediato, sin backoff: el 403 es un challenge que
+        # se resuelve al segundo intento dentro de la misma sesión, no un
+        # rate limit que se cure esperando. Agotada la mitad de los intentos
+        # damos la IP por quemada y renovamos.
+        if attempt == RENEW_AT:
+            print(f"Sesión quemada en {url}, renovando IP.")
+            sess.renew()
 
-    # impersonate="chrome" replica el handshake TLS de un Chrome real.
-    try:
-        response = cffi_requests.get(
-            url, impersonate="chrome", proxies=proxies, timeout=40)
-    except ProxyError as exc:
-        raise Exception(
-            f"Error de proxy al acceder a {url}: {exc}") from exc
-
-    if response.status_code == 200:
-        return BeautifulSoup(response.text, parser)
-    if attempts <= 3 and with_proxy:
-        print(f"Intento {attempts} fallido para {url}.")
-        time.sleep(2**attempts)
-        return get_content(url, parser, with_proxy, attempts + 1)
-    raise Exception(
-        f"Error al acceder a la página: {response.status_code}")
+    raise Exception(f"Error al acceder a la página: {last_status}")
 
 
 def get_clean_text(elem: PageElement) -> str:
@@ -127,14 +211,16 @@ class MainScraper(ABC):
     soup_content: BeautifulSoup
     sections_dict: Dict[str, dict]
     scraper_date: str
+    session: "ScraperSession | None"
     parser = "html.parser"
     need_proxy = False
     date_format = "%Y/%m/%d"
 
-    def __init__(self, scraper_date: date | str):
+    def __init__(
+            self, scraper_date: date | str,
+            session: "ScraperSession | None" = None):
         self.scraper_date = self.date_in_str(scraper_date)
-        # self.soup_content = get_content(
-        #     self.main_url(), self.parser, self.need_proxy)
+        self.session = session
 
         self.get_sections()
         self.get_articles()
@@ -168,6 +254,7 @@ class MainScraper(ABC):
 class ArticleScraper(ABC):
     article: Article
     soup_content: BeautifulSoup
+    session: "ScraperSession | None"
 
     title: str
     subtitle: str | None
@@ -180,15 +267,19 @@ class ArticleScraper(ABC):
     need_proxy: bool = False
     paragraphs: List[str] = []
 
-    def __init__(self, article: Article, update: bool = False):
+    def __init__(
+            self, article: Article, update: bool = False,
+            session: "ScraperSession | None" = None):
         self.article = article
+        self.session = session
         if article.html_content and not update:
             self.soup_content = BeautifulSoup(article.html_content, self.parser)
             self.get_article_data()
             return
         if self.parser != "json":
             self.soup_content = get_content(
-                self.article.url, self.parser, self.need_proxy)
+                self.article.url, self.parser, self.need_proxy,
+                session=session)
         try:
             self.get_article_data()
         except Exception as e:

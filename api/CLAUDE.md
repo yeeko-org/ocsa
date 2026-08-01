@@ -51,3 +51,12 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
   (`USE_S3_FILES=1`, class `INTELLIGENT_TIERING`, public read via bucket
   policy on `data_files/*`); local dev keeps disk storage. Storage per
   field via `core/storages.py::select_docs_storage`
+
+### Testing
+No hay suite montada; lo que existe son diagnósticos re-ejecutables que
+golpean servicios reales (proxy, PressReader, Gemini) y por tanto cuestan.
+Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
+
+### Documentación de proceso
+Decisiones (ADR), tareas abiertas y bitácoras viven en `docs/`, indexadas
+por frontmatter y enlazadas con `[[id]]`. Ver el skill `documenter`.

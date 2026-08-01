@@ -95,10 +95,9 @@ class ManagerCriteria:
         return articles
 
     def build_first_criteria(
-            self, prompt_version: str = "v2",
+            self, prompt_version: str = "v3",
             articles: List[Article] | None = None):
-
-        self.build_gemini_request(
+            self.build_gemini_request(
             prompt_name="first",
             prompt_version=prompt_version,
             articles=articles,

@@ -7,15 +7,17 @@ en notas curadas con menciones estructuradas.
 
 ## Scraping — gotchas de acceso
 
-**La Jornada está detrás de Cloudflare con *challenge* por fingerprint
-TLS.** `requests`/`urllib3` recibe siempre 403 ("Just a moment...",
-header `cf-mitigated: challenge`) sin importar User-Agent ni IP. El helper
-central `get_content` (`scraper/scraper_base.py`) debe acceder con
-`curl_cffi` e `impersonate="chrome"`; pasa con o sin proxy.
+**Cloudflare protege a La Jornada con tres controles independientes.** Hay que satisfacer los tres o el 403 es permanente:
 
-El proxy `PROXY_KEY` (.env, DataImpulse, sufijo `__cr.mx` = ruta México)
-**no evade Cloudflare**, solo aporta rotación de IP para volumen. Un `407
-NO_USER` = credenciales rechazadas (password caduco), no un bug de código.
+1. **Fingerprint TLS** — solo pasa `curl_cffi` con `impersonate="chrome"`; con `requests`/`urllib3` el 403 es inevitable, da igual el User-Agent.
+2. **Reputación de IP** — la IP del EC2 (datacenter AWS) recibe 403 en directo, así que `PROXY_KEY` (.env, DataImpulse, sufijo `__cr.mx` = ruta México) es indispensable en producción. Desde IP residencial estorba.
+3. **Continuidad de sesión** — Cloudflare evalúa sesiones, no peticiones: sin cookies compartidas ni `Referer` encadenado, cada URL vuelve a caer en el challenge.
+
+`ScraperSession` (`scraper/scraper_base.py`) cubre el tercero: una sesión por lote, creada en `ManagerScraper.__init__` y propagada hasta `ArticleScraper`. `get_content` la recibe como `session=`; sin ella cae a una thread-local. `warmup_url` solo aplica a fuentes servidas como sitio web. Proceso queda fuera de esta ruta: va por `get_json_content` contra PressReader.
+
+🚫 **Nunca metas backoff en los reintentos de 403.** Es un challenge que se resuelve al segundo intento dentro de la misma sesión, no un rate limit que se cure esperando. El `sleep(2**n)` anterior costaba 138 s por día y perdía 6 de 8 secciones; sano son ~3.5 s por día.
+
+Un `407 NO_USER` = credenciales del proxy caducas, no un bug de código.
 
 Diagnóstico: `python source/scraper/scraper_access_test.py [YYYY/MM/DD]`
 (modo Jornada) o `... <url> [--proxy] [--xml]` (cualquier otra fuente).
