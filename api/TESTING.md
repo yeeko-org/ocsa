@@ -62,6 +62,33 @@ python .claude/diagnostics/batch_failure_policy.py
 
 **El único diagnóstico que no cuesta nada:** no toca la red ni la cuota de Gemini, y revierte la transacción al terminar. Sustituye `RequestGemini` por un doble que falla a voluntad y comprueba las cuatro conductas que fija [[adr-0010]] — cortacircuitos a los cinco fallos idénticos, recreación del caché con tope de dos, caída a inline reportada una sola vez, y lote que termina completo pese a fallos sueltos — ejercitando el `build_criteria` real, que desde [[task-5]] es la única ruta. Sale con código 1 si algo no cuadra.
 
+### Recuperación histórica y reclasificación (gastan)
+
+```bash
+# Solo scraping, sin tocar Gemini: verifica el HTML antes de pagar IA
+python manage.py recover_single_sections --phase scrape --limit-records 1
+
+# Corrida completa de un lote, con clasificación y pre-captura
+python manage.py recover_single_sections --limit-records 1 --user <email>
+
+# Reclasificación de los capados, muestra corta y sin segunda pasada
+python manage.py reclassify_capped_articles --limit 20 --only-first
+```
+
+Ambos son idempotentes: re-correrlos no duplica artículos ni vuelve a
+pagar lo ya hecho. `--phase scrape` y `--limit`/`--limit-records` son lo
+que sustituye al dry-run, porque el repo no usa transacciones.
+
+Se verifican con los dos diagnósticos de arriba: `diagnose_scraping_gaps`
+debe dejar de marcar «Editorial» y «El Correo Ilustrado» como «SIEMPRE 0
+artículos» en los días procesados, y `capped_political_opinion` debe
+bajar su conteo. Conviene guardar la salida de ambos **antes** de correr:
+escribir el JSON `data` borra la evidencia del bug original.
+
+`reclassify_capped_articles` sobrescribe `criteria` y `certainty_degree`
+sin guardar el valor previo; el movimiento solo queda en el reporte de
+stdout, así que conviene redirigirlo a un archivo.
+
 ### Sonda de Proceso
 
 `source/tests.py::probe_proceso_sections()` cuenta secciones y artículos de un issue de PressReader. **Hay que llamarla explícitamente** (shell de Django o import); vive dentro de una función justo para que `manage.py test` no la dispare al importar el módulo. Consume slot de sesión de PressReader.

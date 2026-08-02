@@ -15,6 +15,38 @@ from source.scraper.scraper_base import (
 # editorial del día y la recopilación de cartas de lectores.
 SINGLE_ARTICLE_SECTIONS = {"Editorial", "El Correo Ilustrado"}
 
+JORNADA_MAIN_URL = "https://www.jornada.com.mx/"
+
+
+def single_article_payload(section_name: str, section_url: str) -> dict:
+    """Artículo único para una sección que no lista nada.
+
+    Devuelve `uid` y `url` relativos al día; `absolutize_article` los
+    completa igual que a los del listado.
+    """
+    slug = section_url.rstrip("/").split("/")[-1]
+    return {
+        "uid": slug,
+        "title": section_name,
+        "url": slug,
+        "images": [],
+        "content": "",
+    }
+
+
+def absolutize_article(
+        article: dict, scraper_date: str, main_url: str) -> dict:
+    """Antepone fecha y dominio al `uid` y la `url` relativos.
+
+    Vive aquí y no dentro del scraper porque la recuperación histórica
+    arma sus artículos sin pedir el índice del día: si duplicara la
+    fórmula del `uid`, un cambio de formato produciría artículos nuevos
+    en vez de reusar los existentes por `unique_together`.
+    """
+    article["url"] = f"{main_url}{article.get('url')}"
+    article["uid"] = f"{scraper_date}/{article.get('uid')}"
+    return article
+
 
 class JornadaManagerScraper(ManagerScraper):
     warmup_url = "https://www.jornada.com.mx/"
@@ -22,11 +54,12 @@ class JornadaManagerScraper(ManagerScraper):
     def __init__(
             self, from_date: str | date | None, to_date: str | date | None,
             recover_record: ScrapedRecord | None = None,
-            user:User | None = None
+            user:User | None = None,
+            session: ScraperSession | None = None
     ) -> None:
         super().__init__(
             from_date, to_date, JornadaMainScraper, JornadaArticleScraper,
-            recover_record=recover_record, user=user
+            recover_record=recover_record, user=user, session=session
         )
 
     def get_source(self) -> Source:
@@ -55,8 +88,8 @@ class JornadaMainScraper(MainScraper):
             if "articles" not in section_data:
                 continue
             for article in section_data["articles"]:
-                article["url"] = f"{self.main_url()}{article.get('url')}"
-                article["uid"] = f"{scraper_date}/{article.get('uid')}"
+                absolutize_article(
+                    article, str(scraper_date), self.main_url())
 
     def main_url(self):
         return f"https://www.jornada.com.mx/{self.scraper_date}/"
@@ -102,20 +135,7 @@ class JornadaMainScraper(MainScraper):
                 section_data["empty"] = True
 
     def single_article(self, section_name: str, section_url: str) -> dict:
-        """
-        Artículo único para una sección que no lista nada.
-
-        Devuelve `uid` y `url` relativos al día porque `__init__` les
-        antepone la fecha y el dominio, igual que a los del listado.
-        """
-        slug = section_url.rstrip("/").split("/")[-1]
-        return {
-            "uid": slug,
-            "title": section_name,
-            "url": slug,
-            "images": [],
-            "content": "",
-        }
+        return single_article_payload(section_name, section_url)
 
 
 class JornadaSectionScraper:

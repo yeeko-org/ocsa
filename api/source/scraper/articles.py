@@ -88,7 +88,8 @@ class ManagerScraper(ABC):
             main_scraper_class: Type["MainScraper"],
             article_scraper_class: Type["ArticleScraper"],
             recover_record: ScrapedRecord | None = None,
-            user: User | None = None
+            user: User | None = None,
+            session: ScraperSession | None = None
 
     ) -> None:
         self.main_scraper_class = main_scraper_class
@@ -97,8 +98,9 @@ class ManagerScraper(ABC):
         self.errors = []
         self.scraped_record = None
         # Una sola sesión por lote: el challenge se paga una vez, no una
-        # vez por día ni por sección.
-        self.session = ScraperSession(
+        # vez por día ni por sección. Quien recorre varios lotes seguidos
+        # puede pasar la suya para pagarlo una sola vez en toda la corrida.
+        self.session = session or ScraperSession(
             with_proxy=main_scraper_class.need_proxy,
             warmup_url=self.warmup_url)
 
