@@ -88,7 +88,7 @@ Notas pre-scraping guardadas como PDF (tienen `Note`/`NoteFile` pero no
 idempotentes: extracción del crudo (PyMuPDF → `Article.html_content`) y
 limpieza con Gemini orientada por el título de la `Note`
 (→ `Article.paragraphs`). Excluye La Jornada. Disparador:
-`source/scraper/examples_pdf_import.py`. Esquema: `PdfCleanResult`.
+`python manage.py import_pdf_notes`. Esquema: `PdfCleanResult`.
 
 ---
 
