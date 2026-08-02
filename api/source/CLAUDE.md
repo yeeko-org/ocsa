@@ -52,6 +52,24 @@ Mention (nota × proyecto)
 
 ---
 
+## Clasificación con IA — una sola ruta
+
+Los cuatro flujos heredan de `BaseCriteriaManager` (`source/criteria/__init__.py`) y se disparan con `build_criteria()`:
+
+| Subclase | Se dispara desde |
+|---|---|
+| `FirstCriteriaManager`, `SecondCriteriaManager` | `api/views/scraping/views.py` |
+| `PreCaptureManager` | vistas de artículo y nota |
+| `ReclassifyLegalManager` | `manage.py reclassify_legal_events` |
+
+Dos trampas: `prompt_name`, `version` y `seconds_cache` son atributos de
+clase sin default global —una subclase sin `version` revienta al
+construirse—, y `first`/`second` emiten el subtítulo sin numerar (`adr-0011`)
+porque su esquema acota las referencias a `ge=1` y un `[0]` rompe la
+validación. `pdf_import/clean.py` queda fuera del contrato a propósito.
+
+---
+
 ## Pre-captura asistida por IA
 
 El proceso lo orquesta `source/criteria/pre_capture.py` (`PreCaptureManager`).

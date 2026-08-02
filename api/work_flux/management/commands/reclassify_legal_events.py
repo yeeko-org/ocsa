@@ -38,4 +38,4 @@ class Command(BaseCommand):
         if options["only_backfill"]:
             return
 
-        ReclassifyLegalManager().run()
+        ReclassifyLegalManager().build_criteria()

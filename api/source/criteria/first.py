@@ -7,12 +7,20 @@ from source.criteria import BaseCriteriaManager
 
 class FirstCriteriaManager(BaseCriteriaManager):
 
+    prompt_name = "first"
+    version = "v3"
+    seconds_cache = 2
+
     def __init__(
             self, recover_record: ScrapedRecord,
-            ai_engine: str | None = None, is_test: bool = False
+            ai_engine: str | None = None, is_test: bool = False,
+            prompt_version: str | None = None
     ) -> None:
-        super().__init__(recover_record, ai_engine, is_test)
-        self.prompt_name = "first"
+        super().__init__(
+            recover_record, ai_engine, is_test, prompt_version)
+
+    def format_subtitle(self, subtitle: str) -> str:
+        return f"Subtítulo: {subtitle.strip()}\n"
 
     def get_articles_objects(self) -> List[Article]:
         articles = Article.objects.filter(scraped=self.scraped_record)

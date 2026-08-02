@@ -15,13 +15,15 @@ class ReclassifyLegalManager(BaseCriteriaManager):
     como contexto. No crea Note/Mention: solo corrige FKs existentes.
     """
 
+    prompt_name = "reclassify_legal"
+    version = "v2"
+    seconds_cache = 15
+
     def __init__(
             self, ai_engine: str | None = None, is_test: bool = False,
-            user: User | None = None
+            user: User | None = None, prompt_version: str | None = None
     ) -> None:
-        super().__init__(None, ai_engine, is_test)
-        self.prompt_name = "reclassify_legal"
-        self.seconds_cache = 15
+        super().__init__(None, ai_engine, is_test, prompt_version)
         self.user = user
 
     # ------------------------------------------------------------------
@@ -60,17 +62,8 @@ class ReclassifyLegalManager(BaseCriteriaManager):
     # ------------------------------------------------------------------
     # Prompt cacheado: catálogo inyectado en el system_msg
     # ------------------------------------------------------------------
-    def build_gemini_request(self, len_articles: int = 1) -> None:
-        from utils.gemini_ai import RequestGemini
-        prompt_file = (
-            f"gemini_{self.prompt_name}_criteria_{self.version}.txt")
-        self.classify_request = RequestGemini(engine=self.ai_engine)
-        self.classify_request.build_chat(f"source/prompts/{prompt_file}")
-        self.classify_request.system_msg += f"\n\n{self._build_catalog_block()}"
-        if len_articles > 1:
-            total = len_articles * self.seconds_cache
-            cache_name = f"{self.prompt_name}_criteria_{self.version}"
-            self.classify_request.create_cache(cache_name, total)
+    def get_extra_system_msg(self) -> str:
+        return self._build_catalog_block()
 
     def _build_catalog_block(self) -> str:
         from event.models import EventType
@@ -214,25 +207,3 @@ class ReclassifyLegalManager(BaseCriteriaManager):
             event.description = item.description
             event.reclassification_stage = 'reclassified'
             event.save()
-
-    # ------------------------------------------------------------------
-    # Entrada por lote, segura sin ScrapedRecord
-    # ------------------------------------------------------------------
-    def run(self) -> None:
-        from tqdm import tqdm
-        from source.scraper.articles import CriteriaError
-
-        articles = self.get_articles_objects()
-        if not articles:
-            print("No hay artículos con eventos pendientes")
-            return
-        articles = self.pre_process_articles(articles)
-        self.build_gemini_request(len(articles))
-        for article in tqdm(articles, desc="reclassify_legal"):
-            try:
-                self.get_ai_criteria(article)
-            except CriteriaError as e:
-                print("CriteriaError:", str(e))
-                continue
-        if self.classify_request.errors:
-            print("Request errors:", self.classify_request.errors)

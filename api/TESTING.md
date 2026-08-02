@@ -60,7 +60,7 @@ El segundo escribe en `ArticleQualify` con `is_test=True`, **sin tocar** `Articl
 python .claude/diagnostics/batch_failure_policy.py
 ```
 
-**El único diagnóstico que no cuesta nada:** no toca la red ni la cuota de Gemini, y revierte la transacción al terminar. Sustituye `RequestGemini` por un doble que falla a voluntad y comprueba las cuatro conductas que fija [[adr-0010]] — cortacircuitos a los cinco fallos idénticos, recreación del caché con tope de dos, caída a inline reportada una sola vez, y lote que termina completo pese a fallos sueltos — contra las **dos** ramas duplicadas del pipeline, que tienen que comportarse igual mientras siga abierta [[task-5]]. Sale con código 1 si algo no cuadra.
+**El único diagnóstico que no cuesta nada:** no toca la red ni la cuota de Gemini, y revierte la transacción al terminar. Sustituye `RequestGemini` por un doble que falla a voluntad y comprueba las cuatro conductas que fija [[adr-0010]] — cortacircuitos a los cinco fallos idénticos, recreación del caché con tope de dos, caída a inline reportada una sola vez, y lote que termina completo pese a fallos sueltos — ejercitando el `build_criteria` real, que desde [[task-5]] es la única ruta. Sale con código 1 si algo no cuadra.
 
 ### Sonda de Proceso
 
@@ -73,5 +73,5 @@ Todo lo que los diagnósticos necesitan vive en `.env`: `PROXY_KEY` para el scra
 ## Cuidados al ejercitar el pipeline
 
 - **El scraping gasta.** El proxy se cobra por tráfico y PressReader tiene un slot de sesión único; correr diagnósticos en bucle tiene costo real.
-- **Los criterios llaman a Gemini.** Cualquier prueba que dispare `build_first_criteria` o `pre_capture` consume cuota.
+- **Los criterios llaman a Gemini.** Cualquier prueba que dispare `build_criteria` en `FirstCriteriaManager` o `PreCaptureManager` consume cuota.
 - **La base local (`ocsa-local2`) va desfasada** respecto de producción. Sirve para diagnosticar, no para concluir sobre volúmenes actuales.

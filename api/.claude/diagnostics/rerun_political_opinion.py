@@ -85,13 +85,12 @@ def build_sample():
 def get_schema_record():
     source = Source.objects.first()
     record, _ = ScrapedRecord.objects.get_or_create(
-        from_date=MARKER_DATES[0], to_date=MARKER_DATES[1], source=source,
-        defaults={"status": "criteria"})
+        from_date=MARKER_DATES[0], to_date=MARKER_DATES[1], source=source)
     return record
 
 
 def run():
-    from source.scraper.criteria import ManagerCriteria
+    from source.criteria.first import FirstCriteriaManager
 
     groups = build_sample()
     record = get_schema_record()
@@ -113,14 +112,14 @@ def run():
         return
 
     print(f"\nClasificando {len(pending)} artículos con {AI_ENGINE}...")
-    manager = ManagerCriteria(
-        recover_record=record, ai_engine=AI_ENGINE, is_test=True)
-    # `build_first_criteria` fija seconds_cache=2, que da ~0.6 s de margen
-    # por artículo sobre el ritmo real: un solo stall de la API expira el
-    # caché y tumba el resto del lote.
-    manager.build_gemini_request(
-        prompt_name="first", prompt_version=PROMPT_VERSION,
-        articles=pending, seconds_cache=30)
+    manager = FirstCriteriaManager(
+        recover_record=record, ai_engine=AI_ENGINE, is_test=True,
+        prompt_version=PROMPT_VERSION)
+    # El default de la clase es 2 s, que da ~0.6 s de margen por artículo
+    # sobre el ritmo real: un solo stall de la API expira el caché y tumba
+    # el resto del lote.
+    manager.seconds_cache = 30
+    manager.build_criteria(articles=pending)
     print("Listo. Corre `report`.")
 
 

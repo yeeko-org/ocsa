@@ -4,8 +4,8 @@ No llama a Gemini ni a la red: sustituye `RequestGemini` por un doble que
 falla a voluntad, y revierte la transacción al terminar. Correrlo no cuesta
 cuota ni deja rastro en la base.
 
-Cubre las dos ramas duplicadas del pipeline, que hoy tienen que comportarse
-igual y no comparten código ([[task-5]]).
+Desde [[task-5]] hay una sola ruta, así que ejercita el bucle real de
+`build_criteria` en vez de replicarlo.
 
 Vive aquí por falta de suite, no por naturaleza: es un test unitario y
 [[task-14]] contempla mudarlo. Mientras tanto depende de que la base local
@@ -27,7 +27,6 @@ from django.db import transaction  # noqa: E402
 
 from source.models import Article, ScrapedRecord  # noqa: E402
 from source.scraper.articles import CriteriaError  # noqa: E402
-from source.scraper.criteria import ManagerCriteria  # noqa: E402
 from source.criteria import BaseCriteriaManager  # noqa: E402
 from utils.gemini_ai import MAX_FAILED_STREAK, MIN_PENDING_FOR_CACHE  # noqa: E402
 
@@ -60,30 +59,6 @@ class FakeRequest:
         return True
 
 
-def run_batch(manager, articles, fake):
-    """Réplica del bucle de fallos que hoy vive duplicado en ambas ramas.
-
-    Se copia en vez de invocar `build_criteria` porque ese método arranca
-    pidiéndole artículos a la base y construyendo el request real.
-    """
-    len_articles = len(articles)
-    failed_streak, last_status = 0, None
-    for idx, article in enumerate(articles):
-        try:
-            manager.get_ai_criteria(article)
-        except CriteriaError as e:
-            failed_streak = failed_streak + 1 if e.status == last_status else 1
-            last_status = e.status
-            if failed_streak >= MAX_FAILED_STREAK:
-                manager.abort_batch(failed_streak, last_status)
-                return idx + 1
-            if manager.classify_request.cache_lost:
-                manager.recover_cache(len_articles - idx - 1)
-            continue
-        failed_streak, last_status = 0, None
-    return len_articles
-
-
 def run_case(name, manager_class, status_for, cache_lost, expected):
     record = ScrapedRecord.objects.filter(articles__isnull=False).first()
     articles = list(Article.objects.filter(scraped=record)[:BATCH_SIZE])
@@ -92,8 +67,11 @@ def run_case(name, manager_class, status_for, cache_lost, expected):
 
     manager = manager_class(recover_record=record)
     fake = FakeRequest(cache_lost=cache_lost)
-    manager.classify_request = fake
     calls = {"n": 0}
+
+    # El request real saldría a la red; el doble se inyecta en su lugar.
+    manager.build_gemini_request = lambda *a, **kw: setattr(
+        manager, "classify_request", fake)
 
     def fake_criteria(article, **kwargs):
         calls["n"] += 1
@@ -106,11 +84,11 @@ def run_case(name, manager_class, status_for, cache_lost, expected):
             cause=fake.last_error, status=status)
 
     manager.get_ai_criteria = fake_criteria
-    attempted = run_batch(manager, articles, fake)
+    manager.build_criteria(articles=articles)
     record.refresh_from_db()
 
     got = {
-        "attempted": attempted,
+        "attempted": calls["n"],
         "recreated": fake.recreated,
         "batch_errors": len(record.errors or []),
     }
@@ -147,6 +125,7 @@ class _BaseManagerProbe(BaseCriteriaManager):
     """`BaseCriteriaManager` es abstracta; el bucle no usa sus abstractos."""
 
     prompt_name = "diagnostic"
+    version = "v0"
 
     def get_articles_objects(self):
         return []
@@ -161,12 +140,11 @@ class _BaseManagerProbe(BaseCriteriaManager):
 def main():
     failures = 0
     with transaction.atomic():
-        for manager_class in (ManagerCriteria, _BaseManagerProbe):
-            print(f"\n{manager_class.__name__}:")
-            for name, status_for, cache_lost, expected in CASES:
-                if not run_case(name, manager_class, status_for,
-                                cache_lost, expected):
-                    failures += 1
+        print(f"\n{_BaseManagerProbe.__name__}:")
+        for name, status_for, cache_lost, expected in CASES:
+            if not run_case(name, _BaseManagerProbe, status_for,
+                            cache_lost, expected):
+                failures += 1
         transaction.set_rollback(True)
 
     print(f"\n{'FALLAS: ' + str(failures) if failures else 'Todo en orden'}"

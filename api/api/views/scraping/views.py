@@ -14,7 +14,8 @@ from api.views.article.source_serializers import (
 from source.models import ScrapedRecord, Article
 from source.scraper.jornada import JornadaManagerScraper
 from source.scraper.reforma import ReformaManagerScraper
-from source.scraper.criteria import ManagerCriteria
+from source.criteria.first import FirstCriteriaManager
+from source.criteria.second import SecondCriteriaManager
 
 
 def get_manager_scraper_class(source):
@@ -49,10 +50,9 @@ def full_scrape_articles(scraped_record: ScrapedRecord):
     scraped_record.last_updated = timezone.now()
     scraped_record.save()
     manager_scraper.scrape_articles(update=True)
-    manager_criteria = ManagerCriteria(recover_record=scraped_record)
 
-    manager_criteria.build_first_criteria()
-    manager_criteria.build_second_criteria()
+    FirstCriteriaManager(recover_record=scraped_record).build_criteria()
+    SecondCriteriaManager(recover_record=scraped_record).build_criteria()
 
 
 class ScrapingDatesView(APIView):

@@ -7,13 +7,21 @@ from source.criteria import BaseCriteriaManager
 
 
 class SecondCriteriaManager(BaseCriteriaManager):
+
+    prompt_name = "second"
+    version = "v2"
+    seconds_cache = 3
+
     def __init__(
             self, recover_record: ScrapedRecord,
-            ai_engine: str | None = None, is_test: bool = False
+            ai_engine: str | None = None, is_test: bool = False,
+            prompt_version: str | None = None
     ) -> None:
-        super().__init__(recover_record, ai_engine, is_test)
-        self.prompt_name = "second"
-        self.seconds_cache = 3
+        super().__init__(
+            recover_record, ai_engine, is_test, prompt_version)
+
+    def format_subtitle(self, subtitle: str) -> str:
+        return f"Subtítulo: {subtitle.strip()}\n"
 
     def get_articles_objects(self) -> List[Article]:
         articles = Article.objects.filter(
@@ -46,7 +54,7 @@ class SecondCriteriaManager(BaseCriteriaManager):
 
     def get_additional_content(self, article: Article) -> str:
 
-        additional = (f"\n\n{'=' * 30}\n Criterios y párrafos "
+        additional = (f"\n\n{'=' * 30}\nCriterios y párrafos "
                       f"previamente identificados:\n")
 
         if article.criteria:
@@ -56,13 +64,12 @@ class SecondCriteriaManager(BaseCriteriaManager):
 
         return additional
 
-    def pre_process_articles(self, articles: List[Article]) -> List[Article]:
+    def post_process_batch(self) -> None:
         from django.utils import timezone
+
         if not self.scraped_record.date_end:
             self.scraped_record.date_end = timezone.now()
             self.scraped_record.save()
-
-        return articles
 
     def save_criteria_results(
             self, criteria: any, json_criteria: dict, article: Article

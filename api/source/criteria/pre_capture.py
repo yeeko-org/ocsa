@@ -12,14 +12,17 @@ from profile_auth.models import User
 
 class PreCaptureManager(BaseCriteriaManager):
 
+    prompt_name = "pre_capture"
+    version = "v2"
+    seconds_cache = 10
+
     def __init__(
             self, recover_record: ScrapedRecord | None = None,
             ai_engine: str | None = None, is_test: bool = False,
-            user: User | None = None
+            user: User | None = None, prompt_version: str | None = None
     ) -> None:
-        super().__init__(recover_record, ai_engine, is_test)
-        self.prompt_name = "pre_capture"
-        self.seconds_cache = 10
+        super().__init__(
+            recover_record, ai_engine, is_test, prompt_version)
         self.user = user
 
     def get_articles_objects(self) -> List[Article]:
@@ -92,8 +95,8 @@ class PreCaptureManager(BaseCriteriaManager):
         additional = ""
 
         if article.second_criteria:
-            additional += "\n\n{'=' * 30}\n"
-            additional = "Lista de proyectos a identificar:\n"
+            additional += f"\n\n{'=' * 30}\n"
+            additional += "Lista de proyectos a identificar:\n"
             projects = article.second_criteria.get("projects", [])
             for (index, project) in enumerate(projects, start=1):
                 if project.get("degrees", 0) > 100:
