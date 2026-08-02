@@ -130,7 +130,7 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
             return Response(
                 {'detail': 'Pre-capture is already frozen for this note.'},
                 status=400)
-        manager = PreCaptureManager(ai_engine="gemini-3-flash-preview")
+        manager = PreCaptureManager()
         manager.build_direct_criteria(note.articles.first())
         note_saved = Note.objects.get(pk=note.id)
         serializer = self.get_serializer(

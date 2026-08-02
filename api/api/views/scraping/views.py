@@ -49,8 +49,7 @@ def full_scrape_articles(scraped_record: ScrapedRecord):
     scraped_record.last_updated = timezone.now()
     scraped_record.save()
     manager_scraper.scrape_articles(update=True)
-    manager_criteria = ManagerCriteria(
-        recover_record=scraped_record, ai_engine="gemini-3-flash-preview")
+    manager_criteria = ManagerCriteria(recover_record=scraped_record)
 
     manager_criteria.build_first_criteria()
     manager_criteria.build_second_criteria()

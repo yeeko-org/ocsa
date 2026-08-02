@@ -14,13 +14,9 @@ class RequestGemini:
     first_response = None
     client = genai.Client(api_key=api_key)
 
-    def __init__(
-            self,
-            # engine="gemini-2.5-flash"
-            engine="gemini-3-flash-preview"
-    ):
+    def __init__(self, engine: str | None = None):
 
-        self.engine = engine
+        self.engine = engine or settings.GEMINI_ENGINE
         self.messages: list[dict] = []
         self.base_messages: list[str] = []
         self.msgs = []
