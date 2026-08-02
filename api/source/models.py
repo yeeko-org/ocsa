@@ -228,21 +228,11 @@ class StatusHistory(models.Model):
 
 
 class ScrapedRecord(models.Model):
-    STATUS_CHOICES = [
-        ("get_sections", "Traer secciones"),
-        ("record_articles", "Guardar artículos"),
-        ("preclassify", "Preclasificar"),
-        ("criteria", "Criterios"),
-        ("completed", "Completado"),
-        ("failed", "Fallido"),
-    ]
     from_date = models.DateField()
     to_date = models.DateField()
     source = models.ForeignKey(
         Source, on_delete=models.CASCADE, related_name='scraped_records')
     scraped_date = models.DateField(auto_now_add=True)
-    status = models.CharField(
-        max_length=20, blank=True, null=True, choices=STATUS_CHOICES)
 
     data = models.JSONField(blank=True, null=True)
     errors = models.JSONField(blank=True, null=True)
@@ -258,12 +248,8 @@ class ScrapedRecord(models.Model):
     def total_days(self):
         return (self.to_date - self.from_date).days + 1
 
-    def set_status(self, status_str: str):
-        self.status = status_str
-        self.save()
-
     def __str__(self):
-        return f"{self.source.name} - {self.from_date} to {self.to_date} ({self.status})"
+        return f"{self.source.name} - {self.from_date} to {self.to_date}"
 
     class Meta:
         verbose_name = 'Bloque de scrapeo'

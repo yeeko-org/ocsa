@@ -13,7 +13,7 @@ Lo que sí existe son **diagnósticos re-ejecutables**: scripts que verifican co
 | E2E | No montado |
 | Diagnósticos manuales | **Sí** — ver abajo |
 
-Cuando se monte el primer nivel, el default para este stack es `pytest` + `pytest-django`, y esta tabla y la sección de comandos se actualizan aquí.
+Montarlos es [[task-14]], que incluye mudar ahí el diagnóstico de política de fallos —hoy el único verificable sin costo— y decidir el runner: el default del stack es `pytest` + `pytest-django`, pero es dependencia nueva. Esta tabla y la sección de comandos se actualizan aquí cuando ocurra.
 
 ## Diagnósticos disponibles
 
@@ -53,6 +53,14 @@ ROUND=6 python .claude/diagnostics/rerun_political_opinion.py report
 ```
 
 El segundo escribe en `ArticleQualify` con `is_test=True`, **sin tocar** `Article.criteria` ni `certainty_degree`, y es reanudable: salta lo ya calificado con el mismo esquema, así que re-ejecutarlo no vuelve a cobrar. Cada corrida necesita un `ROUND` propio —ancla su `QualifySchema` a un `ScrapedRecord` marcador con fechas de 1900— y acepta `ENGINE` para comparar modelos. Se usó para fijar [[adr-0006]] y [[adr-0007]]; el detalle está en `docs/records/2026-08-01-criterio-de-opinion-politica.md`.
+
+### Política de fallos del ciclo de clasificación
+
+```bash
+python .claude/diagnostics/batch_failure_policy.py
+```
+
+**El único diagnóstico que no cuesta nada:** no toca la red ni la cuota de Gemini, y revierte la transacción al terminar. Sustituye `RequestGemini` por un doble que falla a voluntad y comprueba las cuatro conductas que fija [[adr-0010]] — cortacircuitos a los cinco fallos idénticos, recreación del caché con tope de dos, caída a inline reportada una sola vez, y lote que termina completo pese a fallos sueltos — contra las **dos** ramas duplicadas del pipeline, que tienen que comportarse igual mientras siga abierta [[task-5]]. Sale con código 1 si algo no cuadra.
 
 ### Sonda de Proceso
 

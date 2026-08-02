@@ -75,8 +75,6 @@ class ProcesoManagerScraper(ManagerScraper):
         """
         from source.scraper.articles import date_in_date
 
-        self.scraped_record.set_status("get_sections")
-
         from_date = date_in_date(self.scraped_record.from_date)
         to_date = date_in_date(self.scraped_record.to_date)
 

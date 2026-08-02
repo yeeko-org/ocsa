@@ -4,7 +4,8 @@ import json
 import enum
 from tqdm import tqdm
 from source.models import Article, ScrapedRecord, QualifySchema
-from utils.gemini_ai import RequestGemini
+from utils.gemini_ai import (
+    RequestGemini, MIN_PENDING_FOR_CACHE, MAX_FAILED_STREAK)
 from source.scraper.articles import CriteriaError
 from profile_auth.models import User
 
@@ -112,23 +113,57 @@ class BaseCriteriaManager(ABC):
 
     def build_criteria(self, articles: List[Article] | None = None):
         if not articles:
-            self.scraped_record.set_status(f"{self.prompt_name} criteria")
             articles = self.get_articles_objects()
 
         articles = self.pre_process_articles(articles)
 
-        self.build_gemini_request(len(articles))
+        len_articles = len(articles)
+        self.build_gemini_request(len_articles)
+        if self.classify_request.cache_error:
+            self.add_errors([self.classify_request.cache_error])
 
         desc = f"{self.prompt_name} classifying articles"
-        for article in tqdm(articles, desc=desc):
+        failed_streak = 0
+        last_status = None
+        for idx, article in enumerate(tqdm(articles, desc=desc)):
             try:
                 self.get_ai_criteria(article)
             except CriteriaError as e:
-                self.add_errors([str(e)])
+                failed_streak = (
+                    failed_streak + 1 if e.status == last_status else 1)
+                last_status = e.status
+                if failed_streak >= MAX_FAILED_STREAK:
+                    self.abort_batch(failed_streak, last_status)
+                    break
+                if self.classify_request.cache_lost:
+                    self.recover_cache(len_articles - idx - 1)
                 continue
+            failed_streak = 0
+            last_status = None
 
-        if self.classify_request.errors:
-            self.add_errors(self.classify_request.errors)
+    def abort_batch(self, streak: int, status: str) -> None:
+        msg = f"Lote abortado tras {streak} fallos seguidos por: {status}"
+        self.add_errors([msg])
+        print(msg)
+
+    def recover_cache(self, pending: int) -> None:
+        """Rehace el caché expirado si aún quedan artículos que lo amorticen.
+
+        Al no recrearlo el lote no muere: sigue con el system_instruction
+        inline, que cuesta más tokens pero clasifica igual.
+        """
+        request = self.classify_request
+        if pending < MIN_PENDING_FOR_CACHE:
+            request.cache = None
+            return
+        # Solo se reporta la transición a inline: repetirlo por cada artículo
+        # posterior volvería a llenar ScrapedRecord.errors de ruido.
+        was_disabled = request.cache_disabled
+        if request.recreate_cache() or was_disabled:
+            return
+        self.add_errors([
+            request.cache_error
+            or "Caché perdido y sin reintentos; el lote sigue inline"])
 
     def build_gemini_request(self, len_articles: int = 1) -> None:
         self.classify_request = make_gemini_request(self, len_articles)
@@ -147,7 +182,10 @@ class BaseCriteriaManager(ABC):
                 full_content, schema_clss=schema_clss)
 
         if not criteria_result:
-            raise CriteriaError(article, "No response AI service")
+            raise CriteriaError(
+                article, "No response AI service",
+                cause=self.classify_request.last_error,
+                status=self.classify_request.last_status)
 
         try:
             criteria = schema_clss.model_validate(criteria_result)

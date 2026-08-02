@@ -45,9 +45,16 @@ def get_date_range(
 class CriteriaError(Exception):
 
     def __init__(self, article: Article, message: str,
-                 exception: Exception | None = None):
+                 exception: Exception | None = None,
+                 cause: str | None = None, status: str | None = None):
         from django.utils import timezone
+        # `cause` es el error crudo de la API, que antes moría en
+        # `RequestGemini.errors` sin vínculo con el artículo; `status` es su
+        # clave estable, para agrupar fallos repetidos.
+        self.status = status or message
         final_msg = message
+        if cause:
+            final_msg += f" | {cause}"
         if exception:
             final_msg += f" | Exception: {str(exception)}"
         if article:
@@ -142,8 +149,7 @@ class ManagerScraper(ABC):
             from_date__lte=to_date,
             to_date__gte=from_date,
             source=self.get_source(),
-            status__isnull=False
-        ).exclude(status="failed")
+        )
 
         self.overlapping_dates = [
             [record.from_date.strftime("%Y/%m/%d"),
@@ -158,7 +164,6 @@ class ManagerScraper(ABC):
 
     def scrape_sections(self):
 
-        self.scraped_record.set_status("get_sections")
         str_dates = get_date_range(
             self.scraped_record.from_date, self.scraped_record.to_date,
             date_out_format=self.date_format)
@@ -184,8 +189,6 @@ class ManagerScraper(ABC):
         raise NotImplementedError
 
     def record_articles(self):
-        self.scraped_record.set_status("record_articles")
-
         self.get_source()
         for date_, sections_dict in self.scraped_record.data.items():  # type: ignore
             for section_name, section_data in sections_dict.items():

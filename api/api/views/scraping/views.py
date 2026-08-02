@@ -129,7 +129,6 @@ class ScrapedRecordView(BaseGenericViewSet):
 
         if self.request.user.is_authenticated:
             return queryset
-        # return queryset.filter(status=ScrapedRecord.STATUS_DONE)
         return queryset
 
     @action(detail=True, methods=["post"],

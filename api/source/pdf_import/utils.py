@@ -110,6 +110,5 @@ def get_synthetic_scraped_record(source: Source) -> ScrapedRecord:
         source=source,
         from_date=LEGACY_FROM_DATE,
         to_date=LEGACY_TO_DATE,
-        defaults={"status": "completed"},
     )
     return record
