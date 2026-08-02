@@ -50,5 +50,7 @@ Analiza el artículo que se te proporcionará, el cual tiene un título y párra
 
 **4. Campo booleano `is_political_opinion`:**
 
-  - Evalúa si el artículo es una opinión política más que de un análisis riguroso de proyectos extractivistas. Clasifícalo así si la nota da opiniones de personas políticas en el contexto de sus campañas electorales, sobre todo si ofrecen detalles demasiado generales de los proyectos. Clasifica también así las notas editoriales políticas o columnas de opinión que mencionen proyectos de forma superficial, es decir, si no aportan datos o hechos relevantes de los proyectos, más allá de los datos comunmente conocidos.
-  - Ser editorial o columna no basta para marcarlo `true`: decide la superficialidad, no el género. Si aporta datos concretos del proyecto (nombre, ubicación, empresa, impactos o actores), márcalo `false`.
+  - Evalúa si el artículo es una opinión política más que de un análisis riguroso de proyectos extractivistas. Clasifícalo así si la nota da opiniones de personas políticas en el contexto de sus campañas electorales, sobre todo si solo ofrecen datos muy generales de los proyectos. Clasifica también así las notas editoriales políticas o columnas de opinión que mencionen proyectos de forma superficial, es decir, si no aportan datos o hechos relevantes de los proyectos.
+  - El género no decide: ni ser editorial, columna o carta basta para marcarlo `true`. Decide si el proyecto es el asunto del texto o solo una referencia superficial dentro de otro asunto.
+      - `true` si el proyecto aparece únicamente como opinión, promesa, exigencia, comparación o ítem de un recuento de gobierno, aunque se citen datos o daños suyos.
+      - `false` si el proyecto o su conflicto es el asunto del texto y se reportan hechos detallados.
