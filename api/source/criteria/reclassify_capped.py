@@ -21,6 +21,7 @@ from source.criteria.batch import classify_batch
 from source.criteria.first import FirstCriteriaManager
 from source.criteria.second import SecondCriteriaManager
 from source.models import Article
+from source.scraper.jornada import SINGLE_ARTICLE_SECTIONS
 
 # Los dos valores que produce el cap. No son el universo de entrada —eso
 # lo fija `get_articles`— sino cómo se reconoce que un artículo salió
@@ -66,8 +67,14 @@ class CappedReclassifier:
         self.touched_ids: List[int] = []
 
     def get_articles(self) -> List[Article]:
+        # Los editoriales y cartas de La Jornada son opinión política por
+        # construcción y el motor siempre los capa: reclasificarlos nunca
+        # aplica un criterio nuevo, solo vuelve a tirar el dado del ruido.
+        # [[task-6]] los excluye de forma permanente del universo.
         articles = Article.objects.filter(
             certainty_degree=98, criteria__is_political_opinion=True
+        ).exclude(
+            source__name="La Jornada", section__in=SINGLE_ARTICLE_SECTIONS
         ).select_related("source").order_by("id")
         if self.limit:
             articles = articles[:self.limit]
