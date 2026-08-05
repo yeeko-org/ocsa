@@ -163,8 +163,23 @@ export const useMapStore = defineStore('map', () => {
     buildIndexFromProjects(uniqueProjects.value, p => p.extractivism_type_ids))
   const megaprojectIndex = computed(() =>
     buildIndexFromProjects(uniqueProjects.value, p => p.megaproject_type))
-  const stateIndex = computed(() =>
-    buildIndexFromProjects(uniqueProjects.value, p => p.state))
+  // El estado NO es campo del proyecto: viaja como hermano de `project` dentro
+  // de properties (una feature por ubicación). Por eso este índice recorre las
+  // features y no los proyectos deduplicados. Un proyecto con ubicaciones en
+  // varios estados se indexa por unión: aparece al filtrar por cualquiera de
+  // ellos. La clave es el id numérico tal cual llega del backend, que es el
+  // mismo que guardan filters.states (ids de State).
+  const stateIndex = computed(() => {
+    const index = new Map()
+    for (const feature of projectLocations.value.features) {
+      const { state, project } = feature.properties || {}
+      if (state == null || !project) continue
+      let set = index.get(state)
+      if (!set) index.set(state, set = new Set())
+      set.add(project.id)
+    }
+    return index
+  })
 
   // Universo: todos los ids de proyecto (base de la intersección sin filtros).
   const allProjectIds = computed(() =>
