@@ -174,8 +174,8 @@ GEMINI_ENGINE = os.getenv("GEMINI_ENGINE", "gemini-3.5-flash-lite")
 SHOW_TEST_PROMPTS = getenv_bool("SHOW_TEST_PROMPTS", False)
 
 ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS", ["*"])
-DEBUG = True
 IS_LOCAL = getenv_bool("IS_LOCAL", False)
+DEBUG = getenv_bool("DEBUG", IS_LOCAL)
 
 # Base remota de los archivos legados (NoteFile.file) cuando se corre en
 # local: los PDF viejos no están en disco local, solo en S3. Se concatena
