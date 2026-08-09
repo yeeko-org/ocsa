@@ -42,6 +42,13 @@ export default defineNuxtConfig({
   nitro: {
     devServer: {
       timeout: 300000
+    },
+    // El HTML referencia bundles /_nuxt/* con hash: si un proxy lo cachea,
+    // tras un deploy sirve documentos que apuntan a assets ya borrados.
+    // Los assets hasheados conservan su `immutable` (regla propia de Nitro,
+    // más específica y por tanto prioritaria sobre este catch-all).
+    routeRules: {
+      '/**': { headers: { 'cache-control': 'no-cache' } }
     }
   },
   vite: {
