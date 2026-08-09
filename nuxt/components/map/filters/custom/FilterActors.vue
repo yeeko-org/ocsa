@@ -90,63 +90,6 @@ watch(isOpen, open => { if (open) mapStore.ensureActors() })
           {{ grp.name }}
         </v-chip>
       </v-chip-group>
-
-      <!-- Sub-posiciones: solo de las posiciones activas. -->
-      <template
-        v-for="grp in mapStore.positionGroups"
-        :key="`sub-${grp.id}`"
-      >
-        <div
-          v-if="mapStore.filters.positions.includes(grp.id)"
-          class="mt-1"
-        >
-          <div class="text-body-small text-medium-emphasis px-2">
-            {{ grp.name }}
-          </div>
-          <v-list
-            v-model:selected="mapStore.filters.positionTypes[grp.id]"
-            select-strategy="leaf"
-            density="compact"
-            max-height="180"
-            class="py-0"
-          >
-            <v-list-item
-              v-for="pt in mapStore.positionTypeOptions(grp.id)"
-              :key="pt.id"
-              :value="pt.id"
-              :title="pt.name"
-              class="ms-item"
-            >
-              <template #prepend="{ isSelected }">
-                <v-checkbox-btn
-                  :model-value="isSelected"
-                  density="compact"
-                  class="ms-check"
-                />
-                <v-icon
-                  v-if="pt.icon"
-                  :color="pt.color || 'grey-darken-2'"
-                  :icon="pt.icon"
-                  class="mr-2"
-                />
-              </template>
-            </v-list-item>
-          </v-list>
-        </div>
-      </template>
     </v-card>
   </component>
 </template>
-
-<style scoped>
-/* Checkbox de sub-posiciones pegado a la izquierda sin empujar el texto. */
-.ms-item :deep(.v-list-item__spacer) {
-  width: 8px;
-}
-.ms-item {
-  padding-inline-start: 8px !important;
-}
-.ms-check {
-  margin-inline-end: 0;
-}
-</style>

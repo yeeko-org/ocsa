@@ -25,7 +25,8 @@ export const RAIL_GEOMETRY = {
 //    tipos ya seleccionados (subtipos de afectación).
 //  - `selects[].facet`: letra de la dimensión en el payload de facetas contra
 //    la que se filtra en cliente (e=evento, i=afectación, s=subtipo,
-//    p=participación). `selects[].geoIndex` ('megaproject' | 'state') es la
+//    p=participación; 'p' ya no la consume nadie: las posiciones pasaron a
+//    `actor_projects`). `selects[].geoIndex` ('megaproject' | 'state') es la
 //    alternativa para dimensiones derivadas del geojson; excluyente con facet.
 //    De aquí se genera el filtrado (store/map.js): añadir un filtro no obliga
 //    a tocar la lógica de intersección.
@@ -96,9 +97,10 @@ export const FILTER_REGISTRY = [
     ],
   },
   {
-    // Grupo a medida (sin `selects`): el actor por nombre (Fase B) y las
-    // posiciones/sub-posiciones se resuelven en store/map.js contra la faceta
-    // de participación ('p' del payload), no por el loop genérico.
+    // Grupo a medida (sin `selects`): actor y posición se resuelven juntos en
+    // store/map.js contra `actor_projects` (/map/actors/), no por el loop
+    // genérico. Van juntos porque la unidad del dato es el par
+    // (actor, proyecto): la posición se sostiene en un proyecto concreto.
     id: 'actors', filterGroup: 'participant_types',
     label: 'Actores y sus posiciones', icon: 'groups', color: 'blue',
     custom: true,

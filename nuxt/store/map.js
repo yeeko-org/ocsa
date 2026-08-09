@@ -25,8 +25,14 @@ export const useMapStore = defineStore('map', () => {
   const facetsReady = ref(false)
   // Actores (api-contract §2). shallowRef por el mismo motivo que facetIndex:
   // Maps grandes que se asignan de golpe.
-  const actorProjects = shallowRef(null)  // Map<actorId, Set<projId>> (invertido)
+  // La posición se guarda por PAR (actor, proyecto), no por actor: el mismo
+  // actor puede oponerse a un proyecto y apoyar otro. De ahí el Map anidado y
+  // no un simple Set de proyectos.
+  const actorProjects = shallowRef(null)  // Map<actorId, Map<projId, Set<posId>>>
   const actorsById = shallowRef(null)     // Map<id, actor>
+  // Catálogo de posiciones (ParticipantGroup) tal como lo emite el payload:
+  // [{ id, name }]. Fuente de las etiquetas del filtro de posición.
+  const actorPositions = shallowRef([])
   const actorsReady = ref(false)
   // Instancias MiniSearch compartidas (buscador global ↔ actores). shallowRef:
   // el índice es un objeto pesado que se reemplaza entero al construirse.
@@ -53,7 +59,6 @@ export const useMapStore = defineStore('map', () => {
     states: [],                       // ids state
     actors: [],                       // [{ id, name }]
     positions: [],                    // ids participant_group activos
-    positionTypes: {},                // { [groupId]: [participant_type ids] }
   })
 
   // Estado de UI compartido por componentes hermanos (rail + filas de
@@ -185,18 +190,6 @@ export const useMapStore = defineStore('map', () => {
   const allProjectIds = computed(() =>
     new Set(uniqueProjects.value.map(p => p.id)))
 
-  // participant_group → [participant_type ids]: resuelve el filtro de
-  // "posiciones" (guardado por grupo) contra las facetas `p` (por tipo).
-  const participantTypesByGroup = computed(() => {
-    const map = new Map()
-    ;(mainStore.cats?.participant_type || []).forEach(pt => {
-      let arr = map.get(pt.participant_group)
-      if (!arr) map.set(pt.participant_group, arr = [])
-      arr.push(pt.id)
-    })
-    return map
-  })
-
   // Una pasada sobre el payload directo → un índice invertido por cada
   // dimensión (letra) presente. NO hardcodea las letras: construye las que
   // existan (e/i/s/p hoy; p.ej. 'u' de purpose cuando el backend la agregue,
@@ -245,6 +238,60 @@ export const useMapStore = defineStore('map', () => {
   // filtro simplemente no recorta.
   const indexForFacet = letter => facetIndex.value?.[letter] || null
 
+  // Actores + posiciones resueltos como UN SOLO grupo contra `actor_projects`.
+  // No pueden ser dos grupos AND independientes: la unidad de dato es el par
+  // (actor, proyecto), así que intersecar "proyectos del actor A" con
+  // "proyectos donde alguien tiene la posición P" dejaría pasar un proyecto en
+  // el que A es neutral y OTRO actor está en contra. Aquí la posición se
+  // evalúa contra el par, que es lo que pide el contrato.
+  //
+  // Sin actores → el barrido es sobre todos los actores del payload (la
+  // posición sola pregunta "¿algún actor sostiene P en este proyecto?").
+  // Sin posiciones → todos los proyectos del actor. Null (no recorta) si no
+  // hay nada seleccionado o si el payload aún no cargó.
+  const actorPositionIds = computed(() => {
+    const ap = actorProjects.value
+    if (!ap) return null
+    const actorIds = filters.actors.map(a => a.id)
+    const posIds = filters.positions
+    if (!actorIds.length && !posIds.length) return null
+    const out = new Set()
+    for (const actorId of (actorIds.length ? actorIds : ap.keys())) {
+      const byProject = ap.get(actorId)
+      if (!byProject) continue
+      for (const [projId, positions] of byProject) {
+        // Par con lista vacía (participación sin tipo): cuenta como proyecto
+        // del actor, pero nunca califica para una posición concreta.
+        if (!posIds.length || posIds.some(p => positions.has(p)))
+          out.add(projId)
+      }
+    }
+    return out
+  })
+
+  // Actores que sostienen alguna de las posiciones activas en al menos un
+  // proyecto. Recorta el autocompletado del buscador para no ofrecer actores
+  // que, al elegirlos, dejarían el mapa vacío. Null = sin posiciones activas
+  // (o payload sin cargar) → el buscador no recorta.
+  //
+  // Solo afecta a lo que se OFRECE: `filters.actors` no se toca, así que ni la
+  // hidratación desde la URL ni una selección previa se pierden al activar una
+  // posición que las excluya (eso ya lo refleja el mapa, vaciándose).
+  const actorsMatchingPositions = computed(() => {
+    const ap = actorProjects.value
+    if (!ap || !filters.positions.length) return null
+    const out = new Set()
+    for (const [actorId, byProject] of ap) {
+      for (const positions of byProject.values()) {
+        if (filters.positions.some(p => positions.has(p))) {
+          out.add(actorId)
+          break
+        }
+      }
+    }
+    return out
+  })
+
   // Proyectos visibles: AND entre grupos de las uniones OR de cada dimensión
   // activa ("OR intra, AND inter", decisions §7). Sin filtros → todos. El Set
   // es de project.id únicos, así que sirve también de contador.
@@ -280,23 +327,10 @@ export const useMapStore = defineStore('map', () => {
       }
     }
 
-    // Actores/posiciones (grupo custom, faceta de participación 'p').
-    const fp = indexForFacet('p')
-    if (fp) {
-      // Sub-posiciones: ids de participant_type directos.
-      push(unionFromIndex(fp, Object.values(filters.positionTypes).flat()))
-      // Posiciones: cada grupo se expande a sus participant_type ids.
-      const posIds = filters.positions.flatMap(
-        g => participantTypesByGroup.value.get(g) || [])
-      push(unionFromIndex(fp, posIds))
-    }
-    // Actores: OR entre los actores elegidos (unión de sus conjuntos de
-    // proyectos). `actorProjects` ya viene invertido (actor→proyectos), así que
-    // se reusa `unionFromIndex` igual que cualquier otra dimensión. Si el
-    // payload aún no cargó (actorProjects null), no recorta; al poblarse el
-    // shallowRef, este computed se reevalúa solo.
-    if (actorProjects.value)
-      push(unionFromIndex(actorProjects.value, filters.actors.map(a => a.id)))
+    // Actores y posiciones van juntos, en un solo grupo (ver actorPositionIds).
+    // Si el payload aún no cargó, no recorta; al poblarse el shallowRef este
+    // computed se reevalúa solo.
+    push(actorPositionIds.value)
 
     if (!groups.length) return allProjectIds.value
     return groups.reduce(intersect)
@@ -365,12 +399,17 @@ export const useMapStore = defineStore('map', () => {
   }
 
   const purposeOptions = computed(() => mainStore.cats?.purpose || [])
-  // Actores/posiciones: ParticipantGroup y sus ParticipantType.
-  const positionGroups = computed(() => mainStore.cats?.participant_group || [])
-  const positionTypeOptions = groupId =>
-    (mainStore.cats?.participant_type || [])
-      .filter(pt => pt.participant_group === groupId)
-
+  // Posiciones: ParticipantGroup. El catálogo autoritativo de posiciones es el del payload de actores: son
+  // exactamente los ids que aparecen en `actor_projects`, con su nombre de BD.
+  // Trae solo id+name, así que ícono y color se completan desde `cats` (mismos
+  // ids). Mientras el payload no cargue —el picker se pinta antes del lazy
+  // load— se usa `cats` como respaldo.
+  const positionGroups = computed(() => {
+    const fromCats = mainStore.cats?.participant_group || []
+    if (!actorPositions.value.length) return fromCats
+    const byId = new Map(fromCats.map(g => [g.id, g]))
+    return actorPositions.value.map(p => ({ ...byId.get(p.id), ...p }))
+  })
   // --- Helpers de chips/cápsulas (decisions §4.3) ---
   // Acorta etiquetas largas para los chips de fila (corta en 32 + …).
   function truncate(text) {
@@ -379,8 +418,6 @@ export const useMapStore = defineStore('map', () => {
   }
 
   const positionGroupById = id => positionGroups.value.find(g => g.id === id)
-  const positionTypeById = (groupId, id) =>
-    positionTypeOptions(groupId).find(pt => pt.id === id)
 
   // Construye un chip a partir de una categoría resuelta. `value` siempre
   // guarda el id (aunque la categoría no esté cargada) para poder cerrarlo.
@@ -409,18 +446,11 @@ export const useMapStore = defineStore('map', () => {
         label: truncate(a.name), full: a.name, description: '',
         color: rg.color, icon: null,
       }))
-      const positionChips = []
-      filters.positions.forEach(id => {
+      const positionChips = filters.positions.map(id => {
         const grp = positionGroupById(id)
-        positionChips.push(makeChip(rg, 'positions', id, grp,
-          { label: truncate(grp?.name ?? `#${id}`) }))
+        return makeChip(rg, 'positions', id, grp,
+          { label: truncate(grp?.name ?? `#${id}`) })
       })
-      Object.entries(filters.positionTypes).forEach(([gid, ids]) =>
-        (ids || []).forEach(id => {
-          const pt = positionTypeById(Number(gid), id)
-          positionChips.push(makeChip(rg, 'positionTypes', id, pt,
-            { label: truncate(pt?.name ?? `#${id}`), subGroupId: Number(gid) }))
-        }))
       // Dos bandas solo si ambos tipos están activos; si no, una sola.
       blocks = (actorChips.length && positionChips.length)
         ? [actorChips, positionChips]
@@ -472,20 +502,14 @@ export const useMapStore = defineStore('map', () => {
   function removeCapsule(cap) {
     if (cap.stateKey === 'actors')
       filters.actors = filters.actors.filter(a => a.id !== cap.value)
-    else if (cap.stateKey === 'positionTypes')
-      filters.positionTypes[cap.subGroupId] =
-        (filters.positionTypes[cap.subGroupId] || [])
-          .filter(v => v !== cap.value)
-    else if (Array.isArray(filters[cap.stateKey]))
+    else
       filters[cap.stateKey] = filters[cap.stateKey].filter(v => v !== cap.value)
   }
 
   // Vacía todos los filtros de golpe (decisions §4 "limpiar todo").
-  // Genérico: arrays → [], objetos (positionTypes) → {}.
+  // Todos los filtros son arrays de ids (o de {id,name} en actores).
   function clearAllFilters() {
-    Object.keys(filters).forEach(k => {
-      filters[k] = Array.isArray(filters[k]) ? [] : {}
-    })
+    Object.keys(filters).forEach(k => { filters[k] = [] })
   }
 
   // Payload listo para el backend (punto de integración de filtros).
@@ -494,11 +518,7 @@ export const useMapStore = defineStore('map', () => {
   const filterPayload = computed(() => {
     const payload = {}
     Object.entries(filters).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        if (value.length) payload[key] = value
-      } else if (value && Object.keys(value).length) {
-        payload[key] = value
-      }
+      if (value.length) payload[key] = value
     })
     return payload
   })
@@ -537,11 +557,20 @@ export const useMapStore = defineStore('map', () => {
       const byId = new Map()
       for (const a of data.actors) byId.set(a.id, a)
       actorsById.value = byId
-      // actor_projects llega keyed por string → Number; arrays → Set.
+      // actor_projects llega keyed por string en los dos niveles (actor y
+      // proyecto) → Number en ambos; la lista de posiciones → Set. Lista vacía
+      // = participación sin tipo: el proyecto cuenta para el actor pero el par
+      // no califica para ninguna posición (Set vacío, nunca hace match).
       const ap = new Map()
-      for (const [actorId, projIds] of Object.entries(data.actor_projects || {}))
-        ap.set(Number(actorId), new Set(projIds))
+      for (const [actorId, projects] of Object.entries(
+        data.actor_projects || {})) {
+        const byProject = new Map()
+        for (const [projId, posIds] of Object.entries(projects || {}))
+          byProject.set(Number(projId), new Set(posIds))
+        ap.set(Number(actorId), byProject)
+      }
       actorProjects.value = ap
+      actorPositions.value = data.positions || []
       actorSearchIndex.value = buildActorIndex(data.actors)
       actorsReady.value = true
       // Nombres reales para los actores hidratados desde la URL.
@@ -570,7 +599,14 @@ export const useMapStore = defineStore('map', () => {
   }, { immediate: true })
 
   const searchProjects = q => runSearch(projectSearchIndex.value, q)
-  const searchActors = q => runSearch(actorSearchIndex.value, q)
+  // El recorte va después de MiniSearch (y no sobre el índice) porque las
+  // posiciones activas cambian con cada clic y reconstruir el índice costaría
+  // más que filtrar un puñado de resultados.
+  const searchActors = q => {
+    const results = runSearch(actorSearchIndex.value, q)
+    const allowed = actorsMatchingPositions.value
+    return allowed ? results.filter(a => allowed.has(a.id)) : results
+  }
 
   // Decora cada feature con color/ícono/power para las capas del mapa.
   function hydrateProjectLocations() {
@@ -609,7 +645,6 @@ export const useMapStore = defineStore('map', () => {
     optionsFor,
     purposeOptions,
     positionGroups,
-    positionTypeOptions,
     // Cápsulas / conteo
     capsulesByGroup,
     countFor,

@@ -48,7 +48,9 @@ export const useMainStore = defineStore('main', {
     // (Sesión 4.1, api-contract §1). { built_at, facets: { [projId]: {e,i,s,p} } }
     projectFacets: null,
     // Payload de actores del mapa (Sesión 4.1 Fase B, api-contract §2). Lazy:
-    // no bloquea el primer paint. { built_at, actors, actor_projects }
+    // no bloquea el primer paint.
+    // { built_at, actors, positions, actor_projects }, donde
+    // actor_projects = { [actorId]: { [projectId]: positionId[] } }.
     mapActors: null,
     mapActorsLoading: false,
   }),
