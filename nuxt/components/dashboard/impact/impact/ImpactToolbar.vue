@@ -3,6 +3,7 @@
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
+import DescriptionIcon from "~/components/dashboard/common/utils/DescriptionIcon.vue";
 
 const impacts = defineModel({type: Array, required: true})
 const props = defineProps({
@@ -41,16 +42,22 @@ function validate(){
         color="accent"
         append-icon="tips_and_updates"
       />
-      <v-textarea
-        v-model="item.description"
-        label="Descripción de la afectación"
-        variant="outlined"
-        density="compact"
-        hide-details
-        rows="1"
-        auto-grow
-        style="max-width: 600px;"
-      ></v-textarea>
+      <div class="d-flex align-start">
+        <v-textarea
+          v-model="item.description"
+          label="Descripción de la afectación"
+          variant="outlined"
+          density="compact"
+          hide-details
+          rows="1"
+          auto-grow
+          style="max-width: 600px;"
+        ></v-textarea>
+        <DescriptionIcon
+          :description="item.description"
+          icon_size="large"
+        />
+      </div>
       <DisplacementToolbar
         v-if="impacts[index].displacements"
         v-model="impacts[index].displacements"
