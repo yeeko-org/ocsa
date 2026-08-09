@@ -40,7 +40,12 @@ class Command(BaseCommand):
         }
 
         import json
-        with open("source/fixtures/articles.json", "w") as file:
+        from pathlib import Path
+
+        out_path = Path("source/fixtures/articles.json")
+        # El directorio está gitignorado: en un checkout limpio no existe
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w") as file:
             json.dump(data, file, indent=4)
         print("Archivo generado")
         print(f"Articulos: {len(data['articles'])}")
