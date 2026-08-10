@@ -1,0 +1,61 @@
+# ============================================================
+# Configuración de conexión a la base de datos PostgreSQL
+# ============================================================
+# Copia este archivo como config.R y edita los valores con las
+# credenciales que te proporcionaron. NO compartas config.R ni
+# lo subas a git.
+# ============================================================
+
+# -- Instalar paquetes (ejecutar solo la primera vez) --------
+# Descomenta las siguientes líneas y ejecútalas una sola vez:
+#
+# install.packages("DBI")
+# install.packages("RPostgres")
+# install.packages("tidyverse")
+
+library(DBI)
+library(RPostgres)
+library(tidyverse)
+
+# -- Credenciales de la base de datos ------------------------
+# Reemplaza los valores entre comillas con los datos reales.
+
+DB_NAME     <- ""
+DB_USER     <- ""
+DB_PASSWORD <- ""
+DB_HOST     <- ""
+DB_PORT     <- 5432
+DB_SCHEMA   <- "ocsa"
+
+
+# -- Función de conexión ------------------------------------
+# No es necesario modificar nada de aquí en adelante.
+
+conectar_bd <- function() {
+  con <- dbConnect(
+    Postgres(),
+    dbname   = DB_NAME,
+    user     = DB_USER,
+    password = DB_PASSWORD,
+    host     = DB_HOST,
+    port     = DB_PORT
+  )
+
+  # Si hay un schema configurado, establecerlo
+  if (nzchar(DB_SCHEMA)) {
+    dbExecute(con, paste0(
+      "SET search_path TO ", DB_SCHEMA, ", public"
+    ))
+  }
+
+  message("Conexión exitosa a la base de datos: ", DB_NAME)
+  return(con)
+}
+
+
+# -- Función auxiliar para ejecutar queries ------------------
+
+consulta <- function(con, sql) {
+  resultado <- dbGetQuery(con, sql)
+  as_tibble(resultado)
+}

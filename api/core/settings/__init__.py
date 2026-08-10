@@ -159,7 +159,7 @@ else:
 
 # ---------------------------------SECURITY-----------------------------------
 
-SECRET_KEY = "***REMOVED***"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
