@@ -13,7 +13,7 @@ Cada entidad tiene su propio archivo en `references/`. Cárgalos bajo demanda se
 | Actor / Participante | [actor.md](references/actor.md) | Modelos `Actor`, `Participant`, sector, pertenencias, intereses |
 | Afectación | [impact.md](references/impact.md) | Modelos `Impact`, tipos de impacto (ecológico o social) , desplazamiento |
 | Evento | [event.md](references/event.md) | Modelos `Event`, Grupos de evento (violencias, acciones colectivas y mecanismos legales), roles de involucramiento y propósitos del mecanismo |
-| Desplazamiento forzado | [displacement.md](references/displacement.md) | Módulo `df/`, modelo `Displacement` y sus catálogos |
+| Desplazamiento forzado | [displacement.md](references/displacement.md) | Módulo `api/df/`, modelo `Displacement` y sus catálogos |
 
 
-> Para el ciclo de vida de `Article → Note → Mention` y el pipeline de pre-captura IA, ver `source/CLAUDE.md`.**
+> Para el ciclo de vida de `Article → Note → Mention` y el pipeline de pre-captura IA, ver `api/source/CLAUDE.md`.**

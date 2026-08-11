@@ -2,7 +2,7 @@
 name: manage-collections
 description: >
   Create or edit CatalogSchema, CollectionSchema, and FilterGroupSchema in
-  {app}/catalog_schema.py. Use when adding a new collection, catalog, or
+  api/{app}/catalog_schema.py. Use when adding a new collection, catalog, or
   filter group, or modifying an existing one.
 ---
 
@@ -10,15 +10,15 @@ description: >
 
 ## Architecture overview
 
-Full attribute reference lives in `ps_schema/schemas.py`. Registry logic in
-`ps_schema/registry.py`. This skill covers design decisions only.
+Full attribute reference lives in `api/ps_schema/schemas.py`. Registry logic in
+`api/ps_schema/registry.py`. This skill covers design decisions only.
 
 | Level | Schema | Registry | Router |
 |-------|--------|----------|--------|
-| `category_group/type/subtype` | `CatalogSchema` | `catalog_registry` | `api/views/catalogs/urls.py` |
-| `primary/secondary/relational` | `CollectionSchema` | `collection_registry` | `api/urls.py` |
+| `category_group/type/subtype` | `CatalogSchema` | `catalog_registry` | `api/api/views/catalogs/urls.py` |
+| `primary/secondary/relational` | `CollectionSchema` | `collection_registry` | `api/api/urls.py` |
 
-Still registered manually in `api/urls.py`: `project_location`, `*_map`,
+Still registered manually in `api/api/urls.py`: `project_location`, `*_map`,
 `collection`, `offline_task`.
 
 ---
@@ -138,7 +138,7 @@ class SectorsFilterGroup(FilterGroupSchema):
 If the app does not yet import its `catalog_schema` in `ready()`:
 
 ```python
-# {app}/apps.py
+# api/{app}/apps.py
 def ready(self):
     import {app}.catalog_schema  # noqa
 ```

@@ -6,7 +6,7 @@ description: XLSX export pattern. Use when adding, modifying, or debugging Excel
 # Exportaciones XLSX — yeeko_xlsx_export v2.0
 
 Paquete: `D:\dev\open\xlsx_django_export` (yeeko_xlsx_export).
-Exports del proyecto: `api/export_blocks/`.
+Exports del proyecto: `api/api/export_blocks/`.
 
 ---
 
@@ -38,7 +38,7 @@ from yeeko_xlsx_export import (
 ### 1. Definir la clase
 
 ```python
-# api/export_blocks/my_entity.py
+# api/api/export_blocks/my_entity.py
 from my_app.models import MyEntity
 from yeeko_xlsx_export import ModelExport, XlsColumn, FkColumn, Include
 from api.export_blocks.conditions import is_authenticated
@@ -61,7 +61,7 @@ class MyEntityExport(ModelExport):
 ### 2. Registrar en CollectionSchema
 
 ```python
-# my_app/catalog_schema.py
+# api/my_app/catalog_schema.py
 from api.export_blocks.my_entity import MyEntityExport
 
 @collection_registry.register
@@ -175,7 +175,7 @@ from api.export_blocks.conditions import is_authenticated
 XlsColumn("secret", condition=is_authenticated)
 ```
 
-Definir nuevas conditions en `api/export_blocks/conditions.py`.
+Definir nuevas conditions en `api/api/export_blocks/conditions.py`.
 
 ---
 
@@ -401,10 +401,10 @@ export.
 
 | Archivo | Contenido |
 |---------|-----------|
-| `api/export_blocks/conditions.py` | Conditions reutilizables (`is_authenticated`) |
-| `api/export_blocks/actor.py` | ActorBlock, ActorExport |
-| `api/export_blocks/mention.py` | MentionBlock, NoteBlock |
-| `api/export_blocks/event.py` | EventBlock, EventExport |
-| `api/export_blocks/location.py` | LocationBlock |
-| `api/export_blocks/participant.py` | ParticipantBlock, ParticipantExport |
-| `api/export_blocks/project.py` | ProjectMiniBlock, ConflictMiniBlock, ProjectExport |
+| `api/api/export_blocks/conditions.py` | Conditions reutilizables (`is_authenticated`) |
+| `api/api/export_blocks/actor.py` | ActorBlock, ActorExport |
+| `api/api/export_blocks/mention.py` | MentionBlock, NoteBlock |
+| `api/api/export_blocks/event.py` | EventBlock, EventExport |
+| `api/api/export_blocks/location.py` | LocationBlock |
+| `api/api/export_blocks/participant.py` | ParticipantBlock, ParticipantExport |
+| `api/api/export_blocks/project.py` | ProjectMiniBlock, ConflictMiniBlock, ProjectExport |

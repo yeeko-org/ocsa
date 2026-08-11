@@ -11,7 +11,7 @@ Obra física de gran escala que ocupa o transforma un territorio para extracció
 ### Historial de Estatus (StatusHistory)
 Registro de un cambio en la etapa del proyecto tal como se menciona en una nota. Permite trazar la evolución del proyecto a través de las notas que lo cubren.
 
-- **`source.StatusHistory`** — vive en el módulo `source/` porque se genera por nota (mención), no es un campo directo del proyecto. Campos: `mention` (FK), `status_project` (FK), `date` (aproximada, nullable), `comments`.
+- **`source.StatusHistory`** — vive en el módulo `api/source/` porque se genera por nota (mención), no es un campo directo del proyecto. Campos: `mention` (FK), `status_project` (FK), `date` (aproximada, nullable), `comments`.
 
 ## Catálogos
 
