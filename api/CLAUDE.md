@@ -49,6 +49,11 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
   policy on `data_files/*`); local dev keeps disk storage. Storage per
   field via `core/storages.py::select_docs_storage`
 
+### Insumos geográficos
+La cartografía municipal y el catálogo de localidades del INEGI no se
+versionan (pesan >170 MB): se traen con
+`space_time/geo_files/download_inegi.sh`. Ver el README de esa carpeta.
+
 ### Testing
 No hay suite montada; lo que existe son diagnósticos re-ejecutables que
 golpean servicios reales (proxy, PressReader, Gemini) y por tanto cuestan.
