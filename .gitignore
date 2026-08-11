@@ -1,0 +1,6 @@
+# Reglas del monorepo. Lo específico de cada stack vive en api/.gitignore
+# y nuxt/.gitignore; no duplicar aquí.
+.idea/
+.playwright-mcp/
+**/.claude/settings.local.json
+.DS_Store
