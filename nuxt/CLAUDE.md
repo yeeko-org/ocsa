@@ -1,6 +1,6 @@
-## Stack
+# nuxt/ — front end
 
-Nuxt 3 + Vuetify 3 frontend connected to a Django REST API (separate repo). State managed with Pinia.
+Nuxt 3 + Vuetify 4, Pinia for state, consuming the Django API in `api/`. Domain, structure and commit convention: [../CLAUDE.md](../CLAUDE.md). Paths below are relative to `nuxt/`.
 
 ## Architecture
 

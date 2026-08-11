@@ -52,7 +52,7 @@ ROUND=6 python .claude/diagnostics/rerun_political_opinion.py run
 ROUND=6 python .claude/diagnostics/rerun_political_opinion.py report
 ```
 
-El segundo escribe en `ArticleQualify` con `is_test=True`, **sin tocar** `Article.criteria` ni `certainty_degree`, y es reanudable: salta lo ya calificado con el mismo esquema, así que re-ejecutarlo no vuelve a cobrar. Cada corrida necesita un `ROUND` propio —ancla su `QualifySchema` a un `ScrapedRecord` marcador con fechas de 1900— y acepta `ENGINE` para comparar modelos. Se usó para fijar [[adr-0006]] y [[adr-0007]]; el detalle está en `docs/records/2026-08-01-criterio-de-opinion-politica.md`.
+El segundo escribe en `ArticleQualify` con `is_test=True`, **sin tocar** `Article.criteria` ni `certainty_degree`, y es reanudable: salta lo ya calificado con el mismo esquema, así que re-ejecutarlo no vuelve a cobrar. Cada corrida necesita un `ROUND` propio —ancla su `QualifySchema` a un `ScrapedRecord` marcador con fechas de 1900— y acepta `ENGINE` para comparar modelos. Se usó para fijar [[adr-0006]] y [[adr-0007]]; el detalle está en `../docs/records/2026-08-01-criterio-de-opinion-politica.md`.
 
 ### Política de fallos del ciclo de clasificación
 

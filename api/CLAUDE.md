@@ -1,6 +1,6 @@
-## Project Overview
+# api/ — Django REST API
 
-Django REST API for the **Observatorio de Conflictos Socioambientales (OCSA)**, managing data about socio-environmental conflicts, mega-projects, actors, impacts, and events in Mexico from 2017 to present. Based on newspaper articles (Jornada, Reforma y Proceso).
+Django + DRF back end of the OCSA monorepo. Domain, structure and commit convention: [../CLAUDE.md](../CLAUDE.md). Paths below are relative to `api/`.
 
 ## Architecture
 
@@ -14,9 +14,6 @@ Django REST API for the **Observatorio de Conflictos Socioambientales (OCSA)**, 
 | `space_time/` | Geographic data (states, municipalities, localities) |
 | `work_flux/` | Cross-cutting status and workflow control |
 | `profile_auth/` | Custom `User` model with `is_full_editor` / `is_admin` roles |
-
-Event types: violence against activists · collective actions · legal resources (against/in favor of projects)
-Impact types: social · environmental
 
 ### API Layer (`api/`)
 
@@ -58,5 +55,6 @@ golpean servicios reales (proxy, PressReader, Gemini) y por tanto cuestan.
 Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
 
 ### Documentación de proceso
-Decisiones (ADR), tareas abiertas y bitácoras viven en `docs/`, indexadas
-por frontmatter y enlazadas con `[[id]]`. Ver el skill `documenter`.
+Decisiones (ADR), tareas abiertas y bitácoras viven en el submódulo
+privado `../docs/`, indexadas por frontmatter y enlazadas con `[[id]]`.
+Ver el skill `documenter`.
