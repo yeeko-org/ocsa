@@ -1,0 +1,149 @@
+<script setup>
+import { useMainStore } from '~/store'
+import { storeToRefs } from 'pinia'
+import {status_filters} from "~/composables/filters.js";
+
+const props = defineProps({
+  main: {
+    type: Object,
+    required: true,
+  },
+  collection: {
+    type: String,
+    required: true,
+  },
+  hide_details: Boolean,
+  left_label: Boolean,
+  bold_text: Boolean,
+  custom_class: {
+    type: String,
+    required: false,
+    default: 'flex-column',
+  },
+  x_small: Boolean,
+  disabled: Boolean,
+  only_icon: Boolean,
+  show_icon: {
+    type: Boolean,
+    required: false,
+    default: true,
+  },
+  chip_variant: {
+    type: String,
+    required: false,
+    default: 'flat',
+  },
+  chip_size: {
+    type: String,
+    required: false,
+    default: 'default',
+  },
+});
+const mainStore = useMainStore();
+
+const want_edit_note = ref(false);
+
+const { status_dict } = storeToRefs(mainStore);
+
+// Compute item_built using the status_dict and props
+const field = computed(() => {
+  if (props.collection.includes('status_'))
+    return props.collection
+  return `status_${props.collection}`
+})
+
+const simple_name = computed(() => {
+  return props.collection.replace('status_', '');
+})
+
+const item_built = computed(() => {
+  const status_field = props.main[field.value];
+  try{
+    return status_dict.value[simple_name.value][status_field] ||
+      {
+        public_name: "Sin definir",
+        color: "grey",
+        color_text: "white",
+        icon: "help",
+        back_text: "text-grey-darken-1",
+      };
+  }
+  catch (e){
+    console.log("error", e)
+    console.log("field", field.value)
+    console.log("status_dict", status_dict.value)
+    console.log("props.collection", props.collection)
+    console.log("status_field", status_field)
+    return null
+  }
+});
+
+const label = computed(() => {
+  if (status_filters[props.collection] === undefined)
+    return 'Status:';
+
+  return `${status_filters[props.collection].short_name}:`;
+})
+
+</script>
+
+<template>
+  <div
+    v-if="item_built"
+    class="d-flex text-body-medium align-center"
+    :class="custom_class"
+  >
+    <span
+      v-if="!props.hide_details"
+      class="text-body-small text-grey-darken-1"
+      :class="props.left_label ? 'mr-1' : 'mb-n1'"
+    >
+      {{ label }}
+    </span>
+    <v-icon
+      v-if="props.x_small"
+      :color="disabled ? `${item_built.color}-lighten-2` : item_built.color"
+      class="ml-1"
+      x-small
+    >{{item_built.icon}}</v-icon>
+    <v-chip
+      v-else
+      :color="item_built.color || 'grey'"
+      :size="props.disabled ? 'small' : chip_size"
+      :disabled="props.disabled"
+      :icon="props.only_icon"
+      :class="`${item_built.back_text} ${props.bold_text ? 'font-weight-bold' : ''}`"
+      :variant="props.chip_variant"
+    >
+      <v-icon
+        v-if="props.show_icon"
+        :color="item_built.color_text"
+        class="mr-1"
+      >
+        {{(!item_built.icon || item_built.icon === 'check_circle')
+          ? 'fiber_manual_record'
+          : item_built.icon
+        }}
+      </v-icon>
+      <template v-if="!props.only_icon">
+        {{ item_built.public_name }}
+      </template>
+    </v-chip>
+    <v-tooltip
+      activator="parent"
+      location="end"
+    >
+      <div
+        style="max-width: 300px;"
+        :class="item_built.back_text"
+      >
+        <b>{{item_built.public_name}}</b> <br>
+        {{item_built.description || '--'}}
+      </div>
+    </v-tooltip>
+  </div>
+</template>
+
+<style lang="scss">
+
+</style>

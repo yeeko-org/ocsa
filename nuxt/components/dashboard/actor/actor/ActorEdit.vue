@@ -1,0 +1,128 @@
+<script setup>
+
+import SelectGroup from "~/components/dashboard/common/select/SelectGroup.vue";
+import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
+import {useMainStore} from "~/store/index.js";
+import SelectSubtype from "~/components/dashboard/common/select/SelectSubtype.vue";
+
+const mainStore = useMainStore()
+const { deleteOtherParents } = mainStore
+
+const props = defineProps({
+  is_massive_edit: Boolean,
+  is_edit: Boolean,
+  col_order: {
+    type: Number,
+    default: 5,
+  }
+})
+const full_main = defineModel({type: Object, required: true})
+
+const emits = defineEmits(['item-saved'])
+
+const errors = ref([])
+
+const changeParentActor = (parent_actor) => {
+  full_main.value.parent_actor = parent_actor.id
+  full_main.value.parent_actor_full = parent_actor
+}
+
+function deleteExtraParents() {
+  errors.value = []
+  deleteOtherParents(['actor', full_main.value.id])
+    .then((res) => {
+      if (res.errors) {
+        errors.value = res.errors
+        return
+      }
+      full_main.value.others_parents = []
+      full_main.value.others_parents_full = []
+    })
+}
+
+</script>
+
+<template>
+  <v-col cols="12" class="d-flex pa-0" :order="col_order">
+    <v-text-field
+      v-model="full_main.alternative_names"
+      label="Nombres alternativos"
+      variant="outlined"
+      class="mb-2"
+    />
+  </v-col>
+  <v-col cols="12" md="6" class="d-flex pa-0" :order="col_order">
+    <SelectGroup
+      v-model="full_main"
+      filter_group_name="sectors"
+      main_collection_name="actor"
+      required
+    />
+  </v-col>
+  <v-col
+    cols="12"
+    md="6"
+    class="d-flex py-0 pl-0 pr-3 mb-2"
+   :order="col_order"
+  >
+    <CardCommon
+      :full_main="full_main.parent_actor && full_main.parent_actor_full"
+      collection_name="actor"
+      is_simple
+      title="Actor padre"
+      indirect_get
+      null_available
+      @selected-item="changeParentActor"
+      @delete-item="full_main.parent_actor = null"
+    />
+  </v-col>
+  <v-col
+    cols="12"
+    class="d-flex pa-0"
+   :order="col_order"
+  >
+    <SelectSubtype
+      v-model="full_main"
+      filter_collection_name="belong"
+      main_collection_name="actor"
+      field="belongs"
+      :width="400"
+      subtype_class="mr-2"
+    />
+    <SelectSubtype
+      v-model="full_main"
+      filter_collection_name="indigenous_group"
+      main_collection_name="actor"
+      :width="400"
+      subtype_class="mr-2"
+    />
+    <SelectSubtype
+      v-model="full_main"
+      filter_collection_name="country"
+      main_collection_name="actor"
+      field="countries"
+    />
+  </v-col>
+  <v-col cols="12" class="d-flex pa-0" :order="col_order">
+    <v-alert
+      v-if="errors.length > 0"
+      type="error"
+      class="mt-2"
+    >
+      {{errors.join(', ')}}
+    </v-alert>
+    <v-btn
+      v-if="full_main.others_parents && full_main.others_parents.length > 0"
+      class="mt-2"
+      color="orange"
+      variant="outlined"
+      @click="deleteExtraParents"
+    >
+      Eliminar 'padres extras'
+    </v-btn>
+  </v-col>
+</template>
+
+<style scoped>
+
+</style>

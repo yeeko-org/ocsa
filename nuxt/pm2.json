@@ -1,0 +1,13 @@
+{
+  "apps": [
+    {
+      "name": "ocsa-nuxt",
+      "script": "./.output/server/index.mjs",
+      "env": {
+        "HOST": "127.0.0.1",
+        "PORT": "3000",
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}
