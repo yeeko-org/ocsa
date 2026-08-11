@@ -56,3 +56,9 @@ staticfiles/
 
 # Generated archives
 research/r_queries.zip
+
+# Descargas del INEGI que download_inegi.sh regenera (Marco Geoestadístico
+# y catálogo de localidades AGEEML): pesan mucho y son reproducibles
+space_time/geo_files/00mun.*
+space_time/geo_files/localidades.csv
+space_time/geo_files/localidades.txt
