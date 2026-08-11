@@ -62,3 +62,6 @@ research/r_queries.zip
 space_time/geo_files/00mun.*
 space_time/geo_files/localidades.csv
 space_time/geo_files/localidades.txt
+
+# credenciales de colaboradoras (usar config.R.template)
+research/r_queries/config.R
