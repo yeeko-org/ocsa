@@ -47,6 +47,20 @@ function trashFile(file){
   console.log("trashFile", file)
 }
 
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
+
+// La URL de S3 trae carpetas y query: la extensión solo cuenta al final
+function fileBaseName(url){
+  return (url || '').split(/[?#]/)[0].split('/').pop()
+}
+
+function fileKind(url){
+  const name = fileBaseName(url).toLowerCase()
+  if (name.endsWith('.pdf')) return 'pdf'
+  if (IMAGE_EXTENSIONS.some(ext => name.endsWith(ext))) return 'image'
+  return 'other'
+}
+
 </script>
 
 <template>
@@ -88,39 +102,58 @@ function trashFile(file){
       </div>
       <template v-if="item.file">
         <v-chip
-          v-if="!show_img"
+          v-if="fileKind(item.file) === 'other'"
           large
           class="ml-6 px-6 my-1"
           color="accent lighten-1"
           close-icon="delete"
           text-color="red"
-          @click="show_img = !show_img"
+          :href="item.file"
+          target="_blank"
+          rel="noopener"
           @click:close="trashFile(item.file)"
-          prepend-icon="picture_as_pdf"
+          prepend-icon="download"
         >
-          <span class="text-white" v-if="item.url">
-            {{item.name}}
-          </span>
-          <span class="text-white" v-else>
-            {{item.file.name}}
+          <span class="text-white">
+            {{ fileBaseName(item.file) }}
           </span>
         </v-chip>
-        <div
-          v-else
-          class="resizable-container ml-6 my-1"
-        >
-          <embed
-            v-if="item.file.includes('.pdf')"
-            type="application/pdf"
-            :src="item.file"
-            class="_ml-6 _my-1 resizable-pdf"
-          />
-          <v-img
+        <template v-else>
+          <v-chip
+            v-if="!show_img"
+            large
+            class="ml-6 px-6 my-1"
+            color="accent lighten-1"
+            close-icon="delete"
+            text-color="red"
+            @click="show_img = !show_img"
+            @click:close="trashFile(item.file)"
+            prepend-icon="picture_as_pdf"
+          >
+            <span class="text-white" v-if="item.url">
+              {{ fileBaseName(item.file) }}
+            </span>
+            <span class="text-white" v-else>
+              {{item.file.name}}
+            </span>
+          </v-chip>
+          <div
             v-else
-            :src="item.file"
-            class="resizable-content"
-          ></v-img>
-        </div>
+            class="resizable-container ml-6 my-1"
+          >
+            <embed
+              v-if="fileKind(item.file) === 'pdf'"
+              type="application/pdf"
+              :src="item.file"
+              class="_ml-6 _my-1 resizable-pdf"
+            />
+            <v-img
+              v-else
+              :src="item.file"
+              class="resizable-content"
+            ></v-img>
+          </div>
+        </template>
       </template>
     </template>
   </ToolbarCommon>
