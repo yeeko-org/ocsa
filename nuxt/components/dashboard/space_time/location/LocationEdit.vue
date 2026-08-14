@@ -70,7 +70,7 @@ function handleLocationUpdate(locationData) {
     :cols="show_map && !second_level ? 6 : 12"
     :order="col_order"
   >
-    <div class="d-flex align-center flex-wrap">
+    <div class="d-flex align-center flex-wrap ga-1 pb-3">
       <LocationMex
         v-model:state="full_main.state"
         v-model:municipality="full_main.municipality"
@@ -84,7 +84,6 @@ function handleLocationUpdate(locationData) {
           v-model="full_main.latitude"
           label="Latitud"
           variant="outlined"
-          class="mx-1"
           style="max-width: 180px;"
         >
         </v-text-field>
@@ -98,7 +97,7 @@ function handleLocationUpdate(locationData) {
       </template>
       <v-btn
         color="accent"
-        class="ml-2 mb-3"
+        class="ml-2"
         :disabled="!full_main.type_location"
         icon
         :variant="show_map ? 'elevated' : 'outlined'"

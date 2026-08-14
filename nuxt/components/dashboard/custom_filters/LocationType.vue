@@ -5,8 +5,16 @@ const props = defineProps({
   is_filter: Boolean,
 })
 
+const location_type = computed(() => LOCATION_TYPES.find(
+  loc => loc.id === props.full_main.type_location)
+)
+
+const is_point = computed(() => location_type.value?.id === 'point')
+
 const width = computed(() => {
-  return props.is_filter ? '150px' : '56px'
+  return props.is_filter
+      ? '150px'
+      : is_point.value ? '56px' : '130px'
 })
 
 </script>
@@ -23,8 +31,7 @@ const width = computed(() => {
     :menu-icon="is_filter ? 'arrow_drop_down' : null"
     class="ml-2"
     :density="is_filter ? 'compact' : 'default'"
-    :hide-details="is_filter"
-    _style="max-width: 56px;"
+    hide-details
     :max-width="width"
   >
     <template #prepend-item>
@@ -56,7 +63,8 @@ const width = computed(() => {
         class="mr-2"
       ></v-icon>
       <span
-        v-if="is_filter"
+        v-if="is_filter || !is_point"
+        class="font-weight-bold"
       >{{ item.title }}</span>
 <!--          {{ item.title }}-->
     </template>
