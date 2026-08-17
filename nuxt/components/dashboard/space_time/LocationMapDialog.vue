@@ -14,10 +14,16 @@ const props = defineProps({
     validator: (value) => ['point', 'line', 'polygon'].includes(value)
   },
   full_main: Object,
-  close_position: Object
+  close_position: Object,
+  can_expand: {
+    type: Boolean,
+    default: true
+  }
 });
 
 const emit = defineEmits(['update:location', 'close-dialog']);
+
+const is_expanded = defineModel('expanded', {type: Boolean, default: false});
 
 const mapContainer = ref(null);
 const map = ref(null);
@@ -34,39 +40,62 @@ const is_full_point = computed(() =>
     props.full_main && props.full_main.latitude && props.full_main.longitude);
 // Process the existing location data if available
 
-const existingGeometry = computed(() => {
+const simple_type = computed(() => location_type_full.value?.geometry_type);
+
+// mapbox-gl-draw sólo sabe editar geometrías simples, así que una Multi*
+// guardada se separa en una feature por parte para poder dibujarla.
+function splitGeometry(geometry) {
+  if (!geometry) return []
+  const {type, coordinates} = geometry
+  if (!type.startsWith('Multi'))
+    return [geometry]
+  const part_type = type.replace('Multi', '')
+  return coordinates.map(coords => ({type: part_type, coordinates: coords}))
+}
+
+function asFeature(geometry) {
+  return {type: 'Feature', geometry, properties: {}}
+}
+
+const existingFeatures = computed(() => {
   const loc = props.full_main;
-  if (props.full_main) {
-    if (is_point.value && is_full_point.value) {
-      return {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [parseFloat(loc.longitude), parseFloat(loc.latitude)]
-        },
-        properties: {}
-      };
-    }
-    else if (!is_point.value && props.full_main.geojson){
-      if (props.full_main.geojson.type === 'Feature')
-        return props.full_main.geojson
-      else if (props.full_main.geojson.type === 'FeatureCollection')
-        return props.full_main.geojson.features[0]
-      else
-        return props.full_main.geojson
-    }
+  if (!loc) return [];
+  if (is_point.value) {
+    if (!is_full_point.value) return [];
+    return [asFeature({
+      type: 'Point',
+      coordinates: [parseFloat(loc.longitude), parseFloat(loc.latitude)]
+    })];
   }
-  return null;
+  const geojson = loc.geojson;
+  if (!geojson) return [];
+  let geometries;
+  if (geojson.type === 'FeatureCollection')
+    geometries = geojson.features.map(f => f.geometry);
+  else if (geojson.type === 'Feature')
+    geometries = [geojson.geometry];
+  else
+    geometries = [geojson];
+  return geometries
+    .filter(Boolean)
+    .flatMap(splitGeometry)
+    .map(asFeature);
 });
 
 onMounted(() => {
   initializeMap();
 });
 
+// Mapbox no detecta por sí solo el cambio de ancho del contenedor
+watch(is_expanded, async () => {
+  await nextTick();
+  map.value?.resize();
+});
+
 // Initialize the MapBox map
 function initializeMap() {
   if (isMapInitialized.value) return;
-  // console.log("existingGeometry", existingGeometry.value);
+  // console.log("existingFeatures", existingFeatures.value);
   mapboxgl.accessToken = 'pk.eyJ1Ijoicmlja3JlYmVsIiwiYSI6ImNrZDRtM2pkaDE2Mm4ycW8zbjl4NmhqNnkifQ.fXsECn7EtVBuGs9sidf94Q';
   // console.log("process.env", process.env)
   // mapboxgl.accessToken = process.env.NUXT_MAPBOX_TOKEN;
@@ -75,12 +104,12 @@ function initializeMap() {
   const defaultCenter = [-101.81312434928653, 22.64061934572902];
 
   // Use existing coordinates if available for a point
-  const has_center = existingGeometry.value
-      && existingGeometry.value.geometry.type === 'Point'
+  const first_feature = existingFeatures.value[0]
+  const has_center = first_feature?.geometry?.type === 'Point'
   let center = defaultCenter
   let zoom = 4
   if (has_center){
-    center = existingGeometry.value.geometry.coordinates
+    center = first_feature.geometry.coordinates
     zoom = 13
   }
   else if (props.close_position){
@@ -131,21 +160,14 @@ function initializeMap() {
     });
 
     // Zoom to the appropriate area based on location type
-    if (existingGeometry.value) {
-      zoomToFeature(existingGeometry.value.geometry);
-    }
+    zoomToFeatures(existingFeatures.value);
   });
 }
 
 // Set up the MapBox drawing tools
 function setupDrawTools(skipAddingExistingGeometry = false) {
   // Create and add the draw control
-  const loc = props.full_main;
-  let is_edit;
-  if (is_point.value)
-    is_edit = is_full_point.value
-  else
-    is_edit = !!loc.geojson
+  const is_edit = existingFeatures.value.length > 0
 
   draw.value = new MapboxDraw({
     displayControlsDefault: false,
@@ -278,8 +300,11 @@ function setupDrawTools(skipAddingExistingGeometry = false) {
 
   map.value.addControl(draw.value);
 
-  if (existingGeometry.value && !skipAddingExistingGeometry)
-    draw.value.add(existingGeometry.value);
+  if (existingFeatures.value.length && !skipAddingExistingGeometry)
+    draw.value.add({
+      type: 'FeatureCollection',
+      features: existingFeatures.value
+    });
 
 
   if (!is_edit){
@@ -294,80 +319,90 @@ function setupDrawTools(skipAddingExistingGeometry = false) {
 }
 
 function updateDrawing(e) {
-
-  const features = draw.value.getAll().features;
-  // console.log("Features:", features);
-  // If there's more than one feature
-  if (features.length > 1) {
-    const updatedFeature = e.features[0];
+  // Sólo el punto es único: dibujar otro reemplaza al anterior. Líneas y
+  // polígonos admiten varias partes, cada una editable por separado.
+  if (is_point.value && draw.value.getAll().features.length > 1) {
+    const latest = e.features[0];
     draw.value.deleteAll();
-    // Add back only the updated feature
-    draw.value.add(updatedFeature);
-    // console.log("Replaced other locations with the updated one");
+    draw.value.add(latest);
   }
-
-  const drawnFeatures = e.features || [];
-  if (drawnFeatures.length > 0) {
-    const feature = drawnFeatures[0];
-    if (feature.geometry.type === 'Point') {
-      const point_source = map.value.getSource('point-source');
-      // console.log("point_source", point_source);
-      if (!point_source) {
-        map.value.addSource('point-source', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [feature]
-          }
-        });
-      }
-      else {
-        point_source.setData({
-          type: 'FeatureCollection',
-          features: [feature]
-        });
-      }
-    }
-    emit('update:location', feature);
-  }
+  syncPointSource();
+  emitLocation();
 }
+
 // Handle deletion of drawings
 function clearDrawing() {
-  // console.log("Drawing cleared", map.value)
-  map.value.getSource('point-source').setData({
+  syncPointSource();
+  emitLocation();
+}
+
+function syncPointSource() {
+  if (!is_point.value) return;
+  const point_source = map.value.getSource('point-source');
+  if (!point_source) return;
+  point_source.setData({
     type: 'FeatureCollection',
-    features: []
+    features: currentFeatures()
   });
 }
 
-// Zoom to the appropriate area based on geometry type
-function zoomToFeature(geometry) {
-  if (!map.value || !geometry) return;
+// Sólo las partes del tipo de la ubicación: los controles de dibujo ya lo
+// garantizan, pero una geometría heredada podría traer otra cosa y el API
+// rechaza las mezclas.
+function currentFeatures() {
+  if (!draw.value) return [];
+  return draw.value.getAll().features.filter(
+      f => f.geometry.type === simple_type.value);
+}
 
-  if (geometry.type === 'Point') {
+// El API guarda UNA sola Feature por ubicación: varias partes se ensamblan
+// aquí en una Multi* para que el estado del front ya tenga la forma final.
+function assembleFeature(features) {
+  if (!features.length) return null;
+  if (features.length === 1) return features[0];
+  return asFeature({
+    type: `Multi${simple_type.value}`,
+    coordinates: features.map(f => f.geometry.coordinates)
+  });
+}
+
+function emitLocation() {
+  emit('update:location', assembleFeature(currentFeatures()));
+}
+
+// Zoom to the appropriate area based on geometry type
+function zoomToFeatures(features) {
+  if (!map.value || !features?.length) return;
+
+  if (features.length === 1 && features[0].geometry.type === 'Point') {
     // For points, zoom to approximately 3km around
     map.value.flyTo({
-      center: geometry.coordinates,
+      center: features[0].geometry.coordinates,
       zoom: 14
     });
-  } else {
-    const bounds = calculateBounds(geometry);
+    return;
+  }
+  const bounds = calculateBounds(features);
+  if (bounds)
     map.value.fitBounds(bounds, {
       padding: 50
     });
-  }
 }
 
-// Calculate bounds for a geometry
-function calculateBounds(geometry) {
-  let coordinates = [];
+// Aplana cualquier anidamiento de coordenadas (Point, LineString, Polygon o
+// sus Multi*) hasta la lista de pares [lng, lat].
+function flattenCoordinates(coordinates) {
+  if (typeof coordinates[0] === 'number') return [coordinates];
+  return coordinates.flatMap(flattenCoordinates);
+}
 
-  if (geometry.type === 'LineString')
-    coordinates = geometry.coordinates
-  else if (geometry.type === 'Polygon')
-    coordinates = geometry.coordinates[0] // Outer ring of the polygon
-  else
-    return null
+// Calculate bounds covering every part of every feature
+function calculateBounds(features) {
+  const coordinates = features
+    .filter(f => f.geometry?.coordinates?.length)
+    .flatMap(f => flattenCoordinates(f.geometry.coordinates));
+
+  if (!coordinates.length) return null;
 
   const lngs = coordinates.map(coord => coord[0]);
   const lats = coordinates.map(coord => coord[1]);
@@ -385,7 +420,6 @@ function toggleMapStyle(val) {
 
   try {
     const features = draw.value ? draw.value.getAll().features : [];
-    const feature = features.length > 0 ? features[0] : null;
 
     if (draw.value) {
       map.value.removeControl(draw.value);
@@ -396,9 +430,8 @@ function toggleMapStyle(val) {
 
     map.value.once('styledata', () => {
       setupDrawTools(true);
-      if (feature)
-        draw.value.add(feature);
-
+      if (features.length)
+        draw.value.add({type: 'FeatureCollection', features});
     });
   } catch (error) {
     console.error("Error toggling map style:", error);
@@ -425,6 +458,17 @@ function toggleMapStyle(val) {
       ></v-switch>
 
       <v-spacer></v-spacer>
+      <v-btn
+        v-if="can_expand"
+        variant="text"
+        icon
+        @click="is_expanded = !is_expanded"
+        v-tooltip:bottom="is_expanded ? 'Restaurar' : 'Expandir mapa'"
+      >
+        <v-icon>
+          {{ is_expanded ? 'fullscreen_exit' : 'fullscreen' }}
+        </v-icon>
+      </v-btn>
       <v-btn variant="text" @click="emit('close-dialog')" icon>
         <v-icon>close</v-icon>
       </v-btn>

@@ -25,7 +25,7 @@ export function useLayers(map) {
       map.value.addSource(dt.source, {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
-        ...(dt.type === "Point" ? {
+        ...(dt.types.includes("Point") ? {
           cluster: true,
           clusterMaxZoom: 10,
           clusterRadius: 20,
@@ -48,7 +48,6 @@ export function useLayers(map) {
     addLineLayer(
       'proyectos-poligonos-outline', 'proyectos-poligonos', 0.2);
     addLineLayer('proyectos-lineas', 'proyectos-lineas');
-    addLineLayer('proyectos-multilineas', 'proyectos-multilineas');
 
     // Ícono del tipo de extractivismo al centro de cada línea. Se fuerza
     // 'viewport' para que el pin quede vertical (si no, Mapbox lo rota al
@@ -130,7 +129,8 @@ export function useLayers(map) {
     GEOMETRY_TYPES.forEach(gt => {
       data[gt.source] = {
         type: 'FeatureCollection',
-        features: features_filtered.filter(f => f.geometry.type === gt.type)
+        features: features_filtered.filter(
+          f => gt.types.includes(f.geometry.type))
       };
     });
 

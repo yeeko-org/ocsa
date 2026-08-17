@@ -11,10 +11,28 @@ const location_type = computed(() => LOCATION_TYPES.find(
 
 const is_point = computed(() => location_type.value?.id === 'point')
 
+// Número de partes de la geometría: una línea o un polígono pueden guardarse
+// como Multi* con varias figuras, y el editor no muestra cuántas hay.
+const parts_count = computed(() => {
+  if (props.is_filter) return 0
+  const geojson = props.full_main.geojson
+  if (!geojson) return 0
+  if (geojson.type === 'FeatureCollection')
+    return geojson.features.length
+  const geometry = geojson.type === 'Feature' ? geojson.geometry : geojson
+  if (!geometry?.type) return 0
+  return geometry.type.startsWith('Multi') ? geometry.coordinates.length : 1
+})
+
+const show_parts_count = computed(() => parts_count.value > 1)
+
+const parts_label = computed(
+    () => `${parts_count.value} ${location_type.value?.name_plural || ''}`)
+
 const width = computed(() => {
-  return props.is_filter
-      ? '150px'
-      : is_point.value ? '56px' : '130px'
+  if (props.is_filter) return '150px'
+  if (is_point.value) return '56px'
+  return show_parts_count.value ? '160px' : '130px'
 })
 
 </script>
@@ -65,7 +83,7 @@ const width = computed(() => {
       <span
         v-if="is_filter || !is_point"
         class="font-weight-bold"
-      >{{ item.title }}</span>
+      >{{ show_parts_count ? parts_label : item.title }}</span>
 <!--          {{ item.title }}-->
     </template>
   </v-select>
