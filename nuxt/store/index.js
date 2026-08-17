@@ -321,6 +321,21 @@ export const useMainStore = defineStore('main', {
         console.error(error);
       }
     },
+    async importLocationGeo(form_data) {
+      const { $api } = useNuxtApp()
+      try {
+        let response = await $api.post(
+          '/location/import_geo/', form_data,
+          {headers: {'Content-Type': 'multipart/form-data'}}
+        );
+        return response.data
+      } catch (error) {
+        // El back manda el motivo en español, listo para mostrarse
+        const detail = error.response?.data?.detail
+        console.error(error);
+        return {error: detail || 'No se pudo leer el archivo geográfico.'}
+      }
+    },
     async getRelatedActors(proj_id, group_id) {
       const { $api } = useNuxtApp()
       const params = group_id ? {participant_group: group_id} : {}
