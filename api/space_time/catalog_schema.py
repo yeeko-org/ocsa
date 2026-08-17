@@ -44,4 +44,16 @@ class LocationSchema(CollectionSchema):
             title="Con geometría", field="has_geo_data",
             component="TripleBooleanFilter", hidden=True,
         ),
+        ComponentFilter(
+            title="Completitud", field="completeness",
+            component="OnlyByFilter", hidden=True,
+            custom_options=[
+                {"plural_name": "Completas sin promover",
+                 "value": "complete_unpromoted"},
+                {"plural_name": "Incompletas sin promover",
+                 "value": "incomplete_unpromoted"},
+                {"plural_name": "Aprobadas incompletas",
+                 "value": "approved_incomplete"},
+            ],
+        ),
     ]

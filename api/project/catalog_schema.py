@@ -102,6 +102,18 @@ class ProjectSchema(CollectionSchema):
                 {"plural_name": "Mix: con y sin geometría", "value": "mixed"},
             ]),
         ComponentFilter(
+            title="Completitud de ubicaciones",
+            field="locations_completeness",
+            component="OnlyByFilter", hidden=True,
+            custom_options=[
+                {"plural_name": "Con completas sin promover",
+                 "value": "complete_unpromoted"},
+                {"plural_name": "Con incompletas sin promover",
+                 "value": "incomplete_unpromoted"},
+                {"plural_name": "Con aprobadas incompletas",
+                 "value": "approved_incomplete"},
+            ]),
+        ComponentFilter(
             title="Conflictos", field="is_grouper",
             component="ConflictFilter", hidden=True),
     ]

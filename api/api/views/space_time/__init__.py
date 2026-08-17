@@ -1,10 +1,11 @@
 from rest_framework import viewsets, permissions
-from django.db.models import Q
-from django_filters import BooleanFilter
+from django_filters import BooleanFilter, CharFilter
 
 from api.pagination import CustomPagination
 from api.permissions import LocationPermission
 from rest_framework.response import Response
+from space_time.completeness import completeness_q
+from space_time.geometry import has_geometry_q
 from space_time.models import (
     State,
     Municipality,
@@ -53,13 +54,16 @@ class MunicipalityListViewSet(ListSetMixin):
 class LocationFilter(OnlyByFilterMixin):
 
     has_geo_data = BooleanFilter(method='filter_has_geo_data')
+    completeness = CharFilter(method='filter_completeness')
+
+    def filter_completeness(self, queryset, name, value):
+        condition = completeness_q(value) if value else None
+        if condition is None:
+            return queryset
+        return queryset.filter(condition)
 
     def filter_has_geo_data(self, queryset, name, value):
-        # "Tiene geometría" = par completo de coordenadas (lat Y lon, porque
-        # una sola no ubica) O un geojson presente. Basta cualquiera.
-        has_geo = (
-            Q(latitude__isnull=False) & Q(longitude__isnull=False)
-        ) | Q(geojson__isnull=False)
+        has_geo = has_geometry_q()
         if value:
             return queryset.filter(has_geo)
         return queryset.exclude(has_geo)
@@ -109,6 +113,7 @@ class LocationViewSet(ClickHistoryMixin, BaseViewSet):
 
     def get_serializer_class(self):
         # action_serializer = {'list': LocationSerializer}
-        action_serializer = {'list': LocationSemiFullSerializer}
+        action_serializer = {
+            'list': LocationSemiFullSerializer,
+        }
         return action_serializer.get(self.action, self.serializer_class)
-
