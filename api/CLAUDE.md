@@ -11,9 +11,10 @@ Django + DRF back end of the OCSA monorepo. Domain, structure and commit convent
 | `source/` | Notes/articles scraped or manually entered |
 | `df/` | Forced displacement (desplazamiento forzado) |
 | `classify/` | Shared catalogs/taxonomies (participant types, sectors, interests) |
-| `space_time/` | Geographic data (states, municipalities, localities) |
+| `space_time/` | Geographic data (states, municipalities, localities, `Location` with its `geojson` contract in `space_time/geometry.py`) |
 | `work_flux/` | Cross-cutting status and workflow control |
 | `profile_auth/` | Custom `User` model with `is_full_editor` / `is_admin` roles |
+| `ocsa_legacy/` + `*/migrate/`, `migrate_*` commands | Bridge to the pre-rewrite system: unmanaged models over PostgreSQL schema `ocs` and one-off data migrations, already run. Not part of daily operation — see docs `2026-08-17-plataforma-legacy-y-migracion` |
 
 ### API Layer (`api/`)
 
