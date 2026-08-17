@@ -24,6 +24,9 @@ jsonpath_ng==1.7.0
 yeeko_xlsx_export @ git+https://github.com/yeeko-org/xlsx_django_export@main
 PyMuPDF
 curl_cffi==0.15.0
+pyogrio==0.13.0
+shapely==2.1.2
+pyproj==3.7.2
 
 # EVERY PACKAGE:
 # amqp==5.3.1

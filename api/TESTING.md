@@ -62,6 +62,14 @@ python .claude/diagnostics/batch_failure_policy.py
 
 **El único diagnóstico que no cuesta nada:** no toca la red ni la cuota de Gemini, y revierte la transacción al terminar. Sustituye `RequestGemini` por un doble que falla a voluntad y comprueba las cuatro conductas que fija [[adr-0010]] — cortacircuitos a los cinco fallos idénticos, recreación del caché con tope de dos, caída a inline reportada una sola vez, y lote que termina completo pese a fallos sueltos — ejercitando el `build_criteria` real, que desde [[task-5]] es la única ruta. Sale con código 1 si algo no cuadra.
 
+### Importación de archivos geográficos
+
+```bash
+python .claude/diagnostics/geo_import_check.py
+```
+
+**Gratis y sin base:** fabrica en un directorio temporal los archivos que llegan del editor (GeoJSON de dos polígonos, shapefile comprimido en EPSG:6372, KML de una y de dos capas, GeoJSON con tipos mezclados, shapefile sin `.prj`, extensión ajena) y verifica el camino `space_time.geo_import.read_geo_file` → `space_time.geometry.normalize_geojson`: reproyección a EPSG:4326, fusión en Multi\*, conservación de atributos y los mensajes de rechazo en español. Sale con código 1 si algo no cuadra. Es la verificación a correr después de tocar `geo_import.py` o el contrato de `geometry.py`.
+
 ### Recuperación histórica y reclasificación (gastan)
 
 ```bash

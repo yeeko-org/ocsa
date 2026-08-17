@@ -1,11 +1,18 @@
+import tempfile
+from pathlib import Path
+
 from rest_framework import viewsets, permissions
 from django_filters import BooleanFilter, CharFilter
 
 from api.pagination import CustomPagination
 from api.permissions import LocationPermission
+from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from space_time.completeness import completeness_q
-from space_time.geometry import has_geometry_q
+from space_time.geo_import import GeoImportError, read_geo_file
+from space_time.geometry import (
+    has_geometry_q, infer_type_location, normalize_location_geometry)
 from space_time.models import (
     State,
     Municipality,
@@ -20,6 +27,7 @@ from api.views.space_time.serializers import (
     LocationSerializer,
     LocationSemiFullSerializer,
     LocationFullSerializer,
+    GeoImportSerializer,
     StateRetrieveSerializer,)
 from api.views.common_views import (
     BaseViewSet, OnlyByFilterMixin, ClickHistoryMixin)
@@ -115,5 +123,78 @@ class LocationViewSet(ClickHistoryMixin, BaseViewSet):
         # action_serializer = {'list': LocationSerializer}
         action_serializer = {
             'list': LocationSemiFullSerializer,
+            'import_geo': GeoImportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    @action(detail=False, methods=['post'], url_path='import_geo',
+            parser_classes=[MultiPartParser, FormParser],
+            permission_classes=[permissions.IsAuthenticated])
+    def import_geo(self, request):
+        """Lee un archivo geográfico y devuelve la geometría normalizada.
+
+        Ruta de lista y no de detalle porque el editor importa también
+        sobre una ubicación todavía no guardada: no toca la base, el
+        front aplica el resultado al formulario y guarda cuando quiere.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        upload = serializer.validated_data["file"]
+        layer = serializer.validated_data.get("layer") or None
+        try:
+            collection = self._read_upload(upload, layer)
+        except GeoImportError as error:
+            return Response({'detail': str(error)}, status=400)
+        type_location = (
+            serializer.validated_data.get("type_location")
+            or infer_type_location(collection) or "point")
+        try:
+            geojson, latitude, longitude = normalize_location_geometry(
+                collection, type_location)
+        except ValueError as error:
+            return Response({'detail': str(error)}, status=400)
+        # El punto no guarda geojson: su parte es el par de coordenadas.
+        parts = _count_parts(geojson) or (1 if latitude is not None else 0)
+        return Response({
+            'geojson': geojson,
+            'type_location': type_location,
+            'parts': parts,
+            'latitude': latitude,
+            'longitude': longitude,
+            'warnings': _import_warnings(collection, parts),
+        })
+
+    @staticmethod
+    def _read_upload(upload, layer: str | None) -> dict:
+        """GDAL necesita una ruta en disco: el archivo no se conserva."""
+        suffix = Path(upload.name).suffix.lower()
+        with tempfile.NamedTemporaryFile(suffix=suffix) as temporary:
+            for chunk in upload.chunks():
+                temporary.write(chunk)
+            temporary.flush()
+            return read_geo_file(temporary.name, upload.name, layer)
+
+
+def _count_parts(geojson: dict | None) -> int:
+    if not geojson:
+        return 0
+    geometry = geojson.get("geometry") or {}
+    kind = geometry.get("type") or ""
+    if kind.startswith("Multi"):
+        return len(geometry.get("coordinates") or [])
+    return 1 if kind else 0
+
+
+def _import_warnings(collection: dict, parts: int) -> list[str]:
+    source = collection.get("properties") or {}
+    warnings = []
+    if source.get("reprojected"):
+        warnings.append(
+            f"Se reproyectó de {source.get('source_crs')} a EPSG:4326.")
+    read_count = source.get("geometries_read") or 0
+    if read_count > parts:
+        warnings.append(
+            f"Se descartaron {read_count - parts} geometrías vacías, "
+            "degeneradas o de otro tipo.")
+    return warnings
+

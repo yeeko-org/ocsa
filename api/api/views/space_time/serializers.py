@@ -5,7 +5,8 @@ from space_time.models import (
     State,
     Municipality,
     Locality,
-    Location,)
+    Location,
+    TYPE_LOCATIONS,)
 from api.views.event import EventSerializer
 from api.views.project import ProjectBasicSerializer
 from api.views.project.list_serializers import ProjectMiniSerializer
@@ -113,3 +114,15 @@ class LocationFullSerializer(LocationGeometryMixin):
         model = Location
         fields = '__all__'
 
+
+class GeoImportSerializer(serializers.Serializer):
+    """Carga de un archivo geográfico para llenar una ubicación.
+
+    No se guarda nada: el archivo se lee, se normaliza contra el
+    `type_location` y la geometría vuelve al formulario del front.
+    """
+
+    file = serializers.FileField()
+    type_location = serializers.ChoiceField(
+        choices=TYPE_LOCATIONS, required=False)
+    layer = serializers.CharField(required=False, allow_blank=True)
