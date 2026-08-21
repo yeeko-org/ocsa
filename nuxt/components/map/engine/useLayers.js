@@ -123,7 +123,8 @@ export function useLayers(map) {
     // dimensiones (store/map.js). Sin filtros = todos los proyectos.
     const visible = mapStore.visibleProjectIds;
     const features_filtered = project_locations.features.filter(
-      f => visible.has(f.properties.project.id));
+      f => visible.has(f.properties.project.id)
+        && mapStore.featureMatchesStates(f));
 
     let data = {};
     GEOMETRY_TYPES.forEach(gt => {

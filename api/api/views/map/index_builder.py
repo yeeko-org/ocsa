@@ -33,6 +33,7 @@ FACET_DIMENSIONS = {
     "i": "impacts__impact_type_id",
     "s": "impacts__impact_subtype_id",
     "p": "participants__participant_types",
+    "u": "events__purpose_id",
 }
 
 

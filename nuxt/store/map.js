@@ -181,6 +181,19 @@ export const useMapStore = defineStore('map', () => {
     return index
   })
 
+  // El filtro de estado es la única dimensión que discrimina a nivel de
+  // ubicación y no de proyecto: un proyecto con ubicaciones en varios estados
+  // entra por unión (stateIndex), pero solo sus ubicaciones en los estados
+  // filtrados se pintan y se encuadran. null = filtro inactivo (todo pasa).
+  // El id se compara tal cual llega del backend, igual que en stateIndex.
+  const stateFilterSet = computed(() =>
+    filters.states.length ? new Set(filters.states) : null)
+
+  const featureMatchesStates = feature => {
+    const states = stateFilterSet.value
+    return !states || states.has(feature.properties?.state)
+  }
+
   // Universo: todos los ids de proyecto (base de la intersección sin filtros).
   const allProjectIds = computed(() =>
     new Set(uniqueProjects.value.map(p => p.id)))
@@ -199,8 +212,8 @@ export const useMapStore = defineStore('map', () => {
 
   // Una pasada sobre el payload directo → un índice invertido por cada
   // dimensión (letra) presente. NO hardcodea las letras: construye las que
-  // existan (e/i/s/p hoy; p.ej. 'u' de purpose cuando el backend la agregue,
-  // sin tocar este código). Clave ausente = el proyecto no contribuye a ella.
+  // existan, así que sumar una dimensión en el backend no obliga a tocar este
+  // código. Clave ausente = el proyecto no contribuye a esa dimensión.
   function buildFacetIndex(facets) {
     const dims = {}
     for (const [projId, dimObj] of Object.entries(facets)) {
@@ -240,9 +253,8 @@ export const useMapStore = defineStore('map', () => {
     return out
   }
 
-  // Índice (Map<catId, Set<projId>>) de una faceta del payload; null si esa
-  // letra aún no existe (p.ej. 'u' antes de que el backend la emita) → ese
-  // filtro simplemente no recorta.
+  // Índice (Map<catId, Set<projId>>) de una faceta del payload; null mientras
+  // el payload no haya cargado → ese filtro simplemente no recorta.
   const indexForFacet = letter => facetIndex.value?.[letter] || null
 
   // Proyectos visibles: AND entre grupos de las uniones OR de cada dimensión
@@ -271,9 +283,7 @@ export const useMapStore = defineStore('map', () => {
         const idx = indexFor(sel)
         if (idx) push(unionFromIndex(idx, filters[sel.stateKey]))
       }
-      // Toggle de propósito (legal): faceta aparte del select. Mientras el
-      // backend no emita `purposeFacet`, indexForFacet devuelve null y no
-      // recorta (el chip sigue visible).
+      // Toggle de propósito (legal): faceta aparte del select.
       if (reg.purposeKey && reg.purposeFacet) {
         const idx = indexForFacet(reg.purposeFacet)
         if (idx) push(unionFromIndex(idx, filters[reg.purposeKey]))
@@ -597,6 +607,7 @@ export const useMapStore = defineStore('map', () => {
     searchProjects,
     searchActors,
     visibleProjectIds,
+    featureMatchesStates,
     // --- Filtros ---
     filters,
     activePickerKey,

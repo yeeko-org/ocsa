@@ -83,9 +83,14 @@ watch(targetProjectId, (newId) => {
   if (!newId || !map.value) return;
 
   // 1. Filtrar todas las geometrías asociadas a ese ID
-  const features = projectLocations.value.features.filter(f =>
+  const all_features = projectLocations.value.features.filter(f =>
     f.properties.project.id === newId
   );
+  // Se encuadra solo lo pintado. El fallback al conjunto completo cubre un
+  // caso que no debería darse (el proyecto entra al panel por matchear el
+  // filtro) pero que dejaría un fitBounds vacío.
+  const in_states = all_features.filter(mapStore.featureMatchesStates);
+  const features = in_states.length ? in_states : all_features;
 
   if (features.length === 0) return;
 

@@ -30,7 +30,6 @@ export const RAIL_GEOMETRY = {
 //    De aquí se genera el filtrado (store/map.js): añadir un filtro no obliga
 //    a tocar la lógica de intersección.
 //  - `purposeFacet`: letra de faceta del toggle `purposeKey` (legal → 'u').
-//    Pendiente en el backend; mientras no exista en el payload, no recorta.
 //  - `label`/`icon`/`color`: overrides; se omiten cuando el nodo de grupo ya
 //    los trae (eventos/afectaciones heredan del event_group/impact_group).
 
