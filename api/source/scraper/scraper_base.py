@@ -118,18 +118,26 @@ class ScraperSession:
         self._session = self._build_session()
         self._warmup()
 
-    def get(self, url: str, referer: str | None = None, timeout: int = 40):
+    def request(
+            self, url: str, method: str = "get",
+            referer: str | None = None, timeout: int = 40,
+            json: dict | None = None,
+    ):
         headers = {}
         # Encadenar el Referer imita la navegación real: sin él, Cloudflare
         # trata cada sección como una entrada directa y la vuelve a retar.
         actual_referer = referer or self.last_url
         if actual_referer:
             headers["Referer"] = actual_referer
-        response = self._session.get(
-            url, headers=headers or None, timeout=timeout)
+        response = self._session.request(
+            method.upper(), url, headers=headers or None, timeout=timeout,
+            json=json)
         if response.status_code == 200:
             self.last_url = url
         return response
+
+    def get(self, url: str, referer: str | None = None, timeout: int = 40):
+        return self.request(url, referer=referer, timeout=timeout)
 
 
 _thread_local = threading.local()
@@ -148,25 +156,33 @@ def get_thread_session(with_proxy: bool = False) -> ScraperSession:
     return session
 
 
-def get_content(
+def fetch(
     url: str,
-    parser: str = "html.parser",
     with_proxy: bool = False,
     session: ScraperSession | None = None,
     referer: str | None = None,
-) -> BeautifulSoup:
+    method: str = "get",
+    json: dict | None = None,
+    timeout: int = 40,
+):
+    """Petición reintentada sobre una ScraperSession; devuelve la respuesta.
+
+    Agotados los intentos entrega la última respuesta fallida: quien llama
+    decide si eso es un error o una ausencia legítima de contenido.
+    """
     sess = session or get_thread_session(with_proxy)
-    last_status = None
+    response = None
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            response = sess.get(url, referer=referer)
+            response = sess.request(
+                url, method=method, referer=referer, json=json,
+                timeout=timeout)
         except ProxyError as exc:
             raise Exception(
                 f"Error de proxy al acceder a {url}: {exc}") from exc
         if response.status_code == 200:
-            return BeautifulSoup(response.text, parser)
-        last_status = response.status_code
+            return response
         # Se reintenta de inmediato, sin backoff: el 403 es un challenge que
         # se resuelve al segundo intento dentro de la misma sesión, no un
         # rate limit que se cure esperando. Agotada la mitad de los intentos
@@ -175,7 +191,22 @@ def get_content(
             print(f"Sesión quemada en {url}, renovando IP.")
             sess.renew()
 
-    raise Exception(f"Error al acceder a la página: {last_status}")
+    return response
+
+
+def get_content(
+    url: str,
+    parser: str = "html.parser",
+    with_proxy: bool = False,
+    session: ScraperSession | None = None,
+    referer: str | None = None,
+) -> BeautifulSoup:
+    response = fetch(
+        url, with_proxy=with_proxy, session=session, referer=referer)
+    if response is None or response.status_code != 200:
+        status = response.status_code if response is not None else None
+        raise Exception(f"Error al acceder a la página: {status}")
+    return BeautifulSoup(response.text, parser)
 
 
 def get_clean_text(elem: PageElement) -> str:

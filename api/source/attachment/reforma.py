@@ -1,12 +1,14 @@
 """Adjunto de Reforma: la página impresa real, recortada al artículo."""
 
-import requests
+import logging
 
 from source.attachment.base import AttachmentGenerator, GeneratedAttachment
 from source.attachment.pdf_crop import crop_pdf_to_blocks
 from source.scraper.reforma import (
     parse_section_notes, primary_page, section_url)
-from source.scraper.scraper_base import get_content
+from source.scraper.scraper_base import fetch, get_content
+
+logger = logging.getLogger(__name__)
 
 # La hemeroteca sirve el PDF por CDN firmado: hay que pedir la URL con
 # firma antes de descargar; la URL directa devuelve 403.
@@ -14,13 +16,6 @@ CDN_URL = (
     "https://www.reforma.com/edicionimpresa/aplicacionei/webview/"
     "GeneraUrl.aspx/PathCDN")
 PDF_URL = "https://hemeroteca.reforma.com/{date}/pdfs/{code}.PDF"
-
-HEADERS = {
-    "Content-Type": "application/json",
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"),
-}
 
 TIMEOUT = 60
 
@@ -79,20 +74,29 @@ class ReformaAttachmentGenerator(AttachmentGenerator):
         if not signed_url:
             return None
 
-        response = requests.get(
-            signed_url, headers=HEADERS, timeout=TIMEOUT)
-        if response.status_code != 200:
+        # Misma maquinaria que el scraper: sin fingerprint de Chrome y sin
+        # proxy, la hemeroteca responde 403 a la IP del EC2.
+        response = fetch(signed_url, with_proxy=True, timeout=TIMEOUT)
+        if response is None or response.status_code != 200:
+            logger.warning(
+                "PDF de Reforma inaccesible (status %s) en %s",
+                getattr(response, "status_code", None), signed_url)
             return None
         return response.content
 
     @staticmethod
     def get_signed_url(source_url: str) -> str | None:
-        response = requests.post(
-            CDN_URL, json={"Url": source_url}, headers=HEADERS,
-            timeout=TIMEOUT)
-        if response.status_code != 200:
+        response = fetch(
+            CDN_URL, with_proxy=True, method="post",
+            json={"Url": source_url}, timeout=TIMEOUT)
+        if response is None or response.status_code != 200:
+            logger.warning(
+                "Reforma negó la firma CDN (status %s) para %s",
+                getattr(response, "status_code", None), source_url)
             return None
         try:
             return response.json().get("d")
         except ValueError:
+            logger.warning(
+                "Firma CDN de Reforma sin JSON válido para %s", source_url)
             return None
