@@ -209,8 +209,8 @@ function selectDay(day) {
       v-if="errors"
       type="error"
       class="mb-4"
-      dense
-      outlined
+      density="compact"
+      variant="outlined"
     >
       {{errors}}
     </v-alert>

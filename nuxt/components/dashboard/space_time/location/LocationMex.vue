@@ -74,8 +74,8 @@ const commonProps = {
   variant: "outlined",
   hideDetails: true,
   class: "ml-2 mt-2",
-  maxWidth: "300",
-  minWidth: "240",
+  maxWidth: "280",
+  minWidth: "210",
 }
 
 </script>
@@ -88,8 +88,8 @@ const commonProps = {
     item-value="id"
     label="Estado"
     variant="outlined"
-    max-width="240"
-    width="200"
+    max-width="220"
+    min-width="180"
     hide-details
     class="mt-2"
     :clearable="clearable"

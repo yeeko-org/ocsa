@@ -87,8 +87,8 @@ const formatted_errors = computed(() => {
             <v-text-field
               v-model="delete_text"
               label="Escribe 'eliminar' para confirmar"
-              outlined
-              dense
+              variant="outlined"
+              density="compact"
               clearable
             ></v-text-field>
           </v-col>
