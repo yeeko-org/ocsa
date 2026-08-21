@@ -5,7 +5,7 @@ Fabrica en un directorio temporal los casos que llegan del editor
 shapefile sin .prj, KML de varias capas) y verifica el camino completo
 `read_geo_file` → `normalize_geojson`. No toca la base ni la red.
 
-    python .claude/diagnostics/geo_import_check.py
+    python api/.claude/diagnostics/geo_import_check.py
 """
 import os
 import shutil

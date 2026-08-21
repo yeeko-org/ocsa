@@ -338,7 +338,7 @@ class CollectionRegistry:
     Registry para CollectionSchema (primary / secondary / relational).
 
     No genera ViewSets — todos son manuales (viewset_class obligatorio).
-    Provee registro de rutas en el router principal (`api/urls.py`) y
+    Provee registro de rutas en el router principal (`api/api/urls.py`) y
     metadata de colecciones para InitCollections.
     """
 

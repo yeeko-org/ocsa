@@ -3,8 +3,8 @@
 Solo lee la base local; no llama a Gemini ni a la red. Sirve para
 decidir el criterio de [[task-3]] leyendo casos concretos.
 
-    python .claude/diagnostics/capped_political_opinion.py            # resumen
-    python .claude/diagnostics/capped_political_opinion.py <id>       # un caso
+    python api/.claude/diagnostics/capped_political_opinion.py            # resumen
+    python api/.claude/diagnostics/capped_political_opinion.py <id>       # un caso
 """
 import os
 import sys

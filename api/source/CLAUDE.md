@@ -58,7 +58,7 @@ Los cuatro flujos heredan de `BaseCriteriaManager` (`source/criteria/__init__.py
 
 | Subclase | Se dispara desde |
 |---|---|
-| `FirstCriteriaManager`, `SecondCriteriaManager` | `api/views/scraping/views.py` |
+| `FirstCriteriaManager`, `SecondCriteriaManager` | `api/api/views/scraping/views.py` |
 | `PreCaptureManager` | vistas de artículo y nota |
 | `ReclassifyLegalManager` | `manage.py reclassify_legal_events` |
 

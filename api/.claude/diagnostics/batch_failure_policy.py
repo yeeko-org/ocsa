@@ -11,7 +11,7 @@ Vive aquí por falta de suite, no por naturaleza: es un test unitario y
 [[task-14]] contempla mudarlo. Mientras tanto depende de que la base local
 tenga artículos, porque los toma prestados en vez de construirlos.
 
-    python .claude/diagnostics/batch_failure_policy.py
+    python api/.claude/diagnostics/batch_failure_policy.py
 """
 import os
 import sys

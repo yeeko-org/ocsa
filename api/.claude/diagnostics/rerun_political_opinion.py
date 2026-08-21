@@ -5,8 +5,8 @@ toca `Article.criteria` ni `certainty_degree`. Golpea Gemini: ~59
 llamadas por corrida completa. Es reanudable —salta lo ya calificado
 con el mismo esquema—, así que re-ejecutarla no vuelve a cobrar.
 
-    python .claude/diagnostics/rerun_political_opinion.py run
-    python .claude/diagnostics/rerun_political_opinion.py report
+    python api/.claude/diagnostics/rerun_political_opinion.py run
+    python api/.claude/diagnostics/rerun_political_opinion.py report
 
 Ojo con las etiquetas de `ArticleQualify.CHANGE_OPTIONS`: están escritas
 asumiendo que lo guardado es la verdad, así que `plus` («erróneamente
