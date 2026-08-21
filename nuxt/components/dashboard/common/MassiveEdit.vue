@@ -145,7 +145,6 @@ function sendMassiveEdit() {
             hide-details
             style="max-width: 320px; min-width: 200px;"
             @change-status="applyFilters"
-            is_filter
             class="pr-3 pl-0 py-1"
           />
           <div

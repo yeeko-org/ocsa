@@ -6,7 +6,7 @@ const authStore = useAuthStore()
 const mainStore = useMainStore()
 import {status_filters} from "~/composables/filters.js";
 
-const { is_staff } = storeToRefs(authStore);
+const { is_full_editor } = storeToRefs(authStore);
 
 const props = defineProps({
   collection: String,
@@ -53,6 +53,13 @@ const status_selected = computed(() => {
   return items_built.value.find(item => item.name === status_name)
 })
 
+// El `#item` slot no informa al v-select de qué opciones están
+// deshabilitadas; sin `item-props` seguirían siendo elegibles con teclado.
+const item_props = (item) => ({
+  disabled: !props.is_filter && !is_full_editor.value
+      && !item.open_selectable,
+})
+
 const emits = defineEmits(['change-status'])
 
 </script>
@@ -70,17 +77,20 @@ const emits = defineEmits(['change-status'])
     min-width="260"
     :hide-details="hide_details"
     density="compact"
-    :readonly="!is_staff && !status_selected.open_editor"
+    :readonly="!is_full_editor && !status_selected.open_editor"
     :loading="loading"
+    :item-props="item_props"
     @update:modelValue="emits('change-status', $event)"
   >
-    <template #item="{ internalItem: item, props: {onClick, title, value} }">
+    <template
+      #item="{ internalItem: item, props: {onClick, title, value, disabled} }"
+    >
       <v-list-item
         @click="onClick"
         :title="title"
         :subtitle="item.raw.description"
         :value="value"
-        :disabled="!is_filter && !is_staff && !item.raw.open_selectable"
+        :disabled="disabled"
       >
         <template v-slot:prepend>
           <v-icon
