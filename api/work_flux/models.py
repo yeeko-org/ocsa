@@ -26,12 +26,21 @@ class StatusControl(models.Model):
     order = models.IntegerField(default=4)
     is_public = models.BooleanField(default=True)
     open_editor = models.BooleanField(
-        default=True, verbose_name="open editor",
-        help_text="Se puede cambiar a este status")
+        default=True, verbose_name="edición abierta",
+        help_text="Los registros que están en este status pueden editarse "
+                  "—y cambiarse de status— por cualquier editor; apagado, "
+                  "solo los editores plenos y el staff.")
     open_selectable = models.BooleanField(
-        default=True, verbose_name="open selectable",
-        help_text="Se puede seleccionar la categoría")
-    is_deleted = models.BooleanField(default=False)
+        default=True, verbose_name="seleccionable como destino",
+        help_text="Este status puede elegirse como nuevo status al "
+                  "capturar; apagado, solo los editores plenos y el staff "
+                  "pueden asignarlo (p. ej. status heredados de la v.1 o "
+                  "de uso interno).")
+    is_legacy = models.BooleanField(
+        default=False, verbose_name="status legacy",
+        help_text="Ya no participa del flujo vivo: no se asigna ni se "
+                  "ofrece; se conserva porque hay registros históricos "
+                  "que lo usan.")
     priority = models.IntegerField(default=0)
 
     def __str__(self):
