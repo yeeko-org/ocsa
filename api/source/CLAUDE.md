@@ -22,7 +22,21 @@ Un `407 NO_USER` = credenciales del proxy caducas, no un bug de código.
 Diagnóstico: `python source/scraper/scraper_access_test.py [YYYY/MM/DD]`
 (modo Jornada) o `... <url> [--proxy] [--xml]` (cualquier otra fuente).
 
+**Los `mapeo` de Reforma vienen a escala corta.** Las fracciones del XML de sección se quedan ~1.9 % por debajo de la mancha real del PDF, en ambos ejes y sin traslación: la arista izquierda cae bien, la derecha y la inferior se quedan cortas. Lo corrige `MAPEO_SCALE` en `source/attachment/pdf_crop.py`. Ahí mismo: un folio puede cargar piezas visualmente disjuntas (el artículo y un recuadro ajeno), y el recorte se queda solo con la componente conexa de mayor área.
+
 ---
+
+## Regeneración de adjuntos — gotchas
+
+`python manage.py regenerate_note_files --mode reforma|backfill|all [--ids] [--limit] [--dry-run]` cubre los dos universos de task-42. Se apoya en `source/attachment/generate_attachment()`, así que **exige un `Article` ligado a la nota**: sin él no hay de dónde sacar el folio ni la fecha, y la nota se salta reportando la razón (no se inventa contenido).
+
+**El generador no alcanza a la mayoría del universo de Reforma.** De las notas cuyo único adjunto es el autogenerado-portada, más de la mitad no tiene `Article` — son capturas manuales o notas anteriores al scraping. Esas quedan fuera del alcance del comando por diseño.
+
+**Las que sí tienen `Article` no traen `metadata["paginas"]`**: todas caen en `resolve_page_from_section()`, o sea una descarga del XML de sección por nota. Es la ruta cara y la que hay que presupuestar en la corrida masiva, no la barata.
+
+🚫 `--mode backfill` no toca `Note.pages` (usa `replace=False`, y `update_note_pages` solo corre con `replace=True`). Una nota rellenada queda con su `pages` original —`None` incluido— aunque el adjunto sí traiga código de página.
+
+**`jornada_html.trim_edges` revienta con `IndexError`** cuando el nodo solo contiene espacio en blanco: tras el `lstrip()` de la primera cadena, BeautifulSoup elimina el nodo vacío y el `find_all(string=True)` siguiente devuelve una lista vacía. Reproducible con el artículo `2025/12/15/003n1pol`.
 
 ## Ciclo de vida de un artículo
 

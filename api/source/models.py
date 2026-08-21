@@ -428,13 +428,9 @@ class Article(models.Model):
         if user:
             note.editors.add(user)
 
-        file_url = get_url_file_reforma(self)
-
-        if file_url:
-            note_file = NoteFile()
-            note_file.note = note
-            note_file.save_file_from_url(file_url, f"{pages}.pdf")
-            note_file.save()
+        # Import diferido: source.attachment importa este módulo.
+        from source.attachment import generate_attachment
+        generate_attachment(self, note=note)
 
         self.note = note
         self.save()
@@ -453,36 +449,6 @@ class Article(models.Model):
             '-certainty_degree',
             '-published_date'
         ]
-
-
-def get_url_file_reforma(article: Article):
-    try:
-        pages = (article.get_meta("pagina") or {}).get("texto")
-    except:
-        return None
-
-    if not pages or not article.published_date:
-        return None
-
-    published_str = article.published_date.strftime("%Y%m%d")
-    reforma_url = f"https://hemeroteca.reforma.com/{published_str}/pdfs/{pages}.PDF"
-
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-
-    }
-
-    response = requests.post(
-        "https://www.reforma.com/edicionimpresa/aplicacionei/webview/GeneraUrl.aspx/PathCDN",
-        json={"Url": reforma_url}, headers=headers
-    )
-    if response.status_code == 200:
-        try:
-            return response.json().get("d")
-        except:
-            return None
 
 
 class QualifySchema(models.Model):

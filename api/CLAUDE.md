@@ -56,8 +56,9 @@ versionan (pesan >170 MB): se traen con
 `space_time/geo_files/download_inegi.sh`. Ver el README de esa carpeta.
 
 ### Testing
-No hay suite montada; lo que existe son diagnósticos re-ejecutables que
-golpean servicios reales (proxy, PressReader, Gemini) y por tanto cuestan.
+Suite unitaria con el runner nativo (`manage.py test source`) más
+diagnósticos re-ejecutables que golpean servicios reales (proxy,
+PressReader, Gemini) y por tanto cuestan.
 Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
 
 ### Documentación de proceso

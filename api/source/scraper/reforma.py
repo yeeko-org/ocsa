@@ -53,6 +53,83 @@ IGNORE_SECTIONS = [
 ]
 
 
+def section_url(scraper_date: str, directorio: str) -> str:
+    """URL del XML de una sección (jerárquico: pag > notas > nota)."""
+    return f"{MAIN_URL}{scraper_date}/secciones/{directorio.upper()}.XML"
+
+
+def parse_mapeo_blocks(nota: Tag) -> list[dict]:
+    """Bloques del artículo sobre la página impresa.
+
+    mapeoX/Y/Width/Height vienen como fracciones de 0 a 1 del ancho y
+    alto de la página, con origen en la esquina superior izquierda.
+    """
+    blocks = []
+    for mapeo in nota.find_all("mapeo"):
+        block = {}
+        for key, tag_name in (
+                ("x", "mapeoX"), ("y", "mapeoY"),
+                ("width", "mapeoWidth"), ("height", "mapeoHeight")):
+            tag = mapeo.find(tag_name)
+            try:
+                block[key] = float(tag.text)
+            except (AttributeError, TypeError, ValueError):
+                block = {}
+                break
+        if block:
+            blocks.append(block)
+    return blocks
+
+
+def parse_section_notes(soup: BeautifulSoup) -> dict[str, dict]:
+    """Agrupa las notas del XML de sección por folio.
+
+    Cada folio devuelve ``{"attrs": dict, "paginas": [...]}``, donde
+    cada página trae ``numero``, ``texto`` (el código de la página, el
+    mismo que usa la URL del PDF en hemeroteca) y sus bloques ``mapeo``.
+    Un folio puede aparecer en varias páginas (pases) y varias veces
+    dentro de la misma página.
+    """
+    notes: dict[str, dict] = {}
+
+    for pag in soup.find_all("pag"):
+        code = pag.get("nombre")
+        if not code:
+            continue
+        for nota in pag.find_all("nota"):
+            folio = str(nota.get("folio") or "")
+            if not folio or folio == "0":
+                continue
+            entry = notes.setdefault(
+                folio, {"attrs": dict(nota.attrs), "paginas": []})
+            page = next(
+                (p for p in entry["paginas"] if p["texto"] == code), None)
+            if page is None:
+                page = {
+                    "numero": pag.get("num"), "texto": code, "mapeo": []}
+                entry["paginas"].append(page)
+            page["mapeo"].extend(parse_mapeo_blocks(nota))
+
+    return notes
+
+
+def primary_page(paginas: list[dict] | None) -> dict | None:
+    """Página donde el artículo ocupa más superficie.
+
+    Los pases a otras páginas aportan bloques menores que el arranque,
+    así que la mayor área es la página que representa al artículo.
+    """
+    if not paginas:
+        return None
+    return max(
+        paginas,
+        key=lambda page: sum(
+            block["width"] * block["height"]
+            for block in page.get("mapeo", [])
+        )
+    )
+
+
 class ReformaManagerScraper(ManagerScraper):
 
     date_format = "%Y%m%d"
@@ -130,8 +207,8 @@ class ReformaMainScraper(MainScraper):
                 "nombre": nombre,
                 "directorio": directorio,
                 "id_seccion": id_seccion,
-                "pagina": paginas[0] if paginas else None,
-                "url": f"{MAIN_URL}{self.scraper_date}/secciones/{directorio}.XML"
+                "portada": paginas[0] if paginas else None,
+                "url": section_url(self.scraper_date, directorio)
             }
 
     def get_articles(self):
@@ -143,7 +220,7 @@ class ReformaMainScraper(MainScraper):
                         "nombre": section_data["nombre"],
                         "directorio": section_data["directorio"],
                         "id_seccion": section_data["id_seccion"],
-                        "pagina": section_data["pagina"],
+                        "portada": section_data["portada"],
                     }, session=self.session).articles
             except Exception as e:
                 section_data["error"] = str(e)
@@ -171,33 +248,23 @@ class ReformaSectionScraper:
 
         self.articles = []
 
-        for seccion in self.soup_content.find_all("nota"):
-            # idcoleccion="1066" folio="2504954" paginacms="0" grupocms="0" ideditorial="0" urlanuncio="" cms="1"
-
-            if uid := seccion.get("folio"):
-                uid = str(uid)
-            else:
-                continue
-            if uid == "0":
-                continue
-
-            idcolecion = seccion.get("idcoleccion")
-            paginacms = seccion.get("paginacms")
-            grupocms = seccion.get("grupocms")
-            ideditorial = seccion.get("ideditorial")
-            cms = seccion.get("cms")
+        for uid, note_data in parse_section_notes(self.soup_content).items():
+            attrs = note_data["attrs"]
             url = (
                 "https://www.reforma.com/edicionimpresa/aplicacionEI/webview/"
                 f"iWebView.aspx?Coleccion=1066&Folio={uid}&TipoTrans=8"
             )
             metadata = {
-                "idcoleccion": idcolecion,
-                "paginacms": paginacms,
-                "grupocms": grupocms,
-                "ideditorial": ideditorial,
-                "cms": cms,
+                key: attrs.get(key) for key in (
+                    "idcoleccion", "paginacms", "grupocms", "ideditorial",
+                    "cms")
             }
             metadata.update(self.meta_section)
+            metadata["paginas"] = note_data["paginas"]
+            if page := primary_page(note_data["paginas"]):
+                metadata["pagina"] = {
+                    "numero": page["numero"], "texto": page["texto"]}
+                metadata["mapeo"] = page["mapeo"]
             self.articles.append({
                 "uid": uid,
                 "metadata": metadata,

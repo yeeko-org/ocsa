@@ -1,19 +1,28 @@
 # TESTING
 
-Estado real del repo, no un ideal: **hoy no hay suite de tests montada.** Los `tests.py` de las apps son los esqueletos vacíos que genera `startapp`. `manage.py test` corre y no ejercita nada.
+Estado real del repo, no un ideal: hay **una sola suite montada** —el invariante de escritura de adjuntos, en `source/tests.py`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
 
-Lo que sí existe son **diagnósticos re-ejecutables**: scripts que verifican contra el mundo real (la red, la base) en vez de contra aserciones. Se corren a mano cuando hace falta, no en cada commit.
+Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el mundo real (la red, la base) en vez de contra aserciones. Se corren a mano cuando hace falta, no en cada commit.
 
 ## Niveles montados
 
 | Nivel | Estado |
 |---|---|
-| Unitario (pytest + pytest-django) | No montado |
-| Integración | No montado |
+| Unitario / integración (`django.test`, runner nativo) | **Sí** — solo `source` (adjuntos) |
 | E2E | No montado |
 | Diagnósticos manuales | **Sí** — ver abajo |
 
-Montarlos es [[task-14]], que incluye mudar ahí el diagnóstico de política de fallos —hoy el único verificable sin costo— y decidir el runner: el default del stack es `pytest` + `pytest-django`, pero es dependencia nueva. Esta tabla y la sección de comandos se actualizan aquí cuando ocurra.
+Sin `pytest` ni `pytest-django`: el runner nativo alcanza para lo que hay y no agrega dependencia. El resto de [[task-14]] sigue abierto, incluido mudar a la suite el diagnóstico de política de fallos.
+
+## Suite de tests
+
+```bash
+DATABASE_SCHEMA= python manage.py test source --noinput
+```
+
+Ocho tests, ~0.04 s, **sin red y sin costo**: cubren el invariante de escritura de adjuntos de `source/attachment/` —si algo falla, no queda fila `NoteFile` sin archivo real detrás, y los adjuntos previos solo desaparecen cuando el nuevo ya está escrito—. Seis usan un generador de laboratorio (excepción de red, contenido vacío, `build` que devuelve `None`, storage caído al escribir, camino feliz con `replace=True`, y `replace=False` que ni siquiera descarga); dos ejercitan los generadores reales de Reforma y La Jornada con su llamada de red y su render parcheados con `unittest.mock`.
+
+El `DATABASE_SCHEMA=` del comando es obligatorio en local: el `.env` apunta al schema `ocsa`, que no existe en la base de test recién creada, y sin vaciarlo la corrida muere en `MigrationSchemaMissing`. El storage no se toca: cada test redirige el campo `NoteFile.file` a un directorio temporal.
 
 ## Diagnósticos disponibles
 
@@ -96,6 +105,14 @@ escribir el JSON `data` borra la evidencia del bug original.
 `reclassify_capped_articles` sobrescribe `criteria` y `certainty_degree`
 sin guardar el valor previo; el movimiento solo queda en el reporte de
 stdout, así que conviene redirigirlo a un archivo.
+
+### Universos de adjuntos por regenerar (task-42)
+
+```bash
+python manage.py regenerate_note_files --mode all --dry-run
+```
+
+Solo lectura: cuenta las notas de Reforma con portada de sección por regenerar y las notas sin adjunto rellenables, separando las que no tienen `Article` (inalcanzables para el generador). Sin `--dry-run` **escribe**: descarga de la hemeroteca de Reforma (~2 peticiones por nota, sin costo monetario), reemplaza adjuntos y corrige `Note.pages`. Acotar siempre con `--limit` o `--ids` fuera de la corrida planeada.
 
 ### Sonda de Proceso
 

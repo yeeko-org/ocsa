@@ -23,6 +23,7 @@ et-xmlfile==2.0.0
 jsonpath_ng==1.7.0
 yeeko_xlsx_export @ git+https://github.com/yeeko-org/xlsx_django_export@main
 PyMuPDF
+weasyprint==69.0
 curl_cffi==0.15.0
 pyogrio==0.13.0
 shapely==2.1.2
