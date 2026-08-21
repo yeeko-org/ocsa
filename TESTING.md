@@ -4,7 +4,7 @@ Mapa de niveles del monorepo. El detalle vive de cada lado; aquí solo está qu�
 
 | Nivel | `api/` (Django) | `nuxt/` (front) |
 |---|---|---|
-| Unitario | No montado (el default sería pytest + pytest-django) | No montado (el default sería Vitest) |
+| Unitario | **Sí** — solo `source` (adjuntos), runner nativo; comando y gotchas en [api/TESTING.md](api/TESTING.md) | No montado (el default sería Vitest) |
 | Integración | No montado | No montado |
 | E2E | No montado (Playwright cubriría los dos lados) | No montado |
 | Diagnósticos manuales | **Sí** — ver [api/TESTING.md](api/TESTING.md) | No |
