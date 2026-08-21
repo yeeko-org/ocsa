@@ -116,12 +116,6 @@ class LocationFullSerializer(LocationGeometryMixin):
 
 
 class GeoImportSerializer(serializers.Serializer):
-    """Carga de un archivo geográfico para llenar una ubicación.
-
-    No se guarda nada: el archivo se lee, se normaliza contra el
-    `type_location` y la geometría vuelve al formulario del front.
-    """
-
     file = serializers.FileField()
     type_location = serializers.ChoiceField(
         choices=TYPE_LOCATIONS, required=False)

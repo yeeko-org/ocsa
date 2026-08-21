@@ -1,12 +1,4 @@
-"""Lectura de archivos geográficos exportados desde QGIS.
-
-Convierte GeoJSON, shapefile comprimido (.zip) o KML en una
-FeatureCollection en EPSG:4326 y 2D, lista para pasarse a
-`normalize_geojson` con el `type_location` de la ubicación.
-
-Módulo puro: no depende de DRF ni de la base. Los mensajes de
-`GeoImportError` están en español porque se muestran tal cual al editor.
-"""
+"""Lectura de archivos geográficos exportados desde QGIS."""
 
 from __future__ import annotations
 
@@ -92,7 +84,6 @@ def _check_file(path: Path, filename: str) -> None:
 
 
 def _dataset_path(path: Path, filename: str) -> str:
-    """GDAL lee el shapefile dentro del zip sin descomprimirlo."""
     if Path(filename).suffix.lower() != ".zip":
         return str(path)
     return f"/vsizip/{path}{_zip_folder(path, filename)}"

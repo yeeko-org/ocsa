@@ -210,9 +210,6 @@ class Command(BaseCommand):
 
         self.print_summary()
 
-    # ------------------------------------------------------------------
-    # Paso 1
-    # ------------------------------------------------------------------
     def step_normalize(self):
         self.stdout.write(self.style.MIGRATE_HEADING(
             "\n[1] Normalización de Location.geojson"))
@@ -313,9 +310,6 @@ class Command(BaseCommand):
             return f"impact {loc.impact_id}"
         return "sin padre"
 
-    # ------------------------------------------------------------------
-    # Paso 2
-    # ------------------------------------------------------------------
     def step_restore_truncated(self):
         self.stdout.write(self.style.MIGRATE_HEADING(
             "\n[2] Restauración de redibujos truncados"))
@@ -380,9 +374,6 @@ class Command(BaseCommand):
         except json.JSONDecodeError:
             return None
 
-    # ------------------------------------------------------------------
-    # Paso 3
-    # ------------------------------------------------------------------
     def step_create_lost(self):
         self.stdout.write(self.style.MIGRATE_HEADING(
             "\n[3] Alta de las Location perdidas"))
@@ -494,9 +485,6 @@ class Command(BaseCommand):
             f"ambiguo: legacy {legacy_ids} → Projects "
             f"{[p.id for p in projects]}")
 
-    # ------------------------------------------------------------------
-    # Paso 4
-    # ------------------------------------------------------------------
     def step_report_duplicates(self):
         self.stdout.write(self.style.MIGRATE_HEADING(
             "\n[4] ubicacion_id_ref duplicados (solo reporte)"))
@@ -533,7 +521,6 @@ class Command(BaseCommand):
                     f"mun={row.municipality_id}, "
                     f"status={row.status_location_id}")
 
-    # ------------------------------------------------------------------
     def save(self, loc, fields):
         if self.apply:
             loc.save(update_fields=fields)

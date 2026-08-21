@@ -1,5 +1,5 @@
 // Estilos Mapbox custom de OCSA y la mecánica para alternar entre ellos.
-// Centraliza las dos URLs (antes duplicadas en mapa.vue y LocationMapDialog)
+// Centraliza las dos URLs (antes duplicadas en mapa.vue y el editor de ubicación)
 // y el patrón setStyle → reconstruir capas en 'style.load'.
 
 // Estilo "mapa": base custom
