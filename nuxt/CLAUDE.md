@@ -5,7 +5,7 @@ Nuxt 3 + Vuetify 4, Pinia for state, consuming the Django API in `api/`. Domain,
 ## Architecture
 
 ### API & Auth
-- `plugins/api.ts` — creates an axios instance (`$api`) with base URL from `NUXT_API_URL`; auto-injects token from `auth_ocsa` cookie via request interceptor.
+- `plugins/api.ts` — creates an axios instance (`$api`) with base URL from `NUXT_API_URL` (client-side under `ocsa.ibero.mx` it switches to the relative `/api-ocsa`, the Ibero nginx same-origin proxy); auto-injects token from `auth_ocsa` cookie via request interceptor.
 - `store/auth.js` — token lives in `auth_ocsa` cookie, 24-hour TTL. Roles: `is_staff`, `is_full_editor`, `is_mini_editor`.
 - `middleware/dashboard.js` — protects all `/dashboard/*` routes: checks auth, fetches catalogs on first load, sets active collection from route params.
 
