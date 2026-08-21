@@ -54,7 +54,7 @@ class InitStatus:
                 "indigo", "edit_location", False, True, True, False, 2),
             ("need_consensus", "location", "Requiere consenso",
                 "pink", "report_gmailerrorred", False, True, True, False, 6),
-            ("finished", "location", "Finalizado",
+            ("finished", "location", "Aprobado",
                 "green", "done_all", True, False, False, False, 0),
             ("Aproximado", "location", "Aprobado (Aproximado)",
                 "cyan-darken-3", "rocket_launch", True, True, True, False, 1,
