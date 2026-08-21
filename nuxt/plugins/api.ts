@@ -3,8 +3,14 @@ import axios from 'axios'
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
 
+  // Bajo ocsa.ibero.mx el API se consume same-origin vía el proxy /api-ocsa
+  // del nginx de la Ibero (adr-0015); en SSR y en los demás dominios la URL
+  // absoluta sigue siendo necesaria.
+  const isIbero =
+    import.meta.client && window.location.host === 'ocsa.ibero.mx'
+
   const api = axios.create({
-    baseURL: config.public.apiUrl,
+    baseURL: isIbero ? '/api-ocsa' : config.public.apiUrl,
     headers: {
       'Content-Type': 'application/json'
     }
