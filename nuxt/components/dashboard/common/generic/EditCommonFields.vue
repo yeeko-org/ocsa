@@ -77,13 +77,15 @@ function saveStatus(new_status, status_group) {
         <template v-if="final_collection_data.status_groups">
           <StatusDetail
             v-for="status_group in final_collection_data.status_groups"
+            :key="status_group.name"
             v-model="full_main"
-            :collection="status_group"
+            :collection="status_group.name"
+            :readonly="!status_group.is_editable"
             style="max-width: 300px;"
             density="default"
             class="mr-1"
             :loading="loading_edition"
-            @change-status="saveStatus($event, status_group)"
+            @change-status="saveStatus($event, status_group.name)"
           />
         </template>
         <Comments

@@ -94,6 +94,8 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "children_projects",
             "parent_project_full"
         ]
+        # status_location se deriva de las ubicaciones (adr-0027)
+        read_only_fields = ["status_location"]
 
 
 class ProjectMiniBasicSerializer(serializers.ModelSerializer):
@@ -122,6 +124,7 @@ class ProjectMiniBasicSerializer(serializers.ModelSerializer):
             "locations",
             "parent_project_full"
         ]
+        read_only_fields = ["status_location"]
 
 
 class ExtractivismTypesSerializer(serializers.RelatedField):

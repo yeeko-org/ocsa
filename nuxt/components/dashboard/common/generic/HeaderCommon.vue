@@ -130,12 +130,13 @@ const emits = defineEmits(['open-panel'])
       >
         <div
           v-for="status_group in collection_data.status_groups"
-          :key="status_group"
+          :key="status_group.name"
         >
           <StatusChip
-            v-if="status_group !== 'status_retro' || main[status_group]"
+            v-if="status_group.name !== 'status_retro'
+              || main[status_group.name]"
             :main="main"
-            :collection="status_group"
+            :collection="status_group.name"
             chip_size="small"
             class="ml-1"
             :bold_text="false"

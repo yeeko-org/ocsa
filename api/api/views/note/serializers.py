@@ -96,6 +96,8 @@ class ProjectSemiFullSerializer(ConditionalFieldsMixin):
     class Meta:
         model = Project
         fields = '__all__'
+        # status_location se deriva de las ubicaciones (adr-0027)
+        read_only_fields = ["status_location"]
 
 
 class ExtractivismTypesIdsSerializer(serializers.RelatedField):

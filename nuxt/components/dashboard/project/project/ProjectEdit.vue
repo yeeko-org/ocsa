@@ -134,24 +134,6 @@ function confirmInherit() {
       :width="300"
     />
   </v-col>
-  <v-col
-      v-if="full_main.incongruent"
-      cols="6" md="12" lg="3"
-      class="pa-0 d-flex flex-column"
-      :order="col_order"
-  >
-    <v-checkbox
-      v-model="full_main.incongruent"
-      label="Es incongruente"
-      hide-details
-      density="compact"
-    >
-    </v-checkbox>
-    <span class="text-blue">
-      Valor previo:
-      {{full_main.prev_status_loc}}
-    </span>
-  </v-col>
   <v-col cols="12" md="6" class="pa-0 d-flex align-center" :order="col_order">
     <v-card
       variant="outlined"

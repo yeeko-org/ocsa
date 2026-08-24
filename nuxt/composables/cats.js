@@ -85,13 +85,15 @@ export function calculateSchemas(data) {
 
     const status_groups = coll.fields.reduce((arr, field)=>{
       if (field.related_model === 'StatusControl')
-        arr.push(field.name)
+        arr.push({name: field.name, is_editable: field.is_editable !== false})
       return arr
     }, [])
     coll.status_groups = status_groups
     status_groups.forEach(sg => {
-      const status = status_filters[sg]
-      collection_filters.push(status)
+      const status = status_filters[sg.name]
+      // Como filtro sigue disponible; lo que el schema cierra es la edición.
+      collection_filters.push(
+        sg.is_editable ? status : {...status, can_massive_edit: false})
       available_sorts.push({
         value: `${status.collection}__order`,
         title: `Status ${status.name}`

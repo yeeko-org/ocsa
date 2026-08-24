@@ -4,7 +4,8 @@ from .models import Project, MegaprojectType, ExtractivismType
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    pass
+    # status_location se deriva de las ubicaciones (adr-0027)
+    readonly_fields = ['status_location']
 
 
 @admin.register(ExtractivismType)

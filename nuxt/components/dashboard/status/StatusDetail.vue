@@ -23,6 +23,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  readonly: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const final_filters = defineModel({type: Object, required: true})
@@ -53,11 +57,18 @@ const status_selected = computed(() => {
   return items_built.value.find(item => item.name === status_name)
 })
 
+// Como filtro siempre se puede elegir; el candado solo aplica a la edición.
+const is_readonly = computed(() => {
+  if (props.is_filter) return false
+  return props.readonly || (
+    !is_full_editor.value && !status_selected.value.open_editor)
+})
+
 // El `#item` slot no informa al v-select de qué opciones están
 // deshabilitadas; sin `item-props` seguirían siendo elegibles con teclado.
 const item_props = (item) => ({
-  disabled: !props.is_filter && !is_full_editor.value
-      && !item.open_selectable,
+  disabled: !props.is_filter && (
+    props.readonly || (!is_full_editor.value && !item.open_selectable)),
 })
 
 const emits = defineEmits(['change-status'])
@@ -77,7 +88,7 @@ const emits = defineEmits(['change-status'])
     min-width="260"
     :hide-details="hide_details"
     density="compact"
-    :readonly="!is_full_editor && !status_selected.open_editor"
+    :readonly="is_readonly"
     :loading="loading"
     :item-props="item_props"
     @update:modelValue="emits('change-status', $event)"

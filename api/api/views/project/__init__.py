@@ -111,7 +111,6 @@ class ProjectFilter(FilterSet):
             'megaproject_type': ['exact'],
             'status_project': ['exact'],
             'is_grouper': ['exact'],
-            'incongruent': ['exact'],
         }
 
 

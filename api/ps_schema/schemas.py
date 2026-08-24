@@ -82,6 +82,9 @@ class BaseSchema:
     # Campos NO-filtro a habilitar en edición masiva (los filtros usan
     # FilterRef.can_massive_edit). Solo aplica si can_massive_edit=True.
     extra_massive_edit_fields: list = []
+    # Campos que el front debe mostrar pero no dejar editar (llegan con
+    # is_editable=False en la metadata de campos).
+    read_only_fields: list = []
     sort_fields: list = []
     cat_params: dict = {}
     viewset_class: type | None = None

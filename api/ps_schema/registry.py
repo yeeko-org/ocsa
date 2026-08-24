@@ -26,12 +26,14 @@ from utils.universal import camel_to_snake
 # Field metadata helper
 # ---------------------------------------------------------------------------
 
-def _model_fields(model_cls: type) -> list[dict]:
+def _model_fields(
+        model_cls: type, read_only_fields: list | None = None) -> list[dict]:
     """
     Return field metadata for a Django model class.
     Computes from model._meta — no DB queries, no cache needed.
     Adapted from the old InitCollections.field_of_models.
     """
+    read_only = set(read_only_fields or [])
     from django.db.models import CharField, TextField, IntegerField
 
     result = []
@@ -69,7 +71,7 @@ def _model_fields(model_cls: type) -> list[dict]:
             "field_type": field_type,
             "is_string": is_string,
             "is_massive": False,
-            "is_editable": True,
+            "is_editable": field.name not in read_only,
             "width": width,
             "null": field.null,
         }
@@ -284,8 +286,9 @@ class CatalogRegistry:
         """
         result = []
         for _app, data in self.iter_collection_data():
+            schema_cls = self._schemas[data['snake_name']]
             data['fields'] = _model_fields(
-                self._schemas[data['snake_name']].model)
+                schema_cls.model, schema_cls.read_only_fields)
             result.append(data)
         return result
 
@@ -448,7 +451,9 @@ class CollectionRegistry:
                 **data,
                 **{k: v for k, v in overrides.items() if v is not None},
             }
-            merged['fields'] = _model_fields(self._schemas[snake].model)
+            schema_cls = self._schemas[snake]
+            merged['fields'] = _model_fields(
+                schema_cls.model, schema_cls.read_only_fields)
             result.append(merged)
         return result
 

@@ -82,3 +82,5 @@ class ProjectFullSerializer(ProjectBasicSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+        # status_location se deriva de las ubicaciones (adr-0027)
+        read_only_fields = ["status_location"]

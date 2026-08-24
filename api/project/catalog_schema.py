@@ -75,6 +75,8 @@ class ProjectSchema(CollectionSchema):
     can_massive_edit = True
     xls_export_class = ProjectExport
     extra_massive_edit_fields = ["conflict"]
+    # status_location se deriva del mínimo de sus ubicaciones (adr-0027)
+    read_only_fields = ["status_location"]
     all_filters = [
         FilterRef("project_types", can_massive_edit=True),
         FilterRef("states"),
@@ -83,9 +85,6 @@ class ProjectSchema(CollectionSchema):
         FilterRef("event_types", hidden=True),
         ComponentFilter(
             title="Es agrupador", field="is_grouper",
-            component="TripleBooleanFilter", hidden=True),
-        ComponentFilter(
-            title="Es incongruente", field="incongruent",
             component="TripleBooleanFilter", hidden=True),
         ComponentFilter(
             title="Editor", field="editor",
