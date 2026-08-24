@@ -155,14 +155,15 @@ class AttachmentInvariantTests(TestCase):
             "texto": "PAG-01",
             "mapeo": [{"width": 1, "height": 1, "x": 0, "y": 0}],
         }]}
+        # La primera petición del generador es la firma CDN, y `fetch` solo
+        # atrapa el error de proxy: lo demás sube tal cual desde la sesión.
         with mock.patch.object(
-                reforma.requests, "post",
-                side_effect=reforma.requests.exceptions.ConnectionError(
-                    "sin red")) as post:
+                reforma, "fetch",
+                side_effect=ConnectionError("sin red")) as fetch:
             with self.assertLogs("source.attachment.base", "ERROR"):
                 result = reforma.ReformaAttachmentGenerator(
                     self.article).generate(note=self.note, replace=True)
-        post.assert_called_once()
+        fetch.assert_called_once()
         self.assertIsNone(result)
         self.assert_invariant()
         self.assert_previous_intact()
