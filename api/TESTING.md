@@ -1,6 +1,6 @@
 # TESTING
 
-Estado real del repo, no un ideal: hay **una sola suite montada** —el invariante de escritura de adjuntos, en `source/tests.py`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
+Estado real del repo, no un ideal: hay **dos suites montadas** —el invariante de escritura de adjuntos, en `source/tests.py`, y el criterio de visibilidad del mapa, en `space_time/tests.py`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
 
 Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el mundo real (la red, la base) en vez de contra aserciones. Se corren a mano cuando hace falta, no en cada commit.
 
@@ -8,21 +8,31 @@ Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el 
 
 | Nivel | Estado |
 |---|---|
-| Unitario / integración (`django.test`, runner nativo) | **Sí** — solo `source` (adjuntos) |
+| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa) |
 | E2E | No montado |
 | Diagnósticos manuales | **Sí** — ver abajo |
 
-Sin `pytest` ni `pytest-django`: el runner nativo alcanza para lo que hay y no agrega dependencia. El resto de [[task-14]] sigue abierto, incluido mudar a la suite el diagnóstico de política de fallos.
+Sin `pytest` ni `pytest-django`: el runner nativo alcanza para lo que hay y no agrega dependencia. El resto de `task-14` (en `../docs/tasks/`) sigue abierto, incluido mudar a la suite el diagnóstico de política de fallos.
 
-## Suite de tests
+## Suites de tests
+
+### Adjuntos (`source`)
 
 ```bash
 DATABASE_SCHEMA= python manage.py test source --noinput
 ```
 
-Ocho tests, ~0.04 s, **sin red y sin costo**: cubren el invariante de escritura de adjuntos de `source/attachment/` —si algo falla, no queda fila `NoteFile` sin archivo real detrás, y los adjuntos previos solo desaparecen cuando el nuevo ya está escrito—. Seis usan un generador de laboratorio (excepción de red, contenido vacío, `build` que devuelve `None`, storage caído al escribir, camino feliz con `replace=True`, y `replace=False` que ni siquiera descarga); dos ejercitan los generadores reales de Reforma y La Jornada con su llamada de red y su render parcheados con `unittest.mock`.
+Ocho tests, ~0.04 s, **sin red y sin costo**: cubren el invariante de escritura de adjuntos de `source/attachment/` —si algo falla, no queda fila `NoteFile` sin archivo real detrás, y los adjuntos previos solo desaparecen cuando el nuevo ya está escrito—. Seis usan un generador de laboratorio (excepción de red, contenido vacío, `build` que devuelve `None`, storage caído al escribir, camino feliz con `replace=True`, y `replace=False` que ni siquiera descarga); dos ejercitan los generadores reales de Reforma y La Jornada con su llamada de red y su render parcheados con `unittest.mock`. El storage no se toca: cada test redirige el campo `NoteFile.file` a un directorio temporal.
 
-El `DATABASE_SCHEMA=` del comando es obligatorio en local: el `.env` apunta al schema `ocsa`, que no existe en la base de test recién creada, y sin vaciarlo la corrida muere en `MigrationSchemaMissing`. El storage no se toca: cada test redirige el campo `NoteFile.file` a un directorio temporal.
+### Visibilidad del mapa (`space_time`)
+
+```bash
+DATABASE_SCHEMA= python manage.py test space_time --noinput
+```
+
+Siete tests, ~0.06 s, **sin red y sin costo**: cubren el criterio único de `adr-0022` —ubicación visible si su estatus y la validación de su proyecto son públicos; proyecto visible si tiene alguna ubicación visible; mención visible si además su nota lo es—. Los helpers viven en `api/views/map/visibility.py`, pero los tests están en `space_time` porque `api/` no es una app instalada y el runner no descubriría sus tests. Casos: el visible, el proyecto sin ubicación pública, el pin fantasma (validación no pública), el multiubicación (que no duplique ni arrastre la privada), el proyecto sin ubicaciones, el mismo veredicto por mención y por participación, y la nota no pública fuera de facetas y actores.
+
+El `DATABASE_SCHEMA=` de los comandos es obligatorio en local: el `.env` apunta al schema `ocsa`, que no existe en la base de test recién creada, y sin vaciarlo la corrida muere en `MigrationSchemaMissing`.
 
 ## Diagnósticos disponibles
 
@@ -61,7 +71,7 @@ ROUND=6 python .claude/diagnostics/rerun_political_opinion.py run
 ROUND=6 python .claude/diagnostics/rerun_political_opinion.py report
 ```
 
-El segundo escribe en `ArticleQualify` con `is_test=True`, **sin tocar** `Article.criteria` ni `certainty_degree`, y es reanudable: salta lo ya calificado con el mismo esquema, así que re-ejecutarlo no vuelve a cobrar. Cada corrida necesita un `ROUND` propio —ancla su `QualifySchema` a un `ScrapedRecord` marcador con fechas de 1900— y acepta `ENGINE` para comparar modelos. Se usó para fijar [[adr-0006]] y [[adr-0007]]; el detalle está en `../docs/records/2026-08-01-criterio-de-opinion-politica.md`.
+El segundo escribe en `ArticleQualify` con `is_test=True`, **sin tocar** `Article.criteria` ni `certainty_degree`, y es reanudable: salta lo ya calificado con el mismo esquema, así que re-ejecutarlo no vuelve a cobrar. Cada corrida necesita un `ROUND` propio —ancla su `QualifySchema` a un `ScrapedRecord` marcador con fechas de 1900— y acepta `ENGINE` para comparar modelos. Se usó para fijar `adr-0006` y `adr-0007`; el detalle está en `../docs/records/2026-08-01-criterio-de-opinion-politica.md`.
 
 ### Política de fallos del ciclo de clasificación
 
@@ -69,7 +79,7 @@ El segundo escribe en `ArticleQualify` con `is_test=True`, **sin tocar** `Articl
 python .claude/diagnostics/batch_failure_policy.py
 ```
 
-**El único diagnóstico que no cuesta nada:** no toca la red ni la cuota de Gemini, y revierte la transacción al terminar. Sustituye `RequestGemini` por un doble que falla a voluntad y comprueba las cuatro conductas que fija [[adr-0010]] — cortacircuitos a los cinco fallos idénticos, recreación del caché con tope de dos, caída a inline reportada una sola vez, y lote que termina completo pese a fallos sueltos — ejercitando el `build_criteria` real, que desde [[task-5]] es la única ruta. Sale con código 1 si algo no cuadra.
+**El único diagnóstico que no cuesta nada:** no toca la red ni la cuota de Gemini, y revierte la transacción al terminar. Sustituye `RequestGemini` por un doble que falla a voluntad y comprueba las cuatro conductas que fija `adr-0010` (en `../docs/decisions/`) — cortacircuitos a los cinco fallos idénticos, recreación del caché con tope de dos, caída a inline reportada una sola vez, y lote que termina completo pese a fallos sueltos — ejercitando el `build_criteria` real, que desde `task-5` es la única ruta. Sale con código 1 si algo no cuadra.
 
 ### Importación de archivos geográficos
 
@@ -122,8 +132,10 @@ Solo lectura: cuenta las notas de Reforma con portada de sección por regenerar 
 
 Todo lo que los diagnósticos necesitan vive en `.env`: `PROXY_KEY` para el scraping vía proxy, `PRESSREADER_USER`/`PRESSREADER_PASS` para Proceso, `GEMINI_API_KEY` para el pipeline de criterios. No hay credenciales de prueba separadas: los diagnósticos golpean servicios reales.
 
+Para entrar al dashboard local en el navegador hacen falta usuarios de la base local: están en `../docs/keys/local-dashboard-credentials.md` (submódulo privado). Ningún valor se escribe fuera de `docs/`.
+
 ## Cuidados al ejercitar el pipeline
 
 - **El scraping gasta.** El proxy se cobra por tráfico y PressReader tiene un slot de sesión único; correr diagnósticos en bucle tiene costo real.
 - **Los criterios llaman a Gemini.** Cualquier prueba que dispare `build_criteria` en `FirstCriteriaManager` o `PreCaptureManager` consume cuota.
-- **La base local (`ocsa-local2`) va desfasada** respecto de producción. Sirve para diagnosticar, no para concluir sobre volúmenes actuales.
+- **La base local (`ocsa-local2`) es una copia de producción y envejece.** Antes de concluir sobre volúmenes actuales, verifica su frescura con `max(capture_date)` de `source_note`; si está vieja, repite el procedimiento completo —dump por SSH sin escribir en el EC2, respaldo local previo, `pg_restore`, `migrate`— del reference `../docs/reference/2026-08-26-copia-de-produccion-a-local.md`. Última copia: 2026-08-26.

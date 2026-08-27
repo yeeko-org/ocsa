@@ -11,7 +11,7 @@ Nuxt 3 + Vuetify 4, Pinia for state, consuming the Django API in `api/`. Domain,
 
 ### State (Pinia)
 - `store/index.js` — the main store. Holds catalogs (`cats`), all loaded records (`all_nodes`), schemas, and filter state. All CRUD API calls go here (`fetchCatalogs`, `fetchElements`, `saveSimple`, `patchSimple`, `deleteSimple`). Uses axios CancelToken to cancel in-flight list requests.
-- `store/dash.js` — global UI state (`showSnackbar`).
+- `store/dash.js` — global UI state. `showSnackbar(message, color = 'success')` is the only way to raise a toast; always take it from `useDashboardStore`, not the main store.
 - `store/geo.js` — geographic hierarchy (states → municipalities → localities), uses Composition API setup() pattern unlike the other Options API stores.
 
 ### Collections & Filters
@@ -27,6 +27,8 @@ Each data domain is a "collection" (e.g. `actores`, `proyectos`, `eventos`). Cat
 
 ### Maps
 Mapbox GL (`mapbox-gl` + `@mapbox/mapbox-gl-draw`) used in `pages/mapa.vue` and `components/map/`.
+- Location editor: `composables/useLocationDraw.js` owns the map and the draw control for `components/dashboard/space_time/location/LocationMapCard.vue`; per-type `draw_mode` and `draw_icon` live in `composables/location_types.js`. Drawing only starts from the explicit "Agregar…" button, and the composable calls `map.remove()` on unmount — every leaked map holds a WebGL context.
+- Public map cache: the facets/actors index is served from Redis. `projectFacets` and `mapActors` in `store/index.js` early-return once loaded, so `rebuildMapIndex()` (staff-only "Recargar mapa" button in `layouts/dashboard.vue`, `POST map/index/rebuild/`) must null both out or the rebuilt index stays invisible until a page reload.
 
 ### Content & Copyright
 - Notes carry copyrighted source text — never render `paragraphs` / article body in `components/map/` or any public-facing view. Only metadata (title, date, source) is allowed.

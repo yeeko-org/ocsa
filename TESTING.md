@@ -4,11 +4,13 @@ Mapa de niveles del monorepo. El detalle vive de cada lado; aquí solo está qu�
 
 | Nivel | `api/` (Django) | `nuxt/` (front) |
 |---|---|---|
-| Unitario | **Sí** — solo `source` (adjuntos), runner nativo; comando y gotchas en [api/TESTING.md](api/TESTING.md) | No montado (el default sería Vitest) |
+| Unitario | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa), runner nativo; comandos y gotchas en [api/TESTING.md](api/TESTING.md) | No montado (el default sería Vitest) |
 | Integración | No montado | No montado |
-| E2E | No montado (Playwright cubriría los dos lados) | No montado |
+| E2E | No montado (Playwright cubriría los dos lados) | Suite no montada; la verificación del dashboard es **episódica en navegador con Playwright MCP** —flujos nuevos y releases, nunca por commit—, con las credenciales locales de abajo |
 | Diagnósticos manuales | **Sí** — ver [api/TESTING.md](api/TESTING.md) | No |
 
 Los diagnósticos del lado de la API no son tests: verifican contra el mundo real (proxy, PressReader, Gemini, la base) y varios **cuestan dinero o cuota**. Léase [api/TESTING.md](api/TESTING.md) antes de correr cualquiera; ahí están los comandos, las credenciales que hacen falta (todas en `api/.env`) y cuáles son gratis.
+
+Para verificar a mano el dashboard en el navegador hacen falta credenciales locales: están en `docs/keys/local-dashboard-credentials.md` (submódulo privado), nunca en este repo.
 
 Cuando se monte una suite de verdad, esta tabla se actualiza aquí y el detalle de comandos se queda en el TESTING.md del lado que corresponda.

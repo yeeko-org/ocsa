@@ -108,6 +108,25 @@ ComponentFilter(title="Status", field="status", component="OnlyByFilter",
                 ])
 ```
 
+### `description` — explaining a filter to whoever captures
+
+Optional at two levels, both omitted by the front when absent:
+
+```python
+ComponentFilter(
+    title="Pendientes de ubicación", field="pending",
+    component="OnlyByFilter", hidden=True,
+    description="Te muestra las ubicaciones de proyectos a las "
+                "que todavía les falta algo para quedar listas.",
+    custom_options=[
+        {"plural_name": "Sin municipio", "value": "no_municipality",
+         "description": "Ya están marcadas en el mapa, pero nadie "
+                        "anotó a qué municipio pertenecen."},
+    ])
+```
+
+`OnlyByFilter.vue` renders the option's `description` as the item subtitle (and widens the select to 340 px when any option has one), and the filter's `description` as an info icon with a tooltip next to the title. Write both in Spanish, addressed to the person capturing data — they explain *what you get*, not how the query works.
+
 ---
 
 ## FilterGroupSchema — multi-level filter groups

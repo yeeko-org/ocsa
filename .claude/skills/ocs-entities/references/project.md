@@ -7,6 +7,7 @@ Obra física de gran escala que ocupa o transforma un territorio para extracció
 - **`project.Project`** — registro central del megaproyecto. Tiene `name`, `parent_project` (FK a sí mismo), `conflict` (FK), `megaproject_type` (FK), `is_grouper`, `status_project` (FK).
 - **`project.Conflict`** — conflicto socioambiental que agrupa proyectos.
 - Ubicaciones geográficas viven en `space_time` como relación inversa `project.locations`.
+- `status_location` es **derivado y no editable** (`adr-0027`): el mínimo de los estatus de sus ubicaciones, indicador del dashboard sin efecto en la visibilidad del mapa público. Ver [location.md](location.md).
 
 ### Historial de Estatus (StatusHistory)
 Registro de un cambio en la etapa del proyecto tal como se menciona en una nota. Permite trazar la evolución del proyecto a través de las notas que lo cubren.

@@ -22,6 +22,8 @@ All ViewSets registered in `api/urls.py`. Views organized as subpackages: `api/v
 
 `api/` is **not** in `INSTALLED_APPS` — it's a views/urls/serializers package only. Put management commands in a registered app (`work_flux/management/commands/`). Importable logic can still live under `api/`.
 
+Public-map visibility has a single source: `api/views/map/visibility.py` (`visible_locations` / `visible_projects` / `visible_mentions`, docs `adr-0022`). Every map endpoint consumes it; never re-implement the condition inline — that is what produced ghost pins.
+
 ### Key Base Classes (`api/views/common_views.py`)
 - `BaseViewSet` — extends `ModelViewSet` with `CustomPagination`, `UnaccentSearchFilter`, `DjangoFilterBackend`, `OrderingFilter`, and a delete confirmation mixin.
 - `UnaccentSearchFilter` — uses `unaccent__icontains` for accent-insensitive search (PostgreSQL only; falls back on SQLite).
@@ -40,11 +42,15 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
 ### Settings & Database
 - Settings: `core/settings/__init__.py` (single file)
 - PostgreSQL with `unaccent` extension; `AUTH_USER_MODEL = "profile_auth.User"`
+- The local DB is a restored copy of production (RDS, not the EC2). Procedure and freshness check: docs `2026-08-26-copia-de-produccion-a-local`
 
 ### External Integrations
 - **OpenAI / Google Generative AI**: AI-assisted record pre-classification
 - **BeautifulSoup / lxml**: news scraping from multiple sources
 - **openpyxl / yeekooxlsx_export**: Excel exports
+- **Redis**: caches the public map's facets/actors index (db 1 in
+  production). Rebuilt by `rebuild_map_index` (06:00 UTC cron) or on
+  demand via `POST map/index/rebuild/`; nothing else expires it
 - **S3 (django-storages)**: `NoteFile`/`ProjectFile` files in production
   (`USE_S3_FILES=1`, class `INTELLIGENT_TIERING`, public read via bucket
   policy on `data_files/*`); local dev keeps disk storage. Storage per
@@ -56,9 +62,9 @@ versionan (pesan >170 MB): se traen con
 `space_time/geo_files/download_inegi.sh`. Ver el README de esa carpeta.
 
 ### Testing
-Suite unitaria con el runner nativo (`manage.py test source`) más
-diagnósticos re-ejecutables que golpean servicios reales (proxy,
-PressReader, Gemini) y por tanto cuestan.
+Suites unitarias con el runner nativo (`manage.py test source` y
+`manage.py test space_time`) más diagnósticos re-ejecutables que golpean
+servicios reales (proxy, PressReader, Gemini) y por tanto cuestan.
 Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
 
 ### Documentación de proceso
