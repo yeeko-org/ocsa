@@ -9,6 +9,7 @@ let request = axios.CancelToken.source();
 // resolver para que una recarga futura pueda reintentar si falló.
 let mapActorsPromise = null;
 import { useGeoNewStore } from "~/store/geo.js";
+import { useDashboardStore } from "~/store/dash.js";
 import { calculateNewCats, hydrateFilterGroup } from "~/composables/nodes.js";
 import { calculateSchemas } from "~/composables/cats.js";
 import { calculate_status } from "~/composables/filters.js";
@@ -446,17 +447,44 @@ export const useMainStore = defineStore('main', {
       if (mapActorsPromise) return mapActorsPromise
       const { $api } = useNuxtApp()
       this.mapActorsLoading = true
-      mapActorsPromise = $api.get('/map/actors/')
+      const request = $api.get('/map/actors/')
         .then(({ data }) => {
-          this.mapActors = data
+          // Si `rebuildMapIndex` descartó esta descarga en vuelo, su payload
+          // es el índice viejo: escribirlo pisaría el recién reconstruido.
+          if (mapActorsPromise === request) this.mapActors = data
           return data
         })
         .catch(error => { console.error(error) })
         .finally(() => {
           this.mapActorsLoading = false
-          mapActorsPromise = null
+          if (mapActorsPromise === request) mapActorsPromise = null
         })
+      mapActorsPromise = request
       return mapActorsPromise
+    },
+    // Regenera los índices del mapa en el servidor sin esperar al cron de la
+    // madrugada. Limpia de paso la copia en memoria: `fetchProjectFacets` y
+    // `fetchMapActors` hacen early return si ya la tienen, así que sin esto la
+    // sesión seguiría pintando el índice viejo.
+    async rebuildMapIndex() {
+      const { $api } = useNuxtApp()
+      const dashboardStore = useDashboardStore()
+      try {
+        const { data } = await $api.post('/map/index/rebuild/')
+        this.projectFacets = null
+        this.mapActors = null
+        // No basta con vaciar el estado: una descarga de actores en vuelo
+        // sigue siendo el guard de `fetchMapActors` y traería el índice viejo.
+        mapActorsPromise = null
+        dashboardStore.showSnackbar(
+          `Mapa recargado: ${data.projects} proyectos. Si tienes el mapa ` +
+          `abierto en otra pestaña, recárgala para ver los cambios.`)
+        return data
+      } catch (error) {
+        console.error(error)
+        dashboardStore.showSnackbar(
+          'No se pudo recargar el mapa. Inténtalo de nuevo.', 'error')
+      }
     },
     async sendReprocessScrapedRecord(scraped_id) {
       const { $api } = useNuxtApp()

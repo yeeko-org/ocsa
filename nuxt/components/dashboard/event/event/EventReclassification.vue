@@ -2,11 +2,14 @@
 
 import dayjs from "dayjs";
 import {useMainStore} from "~/store/index.js";
+import {useDashboardStore} from "~/store/dash.js";
 
 const full_main = defineModel({type: Object, required: true})
 
 const mainStore = useMainStore()
-const { patchSimple, showSnackbar } = mainStore
+const { patchSimple } = mainStore
+const dashboardStore = useDashboardStore()
+const { showSnackbar } = dashboardStore
 
 const saving = ref(false)
 
@@ -105,7 +108,7 @@ async function setStage(new_stage) {
       { reclassification_stage: new_stage }])
   saving.value = false
   if (res.errors) {
-    showSnackbar('No se pudo actualizar la reclasificación')
+    showSnackbar('No se pudo actualizar la reclasificación', 'error')
     return
   }
   full_main.value.reclassification_stage = new_stage

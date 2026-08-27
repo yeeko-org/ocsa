@@ -9,10 +9,21 @@ const mainStore = useMainStore()
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
 const { schemas, current_collection_data, cats } = storeToRefs(mainStore)
-const { global_snackbar, global_snackbar_message } = storeToRefs(dashboardStore)
-const { is_full_editor } = storeToRefs(authStore);
+const {
+  global_snackbar, global_snackbar_message, global_snackbar_color
+} = storeToRefs(dashboardStore)
+const { is_full_editor, is_staff } = storeToRefs(authStore);
 // const { fetchCatalogs } = mainStore
 const { logout } = authStore
+const { rebuildMapIndex } = mainStore
+
+const rebuilding_map = ref(false)
+
+async function wantRebuildMap() {
+  rebuilding_map.value = true
+  await rebuildMapIndex()
+  rebuilding_map.value = false
+}
 const admin_url = config.public.adminUrl
 // console.log('ADMIN URL:', config.public.adminUrl, admin_url)
 // const route = useRoute()
@@ -178,6 +189,20 @@ const main_collections = computed(() => {
         </v-toolbar-title>
       </client-only>
       <v-spacer></v-spacer>
+      <client-only>
+        <v-btn
+          v-if="is_staff"
+          @click="wantRebuildMap"
+          :loading="rebuilding_map"
+          color="accent"
+          variant="tonal"
+          class="mr-2"
+          prepend-icon="cached"
+          text="Recargar mapa"
+          v-tooltip:bottom="'Regenera el índice del mapa público'"
+        >
+        </v-btn>
+      </client-only>
       <v-btn
         @click="logout"
         color="white"
@@ -299,7 +324,7 @@ const main_collections = computed(() => {
       </v-container>
       <v-snackbar
         v-model="global_snackbar"
-        color="success"
+        :color="global_snackbar_color"
         location="right bottom"
         location-strategy="connected"
         timeout="4000"

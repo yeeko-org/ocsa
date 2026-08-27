@@ -1,6 +1,7 @@
 <script setup>
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
+import {useDashboardStore} from "~/store/dash.js";
 
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
 import ParticipantsToolbar from "~/components/dashboard/source/ParticipantsToolbar.vue";
@@ -14,7 +15,8 @@ import ProjectCard from "~/components/dashboard/project/project/ProjectCard.vue"
 
 const mainStore = useMainStore()
 const { schemas } = storeToRefs(mainStore)
-const { showSnackbar } = mainStore
+const dashboardStore = useDashboardStore()
+const { showSnackbar } = dashboardStore
 const { saveSimple, getRelatedActors, patchSimple } = mainStore
 import {savePreItem, saveItemMixed, discardPreItem, mixOrigins} from "~/composables/mix_pre_capture.js";
 import { useSaveElements } from "~/composables/save_elements.js";
