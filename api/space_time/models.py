@@ -97,7 +97,8 @@ class Locality(models.Model):
 
 # Tolerancia de referencia; cada capa se carga con la suya (ver
 # `load_geometries`): a 50 m los municipios chicos de Oaxaca y Tlaxcala
-# pierden más de 1 % de área, y las manchas urbanas aún más.
+# pierden más de 1 % de área, y las localidades amanzanadas (urbanas y
+# rurales) aún más.
 DEFAULT_SIMPLIFIED_M = 50
 
 
@@ -140,7 +141,8 @@ class MunicipalityGeometry(GeometryBase):
 
 
 class LocalityGeometry(GeometryBase):
-    """Manzanas de una localidad, fusionadas en un MultiPolygon."""
+    """Polígono de una localidad amanzanada del INEGI (capa 00l),
+    urbana o rural."""
 
     locality = models.OneToOneField(
         Locality, on_delete=models.CASCADE, related_name="geometry",

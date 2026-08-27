@@ -81,8 +81,9 @@ class LoadGeometries:
 
     def run(self) -> list[str]:
         codes = self.database_codes()
-        # Una localidad puede venir partida en varias manzanas; se
-        # agrupan por clave y se fusionan en un MultiPolygon.
+        # Agrupar y fusionar es defensivo, por si una capa trajera
+        # varias piezas para la misma clave; en el Marco 2024 la capa
+        # 00l trae exactamente un polígono por localidad.
         grouped: dict[int, list] = {}
         for code, geometry in self.read_layer():
             target_id = codes.get(code)

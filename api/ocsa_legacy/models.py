@@ -33,11 +33,6 @@ class CustomModel(models.Model):
 #     geom text
 # );
 
-# INTRODUCCIÓN: Esto se va a ir a la tabla Location
-# Buena parte del contenido se va a ir al campo "details", incluyendo
-# por supuesto "especificaciones"
-# Para las comparaciones por nombre, normaliza vía text_normalizer
-
 class Ubicacion(CustomModel):
 
     # Si el valorde tipo_ubicación es distinto de "punto", deberás agregar
@@ -134,7 +129,6 @@ class Temporalidad(CustomModel):
 #     nombre text
 # );
 
-# Va a la tabla Conflict
 class CSA(CustomModel):
     nombre = models.TextField(blank=True, null=True)
 
@@ -251,30 +245,6 @@ class EstatusProyecto(CustomModel):
 #     proyecto_vinculado_id integer,  --ForeignKey
 #     old_ubis bigint
 # );
-# Se va a tomar en cuenta Proyecto.proyecto_vinculado,
-# si el campo proyecto_vinculado.escala == "Cluster"
-# entonces simplemente asociar ese proyecto en el campo "parent_project"
-
-# Si el proyecto_vinculado tiene otro valor en escala, entonces se
-# debe crear un nuevo proyecto cuyo nombre será:
-# f"CLUSTER CREADO desde {proyecto_vinculado.nombre}",
-# con Scale.name = "Cluster artificial"
-# Si el proyecto vinculado ya tenía como hijo o padre el mismo proyecto
-# entonces dejarlo así, sin hacer nada
-
-# CASO 1, simple
-# Proyecto A --> Proyecto B
-# Proyecto B
-# Proyecto C (CLUSTER CREADO desde Proyecto B)
-# Proyecto A.parent_project = Proyecto C
-# Proyecto C.parent_project = Proyecto C
-
-# CASO 2, doble relación
-# Proyecto A --> Proyecto B
-# Proyecto B --> Proyecto A
-# Proyecto C (CLUSTER CREADO desde Proyecto B)
-# Proyecto A.parent_project = Proyecto C
-# Proyecto C.parent_project = Proyecto C
 
 class Proyecto(CustomModel):
     id_mp = models.IntegerField(blank=True, null=True)
@@ -934,7 +904,6 @@ class TipoAfectacionEcologica(CustomModel):
 # );
 
 
-# Esto se va a Impact, respetando descripción_ae --> description
 class AfectacionEcologica(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)
@@ -1015,7 +984,6 @@ class TipoAfectacionSocial(CustomModel):
 #     temporalidad_id integer  --ForeignKey
 # );
 
-# Esto se va a Impact, respetando descripción_as --> description
 class AfectacionSocial(CustomModel):
     nota = models.ForeignKey(
         Nota, on_delete=models.CASCADE, blank=True, null=True)

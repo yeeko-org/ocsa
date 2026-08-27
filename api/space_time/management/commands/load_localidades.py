@@ -1,7 +1,5 @@
-import csv
-
-from django.core.management.base import BaseCommand
-
+from space_time.management.commands._inegi_base import (
+    CsvLoader, LoaderCommand, integer_or_none)
 from space_time.models import Locality, Municipality
 
 CSV_PATH = "space_time/geo_files/localidades.csv"
@@ -9,8 +7,7 @@ BATCH_SIZE = 10000
 # `bulk_update` arma un CASE por lote: con lotes grandes el plan de
 # Postgres se degrada (10,000 filas tardan más que 10 lotes de 1,000).
 UPDATE_BATCH_SIZE = 1000
-# La localidad 0001 de cada municipio es su cabecera: de ahí salen las
-# coordenadas y la altitud que guarda el propio municipio.
+# La localidad 0001 de cada municipio es su cabecera
 CABECERA_CODE = "0001"
 RURAL_AMBITO = "R"
 UPDATED_FIELDS = [
@@ -18,36 +15,19 @@ UPDATED_FIELDS = [
     "is_rural", "is_current"]
 
 
-class Command(BaseCommand):
-    help = "Sincroniza el catálogo de localidades del AGEEML con la base"
-
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--dry-run", action="store_true",
-            help="Solo reporta altas, cambios y retiros, sin escribir")
-
-    def handle(self, *args, **options):
-        loader = LoadLocalidades(dry_run=options["dry_run"])
-        for line in loader.report():
-            self.stdout.write(line)
-
-
-def _integer(value: str) -> int | None:
-    return int(value) if (value or "").strip().isdigit() else None
-
-
-class LoadLocalidades:
+class LoadLocalidades(CsvLoader):
     """Upsert por clave completa contra el corte vigente del AGEEML.
 
     Las localidades que el corte ya no trae se marcan `is_current=False`
     en vez de borrarse: hay ubicaciones capturadas que apuntan a ellas.
     """
 
+    csv_path = CSV_PATH
+    row_label = "la localidad"
+    row_key = "CVE_LOC"
+
     def __init__(self, dry_run: bool = False):
-        self.dry_run = dry_run
-        self.created = 0
-        self.updated = 0
-        self.errors: list[str] = []
+        super().__init__(dry_run)
         self.municipalities = {
             row[0]: row
             for row in Municipality.objects.values_list(
@@ -61,20 +41,11 @@ class LoadLocalidades:
         self.pending: list[Locality] = []
         self.changed: list[Locality] = []
         self.cabeceras: list[Municipality] = []
-        self.load_csv(CSV_PATH)
+        self.load_csv()
         self.flush()
         self.flush_changed()
         self.save_cabeceras()
         self.retired = self.retire()
-
-    def load_csv(self, file_path: str) -> None:
-        with open(file_path, newline="", encoding="latin1") as csvfile:
-            for row in csv.DictReader(csvfile):
-                try:
-                    self.read_row(row)
-                except Exception as error:
-                    self.errors.append(
-                        f"Error en la localidad {row.get('CVE_LOC')}: {error}")
 
     def read_row(self, row: dict) -> None:
         municipality_code = f"{row['CVE_ENT']}-{row['CVE_MUN']}"
@@ -85,11 +56,11 @@ class LoadLocalidades:
         self.seen_codes.add(complete_code)
         values = {
             "name": row["NOM_LOC"],
-            "population": _integer(row["POB_TOTAL"]),
+            "population": integer_or_none(row["POB_TOTAL"]),
             "latitude": float(row["LAT_DECIMAL"]),
             "longitude": float(row["LON_DECIMAL"]),
             # Dos docenas de localidades del corte traen la altitud vacía.
-            "altitude": _integer(row["ALTITUD"]),
+            "altitude": integer_or_none(row["ALTITUD"]),
             "is_rural": row["AMBITO"] == RURAL_AMBITO,
             "is_current": True,
         }
@@ -152,14 +123,17 @@ class LoadLocalidades:
             Locality.objects.filter(id__in=stale).update(is_current=False)
         return len(stale)
 
-    def report(self) -> list[str]:
-        prefix = "[dry-run] " if self.dry_run else ""
-        lines = [
-            f"{prefix}Localidades creadas: {self.created}",
-            f"{prefix}Localidades actualizadas: {self.updated}",
-            f"{prefix}Localidades retiradas del catálogo: {self.retired}",
-            f"{prefix}Cabeceras actualizadas: {len(self.cabeceras)}",
+    def report_counts(self) -> list[str]:
+        return [
+            f"{self.prefix}Localidades creadas: {self.created}",
+            f"{self.prefix}Localidades actualizadas: {self.updated}",
+            f"{self.prefix}Localidades retiradas del catálogo: {self.retired}",
+            f"{self.prefix}Cabeceras actualizadas: {len(self.cabeceras)}",
             f"Total en la base: {Locality.objects.count()}",
         ]
-        lines.extend(self.errors)
-        return lines
+
+
+class Command(LoaderCommand):
+    help = "Sincroniza el catálogo de localidades del AGEEML con la base"
+    loader_class = LoadLocalidades
+    dry_run_help = "Solo reporta altas, cambios y retiros, sin escribir"

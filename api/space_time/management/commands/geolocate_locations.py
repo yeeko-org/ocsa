@@ -5,9 +5,11 @@ capturado contra lo calculado, sin escribir; `--fill` aplica «solo
 vacíos» sobre todo el universo con geometría; `--revert` deshace un
 `--fill` a partir del respaldo que este dejó.
 
-Nunca llama a `Location.save()`: ese método propaga el estatus del
-proyecto y el backfill no debe mover el estatus de nadie. Escribe con
-`bulk_update`.
+Nunca llama a `Location.save()`: ese método recalcula el
+`status_location` derivado del proyecto, así que sobre un backfill que
+no mueve ningún estatus sería un efecto colateral sobre otra entidad
+—corregiría en silencio proyectos ya desalineados— más una consulta
+extra por fila. Escribe con `bulk_update`.
 """
 
 import csv
@@ -30,7 +32,8 @@ UPDATED_FIELDS = [
     "latitude", "longitude", "nearby_localities"]
 # Lo que el respaldo guarda por ubicación. Son los `_id` y no los
 # objetos porque el respaldo es JSON y `--revert` escribe con
-# `bulk_update`. `status_location` no está, y no debe estar: ni el
+# `bulk_update` (nunca `save()`, que recalcularía el `status_location`
+# del proyecto). `status_location` no está, y no debe estar: ni el
 # backfill ni su reversa mueven el estatus de nadie.
 BACKUP_FIELDS = (
     "state_id", "municipality_id", "locality_id",

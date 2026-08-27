@@ -1,17 +1,10 @@
 """Deriva estado, municipio y localidad de una geometría de `Location`.
 
-Lee la cartografía que `load_geometries` dejó en `StateGeometry`,
-`MunicipalityGeometry` y `LocalityGeometry`: polígonos del INEGI
-simplificados según la capa (50/20/10 m), guardados como WKB en
-EPSG:6372, el CRS métrico nativo del INEGI. Todo el cálculo ocurre en
-metros; solo la entrada (geojson en EPSG:4326) y el centroide de salida
-se reproyectan.
+Reglas, umbrales y contratos: skill `ocs-geo` y docs `adr-0026`.
 
 Los índices se cachean por proceso con `functools.lru_cache` y no se
 invalidan: recargar la cartografía exige reiniciar el proceso, o llamar
 a `clear_indexes` (lo que hacen los tests).
-
-Reglas por tipo de geometría: docs `adr-0026` y `task-39`.
 """
 
 from __future__ import annotations
@@ -30,18 +23,13 @@ from shapely import line_interpolate_point
 CRS_METERS = "EPSG:6372"
 CRS_LATLON = "EPSG:4326"
 
-# Un trazo «atraviesa» un municipio si la parte que cae dentro mide más
-# que esto. Los umbrales descartan el roce de frontera —dos polígonos
-# vecinos comparten el borde y toda línea que lo cruza toca ambos— sin
-# perder cruces reales: 50 m es menor que la cuadra urbana más corta y
-# 1 ha (10,000 m²) es menor que cualquier predio que el OCSA registre.
+# Metros: 50 m es menor que la cuadra urbana más corta.
 MIN_CROSSING_LENGTH_M = 50.0
+# Metros cuadrados: 1 ha es menor que cualquier predio que el OCSA registre.
 MIN_CROSSING_AREA_M2 = 10_000.0
 
-# Radio en el que una localidad **sin polígono** cuenta como «tocada»
-# por un trazo: es el orden de magnitud del casco de una localidad que el
-# INEGI representa con un solo punto. Las que sí tienen polígono se
-# miden por intersección directa, sin margen.
+# Metros: margen para las localidades sin polígono, que el INEGI
+# representa con un solo punto.
 LOCALITY_BUFFER_M = 500.0
 
 
@@ -54,8 +42,6 @@ class PointResolution:
 
 @dataclass
 class GeometryResolution:
-    """Reglas por tipo de geometría: docs `adr-0026` y `task-39`."""
-
     municipalities: list = field(default_factory=list)
     single_municipality: object | None = None
     locality: object | None = None
@@ -228,10 +214,9 @@ def _locality_points(municipality_id: int) -> tuple:
 def _locality_for_point(point: Point, municipality):
     """Localidad de un punto: primero por polígono, luego por cercanía.
 
-    El vecino más cercano solo se usa cuando el punto no cae en ninguna
-    localidad amanzanada: en una mancha urbana grande, que el INEGI
-    también representa con un punto único en el centro, la localidad
-    rural de al lado suele quedar más cerca que ese centro.
+    La cercanía es solo respaldo: en una mancha urbana que el INEGI
+    representa con un punto único al centro, la localidad rural de al
+    lado suele quedar más cerca que ese centro.
     """
     if municipality is None:
         return None
@@ -339,9 +324,8 @@ def _localities_near(geometry, municipalities: list) -> list:
 def _centroid(geometry) -> tuple | None:
     """`(lat, lon)` representativo del trazo.
 
-    La línea usa su punto medio y no el centroide: el centroide de una
-    línea curva cae fuera de ella, y el pin del mapa debe estar sobre lo
-    dibujado.
+    La línea usa su punto medio: el centroide de una línea curva cae
+    fuera de ella y el pin debe estar sobre lo dibujado.
     """
     if geometry.is_empty:
         return None
@@ -364,13 +348,10 @@ def apply_geolocation(location, geometry_changed: bool = True,
                       write_relations: bool = True) -> list[str]:
     """Escribe en `location` lo derivado y devuelve qué campos tocó.
 
-    No guarda las columnas: quien llama decide entre `save()` y
-    `bulk_update`. Tampoco toca `status_location`.
-
-    El M2M se escribe aquí salvo que `write_relations=False`, y en todo
-    caso queda en `location.crossed_municipalities`: así el comando de
-    backfill puede contarlo sin tocar la base, y diferir la escritura
-    hasta después de respaldar lo anterior.
+    No guarda: quien llama decide entre `save()` y `bulk_update`. El M2M
+    queda siempre en `location.crossed_municipalities`, aunque
+    `write_relations=False` lo deje sin escribir: así el backfill puede
+    contarlo antes de respaldar lo anterior.
     """
     if location.type_location == "point":
         return _apply_point(location, write_relations)

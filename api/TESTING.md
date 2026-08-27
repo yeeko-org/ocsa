@@ -1,6 +1,6 @@
 # TESTING
 
-Estado real del repo, no un ideal: hay **dos suites montadas** —el invariante de escritura de adjuntos, en `source/tests.py`, y el criterio de visibilidad del mapa, en `space_time/tests.py`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
+Estado real del repo, no un ideal: hay **dos suites montadas** —el invariante de escritura de adjuntos, en `source/tests.py`, y el criterio de visibilidad del mapa, en `space_time/tests/`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
 
 Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el mundo real (la red, la base) en vez de contra aserciones. Se corren a mano cuando hace falta, no en cada commit.
 
@@ -30,9 +30,11 @@ Ocho tests, ~0.04 s, **sin red y sin costo**: cubren el invariante de escritura 
 DATABASE_SCHEMA= python manage.py test space_time --noinput
 ```
 
-Treinta y dos tests, ~0.21 s, **sin red y sin costo**. Siete cubren el criterio único de `adr-0022` —ubicación visible si su estatus y la validación de su proyecto son públicos; proyecto visible si tiene alguna ubicación visible; mención visible si además su nota lo es—. Los helpers viven en `api/views/map/visibility.py`, pero los tests están en `space_time` porque `api/` no es una app instalada y el runner no descubriría sus tests. Casos: el visible, el proyecto sin ubicación pública, el pin fantasma (validación no pública), el multiubicación (que no duplique ni arrastre la privada), el proyecto sin ubicaciones, el mismo veredicto por mención y por participación, y la nota no pública fuera de facetas y actores. Seis más cubren los filtros «Pendientes de ubicación» de `space_time/completeness.py`.
+Treinta y dos tests, ~0.23 s, **sin red y sin costo**, repartidos en el paquete `space_time/tests/`:
 
-Los diecinueve de `GeolocateTests` cubren el motor `space_time/geolocate.py` sobre **cartografía sintética** —dos municipios cuadrados de 10 km guardados como `MunicipalityGeometry` en EPSG:6372, más una mancha urbana como `LocalityGeometry`—, así que la suite corre sin haber descargado los shapefiles del INEGI. Casos: el punto y su localidad; el punto dentro de un polígono urbano (que gana al vecino más cercano); el punto fuera de todo polígono (que cae en el vecino más cercano); la localidad retirada del catálogo, que nunca se elige aunque sea la más cercana; el estado capturado equivocado (que no impide resolver); el punto fuera de toda cartografía; la línea que cruza dos municipios (no llena el municipio base); el roce de 30 m que no llega al umbral de 50 m; el trazo con un solo municipio atravesado, que hereda de él el estado, frente al que atraviesa dos y se queda sin estado; el polígono urbano que corta el trazo y cuenta como tocado; el centroide de la línea sobre la propia línea; el polígono con una localidad frente al de varias; el polígono que solo comparte frontera con el vecino, que no lo atraviesa; y la regla «solo vacíos» de `apply_geolocation`.
+- `test_map_visibility.py` (7): el criterio único de `adr-0022` —ubicación visible si su estatus y la validación de su proyecto son públicos; proyecto visible si tiene alguna ubicación visible; mención visible si además su nota lo es—. Los helpers viven en `api/views/map/visibility.py`, pero los tests están en `space_time` porque `api/` no es una app instalada y el runner no descubriría sus tests.
+- `test_completeness.py` (6): los filtros «Pendientes de ubicación» de `space_time/completeness.py` (`task-69`) — cada opción dice lo mismo consultada por ubicaciones y por proyectos, y `any_pending` es la unión exacta de las demás.
+- `test_geolocate.py` (19): el motor `space_time/geolocate.py` (`adr-0026`) sobre **cartografía sintética** —municipios cuadrados de 10 km y localidades inventadas en EPSG:6372—, así que corre sin haber descargado los shapefiles del INEGI: resolución por punto, por línea y por polígono, localidades retiradas del catálogo, umbral de roce, municipios atravesados y la regla «solo vacíos» de `apply_geolocation`.
 
 El `DATABASE_SCHEMA=` de los comandos es obligatorio en local: el `.env` apunta al schema `ocsa`, que no existe en la base de test recién creada, y sin vaciarlo la corrida muere en `MigrationSchemaMissing`.
 

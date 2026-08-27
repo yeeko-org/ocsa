@@ -69,9 +69,6 @@ class LocationGeometryMixin(serializers.ModelSerializer):
     escritura no toca ninguno de sus campos (patch parcial, edición
     masiva): así una fila heredada inconsistente sigue siendo editable en
     lo demás mientras el comando de rescate no la corrige.
-
-    Tras guardar dispara `space_time.geolocate.apply_geolocation`,
-    y solo cuando la escritura tocó la geometría.
     """
 
     municipalities_full = MunicipalitySimpleSerializer(
