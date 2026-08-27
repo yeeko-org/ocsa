@@ -62,7 +62,7 @@ class InitStatus:
             ("initial_v1", "location", "v1. Datos iniciales",
                 "blue", "edit_note", False, True, False, True, 8),
             ("need_fix", "location", "v1. Requiere corrección",
-                "orange", "not_listed_location", True, True, False, True, 13),
+                "orange", "not_listed_location", False, True, False, True, 13),
             ("could_enhance", "location", "v1. Podría mejorar",
                 "orange", "auto_fix_high", True, True, False, True, 11),
             ("migrated_v1", "location", "v1. Migrado",

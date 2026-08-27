@@ -41,19 +41,34 @@ class LocationSchema(CollectionSchema):
             component="LocationType", hidden=True,
         ),
         ComponentFilter(
-            title="Con geometría", field="has_geo_data",
+            title="Marcada en el mapa", field="has_geo_data",
             component="TripleBooleanFilter", hidden=True,
         ),
         ComponentFilter(
-            title="Completitud", field="completeness",
+            title="Pendientes de ubicación", field="pending",
             component="OnlyByFilter", hidden=True,
+            description="Te muestra las ubicaciones de proyectos a las "
+                        "que todavía les falta algo para quedar listas. "
+                        "Para ver en qué estatus va cada una, usa el "
+                        "filtro de estatus de ubicación.",
             custom_options=[
-                {"plural_name": "Completas sin promover",
-                 "value": "complete_unpromoted"},
-                {"plural_name": "Incompletas sin promover",
-                 "value": "incomplete_unpromoted"},
-                {"plural_name": "Aprobadas incompletas",
-                 "value": "approved_incomplete"},
+                {"plural_name": "Sin marca en el mapa",
+                 "value": "no_geometry",
+                 "description": "Todavía no están marcadas en el mapa, ni "
+                                "con un punto ni con un trazo."},
+                {"plural_name": "Sin municipio", "value": "no_municipality",
+                 "description": "Ya están marcadas en el mapa, pero nadie "
+                                "anotó a qué municipio pertenecen."},
+                {"plural_name": "Completas sin aprobar",
+                 "value": "complete_unapproved",
+                 "description": "Ya tienen su estado y su municipio y "
+                                "están marcadas en el mapa, solo les falta "
+                                "que alguien las apruebe."},
+                {"plural_name": "Alguno de los casos anteriores",
+                 "value": "any_pending",
+                 "description": "Junta en una sola lista las ubicaciones "
+                                "con cualquiera de los pendientes de "
+                                "arriba."},
             ],
         ),
     ]

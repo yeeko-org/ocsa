@@ -9,7 +9,7 @@ from api.permissions import LocationPermission
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
-from space_time.completeness import completeness_q
+from space_time.completeness import location_pending_q
 from space_time.geo_import import GeoImportError, read_geo_file
 from space_time.geometry import (
     has_geometry_q, infer_type_location, normalize_location_geometry)
@@ -62,10 +62,10 @@ class MunicipalityListViewSet(ListSetMixin):
 class LocationFilter(OnlyByFilterMixin):
 
     has_geo_data = BooleanFilter(method='filter_has_geo_data')
-    completeness = CharFilter(method='filter_completeness')
+    pending = CharFilter(method='filter_pending')
 
-    def filter_completeness(self, queryset, name, value):
-        condition = completeness_q(value) if value else None
+    def filter_pending(self, queryset, name, value):
+        condition = location_pending_q(value) if value else None
         if condition is None:
             return queryset
         return queryset.filter(condition)

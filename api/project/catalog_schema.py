@@ -93,24 +93,41 @@ class ProjectSchema(CollectionSchema):
             title="Con ubicaciones", field="has_locations",
             component="TripleBooleanFilter", hidden=True),
         ComponentFilter(
-            title="Geometría de ubicaciones", field="geom_status",
+            title="Ubicaciones marcadas en el mapa", field="geom_status",
             component="OnlyByFilter", hidden=True,
             custom_options=[
-                {"plural_name": "Todas con geometría", "value": "all_geo"},
-                {"plural_name": "Ninguna con geometría", "value": "none_geo"},
-                {"plural_name": "Mix: con y sin geometría", "value": "mixed"},
+                {"plural_name": "Todas marcadas", "value": "all_geo"},
+                {"plural_name": "Ninguna marcada", "value": "none_geo"},
+                {"plural_name": "Solo algunas marcadas", "value": "mixed"},
             ]),
         ComponentFilter(
-            title="Completitud de ubicaciones",
-            field="locations_completeness",
+            title="Pendientes de ubicación", field="locations_pending",
             component="OnlyByFilter", hidden=True,
+            description="Te muestra los proyectos con alguna ubicación "
+                        "a la que todavía le falta algo para quedar "
+                        "lista. Para ver en qué estatus va cada una, usa "
+                        "el filtro de estatus de ubicación.",
             custom_options=[
-                {"plural_name": "Con completas sin promover",
-                 "value": "complete_unpromoted"},
-                {"plural_name": "Con incompletas sin promover",
-                 "value": "incomplete_unpromoted"},
-                {"plural_name": "Con aprobadas incompletas",
-                 "value": "approved_incomplete"},
+                {"plural_name": "Sin marca en el mapa",
+                 "value": "no_geometry",
+                 "description": "Alguna de sus ubicaciones todavía no "
+                                "está marcada en el mapa."},
+                {"plural_name": "Sin municipio", "value": "no_municipality",
+                 "description": "Alguna de sus ubicaciones está marcada en "
+                                "el mapa, pero sin municipio anotado."},
+                {"plural_name": "Completas sin aprobar",
+                 "value": "complete_unapproved",
+                 "description": "Alguna de sus ubicaciones tiene todos los "
+                                "datos, pero nadie la ha aprobado."},
+                {"plural_name": "Sin ninguna ubicación aprobada",
+                 "value": "no_approved_location",
+                 "description": "No puede aparecer en el mapa: no tiene "
+                                "ubicaciones, o ninguna de ellas está "
+                                "aprobada."},
+                {"plural_name": "Alguno de los casos anteriores",
+                 "value": "any_pending",
+                 "description": "Junta en una sola lista los proyectos con "
+                                "cualquiera de los pendientes de arriba."},
             ]),
         ComponentFilter(
             title="Conflictos", field="is_grouper",

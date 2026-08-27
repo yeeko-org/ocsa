@@ -50,11 +50,29 @@ class ComponentFilter:
     """
     Filtro renderizado como componente Vue en el dashboard.
     Usado en CollectionSchema.all_filters.
+
+    `description` explica el filtro completo; cada entrada de
+    `custom_options` admite su propia clave "description" para explicar
+    la opción. Ambas son opcionales y el front las omite si faltan:
+
+        ComponentFilter(
+            title="Pendientes de ubicación", field="pending",
+            component="OnlyByFilter",
+            description="Te muestra las ubicaciones a las que todavía "
+                        "les falta algo para quedar listas.",
+            custom_options=[
+                {"plural_name": "Sin municipio",
+                 "value": "no_municipality",
+                 "description": "Ya están marcadas en el mapa, pero "
+                                "nadie anotó a qué municipio "
+                                "pertenecen."},
+            ])
     """
     title: str
     component: str
     field: str
     hidden: bool = False
+    description: str | None = None
     options: list | None = None        # para OnlyByFilter
     custom_options: list | None = None
 

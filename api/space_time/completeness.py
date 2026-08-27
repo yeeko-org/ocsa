@@ -1,10 +1,13 @@
-"""Completitud de una `Location` y su lectura frente al status.
+"""Pendientes de una `Location`: qué le falta para quedar lista.
 
-«Completa» es un hecho verificable —entidad, municipio y geometría—,
-mientras que el status de ubicación lo fija una persona. Cruzar ambas
-cosas es lo que hace visible el trabajo pendiente: completas que nadie
-promovió, incompletas que nadie ha tocado, y aprobadas que en realidad
-no lo están.
+Completa es un hecho verificable —entidad, municipio y geometría, donde
+geometría es el par lat/lon o un geojson (adr-0024)—; el status de
+ubicación lo mueve una persona. task-69 reformula la lectura de ese
+criterio: en vez de tres cajones excluyentes, cada opción nombra un
+encargo concreto y varias pueden caer sobre la misma ubicación.
+
+Aprobada se define en un solo lugar (`approved_q`) y por la bandera
+`is_public` del status, la misma con la que el mapa decide qué dibuja.
 
 Las Q de este módulo se evalúan siempre sobre `Location`; a nivel de
 proyecto se aplican con una subconsulta (`locations__in=...`) para que
@@ -16,18 +19,22 @@ from __future__ import annotations
 
 from django.db.models import Q
 
+from project.models import Project
 from space_time.geometry import has_geometry_q, no_geometry_q
+from space_time.models import Location
 
-# Status que expresan un juicio humano ya emitido: promoverlos o
-# corregirlos no es automatizable, así que quedan fuera del pendiente.
-HUMAN_JUDGEMENT_STATUSES = (
-    "finished", "Aproximado", "need_consensus", "filled")
+NO_GEOMETRY = "no_geometry"
+NO_MUNICIPALITY = "no_municipality"
+COMPLETE_UNAPPROVED = "complete_unapproved"
+NO_APPROVED_LOCATION = "no_approved_location"
+ANY_PENDING = "any_pending"
 
-APPROVED_STATUSES = ("finished", "Aproximado")
+LOCATION_OPTIONS = (NO_GEOMETRY, NO_MUNICIPALITY, COMPLETE_UNAPPROVED)
 
-COMPLETE_UNPROMOTED = "complete_unpromoted"
-INCOMPLETE_UNPROMOTED = "incomplete_unpromoted"
-APPROVED_INCOMPLETE = "approved_incomplete"
+
+def with_project_q() -> Q:
+    """Solo las ubicaciones de proyecto: son las únicas que se capturan."""
+    return Q(project__isnull=False)
 
 
 def complete_q() -> Q:
@@ -38,30 +45,68 @@ def complete_q() -> Q:
         & has_geometry_q())
 
 
-def incomplete_q() -> Q:
-    """Negación de `complete_q` en forma positiva."""
-    return (
-        Q(state__isnull=True)
-        | Q(municipality__isnull=True)
-        | no_geometry_q())
+def approved_q() -> Q:
+    """Ubicación aprobada, definición única del módulo (adr-0022).
+
+    Aprobada y dibujable en el mapa son la misma pregunta, y la responde
+    la bandera del status —la misma que `api/views/map/visibility.py`—,
+    no una lista de nombres: quien agregue un status nuevo ajusta su
+    `is_public` y no tiene que acordarse de este archivo.
+    """
+    return Q(status_location__is_public=True)
 
 
-def no_judgement_q() -> Q:
-    """Status sin juicio humano emitido, incluido el nulo.
+def unapproved_q() -> Q:
+    """Negación de `approved_q`.
 
-    El nulo se nombra aparte porque `NOT IN` no lo alcanza en SQL.
+    El nulo se nombra aparte porque una comparación con NULL no es
+    verdadera en SQL y el status de ubicación es opcional.
     """
     return (
         Q(status_location__isnull=True)
-        | ~Q(status_location__in=HUMAN_JUDGEMENT_STATUSES))
+        | Q(status_location__is_public=False))
 
 
-def completeness_q(bucket: str) -> Q | None:
-    """Q sobre `Location` del bucket pedido, o `None` si no existe."""
-    if bucket == COMPLETE_UNPROMOTED:
-        return complete_q() & no_judgement_q()
-    if bucket == INCOMPLETE_UNPROMOTED:
-        return incomplete_q() & no_judgement_q()
-    if bucket == APPROVED_INCOMPLETE:
-        return Q(status_location__in=APPROVED_STATUSES) & incomplete_q()
-    return None
+def location_pending_q(option: str) -> Q | None:
+    """Q sobre `Location` de la opción pedida, o `None` si no existe."""
+    if option == NO_GEOMETRY:
+        condition = no_geometry_q()
+    elif option == NO_MUNICIPALITY:
+        condition = has_geometry_q() & Q(municipality__isnull=True)
+    elif option == COMPLETE_UNAPPROVED:
+        condition = complete_q() & unapproved_q()
+    elif option == ANY_PENDING:
+        condition = (
+            no_geometry_q()
+            | (has_geometry_q() & Q(municipality__isnull=True))
+            | (complete_q() & unapproved_q()))
+    else:
+        return None
+    return with_project_q() & condition
+
+
+def no_approved_location_q() -> Q:
+    """Proyectos sin ninguna ubicación aprobada, incluidos los que no
+    tienen ninguna ubicación: en ambos casos el proyecto no se dibuja.
+
+    La validación del proyecto no entra: se apila con su propio filtro.
+    La negación cae sobre `pk`, no sobre `locations`: un `~Q` sobre la
+    relación múltiple comparte el join cuando se combina con un OR y
+    Django lo reancla a la ubicación unida, con lo que pasa a leerse
+    como «alguna ubicación no aprobada».
+    """
+    approved = Location.objects.filter(approved_q())
+    return ~Q(pk__in=Project.objects.filter(locations__in=approved))
+
+
+def project_pending_q(option: str) -> Q | None:
+    """Q sobre `Project` de la opción pedida, o `None` si no existe."""
+    if option == NO_APPROVED_LOCATION:
+        return no_approved_location_q()
+    if option == ANY_PENDING:
+        pending = Location.objects.filter(location_pending_q(ANY_PENDING))
+        return Q(locations__in=pending) | no_approved_location_q()
+    condition = location_pending_q(option)
+    if condition is None:
+        return None
+    return Q(locations__in=Location.objects.filter(condition))

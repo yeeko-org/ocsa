@@ -18,9 +18,8 @@ from api.views.common_views import (
 # from api.views.note.serializers import LocationVizSerializer
 from api.views.note.serializers import ProjectSemiFullSerializer
 from project.models import Conflict, Project, ProjectFile
-from space_time.completeness import completeness_q
+from space_time.completeness import project_pending_q
 from space_time.geometry import has_geometry_q, no_geometry_q
-from space_time.models import Location
 
 from .list_serializers import (
     ConflictSerializer, ProjectBasicSerializer, ConflictFullSerializer,
@@ -52,17 +51,13 @@ class ProjectFilter(FilterSet):
     has_locations = BooleanFilter(
         field_name='locations', lookup_expr='isnull', exclude=True)
     geom_status = CharFilter(method='filter_geom_status')
-    locations_completeness = CharFilter(
-        method='filter_locations_completeness')
+    locations_pending = CharFilter(method='filter_locations_pending')
 
-    def filter_locations_completeness(self, queryset, name, value):
-        condition = completeness_q(value) if value else None
+    def filter_locations_pending(self, queryset, name, value):
+        condition = project_pending_q(value) if value else None
         if condition is None:
             return queryset
-        # Subconsulta y no join: basta con que una ubicación cumpla, y
-        # las condiciones deben caer todas sobre esa misma ubicación.
-        return queryset.filter(
-            locations__in=Location.objects.filter(condition)).distinct()
+        return queryset.filter(condition).distinct()
 
     def filter_geom_status(self, queryset, name, value):
         if not value:

@@ -1,6 +1,7 @@
 <script setup>
 import {useMainStore} from "~/store/index.js";
 import {storeToRefs} from "pinia";
+import DescriptionIcon from "~/components/dashboard/common/utils/DescriptionIcon.vue";
 const mainStore = useMainStore()
 const { collections_summary } = storeToRefs(mainStore)
 
@@ -27,6 +28,14 @@ const items = computed(() => {
   })
 })
 
+const has_descriptions = computed(() =>
+  items.value.some(item => item?.description))
+
+// El menú hereda el ancho del select (máx. 220), demasiado angosto para
+// leer las descripciones.
+const menu_props = computed(() =>
+  has_descriptions.value ? {width: 340} : undefined)
+
 </script>
 
 <template>
@@ -42,7 +51,23 @@ const items = computed(() => {
     hide-details
     min-width="140"
     max-width="220"
+    :menu-props="menu_props"
   >
+    <template #item="{ props: item_props, item }">
+      <v-list-item
+        v-bind="item_props"
+        :subtitle="item.raw?.description"
+      />
+    </template>
+    <template
+      v-if="filter_box?.description"
+      #append
+    >
+      <DescriptionIcon
+        :description="filter_box.description"
+        icon_size="small"
+      />
+    </template>
   </v-select>
 </template>
 
