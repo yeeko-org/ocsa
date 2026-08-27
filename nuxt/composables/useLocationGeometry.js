@@ -16,14 +16,15 @@ export function useLocationGeometry(full_main) {
     return !!loc.geojson
   }
 
-  // Limpia el campo que el tipo recibido no usa
+  // Limpia la geometría que el tipo recibido no usa. Línea y polígono
+  // comparten `geojson` pero no pueden convivir en una ubicación, así que
+  // cambiar entre ellos también lo descarta: es lo que promete el diálogo
+  // de confirmación y lo que el API rechaza si se cuela mezclado.
   function clearOtherGeometry(type) {
-    if (type === 'point') {
-      full_main.value.geojson = null
-    } else {
-      full_main.value.latitude = null
-      full_main.value.longitude = null
-    }
+    full_main.value.geojson = null
+    if (type === 'point') return
+    full_main.value.latitude = null
+    full_main.value.longitude = null
   }
 
   // feature es null cuando se borran todas las figuras dibujadas
@@ -55,7 +56,7 @@ export function useLocationGeometry(full_main) {
     const name = parts === 1
         ? (type_full?.name || '').toLowerCase()
         : type_full?.name_plural
-    return `la geometría capturada (${parts} ${name})`
+    return `lo marcado en el mapa (${parts} ${name})`
   }
 
   return {hasGeometry, clearOtherGeometry, applyFeature, geometryLabel}

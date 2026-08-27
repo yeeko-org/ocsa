@@ -11,6 +11,10 @@ const ACCESS_TOKEN = 'pk.eyJ1Ijoicmlja3JlYmVsIiwiYSI6ImNrZDRtM2pkaDE2Mm4ycW8zbjl
 
 const DEFAULT_CENTER = [-101.81312434928653, 22.64061934572902]
 
+// Si al abrir el mapa sin geometría se entra ya en modo dibujo. En false el
+// primer clic sobre el mapa no dibuja nada hasta pulsar el botón.
+const AUTO_ARM_ON_MOUNT = false
+
 /**
  * Edición de la geometría de una ubicación sobre Mapbox Draw.
  *
@@ -39,6 +43,15 @@ export function useLocationDraw(options) {
       full_main.value && full_main.value.latitude && full_main.value.longitude)
 
   const simple_type = computed(() => location_type_full.value?.geometry_type)
+
+  const draw_mode = computed(() => location_type_full.value?.draw_mode)
+
+  // Arma una figura nueva sin depender del ícono del control de dibujo, que
+  // es el único camino que hay para agregar una segunda línea o polígono.
+  function startDrawing() {
+    if (!draw.value || !draw_mode.value) return
+    draw.value.changeMode(draw_mode.value)
+  }
 
   // mapbox-gl-draw sólo sabe editar geometrías simples, así que una Multi*
   // guardada se separa en una feature por parte para poder dibujarla.
@@ -109,31 +122,44 @@ export function useLocationDraw(options) {
     map.value.on('load', () => {
       setupDrawTools()
       isMapInitialized.value = true
+      addPointLayer()
 
-      // Capa propia para los puntos: los estilos de draw no distinguen el
-      // punto seleccionado con suficiente contraste sobre satélite.
-      map.value.addSource('point-source', {
-        type: 'geojson',
-        data: {type: 'FeatureCollection', features: []}
-      })
-
-      map.value.addLayer({
-        id: 'point-layer',
-        type: 'circle',
-        source: 'point-source',
-        paint: {
-          'circle-radius': [
-            'case', ['==', ['get', 'selected'], true], 8, 5
-          ],
-          'circle-color': [
-            'case', ['==', ['get', 'selected'], true], '#9a3fce', '#25d0a8'
-          ],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#FFFFFF',
-        }
-      })
+      // Los eventos son del mapa, no del control: registrarlos fuera de
+      // setupDrawTools evita duplicarlos al rehacer el control con el estilo.
+      map.value.on('draw.create', updateDrawing)
+      map.value.on('draw.update', updateDrawing)
+      map.value.on('draw.delete', clearDrawing)
 
       zoomToFeatures(existingFeatures.value)
+    })
+  }
+
+  // Capa propia para los puntos: los estilos de draw no distinguen el punto
+  // seleccionado con suficiente contraste sobre satélite.
+  function addPointLayer() {
+    // `styledata` puede dispararse con el estilo anterior todavía montado, y
+    // entonces la fuente sigue ahí: volver a agregarla revienta el mapa.
+    if (map.value.getSource('point-source')) return
+
+    map.value.addSource('point-source', {
+      type: 'geojson',
+      data: {type: 'FeatureCollection', features: []}
+    })
+
+    map.value.addLayer({
+      id: 'point-layer',
+      type: 'circle',
+      source: 'point-source',
+      paint: {
+        'circle-radius': [
+          'case', ['==', ['get', 'selected'], true], 8, 5
+        ],
+        'circle-color': [
+          'case', ['==', ['get', 'selected'], true], '#9a3fce', '#25d0a8'
+        ],
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#FFFFFF',
+      }
     })
   }
 
@@ -159,14 +185,8 @@ export function useLocationDraw(options) {
         features: existingFeatures.value
       })
 
-    if (!is_edit) {
-      const draw_mode = location_type_full.value?.draw_mode || 'simple_select'
-      draw.value.changeMode(draw_mode)
-    }
-
-    map.value.on('draw.create', updateDrawing)
-    map.value.on('draw.update', updateDrawing)
-    map.value.on('draw.delete', clearDrawing)
+    if (!is_edit && AUTO_ARM_ON_MOUNT)
+      startDrawing()
   }
 
   function updateDrawing(e) {
@@ -277,8 +297,11 @@ export function useLocationDraw(options) {
 
       map.value.once('styledata', () => {
         setupDrawTools(true)
+        // setStyle se lleva por delante todas las capas, también la propia
+        addPointLayer()
         if (features.length)
           draw.value.add({type: 'FeatureCollection', features})
+        syncPointSource()
       })
     } catch (error) {
       console.error("Error toggling map style:", error)
@@ -294,10 +317,19 @@ export function useLocationDraw(options) {
 
   onMounted(initializeMap)
 
+  // Sin esto cada remonte del card abandona un mapa vivo, con su contexto
+  // WebGL: el navegador sólo admite un puñado antes de perderlos.
+  onUnmounted(() => {
+    map.value?.remove()
+    map.value = null
+    draw.value = null
+  })
+
   return {
     location_type_full,
     isSatelliteView,
     toggleMapStyle,
     resize,
+    startDrawing,
   }
 }

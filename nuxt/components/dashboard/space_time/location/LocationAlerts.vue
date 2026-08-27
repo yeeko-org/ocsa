@@ -39,8 +39,8 @@ const overwrote_saved = defineModel(
     closable
     @click:close="overwrote_saved = false"
   >
-    La importación reemplazó la geometría guardada; al guardar se perderá
-    la información anterior.
+    El archivo que importaste reemplazó lo que estaba marcado en el mapa;
+    si guardas, se pierde lo anterior.
   </v-alert>
   <v-alert
     v-for="msg in import_warnings"

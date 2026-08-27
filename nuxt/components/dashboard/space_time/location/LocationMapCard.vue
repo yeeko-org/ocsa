@@ -25,7 +25,8 @@ const is_expanded = defineModel('expanded', {type: Boolean, default: false});
 
 const mapContainer = ref(null);
 
-const {location_type_full, isSatelliteView, toggleMapStyle, resize} =
+const {location_type_full, isSatelliteView, toggleMapStyle, resize,
+  startDrawing} =
     useLocationDraw({
       location_type: toRef(props, 'location_type'),
       full_main: toRef(props, 'full_main'),
@@ -54,6 +55,20 @@ watch(is_expanded, resize);
       ></v-switch>
 
       <v-spacer></v-spacer>
+      <!-- El ícono del control de dibujo de mapbox pasa desapercibido: sin
+           este botón agregar una segunda línea o polígono no se descubre. -->
+      <v-btn
+        v-if="location_type_full.draw_icon"
+        color="accent"
+        icon
+        variant="text"
+        @click="startDrawing"
+        v-tooltip:bottom="`Agregar ${location_type_full.name.toLowerCase()}`"
+      >
+        <v-icon>
+          {{ location_type_full.draw_icon }}
+        </v-icon>
+      </v-btn>
       <GeoImportButton
         @imported="emit('imported', $event)"
         @import-error="emit('import-error', $event)"
