@@ -26,8 +26,8 @@ const FIELD_NOTICES = {
 
 /**
  * Sugerencia de estado, municipio y localidad a partir de las coordenadas de
- * un punto. El servidor sólo llena lo vacío al guardar; aquí se sobrescribe
- * lo que el usuario ya haya elegido, y por eso hay que avisarle.
+ * un punto. A diferencia del servidor, que sólo llena lo vacío, aquí se
+ * sobrescribe lo ya elegido y por eso hay que avisarle al usuario.
  *
  * @param {Ref<Object>} full_main modelo de la ubicación
  */
