@@ -1,4 +1,4 @@
-from space_time.models import Location
+from space_time.models import TYPE_LOCATIONS, Location
 from yeeko_xlsx_export import ModelExport, XlsColumn
 
 
@@ -35,7 +35,6 @@ class LocationBlock(ModelExport):
         "loc_latitude": "latitude",
         "loc_longitude": "longitude",
     }
-
     columns = [
         XlsColumn(
             "location_id",
@@ -64,6 +63,10 @@ class LocationBlock(ModelExport):
         XlsColumn(
             "locality_name",
             title="Localidad", width=25,
+        ),
+        XlsColumn(
+            "loc_type_location",
+            title="Tipo de ubicación", width=14,
         ),
         XlsColumn(
             "loc_latitude",
@@ -99,7 +102,8 @@ class LocationBlock(ModelExport):
                 el export ya tiene un ``LocationBlock`` propio y
                 se necesita evitar colisiones (e.g. ``"proj_"``).
         """
-        from django.db.models import OuterRef, Subquery
+        from django.db.models import (
+            Case, CharField, OuterRef, Subquery, Value, When)
 
         query_loc = {target: OuterRef(outer_ref)}
         max_priority = (
@@ -107,13 +111,22 @@ class LocationBlock(ModelExport):
             .filter(**query_loc)
             .order_by("-status_location__priority")
         )
-        return {
+        annotations = {
             f"{prefix}{ann_key}": Subquery(
                 max_priority.values(source)[:1],
             )
             for ann_key, source
             in cls._annotation_sources.items()
         }
+        # El tipo sale con su etiqueta en español: la columna la lee gente,
+        # no el código, y en la base vive como slug («point», «line»).
+        annotations[f"{prefix}loc_type_location"] = Subquery(
+            max_priority.annotate(label=Case(
+                *[When(type_location=key, then=Value(label))
+                  for key, label in TYPE_LOCATIONS],
+                output_field=CharField(),
+            )).values("label")[:1])
+        return annotations
 
 
 class ProjectLocationBlock(ModelExport):
@@ -178,6 +191,10 @@ class ProjectLocationBlock(ModelExport):
         XlsColumn(
             "proj_locality_name",
             title="Localidad del proyecto", width=25,
+        ),
+        XlsColumn(
+            "proj_loc_type_location",
+            title="Tipo de ubicación del proyecto", width=14,
         ),
         XlsColumn(
             "proj_loc_latitude",

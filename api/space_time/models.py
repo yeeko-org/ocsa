@@ -33,16 +33,6 @@ class State(models.Model):
         verbose_name_plural = "Entidades Federativas"
 
 
-# Para municipios vamos a tomar el archivo municipios.csv y vas a tomar las
-# siguientes columnas:
-# CVE_ENT --> Municipality.state.inegi_code
-# CVE_MUN --> Municipality.inegi_code
-# NOM_MUN --> Municipality.name
-# std_name lo construyes con text_normalizer(NOM_MUN)
-# POB_TOTAL --> Municipality.population
-# complete_code genéralo con la concatenación de Cve_Ent y Cve_Mun,
-# en medio de ellos un guión, ejemplo: 01-001
-
 class Municipality(models.Model):
 
     inegi_code = models.CharField(max_length=6, verbose_name="Clave INEGI")
@@ -76,20 +66,6 @@ class Municipality(models.Model):
         ordering = ["inegi_code"]
 
 
-# Para localidad, hay un archivo de .txt y un archivo de .csv, con el que sea
-# más sencillo, con ese, vas a tomar las siguientes columnas:
-# CVE_ENT --> Locality.municipality.state.inegi_code
-# CVE_MUN --> Locality.municipality.inegi_code
-# CVE_LOC --> Locality.inegi_code
-# NOM_LOC --> Locality.name
-# POB_TOTAL --> Locality.population
-# LAT_DECIMAL --> Locality.latitude
-# LON_DECIMAL --> Locality.longitude
-# ALTITUD --> Locality.altitude
-# complete_code genéralo con la concatenación de municipality.complete_code y
-# inegi_code, en medio de ellos un guión.
-# Ejemplo: 01-001-0001
-
 class Locality(models.Model):
     inegi_code = models.CharField(max_length=6, verbose_name="Clave INEGI")
     complete_code = models.CharField(
@@ -102,6 +78,11 @@ class Locality(models.Model):
     population = models.IntegerField(
         blank=True, null=True, verbose_name="Población")
     is_rural = models.BooleanField(default=False, verbose_name="Es rural")
+    is_current = models.BooleanField(
+        default=True, verbose_name="Vigente en el catálogo INEGI",
+        help_text="Las localidades que el INEGI retiró se marcan como no "
+                  "vigentes en vez de borrarse: hay ubicaciones antiguas "
+                  "que las usan.")
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     altitude = models.IntegerField(blank=True, null=True)
@@ -112,6 +93,65 @@ class Locality(models.Model):
     class Meta:
         verbose_name = "Localidad"
         verbose_name_plural = "Localidades"
+
+
+# Tolerancia de referencia; cada capa se carga con la suya (ver
+# `load_geometries`): a 50 m los municipios chicos de Oaxaca y Tlaxcala
+# pierden más de 1 % de área, y las manchas urbanas aún más.
+DEFAULT_SIMPLIFIED_M = 50
+
+
+class GeometryBase(models.Model):
+    """Polígono del INEGI en WKB, EPSG:6372 (Cónica Conforme de Lambert)."""
+
+    wkb = models.BinaryField(verbose_name="Geometría (WKB, EPSG:6372)")
+    simplified_m = models.SmallIntegerField(
+        default=DEFAULT_SIMPLIFIED_M,
+        verbose_name="Tolerancia de simplificación (m)")
+
+    class Meta:
+        abstract = True
+
+
+class StateGeometry(GeometryBase):
+    state = models.OneToOneField(
+        State, on_delete=models.CASCADE, related_name="geometry",
+        verbose_name="Entidad Federativa")
+
+    def __str__(self):
+        return f"Geometría de {self.state}"
+
+    class Meta:
+        verbose_name = "Geometría de entidad"
+        verbose_name_plural = "Geometrías de entidades"
+
+
+class MunicipalityGeometry(GeometryBase):
+    municipality = models.OneToOneField(
+        Municipality, on_delete=models.CASCADE, related_name="geometry",
+        verbose_name="Municipio")
+
+    def __str__(self):
+        return f"Geometría de {self.municipality}"
+
+    class Meta:
+        verbose_name = "Geometría de municipio"
+        verbose_name_plural = "Geometrías de municipios"
+
+
+class LocalityGeometry(GeometryBase):
+    """Manzanas de una localidad, fusionadas en un MultiPolygon."""
+
+    locality = models.OneToOneField(
+        Locality, on_delete=models.CASCADE, related_name="geometry",
+        verbose_name="Localidad")
+
+    def __str__(self):
+        return f"Geometría de {self.locality}"
+
+    class Meta:
+        verbose_name = "Geometría de localidad"
+        verbose_name_plural = "Geometrías de localidades"
 
 
 TYPE_LOCATIONS = (
@@ -140,6 +180,17 @@ class Location(models.Model):
     locality = models.ForeignKey(
         Locality, on_delete=models.CASCADE,
         related_name="locations", blank=True, null=True)
+    municipalities = models.ManyToManyField(
+        Municipality, blank=True, related_name="crossed_locations",
+        verbose_name="Municipios que abarca",
+        help_text="Se calcula al guardar a partir del trazo; no se "
+                  "captura a mano.")
+    nearby_localities = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        verbose_name="Localidades que toca o roza",
+        help_text="Cuántas localidades corta el trazo o quedan dentro de "
+                  "su margen de cercanía. Si es exactamente una, se llena "
+                  "el campo Localidad; con cero o más de una queda vacío.")
     details = models.TextField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)

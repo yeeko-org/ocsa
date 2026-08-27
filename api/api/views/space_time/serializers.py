@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from api.views.common_serializers import MunicipalitySimpleSerializer
+from space_time.geolocate import apply_geolocation
 from space_time.geometry import normalize_location_geometry
 from space_time.models import (
     State,
@@ -55,6 +57,9 @@ class StateRetrieveSerializer(StateListSerializer):
 
 
 GEOMETRY_FIELDS = ["geojson", "type_location", "latitude", "longitude"]
+# Derivados de la geometría por el servidor: el editor los muestra, pero
+# nunca los manda.
+DERIVED_FIELDS = ["municipalities", "nearby_localities"]
 
 
 class LocationGeometryMixin(serializers.ModelSerializer):
@@ -64,7 +69,18 @@ class LocationGeometryMixin(serializers.ModelSerializer):
     escritura no toca ninguno de sus campos (patch parcial, edición
     masiva): así una fila heredada inconsistente sigue siendo editable en
     lo demás mientras el comando de rescate no la corrige.
+
+    Tras guardar dispara `space_time.geolocate.apply_geolocation`,
+    y solo cuando la escritura tocó la geometría.
     """
+
+    municipalities_full = MunicipalitySimpleSerializer(
+        many=True, read_only=True, source="municipalities")
+
+    class Meta:
+        model = Location
+        fields = '__all__'
+        read_only_fields = DERIVED_FIELDS
 
     def validate(self, attrs: dict) -> dict:
         attrs = super().validate(attrs)
@@ -77,10 +93,14 @@ class LocationGeometryMixin(serializers.ModelSerializer):
             return getattr(self.instance, field, None)
 
         type_location = current("type_location") or "point"
+        # En un trazo el par lat/lon es el centroide, y su dueño es el
+        # servidor: lo que mande el cliente se descarta.
+        latitude, longitude = (
+            (None, None) if type_location != "point"
+            else (current("latitude"), current("longitude")))
         try:
             geojson, latitude, longitude = normalize_location_geometry(
-                current("geojson"), type_location,
-                current("latitude"), current("longitude"))
+                current("geojson"), type_location, latitude, longitude)
         except ValueError as error:
             raise serializers.ValidationError({"geojson": str(error)})
         attrs["geojson"] = geojson
@@ -88,11 +108,36 @@ class LocationGeometryMixin(serializers.ModelSerializer):
         attrs["longitude"] = longitude
         return attrs
 
+    def create(self, validated_data: dict):
+        instance = super().create(validated_data)
+        self._geolocate(instance, validated_data, created=True)
+        return instance
+
+    def update(self, instance, validated_data: dict):
+        instance = super().update(instance, validated_data)
+        self._geolocate(instance, validated_data, created=False)
+        return instance
+
+    @staticmethod
+    def _geolocate(instance, validated_data: dict, created: bool) -> None:
+        """Recalcula solo cuando la escritura tocó la geometría.
+
+        Una escritura ajena a la geometría no puede cambiar lo derivado,
+        y un hueco en `state`/`municipality`/`locality` puede ser
+        deliberado: reintentarlo en cada guardado lo volvería a llenar.
+        """
+        touched_geometry = created or any(
+            field in validated_data for field in GEOMETRY_FIELDS)
+        if not touched_geometry:
+            return
+        filled = apply_geolocation(instance, geometry_changed=True)
+        if filled:
+            instance.save()
+
 
 class LocationSerializer(LocationGeometryMixin):
-    class Meta:
-        model = Location
-        fields = '__all__'
+    class Meta(LocationGeometryMixin.Meta):
+        pass
 
 
 class LocationSemiFullSerializer(LocationGeometryMixin):
@@ -100,9 +145,8 @@ class LocationSemiFullSerializer(LocationGeometryMixin):
     project_full = ProjectMiniSerializer(read_only=True, source='project')
     # impact_full = ImpactSerializer(read_only=True, source='impact')
 
-    class Meta:
-        model = Location
-        fields = '__all__'
+    class Meta(LocationGeometryMixin.Meta):
+        pass
 
 
 class LocationFullSerializer(LocationGeometryMixin):
@@ -110,9 +154,8 @@ class LocationFullSerializer(LocationGeometryMixin):
     project_full = ProjectBasicSerializer(read_only=True, source='project')
     impact_full = ImpactSerializer(read_only=True, source='impact')
 
-    class Meta:
-        model = Location
-        fields = '__all__'
+    class Meta(LocationGeometryMixin.Meta):
+        pass
 
 
 class GeoImportSerializer(serializers.Serializer):

@@ -8,7 +8,7 @@ Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el 
 
 | Nivel | Estado |
 |---|---|
-| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa) |
+| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa, filtros de pendientes y geolocalización) |
 | E2E | No montado |
 | Diagnósticos manuales | **Sí** — ver abajo |
 
@@ -24,13 +24,15 @@ DATABASE_SCHEMA= python manage.py test source --noinput
 
 Ocho tests, ~0.04 s, **sin red y sin costo**: cubren el invariante de escritura de adjuntos de `source/attachment/` —si algo falla, no queda fila `NoteFile` sin archivo real detrás, y los adjuntos previos solo desaparecen cuando el nuevo ya está escrito—. Seis usan un generador de laboratorio (excepción de red, contenido vacío, `build` que devuelve `None`, storage caído al escribir, camino feliz con `replace=True`, y `replace=False` que ni siquiera descarga); dos ejercitan los generadores reales de Reforma y La Jornada con su llamada de red y su render parcheados con `unittest.mock`. El storage no se toca: cada test redirige el campo `NoteFile.file` a un directorio temporal.
 
-### Visibilidad del mapa (`space_time`)
+### Visibilidad del mapa y geolocalización (`space_time`)
 
 ```bash
 DATABASE_SCHEMA= python manage.py test space_time --noinput
 ```
 
-Siete tests, ~0.06 s, **sin red y sin costo**: cubren el criterio único de `adr-0022` —ubicación visible si su estatus y la validación de su proyecto son públicos; proyecto visible si tiene alguna ubicación visible; mención visible si además su nota lo es—. Los helpers viven en `api/views/map/visibility.py`, pero los tests están en `space_time` porque `api/` no es una app instalada y el runner no descubriría sus tests. Casos: el visible, el proyecto sin ubicación pública, el pin fantasma (validación no pública), el multiubicación (que no duplique ni arrastre la privada), el proyecto sin ubicaciones, el mismo veredicto por mención y por participación, y la nota no pública fuera de facetas y actores.
+Treinta y dos tests, ~0.21 s, **sin red y sin costo**. Siete cubren el criterio único de `adr-0022` —ubicación visible si su estatus y la validación de su proyecto son públicos; proyecto visible si tiene alguna ubicación visible; mención visible si además su nota lo es—. Los helpers viven en `api/views/map/visibility.py`, pero los tests están en `space_time` porque `api/` no es una app instalada y el runner no descubriría sus tests. Casos: el visible, el proyecto sin ubicación pública, el pin fantasma (validación no pública), el multiubicación (que no duplique ni arrastre la privada), el proyecto sin ubicaciones, el mismo veredicto por mención y por participación, y la nota no pública fuera de facetas y actores. Seis más cubren los filtros «Pendientes de ubicación» de `space_time/completeness.py`.
+
+Los diecinueve de `GeolocateTests` cubren el motor `space_time/geolocate.py` sobre **cartografía sintética** —dos municipios cuadrados de 10 km guardados como `MunicipalityGeometry` en EPSG:6372, más una mancha urbana como `LocalityGeometry`—, así que la suite corre sin haber descargado los shapefiles del INEGI. Casos: el punto y su localidad; el punto dentro de un polígono urbano (que gana al vecino más cercano); el punto fuera de todo polígono (que cae en el vecino más cercano); la localidad retirada del catálogo, que nunca se elige aunque sea la más cercana; el estado capturado equivocado (que no impide resolver); el punto fuera de toda cartografía; la línea que cruza dos municipios (no llena el municipio base); el roce de 30 m que no llega al umbral de 50 m; el trazo con un solo municipio atravesado, que hereda de él el estado, frente al que atraviesa dos y se queda sin estado; el polígono urbano que corta el trazo y cuenta como tocado; el centroide de la línea sobre la propia línea; el polígono con una localidad frente al de varias; el polígono que solo comparte frontera con el vecino, que no lo atraviesa; y la regla «solo vacíos» de `apply_geolocation`.
 
 El `DATABASE_SCHEMA=` de los comandos es obligatorio en local: el `.env` apunta al schema `ocsa`, que no existe en la base de test recién creada, y sin vaciarlo la corrida muere en `MigrationSchemaMissing`.
 
@@ -88,6 +90,38 @@ python .claude/diagnostics/geo_import_check.py
 ```
 
 **Gratis y sin base:** fabrica en un directorio temporal los archivos que llegan del editor (GeoJSON de dos polígonos, shapefile comprimido en EPSG:6372, KML de una y de dos capas, GeoJSON con tipos mezclados, shapefile sin `.prj`, extensión ajena) y verifica el camino `space_time.geo_import.read_geo_file` → `space_time.geometry.normalize_geojson`: reproyección a EPSG:4326, fusión en Multi\*, conservación de atributos y los mensajes de rechazo en español. Sale con código 1 si algo no cuadra. Es la verificación a correr después de tocar `geo_import.py` o el contrato de `geometry.py`.
+
+### Reversibilidad del backfill de geolocalización
+
+```bash
+python .claude/diagnostics/geolocate_backup_roundtrip.py [muestra]
+```
+
+**Gratis y sin red, y no deja rastro en la base:** corre el `--fill` real de `geolocate_locations` sobre las primeras N ubicaciones con geometría, lo revierte con el respaldo JSON que ese mismo comando deja, y compara fila por fila contra la foto previa —incluido el M2M `municipalities`—. Todo dentro de una transacción que se revierte al terminar. Sale con código 1 si alguna ubicación no volvió a su valor previo. Es la verificación a correr antes de un `--fill` de verdad, y después de tocar `space_time/geolocate.py` o el comando.
+
+### Revisión enriquecida de la geolocalización
+
+```bash
+python .claude/diagnostics/geolocate_review_enrich.py
+```
+
+**Gratis y sin red, solo lectura:** recorre el mismo universo que `geolocate_locations --review` (ubicaciones con proyecto y con geometría), recalcula la resolución con el motor actual y escribe tres archivos en `.claude/`: `geolocate_review_analizado.csv` (una fila por ubicación donde lo capturado difiere de lo calculado, en español, con población, ámbito urbano/rural y distancias de la localidad capturada y de la calculada), `geolocate_review_raw.jsonl` y `geolocate_review_tally.json`. No necesita correr `--review` antes; lee la base directamente y no escribe en ella. El ámbito lo saca de `space_time/geo_files/localidades.csv` (el AGEEML en disco), así que hace falta haber corrido `download_inegi.sh`. Es lo que hay que regenerar después de tocar `space_time/geolocate.py`, porque la cuenta de filas sostiene lo que dice `../docs/tasks/task-83`.
+
+### Comentarios de las ubicaciones que tocaría el backfill
+
+```bash
+python .claude/diagnostics/location_comments.py
+```
+
+**Gratis y sin red, solo lectura:** replica la selección de `geolocate_locations --fill` corriendo `apply_geolocation` con `write_relations=False` y descartando el objeto, así que no toca ninguna columna ni el M2M. Reporta en stdout cuántas ubicaciones con `comments` no vacío tocaría el fill, desglosadas por tipo, por geometría y por `status_location`, y qué campos llenaría; deja el detalle en `.claude/location_comments_raw.jsonl`. Sirve para decidir la política sobre comentarios humanos antes de un `--fill` de verdad.
+
+### Deformación de los polígonos al simplificarlos
+
+```bash
+python .claude/diagnostics/municipality_simplify_area.py [tolerancia]
+```
+
+**Gratis y sin base:** lee `00mun.shp` igual que `load_geometries` y compara el área de los 2,478 municipios antes y después de `simplify(tolerancia)`. Reporta cuántos cambian más de 1 %, los diez de mayor cambio relativo y el municipio de área mínima. Es lo que sostiene la elección de `DEFAULT_SIMPLIFIED_M`.
 
 ### Recuperación histórica y reclasificación (gastan)
 

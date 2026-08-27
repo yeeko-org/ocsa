@@ -11,6 +11,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from space_time.completeness import location_pending_q
 from space_time.geo_import import GeoImportError, read_geo_file
+from space_time.geolocate import resolve_point
 from space_time.geometry import (
     has_geometry_q, infer_type_location, normalize_location_geometry)
 from space_time.models import (
@@ -85,10 +86,12 @@ class LocationViewSet(ClickHistoryMixin, BaseViewSet):
     permission_classes = [LocationPermission]
     queryset = Location.objects.all().exclude(
         project__isnull=True, event__isnull=True, impact__isnull=True)\
-        .select_related("event", "impact", "project")
+        .select_related("event", "impact", "project")\
+        .prefetch_related("municipalities")
     serializer_class = LocationFullSerializer
     search_fields = ['state__name',
                      'municipality__name',
+                     'municipalities__name',
                      'locality__name',
                      'details', 'comments']
     # filter_backends = [OrderingFilter, DjangoFilterBackend, SearchFilter]
@@ -126,6 +129,36 @@ class LocationViewSet(ClickHistoryMixin, BaseViewSet):
             'import_geo': GeoImportSerializer,
         }
         return action_serializer.get(self.action, self.serializer_class)
+
+    @action(detail=False, methods=['get'], url_path='geolocate',
+            permission_classes=[permissions.IsAuthenticated])
+    def geolocate(self, request):
+        """Sugiere entidad, municipio y localidad de un par de coordenadas.
+
+        Ruta de lista y no de detalle porque el editor la consulta al
+        soltar el pin, antes de guardar: no toca la base. `state` es el
+        estado ya capturado —si el punto cae dentro, se respeta y se
+        ahorra la búsqueda por polígono—.
+        """
+        try:
+            latitude = float(request.query_params["lat"])
+            longitude = float(request.query_params["lon"])
+        except (KeyError, TypeError, ValueError):
+            return Response(
+                {'detail': 'Faltan las coordenadas o no son números: '
+                           'se esperan «lat» y «lon» en grados decimales.'},
+                status=400)
+        state = request.query_params.get('state') or None
+        try:
+            state_id = int(state) if state else None
+        except (TypeError, ValueError):
+            state_id = None
+        resolution = resolve_point(latitude, longitude, state_id)
+        return Response({
+            'state': _named(resolution.state),
+            'municipality': _named(resolution.municipality),
+            'locality': _named(resolution.locality),
+        })
 
     @action(detail=False, methods=['post'], url_path='import_geo',
             parser_classes=[MultiPartParser, FormParser],
@@ -173,6 +206,12 @@ class LocationViewSet(ClickHistoryMixin, BaseViewSet):
                 temporary.write(chunk)
             temporary.flush()
             return read_geo_file(temporary.name, upload.name, layer)
+
+
+def _named(instance) -> dict | None:
+    if instance is None:
+        return None
+    return {'id': instance.pk, 'name': instance.name}
 
 
 def _count_parts(geojson: dict | None) -> int:

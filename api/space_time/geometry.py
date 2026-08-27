@@ -7,6 +7,11 @@ LineString o MultiLineString, `polygon` admite Polygon o MultiPolygon, y
 Las coordenadas son 2D, sin miembro `crs` y sin partes vacías o
 degeneradas.
 
+En una línea o un polígono, `latitude`/`longitude` **no** son un dato
+capturado sino el centroide derivado del trazo, propiedad del servidor:
+lo calcula `space_time.geolocate` en cada guardado y el cliente no lo
+manda. Solo en `point` el par de coordenadas es la geometría misma.
+
 Módulo de Python puro: no depende de GEOS ni de librerías externas.
 """
 
@@ -226,16 +231,21 @@ def display_geometry(
     al geojson manda el contenido real de la geometría. Devuelve `None`
     cuando no hay nada que pintar y lanza `ValueError` solo si el geojson
     es irreparable (mezcla de tipos).
+
+    En una línea o un polígono el par lat/lon es el centroide, no la
+    geometría: si el geojson no se puede leer no hay nada que pintar, y
+    caer al punto dibujaría un pin donde no hay trazo.
     """
     point = _point_geometry(latitude, longitude, ndigits)
     if type_location == "point" and point is not None:
         return point
+    fallback = None if type_location in ("line", "polygon") else point
     inferred = infer_type_location(geojson)
     if inferred is None:
-        return point
+        return fallback
     feature = normalize_geojson(geojson, inferred)
     if feature is None:
-        return point
+        return fallback
     return round_coordinates(feature["geometry"], ndigits)
 
 

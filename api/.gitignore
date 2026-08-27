@@ -59,9 +59,29 @@ research/r_queries.zip
 
 # Descargas del INEGI que download_inegi.sh regenera (Marco Geoestadístico
 # y catálogo de localidades AGEEML): pesan mucho y son reproducibles
+space_time/geo_files/00ent.*
 space_time/geo_files/00mun.*
+space_time/geo_files/00l.*
 space_time/geo_files/localidades.csv
 space_time/geo_files/localidades.txt
 
+# Catálogo AGEEML de municipios: el .csv sí se versiona, el .txt no
+# (mismo contenido, y ningún loader lo lee)
+space_time/geo_files/municipios.txt
+
 # credenciales de colaboradoras (usar config.R.template)
 research/r_queries/config.R
+
+# Respaldos de geolocate_locations --fill (los consume --revert)
+.claude/geolocate_fill_*.json
+
+# Salidas de los diagnósticos de geolocalización (se regeneran desde la base)
+.claude/geolocate_review*.csv
+.claude/geolocate_review*.jsonl
+.claude/geolocate_review*.json
+.claude/location_comments_*.csv
+.claude/location_comments_*.jsonl
+
+# Análisis de los diagnósticos: traen nombres del equipo y el repo es
+# público
+.claude/*_analisis.md

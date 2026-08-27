@@ -43,6 +43,7 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
 - Settings: `core/settings/__init__.py` (single file)
 - PostgreSQL with `unaccent` extension; `AUTH_USER_MODEL = "profile_auth.User"`
 - The local DB is a restored copy of production (RDS, not the EC2). Procedure and freshness check: docs `2026-08-26-copia-de-produccion-a-local`
+- `migrate_initial_data` overwrites hand-edited `order`/`color`/`icon`/`priority` of every `StatusControl` (docs `task-86`): never run it against a real DB; create rows from the shell
 
 ### External Integrations
 - **OpenAI / Google Generative AI**: AI-assisted record pre-classification
@@ -56,15 +57,28 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
   policy on `data_files/*`); local dev keeps disk storage. Storage per
   field via `core/storages.py::select_docs_storage`
 
-### Insumos geográficos
-La cartografía municipal y el catálogo de localidades del INEGI no se
-versionan (pesan >170 MB): se traen con
-`space_time/geo_files/download_inegi.sh`. Ver el README de esa carpeta.
+### Geographic data (INEGI)
+Cartography (state, municipal and locality polygons) and the AGEEML
+catalogs are not versioned (>270 MB): `space_time/geo_files/download_inegi.sh`
+fetches them (README there). Load order: `load_states_data`,
+`load_municipios`, `load_localidades`, `load_geometries` — the last three
+idempotent with `--dry-run`; loaders never delete (`Locality.is_current` marks
+retired rows). Polygons live in 1:1 models (`*Geometry`, WKB EPSG:6372,
+simplified) so `__all__` serializers of `State`/`Municipality` never
+carry them; there is no PostGIS — `space_time/geolocate.py` computes
+with shapely in memory. It fills only empty `state`/`municipality`/
+`locality`, always rewrites the derived `municipalities` M2M, centroid
+and `nearby_localities`, never touches `status_location`; runs from
+`LocationGeometryMixin` on every geometry write and from
+`geolocate_locations` (`--review`, `--fill` with backup, `--revert`).
+Rules per geometry type: docs `task-39`.
 
 ### Testing
 Suites unitarias con el runner nativo (`manage.py test source` y
 `manage.py test space_time`) más diagnósticos re-ejecutables que golpean
 servicios reales (proxy, PressReader, Gemini) y por tanto cuestan.
+En local hay que correrlas con `DATABASE_SCHEMA=` (vacío) o mueren con
+`MigrationSchemaMissing`.
 Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
 
 ### Documentación de proceso
