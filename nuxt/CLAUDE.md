@@ -2,6 +2,13 @@
 
 Nuxt 3 + Vuetify 4, Pinia for state, consuming the Django API in `api/`. Domain, structure and commit convention: [../CLAUDE.md](../CLAUDE.md). Paths below are relative to `nuxt/`.
 
+## Commands
+
+Package manager is pnpm (`packageManager` in `package.json`; the lockfile is gitignored) — never `npm i`.
+
+- `pnpm test` — Vitest, pinned to 3.x on purpose: vite 5 rejects vitest 4.
+- `pnpm build` — the only static check there is; no lint script.
+
 ## Architecture
 
 ### API & Auth

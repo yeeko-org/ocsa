@@ -25,7 +25,17 @@ async function getLocalities(municipality_id) {
   );
 }
 
+// Único endpoint fuera de `API_URL`: cuelga del router de Location
+async function geolocate(lat, lon, state_id = null) {
+  const { $api } = useNuxtApp()
+  const params = state_id ? { lat, lon, state: state_id } : { lat, lon }
+  return await handleRequest(() => $api.get(
+    '/location/geolocate/', { params })
+  );
+}
+
 export const geoService = {
   getMunicipalities,
   getLocalities,
+  geolocate,
 }

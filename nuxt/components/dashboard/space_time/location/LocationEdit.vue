@@ -11,6 +11,9 @@ import LocationAlerts from
     "~/components/dashboard/space_time/location/LocationAlerts.vue";
 import LocationTypeDialog from
     "~/components/dashboard/space_time/location/LocationTypeDialog.vue";
+import LocationMunicipalities from
+    "~/components/dashboard/space_time/location/LocationMunicipalities.vue";
+import {useGeolocate} from "~/composables/useGeolocate.js";
 
 const props = defineProps({
   is_massive_edit: Boolean,
@@ -81,6 +84,15 @@ const location_type_full = computed(() => LOCATION_TYPES.find(
 
 const close_position = useClosePosition(full_main)
 
+const {notices: geo_notices, suggest: suggestGeo, clear: clearGeo} =
+    useGeolocate(full_main)
+
+function applyFeatureAndSuggest(feature) {
+  applyFeature(feature)
+  if (full_main.value.type_location !== 'point' || !feature) return
+  suggestGeo(full_main.value.latitude, full_main.value.longitude)
+}
+
 // Los avisos son de la importación anterior: no sobreviven a un intento
 // nuevo, haya fallado o no.
 function setImportError(message) {
@@ -94,6 +106,7 @@ watch(full_main, () => {
   import_error.value = ''
   import_warnings.value = []
   overwrote_saved.value = false
+  clearGeo()
 })
 
 // El tipo que trae el archivo manda sobre el elegido en el formulario, y
@@ -110,7 +123,7 @@ function applyImported({feature, type_location, warnings}) {
     full_main.value.type_location = type_location
     clearOtherGeometry(type_location)
   }
-  applyFeature(feature)
+  applyFeatureAndSuggest(feature)
   map_key.value += 1
 }
 
@@ -168,10 +181,17 @@ function applyImported({feature, type_location, warnings}) {
         </v-icon>
       </v-btn>
     </div>
+    <LocationMunicipalities
+      :municipalities_full="full_main.municipalities_full"
+      :type_location="full_main.type_location"
+    />
     <LocationAlerts
       v-model:import_error="import_error"
       v-model:overwrote_saved="overwrote_saved"
       :import_warnings="import_warnings"
+      :geo_notices="geo_notices"
+      :nearby_localities="full_main.nearby_localities"
+      :type_location="full_main.type_location"
     />
     <v-textarea
       v-model="full_main.details"
@@ -201,7 +221,7 @@ function applyImported({feature, type_location, warnings}) {
       :full_main="full_main"
       v-model:expanded="expanded_map"
       :can_expand="!second_level"
-      @update:location="applyFeature"
+      @update:location="applyFeatureAndSuggest"
       @imported="applyImported"
       @import-error="setImportError"
       @close="show_map = false"
