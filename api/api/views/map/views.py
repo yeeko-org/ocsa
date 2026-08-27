@@ -13,6 +13,7 @@ from api.views.project import LocationVizSerializer
 from .serializers import (
     ProjectMapSerializer, MentionMapSerializer, ImpactMapSerializer,
     EventMapSerializer, NoteDeepMapSerializer)
+from .visibility import visible_locations, visible_mentions, visible_projects
 from api.views.common_views import UnaccentSearchFilter
 from project.models import Project
 from source.models import Note, Mention
@@ -51,8 +52,7 @@ class ProjectMapViewSet(GenericViewSet, mixins.ListModelMixin):
     def get_queryset(self):
         queryset = super().get_queryset()
         if not self.request.user.is_authenticated:
-            queryset = queryset.filter(
-                status_validation__is_public=True)
+            queryset = visible_projects(queryset)
         return queryset
 
     def retrieve(self, request, *args, **kwargs):
@@ -87,6 +87,13 @@ class ProjectMapViewSet(GenericViewSet, mixins.ListModelMixin):
 
         else:
             mention_qs = direct_mentions
+
+        # Un filtro sobre la unión equivale a filtrar cada rama. Sin esto la
+        # ficha lista menciones cuya nota `note_map` le niega al visitante, y
+        # las de proyectos hermanos o padre que el mapa no muestra: el pin
+        # fantasma de `adr-0022` por la puerta de al lado.
+        if not request.user.is_authenticated:
+            mention_qs = visible_mentions(mention_qs)
 
         mention_qs = mention_qs.order_by('-note__date')
         mentions_serializer = MentionMapSerializer(mention_qs, many=True)
@@ -165,28 +172,19 @@ class ProjectLocationViewSet(mixins.ListModelMixin, GenericViewSet):
                      'project__name']
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        if not self.request.user.is_authenticated:
-            queryset = queryset.filter(
-                status_location__is_public=True, project__isnull=False)\
-                .select_related("project")
-        else:
-            # TODO: Algún día lo quitaremos
-            queryset = queryset.filter(
-                status_location__is_public=True, project__isnull=False)\
-                .select_related("project")
-        return queryset
+        # El geojson es el mismo para quien está dentro y quien no: el
+        # mapa muestra lo público, la edición vive en otros endpoints.
+        return visible_locations(super().get_queryset()).select_related(
+            "project")
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         location_points = queryset.filter(
             type_location='point', latitude__isnull=False,
-            longitude__isnull=False) \
-            .select_related("project")
+            longitude__isnull=False)
         other_locations = queryset.\
             filter(geojson__isnull=False)\
-            .exclude(type_location='point')\
-            .select_related("project")
+            .exclude(type_location='point')
 
         keep_fields = [
             "id", "state", "municipality", "locality", "project"]

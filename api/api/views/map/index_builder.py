@@ -14,7 +14,9 @@ Dos índices, ambos *directos* (keyed por la entidad, no invertidos: el
   resolver en cliente el filtro de actor y el de posición.
 
 Lógica pura de ORM, sin DRF: reutilizable por las vistas y por el
-management command del cron.
+management command del cron. Qué mención cuenta como pública —proyecto
+visible y nota visible— lo define ``visibility`` (docs `adr-0022`),
+compartido con el resto del mapa.
 """
 
 from collections import defaultdict
@@ -23,9 +25,7 @@ from actor.models import Actor, Participant
 from classify.models import ParticipantGroup
 from source.models import Mention
 
-# Solo proyectos públicos entran al índice (mismo criterio que el
-# endpoint de ubicaciones del mapa).
-PUBLIC_FILTER = {"project__status_validation__is_public": True}
+from .visibility import visible_mentions
 
 # Llave compacta del payload → ruta del id de faceta desde Mention.
 FACET_DIMENSIONS = {
@@ -45,7 +45,7 @@ def build_facet_index() -> dict:
     cliente trata la clave ausente como lista vacía).
     """
     index: dict = defaultdict(lambda: defaultdict(set))
-    public_mentions = Mention.objects.filter(**PUBLIC_FILTER)
+    public_mentions = visible_mentions(Mention.objects.all())
 
     for key, facet_path in FACET_DIMENSIONS.items():
         pairs = public_mentions.values_list(
@@ -84,8 +84,8 @@ def build_actor_index() -> dict:
     # Un par (actor, proyecto) rinde una fila por grupo de participación;
     # None cuando la participación no tiene tipo o el tipo no tiene grupo.
     actor_projects: dict = defaultdict(lambda: defaultdict(set))
-    participant_rows = Participant.objects.filter(
-        mention__project__status_validation__is_public=True
+    participant_rows = visible_mentions(
+        Participant.objects.all(), "mention"
     ).values_list(
         "actor_id", "mention__project_id",
         "participant_types__participant_group_id").distinct()
