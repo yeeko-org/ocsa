@@ -4,7 +4,7 @@ Mapa de niveles del monorepo. El detalle vive de cada lado; aquí solo está qu�
 
 | Nivel | `api/` (Django) | `nuxt/` (front) |
 |---|---|---|
-| Unitario | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa), runner nativo; comandos y gotchas en [api/TESTING.md](api/TESTING.md) | No montado (el default sería Vitest) |
+| Unitario | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa, pendientes, geolocalización), runner nativo; comandos y gotchas en [api/TESTING.md](api/TESTING.md) | **Sí** — Vitest (`cd nuxt && pnpm test`), por ahora solo composables puros: `composables/__tests__/useClosePosition.test.js` (centro de respaldo del mapa del editor). Config en `nuxt/vitest.config.js` |
 | Integración | No montado | No montado |
 | E2E | No montado (Playwright cubriría los dos lados) | Suite no montada; la verificación del dashboard es **episódica en navegador con Playwright MCP** —flujos nuevos y releases, nunca por commit—, con las credenciales locales de abajo |
 | Diagnósticos manuales | **Sí** — ver [api/TESTING.md](api/TESTING.md) | No |

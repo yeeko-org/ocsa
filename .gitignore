@@ -4,3 +4,6 @@
 .playwright-mcp/
 **/.claude/settings.local.json
 .DS_Store
+
+# Capturas y artefactos de verificación en navegador
+nuxt/.claude/
