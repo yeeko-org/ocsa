@@ -4,9 +4,10 @@ Dónde está un megaproyecto, un evento o una afectación. Una `Location` cuelga
 
 ## Modelo `space_time.Location`
 
-- FK nulables: `project`, `event`, `impact` (una sola puesta), `state`, `municipality`, `locality` (una de cada; las ubicaciones que cruzan varios municipios se resolvieron en `adr-0026`: municipio base más los atravesados, derivados).
+- FK nulables: `project`, `event`, `impact` (una sola puesta), `state`, `municipality`, `locality` (una de cada) más el M2M derivado `municipalities` (todos los municipios que atraviesa la geometría, incluido el base) y `nearby_localities`.
+- **Derivación geográfica y cartografía del INEGI: skill `ocs-geo`** — reglas, umbrales, loaders y contrato del `geojson` viven allí, no aquí.
 - `type_location`: choices `point` | `line` | `polygon` (`TYPE_LOCATIONS`; no es tabla). El 2026-08-26 se reabrió como tarea futura darle su propio modelo `LocationType` y renombrar el campo a `location_type`.
-- `latitude`, `longitude`: solo para `point`.
+- `latitude`, `longitude`: en `point`, la coordenada capturada; en `line` y `polygon`, el centroide que calcula el servidor al guardar la geometría (punto medio del trazo en las líneas).
 - `geojson` (JSONField): `null` o **un** `Feature` GeoJSON — `line` → `LineString`/`MultiLineString`, `polygon` → `Polygon`/`MultiPolygon`; `point` no guarda geojson. 2D, sin `crs`, sin partes vacías. Contrato y normalización en `api/space_time/geometry.py`; los serializers lo aplican en toda escritura.
 - `status_location`: FK a `work_flux.StatusControl` grupo `location`. Juicio humano: `finished` «Aprobado», `Aproximado`, `need_consensus`, `filled` «Datos completos»; ninguna regla los mueve. `Project.status_location` se deriva de estas —el mínimo— y **no es editable** desde `adr-0027` (`api/utils/universal.py`, `apply_project_status_location`): es indicador del dashboard y no interviene en el mapa público.
 - `ubicacion_id_ref`: pk en la tabla legacy `ocs.ubicaciones`; `details`, `comments`.
@@ -16,7 +17,7 @@ Dónde está un megaproyecto, un evento o una afectación. Una `Location` cuelga
 - «Tiene geometría»: usa siempre `space_time.geometry.has_geometry_q(prefix)` (par lat/lon **o** geojson) — nunca reimplementes la condición.
 - Pendientes de ubicación (filtro «Pendientes de ubicación», sustituye a los cajones de completitud): `space_time.completeness` — `location_pending_q(option)` sobre `Location`, `project_pending_q(option)` sobre `Project`. Opciones: `no_geometry` «Sin marca en el mapa», `no_municipality` «Sin municipio», `complete_unapproved` «Completas sin aprobar», `any_pending` «Alguno de los casos anteriores»; proyectos suma `no_approved_location` «Sin ninguna ubicación aprobada». No son disjuntas: una ubicación puede caer en varias. Solo cuentan ubicaciones de proyecto, y a nivel proyecto siempre se aplican por subconsulta (`locations__in=...`) para que las condiciones caigan sobre la misma ubicación.
 - Mapa público: `/project_location/` emite un `Feature` por `Location` con `properties` `id, state, municipality, locality, project`; una `Location` Multi* sigue siendo una feature.
-- Exportación XLSX (`api/api/export_blocks/location.py`): solo `loc_latitude`/`loc_longitude`; líneas y polígonos salen vacíos (centroide pendiente, task-53).
+- Exportación XLSX (`api/api/export_blocks/location.py`): solo `loc_latitude`/`loc_longitude`; en líneas y polígonos salen con el centroide calculado.
 
 ## Visibilidad del mapa público
 

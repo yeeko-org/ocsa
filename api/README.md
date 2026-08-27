@@ -64,7 +64,7 @@ Los datos de ubicación tienen que cargarse primero antes de las migraciones de 
 Órden de ejecución de migración de datos:
 
 python manage.py migrate
-python manage.py migrate_initial_data
+python manage.py migrate_initial_data  # solo sobre una base recién creada: sobrescribe los campos de StatusControl editados a mano
 
 (OPCIONAL) Migrar los usuarios de la base de datos de producción
 
@@ -73,6 +73,7 @@ python manage.py migrate_ps_schemas
 python manage.py load_states_data
 python manage.py load_municipios
 python manage.py load_localidades
+python manage.py load_geometries
 python manage.py migrate_ubicaciones
 python manage.py migrate_notas
 python manage.py migrate_proyectos

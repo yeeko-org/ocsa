@@ -49,39 +49,17 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
 - **OpenAI / Google Generative AI**: AI-assisted record pre-classification
 - **BeautifulSoup / lxml**: news scraping from multiple sources
 - **openpyxl / yeekooxlsx_export**: Excel exports
-- **Redis**: caches the public map's facets/actors index (db 1 in
-  production). Rebuilt by `rebuild_map_index` (06:00 UTC cron) or on
-  demand via `POST map/index/rebuild/`; nothing else expires it
-- **S3 (django-storages)**: `NoteFile`/`ProjectFile` files in production
-  (`USE_S3_FILES=1`, class `INTELLIGENT_TIERING`, public read via bucket
-  policy on `data_files/*`); local dev keeps disk storage. Storage per
-  field via `core/storages.py::select_docs_storage`
+- **Redis**: caches the public map's facets/actors index (db 1 in production). Rebuilt by `rebuild_map_index` (06:00 UTC cron) or on demand via `POST map/index/rebuild/`; nothing else expires it
+- **S3 (django-storages)**: `NoteFile`/`ProjectFile` files in production (`USE_S3_FILES=1`, class `INTELLIGENT_TIERING`, public read via bucket policy on `data_files/*`); local dev keeps disk storage. Storage per field via `core/storages.py::select_docs_storage`
 
 ### Geographic data (INEGI)
-Cartography (state, municipal and locality polygons) and the AGEEML
-catalogs are not versioned (>270 MB): `space_time/geo_files/download_inegi.sh`
-fetches them (README there). Load order: `load_states_data`,
-`load_municipios`, `load_localidades`, `load_geometries` — the last three
-idempotent with `--dry-run`; loaders never delete (`Locality.is_current` marks
-retired rows). Polygons live in 1:1 models (`*Geometry`, WKB EPSG:6372,
-simplified) so `__all__` serializers of `State`/`Municipality` never
-carry them; there is no PostGIS — `space_time/geolocate.py` computes
-with shapely in memory. It fills only empty `state`/`municipality`/
-`locality`, always rewrites the derived `municipalities` M2M, centroid
-and `nearby_localities`, never touches `status_location`; runs from
-`LocationGeometryMixin` on every geometry write and from
-`geolocate_locations` (`--review`, `--fill` with backup, `--revert`).
-Rules per geometry type: docs `task-39`.
+- Cartography (state, municipal and locality polygons) and the AGEEML catalogs are not versioned (>270 MB): `space_time/geo_files/download_inegi.sh` fetches them — [cartografia.md](../.claude/skills/ocs-geo/references/cartografia.md) (skill `ocs-geo`).
+- Load order: `load_states_data`, `load_municipios`, `load_localidades`, `load_geometries`; the last three are idempotent with `--dry-run` and no loader ever deletes (`Locality.is_current` marks retired rows).
+- No PostGIS: `space_time/geolocate.py` computes with shapely in memory, and polygons live in 1:1 `*Geometry` models (WKB EPSG:6372, simplified) so `__all__` serializers of `State`/`Municipality` never carry them.
+- Rules, thresholds and invariants of the engine: skill `ocs-geo` (`.claude/skills/ocs-geo/`) and docs `adr-0026`.
 
 ### Testing
-Suites unitarias con el runner nativo (`manage.py test source` y
-`manage.py test space_time`) más diagnósticos re-ejecutables que golpean
-servicios reales (proxy, PressReader, Gemini) y por tanto cuestan.
-En local hay que correrlas con `DATABASE_SCHEMA=` (vacío) o mueren con
-`MigrationSchemaMissing`.
-Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
+Suites unitarias con el runner nativo (`manage.py test source` y `manage.py test space_time`) más diagnósticos re-ejecutables que golpean servicios reales (proxy, PressReader, Gemini) y por tanto cuestan. Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
 
 ### Documentación de proceso
-Decisiones (ADR), tareas abiertas y bitácoras viven en el submódulo
-privado `../docs/`, indexadas por frontmatter y enlazadas con `[[id]]`.
-Ver el skill `documenter`.
+Decisiones (ADR), tareas abiertas y bitácoras viven en el submódulo privado `../docs/`, indexadas por frontmatter y enlazadas con `[[id]]`. Ver el skill `documenter`.

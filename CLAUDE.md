@@ -13,17 +13,11 @@ Event types: violence against activists · collective actions · legal resources
 | `docs/` | Submodule of the **private** repo `yeeko-org/ocsa-docs` — the monorepo's private half. Holds the documenter graph (ADRs, tasks, records) **and** a private vault that is not part of the graph: the `deploy` skill (`skills/`), the age key for `api/utils/data_private/*.age` (`keys/`), and the doc-path checker (`scripts/`). Vault lives here because it's the only private repo in a public monorepo (docs `adr-0020`) |
 | `.claude/skills/` | Skills for the whole monorepo, both sides |
 
-Every `CLAUDE.md` is guarded by the global hook `skill_binding` (`~/.claude/hooks/skill_binding.py`): invoke the `claude-md-writer` skill before editing one.
-
 `docs/` needs access to the private repo. Without it the directory stays empty and `.claude/skills/deploy` is a dangling symlink — that is expected. With access: `git submodule update --init`.
 
 ## Commits
 
 Prefix `[api]` or `[nuxt]` when the commit touches one side only; no prefix when it is cross-cutting (root files, submodule, skills). Subject in Spanish.
-
-## Comments
-
-Comments carry only a local why (gotcha, invariant, unit, workaround). Design rationale goes to the ADR/task, never to code.
 
 ## Testing
 
