@@ -32,6 +32,17 @@ MIN_CROSSING_AREA_M2 = 10_000.0
 # representa con un solo punto.
 LOCALITY_BUFFER_M = 500.0
 
+# El AGEEML usa «Ninguno» como marcador de localidad sin nombre, no como
+# topónimo: son 1,610 filas del catálogo, casi todas ranchos y predios
+# sueltos. Ninguna ubicación debe recibir una de ellas como localidad.
+PLACEHOLDER_LOCALITY_NAMES = ("Ninguno",)
+
+
+def without_placeholders(queryset, field: str = "name"):
+    """Quita del queryset las localidades marcador del AGEEML."""
+    return queryset.exclude(
+        **{f"{field}__in": PLACEHOLDER_LOCALITY_NAMES})
+
 
 @dataclass
 class PointResolution:
@@ -45,7 +56,6 @@ class GeometryResolution:
     municipalities: list = field(default_factory=list)
     single_municipality: object | None = None
     locality: object | None = None
-    nearby_localities: int | None = None
     centroid: tuple | None = None
 
 
@@ -135,10 +145,10 @@ def _locality_index(municipality_id: int) -> tuple:
     """`(STRtree, [Locality, ...], [polígono, ...])` amanzanadas."""
     from space_time.models import LocalityGeometry
 
-    rows = list(
+    rows = list(without_placeholders(
         LocalityGeometry.objects
         .filter(locality__municipality_id=municipality_id)
-        .select_related("locality"))
+        .select_related("locality"), "locality__name"))
     return _build_index(rows, "locality")
 
 
@@ -203,9 +213,9 @@ def _locality_points(municipality_id: int) -> tuple:
     """
     from space_time.models import Locality
 
-    rows = Locality.objects.filter(
+    rows = without_placeholders(Locality.objects.filter(
         municipality_id=municipality_id, is_current=True,
-        latitude__isnull=False, longitude__isnull=False)
+        latitude__isnull=False, longitude__isnull=False))
     return tuple(
         (locality, point_in_meters(locality.latitude, locality.longitude))
         for locality in rows)
@@ -245,7 +255,6 @@ def resolve_geometry(feature: dict,
                         for municipality, measure in crossed],
         single_municipality=single,
         locality=locality,
-        nearby_localities=len(localities),
         centroid=_centroid(geometry),
     )
 
@@ -309,9 +318,9 @@ def _localities_near(geometry, municipalities: list) -> list:
         touched.extend(
             locality
             for locality, _ in _query(index, geometry, "intersects"))
-    rows = Locality.objects.filter(
+    rows = without_placeholders(Locality.objects.filter(
         municipality__in=municipalities, is_current=True,
-        latitude__isnull=False, longitude__isnull=False)
+        latitude__isnull=False, longitude__isnull=False))
     for locality in rows:
         if locality.pk in mapped:
             continue
@@ -343,6 +352,11 @@ def _centroid(geometry) -> tuple | None:
 
 FILLABLE = ("state", "municipality", "locality")
 
+# `StatusControl` tiene `name` de llave primaria, así que
+# `status_location_id` ya es el nombre interno: comparar contra él evita
+# la consulta y no depende del `public_name`, que sí es editable.
+APPROXIMATE_STATUS = "Aproximado"
+
 
 def apply_geolocation(location, geometry_changed: bool = True,
                       write_relations: bool = True) -> list[str]:
@@ -364,13 +378,12 @@ def _apply_point(location, write_relations: bool = True) -> list[str]:
     resolution = resolve_point(
         location.latitude, location.longitude, location.state_id)
     filled = _fill_empty(location, resolution)
-    if location.nearby_localities is not None:
-        location.nearby_localities = None
-        filled.append("nearby_localities")
-    crossed = [location.municipality_id] if location.municipality_id else []
-    location.crossed_municipalities = crossed
-    if write_relations and location.pk and crossed:
-        location.municipalities.set(crossed)
+    # El M2M significa «municipios que la geometría atraviesa» (docs
+    # `adr-0026`): un punto no atraviesa nada, y copiar ahí su propio
+    # municipio solo duplicaba el FK. Se limpia por si quedó algo.
+    location.crossed_municipalities = []
+    if write_relations and location.pk:
+        location.municipalities.clear()
     return filled
 
 
@@ -388,15 +401,25 @@ def _apply_geometry(location, geometry_changed: bool,
             location.longitude = longitude
             filled.append("latitude")
             filled.append("longitude")
-    if location.nearby_localities != resolution.nearby_localities:
-        location.nearby_localities = resolution.nearby_localities
-        filled.append("nearby_localities")
     crossed = [municipality.pk
                for municipality, _ in resolution.municipalities]
     location.crossed_municipalities = crossed
     if write_relations and location.pk:
         location.municipalities.set(crossed)
     return filled
+
+
+def _blocked_fields(location) -> frozenset:
+    """Campos que este `Location` no acepta llenar, por su estatus.
+
+    En un punto «Aprobado (Aproximado)» la coordenada señala el rumbo y
+    no el sitio: la localidad que resolviera el motor sería una precisión
+    falsa. El estado y el municipio sí resisten esa imprecisión.
+    """
+    if (location.type_location == "point"
+            and location.status_location_id == APPROXIMATE_STATUS):
+        return frozenset({"locality"})
+    return frozenset()
 
 
 def _fill_empty(location, resolution, municipality_from: str = "") -> list[str]:
@@ -408,9 +431,12 @@ def _fill_empty(location, resolution, municipality_from: str = "") -> list[str]:
         "municipality": municipality,
         "locality": resolution.locality,
     }
+    blocked = _blocked_fields(location)
     filled = []
     for name in FILLABLE:
         value = values[name]
+        if name in blocked:
+            continue
         if value is None or getattr(location, f"{name}_id") is not None:
             continue
         setattr(location, name, value)

@@ -59,7 +59,7 @@ class StateRetrieveSerializer(StateListSerializer):
 GEOMETRY_FIELDS = ["geojson", "type_location", "latitude", "longitude"]
 # Derivados de la geometría por el servidor: el editor los muestra, pero
 # nunca los manda.
-DERIVED_FIELDS = ["municipalities", "nearby_localities"]
+DERIVED_FIELDS = ["municipalities"]
 
 
 class LocationGeometryMixin(serializers.ModelSerializer):

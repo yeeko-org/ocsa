@@ -11,18 +11,21 @@ from shapely import wkb as shapely_wkb
 from shapely.geometry import Point, box
 
 from space_time import geolocate
+from space_time.backfill import HUMAN_VERDICTS, apply_and_diff
 from space_time.models import (
     Locality, LocalityGeometry, Location, Municipality, MunicipalityGeometry,
     State, StateGeometry)
+from work_flux.models import StatusControl
 
 
-class GeolocateTests(TestCase):
-    """El motor de `space_time.geolocate` sobre cartografía sintética.
+class SyntheticCartography:
+    """Cartografía inventada, compartida por todo lo que toca el motor.
 
     Dos municipios cuadrados de 10 km, pegados por su frontera este-oeste,
     guardados como `MunicipalityGeometry` en EPSG:6372 igual que los del
     INEGI. No se toca ningún shapefile: la suite corre sin los insumos
-    descargados.
+    descargados. Vive aparte de los tests porque el backfill de
+    dictámenes la necesita igual (`test_backfill_verdicts.py`).
     """
 
     SIDE = 10_000.0
@@ -53,6 +56,19 @@ class GeolocateTests(TestCase):
             wkb=shapely_wkb.dumps(cls._box(1.2, 0.2, 1.8, 0.8)))
         cls.retired = cls._locality(
             cls.west, "0009", 0.7, 0.7, is_current=False)
+        # Marcador del AGEEML: vigente, con polígono y más cerca que la
+        # vecina real, para que solo la regla lo saque del resultado.
+        cls.placeholder = cls._locality(
+            cls.west, "0010", 0.55, 0.55,
+            name=geolocate.PLACEHOLDER_LOCALITY_NAMES[0])
+        LocalityGeometry.objects.create(
+            locality=cls.placeholder,
+            wkb=shapely_wkb.dumps(cls._box(0.53, 0.53, 0.57, 0.57)))
+        cls.approximate = StatusControl.objects.create(
+            name=geolocate.APPROXIMATE_STATUS, group="location",
+            public_name="Aprobado (Aproximado)")
+        cls.approved = StatusControl.objects.create(
+            name="finished", group="location", public_name="Aprobado")
 
     @classmethod
     def _municipality(cls, code: str, column: int):
@@ -69,12 +85,12 @@ class GeolocateTests(TestCase):
 
     @classmethod
     def _locality(cls, municipality, code: str, fx: float, fy: float,
-                  is_current: bool = True):
+                  is_current: bool = True, name: str = ""):
         latitude, longitude = cls._latlon(fx, fy)
         return Locality.objects.create(
             inegi_code=code,
             complete_code=f"{municipality.complete_code}-{code}",
-            name=f"Localidad {municipality.inegi_code}-{code}",
+            name=name or f"Localidad {municipality.inegi_code}-{code}",
             municipality=municipality, latitude=latitude, longitude=longitude,
             is_current=is_current)
 
@@ -102,6 +118,10 @@ class GeolocateTests(TestCase):
         return {"type": "Feature", "properties": {},
                 "geometry": {"type": geometry_type,
                              "coordinates": coordinates}}
+
+
+class GeolocateTests(SyntheticCartography, TestCase):
+    """El motor de `space_time.geolocate` sobre esa cartografía."""
 
     # --- puntos ---
 
@@ -143,6 +163,20 @@ class GeolocateTests(TestCase):
             latitude, longitude, self.state.pk)
         self.assertEqual(resolution.locality, self.only_one)
 
+    def test_la_localidad_ninguno_nunca_se_elige_en_un_punto(self):
+        """El punto cae dentro del polígono del marcador; la localidad
+        real está a 849 m y es la que debe salir."""
+        latitude, longitude = self._latlon(0.56, 0.56)
+        resolution = geolocate.resolve_point(
+            latitude, longitude, self.state.pk)
+        self.assertEqual(resolution.locality, self.only_one)
+
+    def test_la_localidad_ninguno_no_cuenta_para_el_trazo(self):
+        """La línea solo toca el marcador: sin él no hay localidad."""
+        feature = self._feature("LineString", [(0.54, 0.54), (0.56, 0.56)])
+        resolution = geolocate.resolve_geometry(feature)
+        self.assertIsNone(resolution.locality)
+
     def test_el_punto_fuera_de_toda_cartografia_queda_vacio(self):
         resolution = geolocate.resolve_point(19.0, -60.0)
         self.assertIsNone(resolution.state)
@@ -180,7 +214,6 @@ class GeolocateTests(TestCase):
         feature = self._feature(
             "Polygon", [(0.2, 0.2), (0.8, 0.2), (0.8, 0.8), (0.2, 0.8)])
         resolution = geolocate.resolve_geometry(feature)
-        self.assertEqual(resolution.nearby_localities, 1)
         self.assertEqual(resolution.locality, self.only_one)
 
     def test_el_trazo_hereda_el_estado_de_su_municipio_base(self):
@@ -212,7 +245,6 @@ class GeolocateTests(TestCase):
         los puntos de catálogo de las otras dos localidades del este."""
         feature = self._feature("LineString", [(1.25, 0.25), (1.75, 0.25)])
         resolution = geolocate.resolve_geometry(feature)
-        self.assertEqual(resolution.nearby_localities, 1)
         self.assertEqual(resolution.locality, self.urban)
 
     def test_el_poligono_que_solo_colinda_no_atraviesa_al_vecino(self):
@@ -245,7 +277,6 @@ class GeolocateTests(TestCase):
         feature = self._feature(
             "Polygon", [(1.1, 0.2), (1.9, 0.2), (1.9, 0.8), (1.1, 0.8)])
         resolution = geolocate.resolve_geometry(feature)
-        self.assertEqual(resolution.nearby_localities, 3)
         self.assertIsNone(resolution.locality)
 
     # --- aplicación ---
@@ -261,16 +292,59 @@ class GeolocateTests(TestCase):
         self.assertIn("state", filled)
         self.assertEqual(location.state, self.state)
 
-    def test_el_punto_se_queda_con_su_municipio_en_el_m2m(self):
+    def test_el_punto_aproximado_no_recibe_localidad(self):
+        """La coordenada de un punto «Aproximado» señala el rumbo y no el
+        sitio: la localidad sería una precisión falsa, el municipio no."""
+        latitude, longitude = self._latlon(0.5, 0.5)
+        location = Location.objects.create(
+            type_location="point", latitude=latitude, longitude=longitude,
+            status_location=self.approximate)
+        filled = geolocate.apply_geolocation(location)
+        self.assertNotIn("locality", filled)
+        self.assertIsNone(location.locality)
+        self.assertEqual(location.municipality, self.west)
+        self.assertEqual(location.state, self.state)
+
+    def test_el_punto_en_otro_estatus_si_recibe_localidad(self):
+        latitude, longitude = self._latlon(0.5, 0.5)
+        location = Location.objects.create(
+            type_location="point", latitude=latitude, longitude=longitude,
+            status_location=self.approved)
+        filled = geolocate.apply_geolocation(location)
+        self.assertIn("locality", filled)
+        self.assertEqual(location.locality, self.only_one)
+
+    def test_el_trazo_aproximado_si_recibe_localidad(self):
+        """La salvaguarda es del punto: en un trazo la localidad sale de
+        la intersección con la geometría, no de una coordenada dudosa."""
+        feature = self._feature("LineString", [(1.3, 0.5), (1.7, 0.5)])
+        location = Location.objects.create(
+            type_location="line", geojson=feature,
+            status_location=self.approximate)
+        filled = geolocate.apply_geolocation(location)
+        self.assertIn("locality", filled)
+        self.assertEqual(location.locality, self.urban)
+
+    def test_el_punto_no_recibe_municipios_atravesados(self):
+        """El M2M es «los que atraviesa» y un punto no atraviesa nada."""
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
             type_location="point", latitude=latitude, longitude=longitude)
         geolocate.apply_geolocation(location)
         location.save()
-        self.assertEqual(list(location.municipalities.all()), [self.west])
-        self.assertIsNone(location.nearby_localities)
+        self.assertEqual(location.municipality, self.west)
+        self.assertEqual(list(location.municipalities.all()), [])
 
-    def test_el_trazo_persiste_municipios_centroide_y_conteo(self):
+    def test_el_punto_limpia_los_municipios_que_tuviera(self):
+        """Un punto que fue trazo arrastra la lista del trazo anterior."""
+        latitude, longitude = self._latlon(0.5, 0.5)
+        location = Location.objects.create(
+            type_location="point", latitude=latitude, longitude=longitude)
+        location.municipalities.set([self.west, self.east])
+        geolocate.apply_geolocation(location)
+        self.assertEqual(list(location.municipalities.all()), [])
+
+    def test_el_trazo_persiste_municipios_y_centroide(self):
         feature = self._feature("LineString", [(0.5, 0.5), (1.5, 0.5)])
         location = Location.objects.create(
             type_location="line", geojson=feature)
@@ -281,3 +355,29 @@ class GeolocateTests(TestCase):
             set(location.municipalities.all()), {self.west, self.east})
         self.assertIsNone(location.municipality)
         self.assertIsNone(location.state)
+
+    def test_el_veredicto_humano_bloquea_su_campo_en_el_fill(self):
+        """El id vetado en `HUMAN_VERDICTS` no recibe localidad, y sí el
+        resto de lo que el motor sí puede llenar."""
+        vetoed_id = next(
+            key for key, fields in HUMAN_VERDICTS.items()
+            if "locality" in fields)
+        latitude, longitude = self._latlon(0.5, 0.5)
+        location = Location.objects.create(
+            id=vetoed_id, type_location="point",
+            latitude=latitude, longitude=longitude)
+        filled, _, after, _sources = apply_and_diff(location)
+        self.assertNotIn("locality", filled)
+        self.assertIsNone(location.locality_id)
+        self.assertIsNone(after["locality_id"])
+        self.assertIn("municipality", filled)
+        self.assertEqual(location.municipality, self.west)
+
+    def test_sin_veredicto_humano_el_mismo_punto_recibe_localidad(self):
+        """Contraprueba del veto: el bloqueo es por id, no por el lugar."""
+        latitude, longitude = self._latlon(0.5, 0.5)
+        location = Location.objects.create(
+            type_location="point", latitude=latitude, longitude=longitude)
+        filled, _, _, _sources = apply_and_diff(location)
+        self.assertIn("locality", filled)
+        self.assertEqual(location.locality, self.only_one)

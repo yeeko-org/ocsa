@@ -187,12 +187,6 @@ class Location(models.Model):
         verbose_name="Municipios que abarca",
         help_text="Se calcula al guardar a partir del trazo; no se "
                   "captura a mano.")
-    nearby_localities = models.PositiveSmallIntegerField(
-        blank=True, null=True,
-        verbose_name="Localidades que toca o roza",
-        help_text="Cuántas localidades corta el trazo o quedan dentro de "
-                  "su margen de cercanía. Si es exactamente una, se llena "
-                  "el campo Localidad; con cero o más de una queda vacío.")
     details = models.TextField(blank=True, null=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
