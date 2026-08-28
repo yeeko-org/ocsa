@@ -1,0 +1,30 @@
+location_id,project_id,parent,status,comment_verbatim,state_proposed,state_id,municipality_proposed,municipality_id,locality_proposed,locality_id,confidence,note
+1199,568,impact,need_fix,YEEKO: Estado no encontrado: Ciudad de Méxcio; Municipio no encontrado: Tlalpan; Localidad no encontrada: Parres El Guarda,Ciudad de México,9,Tlalpan,286,Parres (El Guarda),84449,alta,
+1715,9,event,need_fix,YEEKO: Estado no encontrado: Quinta Roo; Localidad no encontrada: Playa del Carmen,Quintana Roo,23,Playa del Carmen,1828,Playa del Carmen,201482,media,"Municipio deducido de la localidad (coincidencia exacta), el comentario no traía fragmento de municipio."
+1880,1052,event,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León,Nuevo León,19,Monterrey,1003,,,alta,"Ricardo 2026-08-28: Monterrey = municipio, NL = estado"
+1881,1117,impact,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León,Nuevo León,19,Monterrey,1003,,,alta,"Ricardo 2026-08-28: Monterrey = municipio, NL = estado"
+1882,1052,event,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León; Localidad no encontrada: Montemorelos,Nuevo León,19,Montemorelos,1002,,,alta,Estado y municipio invertidos en el comentario legado (Monterrey<->Nuevo León); localidad Montemorelos confirma el municipio.
+1883,1052,event,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León; Localidad no encontrada: Montemorelos,Nuevo León,19,Montemorelos,1002,,,alta,Estado y municipio invertidos en el comentario legado; localidad Montemorelos confirma el municipio.
+2059,159,impact,need_fix,YEEKO: Estado no encontrado: Qunitana Roo,Quintana Roo,23,,,,,alta,
+2142,,none,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León; Localidad no encontrada: Allende,Nuevo León,19,Allende,968,,,alta,Estado y municipio invertidos; localidad Allende confirma el municipio.
+2143,,none,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León; Localidad no encontrada: Montemorelos,Nuevo León,19,Montemorelos,1002,,,alta,Estado y municipio invertidos; localidad Montemorelos confirma el municipio.
+2145,1053,event,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León,Nuevo León,19,Monterrey,1003,,,alta,"Ricardo 2026-08-28: Monterrey = municipio, NL = estado"
+2159,9,event,need_fix,YEEKO: Estado no encontrado: Quintana Rooo; Localidad no encontrada: Playa del Carmen,Quintana Roo,23,Playa del Carmen,1828,Playa del Carmen,201482,media,"Municipio deducido de la localidad (coincidencia exacta), el comentario no traía fragmento de municipio."
+2224,581,impact,need_fix,YEEKO: Estado no encontrado: Monterrey,Nuevo León,19,Monterrey,1003,,,alta,
+2225,581,impact,need_fix,YEEKO: Estado no encontrado: Monterrey,Nuevo León,19,Monterrey,1003,,,alta,
+2226,581,impact,need_fix,YEEKO: Estado no encontrado: Monterrey,Nuevo León,19,Monterrey,1003,,,alta,
+3050,1117,impact,need_fix,YEEKO: Estado no encontrado: Monterrey,Nuevo León,19,Monterrey,1003,,,alta,
+3141,1242,impact,need_fix,YEEKO: Estado no encontrado: Monterrey,Nuevo León,19,Monterrey,1003,,,alta,
+3265,521,impact,need_fix,YEEKO: Estado no encontrado: Juan C. Bonilla,Puebla,21,Juan C. Bonilla,1675,,,alta,
+3309,1052,event,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León; Localidad no encontrada: Montemorelos,Nuevo León,19,Montemorelos,1002,,,alta,Estado y municipio invertidos; localidad Montemorelos confirma el municipio.
+3310,1052,event,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León; Localidad no encontrada: Montemorelos,Nuevo León,19,Montemorelos,1002,,,alta,Estado y municipio invertidos; localidad Montemorelos confirma el municipio.
+3316,1389,impact,need_fix,YEEKO: Estado no encontrado: Tabascp; Municipio no encontrado: Huimanguillo,Tabasco,27,Huimanguillo,1988,,,alta,
+3402,1052,event,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León,Nuevo León,19,Monterrey,1003,,,alta,"Ricardo 2026-08-28: Monterrey = municipio, NL = estado"
+3403,1117,impact,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León,Nuevo León,19,Monterrey,1003,,,alta,"Ricardo 2026-08-28: Monterrey = municipio, NL = estado"
+3404,1052,event,need_fix,YEEKO: Estado no encontrado: Monterrey; Municipio no encontrado: Nuevo León; Localidad no encontrada: Montemorelos,Nuevo León,19,Montemorelos,1002,,,alta,Estado y municipio invertidos; localidad Montemorelos confirma el municipio.
+3786,,none,need_fix,YEEKO: Estado no encontrado: Quinta Roo; Municipio no encontrado: Tulum,Quintana Roo,23,Tulum,1829,,,alta,
+3939,227,event,need_fix,YEEKO: Estado no encontrado: Oaxac; Municipio no encontrado: San Blas Atempa ; Localidad no encontrada: Puente de Madera,Oaxaca,20,,,,,media,"Municipio ""San Blas Atempa"" solo coincide de forma difusa con ""Heroica Villa de San Blas Atempa"" (id 1139); localidad ""Puente de Madera"" solo coincide de forma difusa con ""Puente Madera"" (id 178236) en ese municipio. No normalizan exacto, no se asignan."
+4008,575,impact,need_fix,YEEKO: Estado no encontrado: Siinaloa; Municipio no encontrado: El Rosario,Sinaloa,25,,,,,media,"Municipio ""El Rosario"" solo coincide de forma difusa con ""Rosario"" (id 1903) en Sinaloa; no coincide exacto tras normalizar, no se asigna."
+4113,9,impact,need_fix,YEEKO: Estado no encontrado: Quintan Roo; Localidad no encontrada: Akumal,Quintana Roo,23,Tulum,1829,Akumal,201770,media,"Municipio deducido de la localidad Akumal (coincidencia exacta), el comentario no traía fragmento de municipio."
+4235,521,impact,need_fix,YEEKO: Estado no encontrado: Pubela,Puebla,21,,,,,alta,
+10316,1267,impact,need_fix,YEEKO: Estado no encontrado: SI; Municipio no encontrado: Guaymas; Localidad no encontrada: Pótam,Sonora,26,Guaymas,1937,Pótam,227301,alta,

@@ -79,9 +79,23 @@ research/r_queries/config.R
 .claude/geolocate_review*.csv
 .claude/geolocate_review*.jsonl
 .claude/geolocate_review*.json
+.claude/geolocate_review*.md
+.claude/geolocate_fill_changes_*.csv
 .claude/location_comments_*.csv
 .claude/location_comments_*.jsonl
+.claude/far_pins_*.csv
+.claude/review_flags_*.csv
+.claude/dashboard_orphans_*.csv
+.claude/aviso_equipo_*.xlsx
+
+# Los dictámenes que consume `--fill --verdicts` sí se versionan: son
+# trabajo humano, no salida regenerable
+!.claude/verdicts/
+!.claude/verdicts/*.csv
 
 # Análisis de los diagnósticos: traen nombres del equipo y el repo es
 # público
 .claude/*_analisis.md
+
+# Salida regenerable de resolve_legacy_names --project-only
+.claude/legacy_names_verdicts_project.csv

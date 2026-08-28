@@ -5,7 +5,12 @@ lo revierte con el respaldo que dejó y compara fila por fila contra la
 foto que tomó antes de empezar. Todo ocurre dentro de una transacción
 que se revierte al final: la base queda como estaba, corra bien o mal.
 
-    python .claude/diagnostics/geolocate_backup_roundtrip.py [muestra]
+    python .claude/diagnostics/geolocate_backup_roundtrip.py \\
+        [muestra] [dictamen.csv ...]
+
+Con CSV de dictámenes ejercita también la limpieza de comentarios: sin
+ellos `comments` y `details` nunca cambian y el respaldo de esos dos
+campos se quedaría sin probar.
 
 Sale con código 1 si algo no cuadra.
 """
@@ -24,8 +29,9 @@ django.setup()
 
 from django.db import transaction  # noqa: E402
 
-from space_time.management.commands.geolocate_locations import (  # noqa: E402
+from space_time.backfill import (  # noqa: E402
     BACKUP_FIELDS, Filler, Reverter, located, snapshot)
+from space_time.backfill_verdicts import load_verdicts  # noqa: E402
 
 SAMPLE = 200
 
@@ -43,14 +49,17 @@ def photograph(ids: list) -> dict:
 
 def main() -> int:
     sample = int(sys.argv[1]) if len(sys.argv) > 1 else SAMPLE
-    ids = list(located(sample).values_list("id", flat=True))
+    verdicts = sys.argv[2:]
+    extra = list(load_verdicts(verdicts)) if verdicts else []
+    ids = list(located(sample, extra_ids=extra).values_list("id", flat=True))
     backup = Path(tempfile.mkdtemp()) / "roundtrip.json"
     failures = []
     # `atomic` + `set_rollback` es lo que permite ejercitar la escritura
     # real —`bulk_update` y el `set()` del M2M— sin dejar rastro.
     with transaction.atomic():
         before = photograph(ids)
-        filler = Filler(dry_run=False, limit=sample, backup=str(backup))
+        filler = Filler(dry_run=False, limit=sample, backup=str(backup),
+                        verdicts=verdicts)
         print("\n".join(filler.run()))
         after = photograph(ids)
         changed = [key for key in before if before[key] != after[key]]

@@ -1,0 +1,58 @@
+location_id,project_id,legacy_value,scope_municipality,has_geometry,verdict,candidate_name,candidate_id,reason
+104,798,Bosques de las Lomas,Miguel Hidalgo,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+114,854,Lomas de Chapultepec,Miguel Hidalgo,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+302,558,Bosques de San Elías Repechique,Guachochi,1,a_details,,,"comunidad rarámuri sin fila en el catálogo; el San Elías Repechique del INEGI está en Bocoyna, no en Guachochi"
+1129,74,Lomas de Santa María,Morelia,1,a_details,,,"fraccionamiento urbano de Morelia, no una localidad del catálogo"
+1544,1162,Polanco,Miguel Hidalgo,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+2400,1190,Polanco,Miguel Hidalgo,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+3804,984,Saratoga esquina con Eje 8 Sur,Benito Juárez,1,a_details,,,"cruce de calles: es una referencia de domicilio, no un topónimo"
+4430,874,Bocoyvo,Chínipas,1,llenar,Bocoybo (Repogueachi),63560,"variante v/b de Bocoybo, en Batopilas: coincide con el municipio que el mismo comentario no encontró"
+4513,553,Hopelchén,,1,irresoluble,,,"Hopelchén es municipio de Campeche y la ubicación tiene capturado Yucatán: corregirlo mueve el estado, no solo el municipio"
+12302,875,Loreto,Chínipas,1,irresoluble,,,"dos localidades de Chínipas lo llevan en el nombre —Ignacio Valenzuela Lagarda (Loreto) y Los Alamillos de Loreto, esta última ya capturada— y nada en el proyecto desempata"
+12315,548,Creel,Atotonilco de Tula,1,inutil,,,"Creel es de Bocoyna, Chihuahua, y la ubicación es el río Tula en Hidalgo: captura equivocada"
+12324,227,Coatzacoalcos,,1,a_details,,,"municipio de Veracruz en una ubicación capturada en Oaxaca; el corredor sí llega ahí, así que vale como referencia"
+12324,227,Puerto de Salina Cruz,,1,a_details,,,el corredor abarca muchos municipios; fijar una sola localidad falsearía el trazo
+12337,881,"Tecate, Tijuana, playas de rosarito y ensenada",,1,a_details,,,lista de cuatro municipios: no cabe en una llave foránea
+12337,881,Valle de San Quintín,,1,a_details,,,"región agrícola, no una localidad del catálogo"
+12345,882,San jeronimo,La Magdalena Contreras,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12356,201,"Catorce, Charcas, Matehuala, Villa de Guadalupe, Villa de La Paz y Villa de Ramos",,1,a_details,,,lista de seis municipios: no cabe en una llave foránea
+12356,201,wirikuta,,1,a_details,,,"territorio sagrado wixárika, sin fila en el catálogo del INEGI"
+12381,235,San Ángel,Álvaro Obregón,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12393,764,Pueblo Xoco,Benito Juárez,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12422,783,Espacio Cumbres,Monterrey,1,a_details,,,"nombre del desarrollo y de su colonia en Monterrey, no una localidad"
+12424,771,Santa Fe,Álvaro Obregón,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12449,777,Ampliación Alpes,Álvaro Obregón,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12460,797,Bosques de las Lomas,Miguel Hidalgo,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12462,308,Barranca del Moral,Álvaro Obregón,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12466,800,Centro histórico,Cuauhtémoc,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12469,336,Puerto Morelos,,1,irresoluble,,,Puerto Morelos es de Quintana Roo y la ubicación tiene capturado Yucatán: corregirlo mueve el estado
+12470,208,San Pancho,Bahía de Banderas,1,inutil,,,"apodo de San Francisco, Bahía de Banderas, que ya está capturada en la ubicación"
+12473,801,Roma Norte,Cuauhtémoc,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12476,802,Lomas Hipódromo,Naucalpan de Juárez,1,a_details,,,"colonia de Naucalpan, no una localidad del catálogo"
+12477,316,San José insurgentes,Benito Juárez,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12478,803,El Contadero,Cuajimalpa de Morelos,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12481,339,Roma,Cuauhtémoc,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12482,804,Tlaltenango,Cuernavaca,1,a_details,,,colonia y pueblo urbano de Cuernavaca; el catálogo solo trae las localidades rurales del municipio
+12487,806,Anzures,Miguel Hidalgo,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12489,855,Centro histórico,Cuauhtémoc,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12514,385,El Contadero,,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12523,381,Sonora,Cananea,1,inutil,,,se capturó el nombre del estado en el campo de localidad
+12529,396,El Águila,San Pedro Totolápam,1,inutil,,,repite el nombre de la mina (el propio proyecto); San Pedro Totolápam no tiene esa localidad
+12553,431,Poblado Cieneguita Lluvia de Oro,Urique,1,llenar,Cieneguita Lluvia de Oro,82263,el prefijo «Poblado» es lo único que estorbaba; la localidad ya está capturada
+12570,322,Taico,,1,llenar,Tampico,2035,errata de Tampico: el otro fragmento del mismo comentario nombra la localidad Tampico
+12570,322,Tampico,,1,llenar,Tampico,252759,cabecera de Tampico (297 373 hab.); el municipio queda fijado por el fragmento hermano
+12584,437,Miguel Hidalgo,Cuernavaca,1,a_details,,,"colonia Miguel Hidalgo de Cuernavaca, no una localidad del catálogo"
+12601,481,Santa Úrsula Xitla,Tlalpan,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12643,895,Los Napuchis,Carichí,1,irresoluble,,,"Carichí tiene siete localidades homónimas Napuchi/Napuchis (de 0 a 95 habitantes) y nada desempata; con geometría, el backfill la calcularía"
+12677,614,"Av. 5 de Mayo, No. 62",Álvaro Obregón,1,a_details,,,"domicilio, no un topónimo"
+12697,660,Valle Poniente,Santa Catarina,1,a_details,,,"fraccionamiento de Santa Catarina, no una localidad del catálogo"
+12737,715,San Antonio,Iztapalapa,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12742,728,Av. Casa de la Moneda,Miguel Hidalgo,1,a_details,,,"domicilio, no un topónimo"
+12748,734,Roma Norte,Cuauhtémoc,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12749,735,Roma Norte,Cuauhtémoc,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12778,905,Polanco,Miguel Hidalgo,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12779,906,Playa Chacala,Bahía de Banderas,1,a_details,,,Chacala es de Compostela y la ubicación está capturada en Bahía de Banderas: la playa vale como referencia
+12885,1472,San Nicolás Totolapan,,1,llenar,Ejido de San Nicolás Totolapan,84076,"coincide al 100 % en La Magdalena Contreras, el municipio que el mismo comentario no encontró"
+12887,1500,Vicente Guerrero,Gustavo A. Madero,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía
+12919,1475,Ranchería Ocampo,Ocampo,1,a_details,,,Ocampo no tiene una localidad con ese nombre; «ranchería» describe el asentamiento
+16218,150,Pueblo Cuautepec,Gustavo A. Madero,1,a_details,,,colonia o pueblo urbano de la CDMX; el catálogo INEGI solo trae la alcaldía

@@ -23,7 +23,7 @@ django.setup()
 
 from space_time.geolocate import (  # noqa: E402
     _locality_points, point_in_meters, resolve_geometry, resolve_point)
-from space_time.management.commands.geolocate_locations import (  # noqa: E402
+from space_time.backfill import (  # noqa: E402
     COMPARED_FIELDS, computed_value, located)
 
 OUT_CSV = Path(".claude/geolocate_review_analizado.csv")
@@ -225,8 +225,6 @@ def main():
             "localidad_calculada_datos": computed_facts,
             "municipios_atravesados_medida": crossed,
             "n_municipios_atravesados": len(crossed),
-            "localidades_cercanas": getattr(
-                resolution, "nearby_localities", None),
             "ponderada_raiz": _weighted_id(
                 reference, values["municipality"][1], 0.5),
             "ponderada_cubica": _weighted_id(
