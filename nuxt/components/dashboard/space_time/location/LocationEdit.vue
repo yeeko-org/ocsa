@@ -190,8 +190,6 @@ function applyImported({feature, type_location, warnings}) {
       v-model:overwrote_saved="overwrote_saved"
       :import_warnings="import_warnings"
       :geo_notices="geo_notices"
-      :nearby_localities="full_main.nearby_localities"
-      :type_location="full_main.type_location"
     />
     <v-textarea
       v-model="full_main.details"
