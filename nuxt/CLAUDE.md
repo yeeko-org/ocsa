@@ -25,11 +25,10 @@ Package manager is pnpm (`packageManager` in `package.json`; the lockfile is git
 Each data domain is a "collection" (e.g. `actores`, `proyectos`, `eventos`). Catalogs have filter groups with hierarchical categories built via D3 `stratify()` in `composables/nodes.js`. `calculateNewCats()` rebuilds the tree after any catalog mutation. `composables/fetch.js` manages debounced (600 ms) list fetching with global `results`, `loading_fetch`, `final_filters` refs.
 
 ### Component Conventions
+- Files named `{Model}{Header|Sheet|Edit|EditSimple|Card}.vue` under `components/dashboard/{app_label}/{snake_name}/` are loaded by name convention, with the path built at runtime: **nothing imports them, and that is normal**.
+- **Warning**: a grep with zero importers on those files does NOT mean dead code. Never rename, move, delete or refactor them without reading the skill first.
+- All the detail (suffixes, resolvers, fallbacks, props, emits, filters, massive edit, CRUD contract) lives in the `dashboard-collections` skill.
 - CRUD is entirely dialog-driven: `DialogEdit`, `DialogDelete`, `DialogSearch`.
-- Reusable shells: `components/dashboard/common/generic/` — `CardCommon`, `EditCommon`, `HeaderCommon`. Domain components slot into these.
-- Standard props on edit components: `full_main` (the model object), `collection_data`, `collection_name`, `is_edit`, `is_massive_edit`.
-- Standard emits: `item-saved`, `item-deleted`.
-- Massive edit mode (`is_massive_edit`) hits a different endpoint (`massive_patch/`).
 - Mix of Options API (older) and `<script setup>` (preferred for new code).
 
 ### Maps

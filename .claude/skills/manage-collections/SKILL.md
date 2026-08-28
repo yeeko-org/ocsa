@@ -1,9 +1,6 @@
 ---
 name: manage-collections
-description: >
-  Create or edit CatalogSchema, CollectionSchema, and FilterGroupSchema in
-  api/{app}/catalog_schema.py. Use when adding a new collection, catalog, or
-  filter group, or modifying an existing one.
+description: Create or edit CatalogSchema, CollectionSchema, and FilterGroupSchema in api/{app}/catalog_schema.py. Use when adding a new collection, catalog, or filter group, or modifying an existing one.
 ---
 
 # manage-collections
@@ -161,3 +158,7 @@ If the app does not yet import its `catalog_schema` in `ready()`:
 def ready(self):
     import {app}.catalog_schema  # noqa
 ```
+
+---
+
+Consumidor en el front: skill `dashboard-collections` — cómo el dashboard renderiza cada colección registrada aquí y qué componentes por modelo puede recibir.
