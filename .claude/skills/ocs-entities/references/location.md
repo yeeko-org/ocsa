@@ -4,7 +4,7 @@ Dónde está un megaproyecto, un evento o una afectación. Una `Location` cuelga
 
 ## Modelo `space_time.Location`
 
-- FK nulables: `project`, `event`, `impact` (una sola puesta), `state`, `municipality`, `locality` (una de cada) más el M2M derivado `municipalities` (todos los municipios que atraviesa la geometría, incluido el base) y `nearby_localities`.
+- FK nulables: `project`, `event`, `impact` (una sola puesta), `state`, `municipality`, `locality` (una de cada) más el M2M derivado `municipalities` (todos los municipios que atraviesa la geometría, incluido el base).
 - **Derivación geográfica y cartografía del INEGI: skill `ocs-geo`** — reglas, umbrales, loaders y contrato del `geojson` viven allí, no aquí.
 - `type_location`: choices `point` | `line` | `polygon` (`TYPE_LOCATIONS`; no es tabla). El 2026-08-26 se reabrió como tarea futura darle su propio modelo `LocationType` y renombrar el campo a `location_type`.
 - `latitude`, `longitude`: en `point`, la coordenada capturada; en `line` y `polygon`, el centroide que calcula el servidor al guardar la geometría (punto medio del trazo en las líneas).

@@ -30,11 +30,15 @@ Ocho tests, ~0.04 s, **sin red y sin costo**: cubren el invariante de escritura 
 DATABASE_SCHEMA= python manage.py test space_time --noinput
 ```
 
-Treinta y dos tests, ~0.23 s, **sin red y sin costo**, repartidos en el paquete `space_time/tests/`:
+Setenta y cuatro tests, ~0.3 s, **sin red y sin costo**, repartidos en el paquete `space_time/tests/`:
 
 - `test_map_visibility.py` (7): el criterio único de `adr-0022` —ubicación visible si su estatus y la validación de su proyecto son públicos; proyecto visible si tiene alguna ubicación visible; mención visible si además su nota lo es—. Los helpers viven en `api/views/map/visibility.py`, pero los tests están en `space_time` porque `api/` no es una app instalada y el runner no descubriría sus tests.
 - `test_completeness.py` (6): los filtros «Pendientes de ubicación» de `space_time/completeness.py` (`task-69`) — cada opción dice lo mismo consultada por ubicaciones y por proyectos, y `any_pending` es la unión exacta de las demás.
-- `test_geolocate.py` (19): el motor `space_time/geolocate.py` (`adr-0026`) sobre **cartografía sintética** —municipios cuadrados de 10 km y localidades inventadas en EPSG:6372—, así que corre sin haber descargado los shapefiles del INEGI: resolución por punto, por línea y por polígono, localidades retiradas del catálogo, umbral de roce, municipios atravesados y la regla «solo vacíos» de `apply_geolocation`.
+- `test_geolocate.py` (27): el motor `space_time/geolocate.py` (`adr-0026`) sobre **cartografía sintética** —municipios cuadrados de 10 km y localidades inventadas en EPSG:6372—, así que corre sin haber descargado los shapefiles del INEGI: resolución por punto, por línea y por polígono, localidades retiradas del catálogo, localidades marcador «Ninguno» del AGEEML (por punto y por trazo), umbral de roce, municipios atravesados, la regla «solo vacíos» de `apply_geolocation` y la salvaguarda que impide llenar la localidad de un punto en «Aprobado (Aproximado)». Cubre también el veto por id de `HUMAN_VERDICTS` (en `space_time/backfill.py`), con su contraprueba.
+
+- `test_legacy_names.py` (10): la resolución de los nombres heredados de `space_time/legacy_names.py`. Nueve son la función pura contra listas de candidatos armadas a mano (qué cuenta como exacto, el umbral difuso, la contención, y qué manda cuando el valor huele a colonia); el décimo va a la base, sobre la cartografía sintética, y comprueba lo único de la consulta al catálogo que puede desalinearse del motor: que las localidades retiradas y los marcadores «Ninguno» no lleguen a ser candidatos.
+- `test_backfill_verdicts.py` (14): los dictámenes que el backfill aplica sobre los comentarios `YEEKO:` (`space_time/backfill_verdicts.py`, `task-88`). Reutiliza la cartografía sintética de `test_geolocate.py` (mixin `SyntheticCartography`) y protege lo destructivo: que la reescritura del comentario conserve el texto que escribió un editor, que `details` no repita una referencia que ya dice, que un homónimo vacíe la capa que le toca, que `llenar` no pise un campo ya capturado con otro id, que el último CSV gane sobre el mismo fragmento, que el dictamen corra antes que el motor, y que `HUMAN_VERDICTS` gane incluso sobre un `llenar` del CSV.
+- `test_review_flags.py` (10): el marcado editorial de `space_time/review_flags.py` (`task-83`, pendiente 3). Protege lo que no se deshace solo: que repetir la corrida no duplique el comentario aunque cambie la fecha de la firma, que el estatus se mueva a «Aprobado (con observaciones)» solo desde «Aprobado» y en cualquier otro caso quede intacto, y que `--revert` restaure el estatus previo quitando únicamente el texto agregado, sin llevarse el comentario que ya había escrito un editor. No pasa por la selección (`scan`), que necesita cartografía: parte de entradas ya seleccionadas.
 
 El `DATABASE_SCHEMA=` de los comandos es obligatorio en local: el `.env` apunta al schema `ocsa`, que no existe en la base de test recién creada, y sin vaciarlo la corrida muere en `MigrationSchemaMissing`.
 
@@ -96,10 +100,38 @@ python .claude/diagnostics/geo_import_check.py
 ### Reversibilidad del backfill de geolocalización
 
 ```bash
-python .claude/diagnostics/geolocate_backup_roundtrip.py [muestra]
+python .claude/diagnostics/geolocate_backup_roundtrip.py [muestra] [dictamen.csv ...]
 ```
 
-**Gratis y sin red, y no deja rastro en la base:** corre el `--fill` real de `geolocate_locations` sobre las primeras N ubicaciones con geometría, lo revierte con el respaldo JSON que ese mismo comando deja, y compara fila por fila contra la foto previa —incluido el M2M `municipalities`—. Todo dentro de una transacción que se revierte al terminar. Sale con código 1 si alguna ubicación no volvió a su valor previo. Es la verificación a correr antes de un `--fill` de verdad, y después de tocar `space_time/geolocate.py` o el comando.
+**Gratis y sin red, y no deja rastro en la base:** corre el `--fill` real de `geolocate_locations` sobre las primeras N ubicaciones con geometría, lo revierte con el respaldo JSON que ese mismo comando deja, y compara fila por fila contra la foto previa —incluido el M2M `municipalities`—. Todo dentro de una transacción que se revierte al terminar. Sale con código 1 si alguna ubicación no volvió a su valor previo. Es la verificación a correr antes de un `--fill` de verdad, y después de tocar `space_time/geolocate.py` o el comando. Pasarle los CSV de dictámenes es lo único que ejercita el respaldo de `comments` y `details`: sin ellos esos dos campos nunca cambian.
+
+### Dictamen de los topónimos legados
+
+```bash
+python manage.py resolve_legacy_names
+python manage.py resolve_legacy_names --project-only --out .claude/legacy_names_verdicts_project.csv
+```
+
+**Gratis y sin red, solo lectura:** recorre las ubicaciones cuyo `comments` empieza con `YEEKO:`, parte cada comentario en fragmentos y dictamina cada uno contra el catálogo del INEGI dentro del ámbito capturado (`space_time/legacy_names.py`, `task-88`). No toca la base: escribe un CSV en `.claude/verdicts/legacy_names_verdicts.csv` —el `--out` por omisión— con una fila por fragmento, su nivel de coincidencia y el veredicto (`llenar`, `a_details`, `vaciar`, `sin_resolver`). `--project-only` acota a las ubicaciones ligadas a un proyecto; esa rebanada es la entrada de `.claude/diagnostics/legacy_names_manual.py`, que le pega los 57 dictámenes hechos a mano y regenera `.claude/verdicts/legacy_names_manual_project.csv`. El catálogo de candidatos filtra igual que el motor —localidades vigentes y sin los marcadores «Ninguno» del AGEEML—, así que hay que regenerar el CSV después de tocar ese filtro.
+
+### Backfill con dictámenes aplicados
+
+```bash
+python manage.py geolocate_locations --fill --dry-run \
+    --verdicts .claude/verdicts/legacy_names_verdicts.csv \
+                .claude/verdicts/legacy_names_manual_project.csv \
+                .claude/verdicts/yeeko_states_verdicts.csv
+
+python manage.py geolocate_locations --fill \
+    --verdicts .claude/verdicts/legacy_names_verdicts.csv \
+                .claude/verdicts/legacy_names_manual_project.csv \
+                .claude/verdicts/yeeko_states_verdicts.csv \
+    --changes-out .claude/geolocate_fill_changes_<fecha>.csv
+
+python manage.py geolocate_locations --revert .claude/geolocate_fill_<fecha>.json
+```
+
+**Escribe.** Los tres CSV van en orden de prioridad —el último gana sobre el mismo fragmento—: el automático primero, encima los dictámenes hechos a mano y al final los estados de `yeeko_states_verdicts.csv`. El dictamen corre antes que el motor: lo que un CSV resuelve, el motor ya no lo toca. Antes de la corrida de verdad, `--dry-run` cuenta sin escribir y el diagnóstico de reversibilidad de arriba prueba el camino completo con estos mismos CSV (es lo único que ejercita el respaldo de `comments` y `details`). Cada `--fill` deja su respaldo en `.claude/geolocate_fill_<fecha>.json` y el detalle campo por campo en `.claude/geolocate_fill_changes_<fecha>.csv`; `--revert` deshace la corrida con ese JSON. Los tres CSV de dictámenes sí se versionan (viven en `.claude/verdicts/`): son trabajo humano, no salida regenerable.
 
 ### Revisión enriquecida de la geolocalización
 
@@ -108,6 +140,14 @@ python .claude/diagnostics/geolocate_review_enrich.py
 ```
 
 **Gratis y sin red, solo lectura:** recorre el mismo universo que `geolocate_locations --review` (ubicaciones con proyecto y con geometría), recalcula la resolución con el motor actual y escribe tres archivos en `.claude/`: `geolocate_review_analizado.csv` (una fila por ubicación donde lo capturado difiere de lo calculado, en español, con población, ámbito urbano/rural y distancias de la localidad capturada y de la calculada), `geolocate_review_raw.jsonl` y `geolocate_review_tally.json`. No necesita correr `--review` antes; lee la base directamente y no escribe en ella. El ámbito lo saca de `space_time/geo_files/localidades.csv` (el AGEEML en disco), así que hace falta haber corrido `download_inegi.sh`. Es lo que hay que regenerar después de tocar `space_time/geolocate.py`, porque la cuenta de filas sostiene lo que dice `../docs/tasks/task-83`.
+
+### Pines lejos de lo capturado
+
+```bash
+python .claude/diagnostics/far_pins.py [umbral_km]
+```
+
+**Gratis y sin red, solo lectura:** mide con shapely, en EPSG:6372, la distancia de cada ubicación de tipo `point` con proyecto y coordenadas al polígono del municipio capturado y al del estado capturado (0 si el pin cae dentro), y saca en `.claude/far_pins_<fecha>.csv` las filas que rebasan el umbral —2 km por omisión, decisión de Ricardo del 2026-08-28— o que quedan fuera de su estado. Sirve para separar el pin mal puesto de la captura equivocada. La medición vive en `space_time/far_pins.py`, no en el diagnóstico: es la misma que aplica el comando de marcado.
 
 ### Comentarios de las ubicaciones que tocaría el backfill
 
@@ -159,6 +199,26 @@ python manage.py regenerate_note_files --mode all --dry-run
 ```
 
 Solo lectura: cuenta las notas de Reforma con portada de sección por regenerar y las notas sin adjunto rellenables, separando las que no tienen `Article` (inalcanzables para el generador). Sin `--dry-run` **escribe**: descarga de la hemeroteca de Reforma (~2 peticiones por nota, sin costo monetario), reemplaza adjuntos y corrige `Note.pages`. Acotar siempre con `--limit` o `--ids` fuera de la corrida planeada.
+
+### Purga de ubicaciones huérfanas del legacy
+
+```bash
+python manage.py purge_orphan_locations                      # solo reporta
+python manage.py purge_orphan_locations --apply --expect 3103
+python manage.py purge_orphan_locations --dashboard-orphans   # agrega las del dashboard
+```
+
+Sin `--apply` es solo lectura: reporta cuántas ubicaciones sin proyecto, evento ni impacto colgaban en el legacy de un opositor, de una población afectada o de nada, desglosadas por clase y por estatus. Con `--apply` **borra**. La bandera `--dashboard-orphans` agrega a la selección las ubicaciones sin referencia legacy que nacieron sin padre en el dashboard y no aportan nada —sin dato (sin texto, sin trazo y sin coordenadas: el estado y el municipio solos no salvan la fila), equivalentes a una hermana con padre (mismo texto normalizado o contenido en él, en el mismo estado y municipio; si la huérfana no capturó estado o municipio, basta el texto), o copias dentro de su propio grupo de duplicados—; conserva la primera de cada grupo, que es la que se le pasa al equipo de OCSA para revisión. Necesita la conexión `legacy` configurada (`DATABASE_LEGACY_*` con `DATABASE_LEGACY_SCHEMA=ocs`), porque la selección se recalcula cada vez desde las tablas puente de `ocs` —nunca hay lista de ids fija—, y por eso es idempotente y sirve igual en local que en producción. No deja respaldo a propósito: el schema `ocs` es el respaldo. Antes de borrar comprueba que ninguna fila seleccionada tenga clics, municipios atravesados ni geojson, y `--expect N` aborta si la cuenta se desvía más del 5 % de la corrida en seco. En la copia local del 2026-08-26 seleccionó 3,103 filas, ya aplicadas el 2026-08-28; con `--dashboard-orphans` selecciona 53 más y deja 14 para revisión (el detalle de esas 67, en `.claude/dashboard_orphans_2026-08-28.csv`).
+
+### Marcado editorial de ubicaciones dudosas
+
+```bash
+python manage.py flag_locations_for_review                    # solo reporta
+python manage.py flag_locations_for_review --apply --expect 102
+python manage.py flag_locations_for_review --revert .claude/review_flags_<fecha>.csv
+```
+
+Sin `--apply` es solo lectura: recomputa la selección desde los datos —nunca hay lista de ids fija— y deja en `.claude/review_flags_<fecha>.csv` una fila por comentario que agregaría (ubicación, proyecto, clase, estatus antes y después, texto). Con `--apply` **escribe**, en una transacción y con `bulk_update`. Dos clases: `far_pin`, los puntos que el diagnóstico de pines lejanos selecciona (mismo módulo, `--threshold` mueve el umbral), y `legacy_name`, las dos ubicaciones dictaminadas a mano cuyo nombre de localidad del legado no tiene resolución (12302 «Loreto» y 12643 «Los Napuchis»). A todas les agrega un comentario fechado y firmado con la convención del front (`\n\n` + `DD/MM/YYYY - Ricardo: texto`); a las que están en «Aprobado» les cambia además el estatus a «Aprobado (con observaciones)», y a las demás no les mueve el estatus, porque ya están en flujo de revisión. Es idempotente: la ubicación cuyo comentario ya contiene el texto se salta. `--expect N` aborta antes de escribir si la selección se desvía más del 5 %. `--revert <csv>` deshace la corrida leyendo ese mismo CSV: restaura el estatus previo y quita solo el texto agregado. En la copia local del 2026-08-26, con el umbral de 2 km, selecciona 102 ubicaciones (103 comentarios; 70 cambian de estatus).
 
 ### Sonda de Proceso
 

@@ -17,5 +17,5 @@ Restricciones permanentes:
 
 - **Sin PostGIS.** Todo el cálculo es shapely en memoria del proceso, sobre WKB en EPSG:6372 guardado en modelos 1:1; no introducir dependencias GIS en la base de datos.
 - **Solo se llena lo vacío.** El servidor nunca sobrescribe `state`, `municipality` o `locality` capturados a mano, y ningún automatismo toca `status_location` (docs `adr-0024`, `adr-0027`).
-- **Los derivados se reescriben siempre**: M2M `municipalities`, centroide y `nearby_localities` se recalculan cuando cambia la geometría; no son capturables.
+- **Los derivados se reescriben siempre**: el M2M `municipalities` y el centroide se recalculan cuando cambia la geometría; no son capturables.
 - **Los umbrales viven en el código**, como constantes de `api/space_time/geolocate.py`; cambiarlos es decisión de Ricardo y se refleja aquí y en docs `adr-0026`.
