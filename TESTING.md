@@ -4,7 +4,7 @@ Mapa de niveles del monorepo. El detalle vive de cada lado; aquí solo está qu�
 
 | Nivel | `api/` (Django) | `nuxt/` (front) |
 |---|---|---|
-| Unitario | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa, pendientes, geolocalización), runner nativo; comandos y gotchas en [api/TESTING.md](api/TESTING.md) | **Sí** — Vitest (`cd nuxt && pnpm test`), por ahora solo composables puros: `composables/__tests__/useClosePosition.test.js` (centro de respaldo del mapa del editor). Config en `nuxt/vitest.config.js` |
+| Unitario | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa, pendientes, geolocalización), runner nativo; comandos y gotchas en [api/TESTING.md](api/TESTING.md) | **Sí** — Vitest (`cd nuxt && pnpm test`), por ahora solo composables puros: `composables/__tests__/useClosePosition.test.js` (centro de respaldo del mapa del editor) y `useGeolocate.test.js` (el trazo no toca los selectores, sólo previsualiza los municipios atravesados y avisa cuando lo capturado queda fuera; el pin sí sobrescribe y avisa). Config en `nuxt/vitest.config.js` |
 | Integración | No montado | No montado |
 | E2E | No montado (Playwright cubriría los dos lados) | Suite no montada; la verificación del dashboard es **episódica en navegador con Playwright MCP** —flujos nuevos y releases, nunca por commit—, con las credenciales locales de abajo |
 | Diagnósticos manuales | **Sí** — ver [api/TESTING.md](api/TESTING.md) | No |

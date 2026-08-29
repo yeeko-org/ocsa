@@ -10,7 +10,9 @@ Quiénes la llaman:
 
 - `api/api/views/space_time/serializers.py`, `LocationGeometryMixin._geolocate`: en cada `create` y en los `update` cuya escritura tocó alguno de los campos de geometría (`GEOMETRY_FIELDS`). Una escritura ajena a la geometría no recalcula nada, porque un hueco en `state`/`municipality`/`locality` puede ser deliberado.
 - `api/space_time/backfill.py`, que el comando `geolocate_locations` solo envuelve (el comando es puro parseo de argumentos; el módulo es lo que importan tests y diagnósticos): backfill (`--review`, `--fill` con respaldo JSON por lote, `--revert`, `--dry-run`). Ambos modos pasan por `apply_and_diff`, que corre el motor en memoria sin escribir: `--review` solo reporta lo que cambiaría (columnas `cambios_fill` y `cambios_fill_n` del CSV, que sale con **todas** las ubicaciones con proyecto y geometría, cambien o no; las columnas `*_capturado`/`*_calculado` llevan el `name` pelón de la entidad, no su `__str__`, porque cada nivel ya tiene columna propia), `--fill` además respalda y guarda.
-- `api/api/views/space_time/__init__.py`, acción `GET /location/geolocate/?lat&lon&state`: resuelve al vuelo para el editor, sin escribir.
+- `api/api/views/space_time/__init__.py`, acción `/location/geolocate/`: resuelve al vuelo para el editor, sin escribir, sobre una ubicación que puede no existir aún. No pasa por `apply_geolocation` sino por los resolutores directos. Dos verbos:
+  - `GET ?lat&lon&state` → `{state, municipality, locality}`, vía `resolve_point`.
+  - `POST {"geojson": <Feature o geometría>, "state": <id|null>}` → `{state, municipality, locality, municipalities: [{id, name, state}], localities: [{id, name, municipality}], centroid: {latitude, longitude}}`, vía `resolve_geometry`; el cuerpo, porque una línea o un polígono no cabe en la query string. `municipality` es el base (solo si el trazo cae en uno) y `state` sale del helper `_geometry_state`: el del municipio base, o el que comparten **todos** los atravesados; si discrepan, `null`, porque elegir sería capturar por el usuario. La lista `localities` **no** es la del motor: se recalcula con `localities_within(geometry, municipalities, LOCALITY_TOLERANCE_M)` y trae las localidades a 5 km o menos del trazo, porque alimenta un aviso al editor y no el autollenado.
 
 `write_relations=False` deja el M2M sin escribir pero igual publica la lista en `location.crossed_municipalities` (atributo suelto, no columna): así el backfill puede contarla sin tocar la base y diferir la escritura hasta después de respaldar lo anterior.
 
@@ -45,13 +47,15 @@ Si `resolve_geometry` no produce centroide (geojson vacío o ilegible), `_apply_
 
 ## Localidades marcador («Ninguno»)
 
-El AGEEML usa el nombre **«Ninguno»** como marcador de localidad sin nombre —ranchos, predios y campos sueltos—, no como topónimo: son 1,610 filas del catálogo (1,114 vigentes, 3 con polígono). Ninguna ubicación debe recibir una de ellas, así que quedan fuera de **todo** conjunto de candidatos del motor: `_locality_index` (polígonos), `_locality_points` (vecino más cercano del punto) y las localidades por punto de `_localities_near` (trazos). La regla vive en un solo lugar, la constante `PLACEHOLDER_LOCALITY_NAMES` y el helper `without_placeholders(queryset, field)` de `geolocate.py`. La exclusión es por nombre **exacto**: las variantes con calificador —«Ninguno [ACUMEX]», «Ninguno (El Doc) [Rancho]»— siguen siendo candidatas, porque ahí el paréntesis o el corchete es el nombre real del lugar. Decidida por Ricardo el 2026-08-28.
+El AGEEML usa el nombre **«Ninguno»** como marcador de localidad sin nombre —ranchos, predios y campos sueltos—, no como topónimo: son 1,610 filas del catálogo (1,114 vigentes, 3 con polígono). Ninguna ubicación debe recibir una de ellas, así que quedan fuera de **todo** conjunto de candidatos del motor: `_locality_index` (polígonos), `_locality_points` (vecino más cercano del punto) y las localidades por punto de `_localities_near` y `localities_within` (trazos), que comparten el helper `_catalog_localities`. La regla vive en un solo lugar, la constante `PLACEHOLDER_LOCALITY_NAMES` y el helper `without_placeholders(queryset, field)` de `geolocate.py`. La exclusión es por nombre **exacto**: las variantes con calificador —«Ninguno [ACUMEX]», «Ninguno (El Doc) [Rancho]»— siguen siendo candidatas, porque ahí el paréntesis o el corchete es el nombre real del lugar. Decidida por Ricardo el 2026-08-28.
 
-El M2M `municipalities` de un punto queda **vacío**, y si traía algo se limpia: la lista significa «municipios que la geometría atraviesa» (docs `adr-0026`) y un punto no atraviesa ninguno; copiar ahí su propio municipio solo duplicaba el FK. El editor ya oculta la tira cuando la lista viene vacía (`LocationMunicipalities.vue`).
+El M2M `municipalities` de un punto queda **vacío**, y si traía algo se limpia: la lista significa «municipios que la geometría atraviesa» (docs `adr-0026`) y un punto no atraviesa ninguno; copiar ahí su propio municipio solo duplicaba el FK. El editor ya oculta la tira cuando la lista viene vacía (`LocationMunicipalities.vue`, que con un solo estado lista los chips y con varios abre un renglón por estado). La lista llega como `municipalities_full`, que emiten tanto `LocationGeometryMixin` como los serializers anidados de `Location` (proyecto, evento y nota), y que `suggestGeometry` escribe en memoria para la previsualización.
 
 El vecino más cercano es **solo respaldo**, y es el eslabón débil: en una mancha urbana grande que el INEGI representa con un punto único al centro, la localidad rural de al lado suele quedar más cerca que ese centro, y el resultado es una ranchería. Ningún umbral de distancia lo corrige: es un problema del insumo, no de la regla.
 
 ## Trazos: línea y polígono (`resolve_geometry`)
+
+Lo consumen `_apply_geometry` (al guardar) y el `POST /location/geolocate/` (previsualización del editor): el cálculo es uno solo y lo que cambia es quién escribe el resultado.
 
 **Municipios atravesados** (`_crossed_municipalities`): los candidatos salen del índice estatal por caja envolvente, más el `state_id` capturado si lo hay —un trazo puede cruzar la frontera estatal y el capturado puede estar mal—. De cada candidato se mide la intersección (`_crossing_measure`) y se conserva si pasa el umbral, con el operador `>=`:
 
@@ -64,9 +68,19 @@ El umbral lo decide la geometría de la ubicación, no la de la pieza intersecta
 
 **Municipio base**: `single_municipality` se llena solo si el trazo cruza exactamente uno. Si cruza varios y la ubicación no tiene municipio capturado, queda vacío y lo levanta el filtro «Sin municipio» (`api/space_time/completeness.py`).
 
-**Estado**: no se calcula por polígonos en el caso de trazo; se hereda del municipio base cuando este se llena.
+**Estado**: no se calcula por polígonos en el caso de trazo; se hereda del municipio base cuando este se llena. El endpoint agrega un caso que el motor no tiene: sin municipio base, sugiere el estado si todos los atravesados coinciden (`_geometry_state`).
 
 **Localidad** (`_localities_near`): dentro de los municipios atravesados, cuenta como tocada la localidad amanzanada cuyo polígono intersecta el trazo, y la que solo tiene punto de catálogo si ese punto cae dentro del buffer de `LOCALITY_BUFFER_M` = 500 m alrededor del trazo. Una localidad con polígono nunca se mide por su punto: el polígono ya dio la respuesta. Se asigna `locality` **solo si se tocó exactamente una**; con cero o con varias queda vacía. El conteo no se persiste: hubo un campo `nearby_localities` que lo guardaba y Ricardo lo retiró el 2026-08-28 (migración `space_time.0003`) por ser un derivado que nadie había aprobado.
+
+## Tolerancia de localidad para revisar, no para llenar
+
+Autollenar y avisar no se miden igual, y la diferencia es deliberada. `_localities_near` (500 m, `LOCALITY_BUFFER_M`) exige **contacto** y es lo único que decide qué `locality` se escribe: es la regla de docs `adr-0026` y no cambió. Todo lo que solo *señala* algo a un editor —el aviso en vivo del formulario y el marcado editorial— usa **distancia** y tolera hasta 5 km, en la constante única `LOCALITY_TOLERANCE_M = 5_000` de `geolocate.py`. Ricardo la fijó el 2026-08-28, y ese número vale por igual para pines y para trazos, para que la marca no diga otra cosa que la pantalla.
+
+`localities_within(geometry, municipalities, buffer_m=LOCALITY_TOLERANCE_M)` es la función que lo implementa del lado del trazo: mide contra el polígono de la localidad amanzanada y contra el punto del catálogo AGEEML cuando no hay polígono —el mismo criterio que `far_pins` aplica al pin—, y de ella sale la lista `localities` del `POST`. Al elegir el umbral importa que las dos medidas no son equivalentes: la distancia a un punto de catálogo incluye el radio de la localidad y la distancia a su polígono no.
+
+El marcado editorial (`space_time/review_flags.py`, comando `flag_locations_for_review`) tiene bandera propia, `--locality-threshold`, con 5 km por omisión y **sin herencia** de `--threshold` —que son los 2 km del pin contra su municipio—. Sus dos razones de localidad son `far_pin_locality` (el pin a más de 5 km de la localidad capturada) y `trace_off_locality` (el trazo a más de 5 km de ella, medido por distancia: **no** consulta el veredicto del motor a 500 m). Contra el municipio no hay tolerancia para el trazo: `trace_off_municipality` sale con intersección vacía, sin umbral.
+
+**Asimetría conocida** (2026-08-28, sin resolver): `localities_within` solo mira localidades de los municipios que el trazo atraviesa, y el marcado mide la localidad capturada sin ese filtro. Una localidad a 3 km del trazo en un municipio no atravesado hace que el editor avise y que el marcado calle. Anotada como punto abierto en docs `task-97`.
 
 **Centroide** (`_centroid`): centroide de shapely para polígonos; para líneas, el punto medio del trazo (`line_interpolate_point` al 0.5 normalizado), porque el centroide de una línea curva cae fuera de ella y el pin del mapa debe estar sobre lo dibujado. Se devuelve `(lat, lon)` en EPSG:4326 redondeado a 6 decimales.
 
@@ -83,10 +97,21 @@ La cartografía y todo el cálculo están en `CRS_METERS = "EPSG:6372"` (Cónica
 El editor y el servidor no hacen lo mismo con el mismo cálculo:
 
 - **Servidor** (`apply_geolocation`): llena solo lo vacío, en cada guardado que toque la geometría.
-- **Editor** (`nuxt/composables/useGeolocate.js`): al soltar o mover el pin de un punto llama a `GET /location/geolocate/` y **sobrescribe los tres selectores**, incluso lo que el usuario ya había elegido; por eso avisa en `LocationAlerts` qué reemplazó.
+- **Editor, punto** (`useGeolocate.suggest`): al soltar o mover el pin llama a `GET /location/geolocate/` y **sobrescribe los tres selectores**, incluso lo que el usuario ya había elegido; por eso avisa en `LocationAlerts` qué reemplazó.
+- **Editor, trazo** (`useGeolocate.suggestGeometry`): al dibujar, editar o importar una línea o un polígono llama al `POST` con debounce de 400 ms y **solo llena selectores vacíos** —la misma regla del servidor—, así que nunca avisa de un reemplazo. Sí avisa, sin bloquear, cuando lo ya capturado no cuadra con el trazo: el municipio capturado que no está entre los atravesados, y la localidad capturada que no viene en `localities`, es decir la que quedó a más de 5 km («está a más de 5 km del trazo»). Además escribe `municipalities_full` en el registro en memoria para que `LocationMunicipalities` muestre la tira de municipios abarcados antes de guardar. Ambos caminos salen del mismo `applyFeatureAndSuggest` de `LocationEdit.vue`, que ramifica por `type_location`.
 
-La divergencia es deliberada —el editor está reaccionando a un gesto explícito del usuario— pero cualquier cambio en una de las dos rutas debe evaluarse contra la otra.
+La divergencia del pin es deliberada —el editor está reaccionando a un gesto explícito del usuario, y el trazo no la hereda— pero cualquier cambio en una de las rutas debe evaluarse contra las otras.
 
 ## Tests
 
-`api/space_time/tests/test_geolocate.py`, sobre cartografía sintética (municipios cuadrados de 10 km y localidades inventadas en EPSG:6372): corre sin haber descargado los shapefiles. Cubre resolución por punto, línea y polígono, localidades retiradas del catálogo, las localidades marcador «Ninguno» (por punto y por trazo), el umbral de roce, los municipios atravesados, el M2M vacío del punto, la regla «solo vacíos», la salvaguarda del punto aproximado y el veto de `HUMAN_VERDICTS`. Diagnósticos re-ejecutables en `api/TESTING.md`.
+`api/space_time/tests/test_geolocate.py`, sobre cartografía sintética (municipios cuadrados de 10 km y localidades inventadas en EPSG:6372): corre sin haber descargado los shapefiles. Cubre resolución por punto, línea y polígono, localidades retiradas del catálogo, las localidades marcador «Ninguno» (por punto y por trazo), el umbral de roce, los municipios atravesados, el M2M vacío del punto, la regla «solo vacíos», la salvaguarda del punto aproximado y el veto de `HUMAN_VERDICTS`.
+
+El paquete `space_time` corre 90 tests en total (`DATABASE_SCHEMA= python manage.py test space_time`).
+
+El endpoint, el marcado y el editor tienen los suyos, porque su regla no es la del motor:
+
+- `api/space_time/tests/test_geolocate_endpoint.py` (4), sobre la misma cartografía sintética (`SyntheticCartography`): el `POST` sugiere estado y municipio de un polígono contenido en uno, no sugiere estado cuando el trazo cruza dos, acepta por igual un `Feature` y una geometría pelona, y devuelve en `localities` la que está a 3 km del trazo pero no la que está a 8 —ninguna de las dos lo toca, así que el caso separa la tolerancia de 5 km del contacto de 500 m—.
+- `api/space_time/tests/test_review_flags.py` (19): las seis razones del marcado editorial, incluidas `far_pin_locality`, `trace_off_locality` (medida contra el polígono de la localidad amanzanada y contra el punto de catálogo cuando no lo hay) y `state_mismatch`. `far_pin` no corre porque su selección necesita la cartografía del INEGI.
+- `nuxt/composables/__tests__/useGeolocate.test.js` (5 de los 8 del front): `suggestGeometry` solo llena vacíos, `suggestGeometry(null)` cancela el debounce y vacía `municipalities_full`, el aviso del municipio fuera del trazo se retira al corregirlo, el de la localidad lejana dice los 5 km, y `suggest` (punto) sobrescribe y avisa.
+
+Diagnósticos re-ejecutables en `api/TESTING.md`.

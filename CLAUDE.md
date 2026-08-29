@@ -19,6 +19,8 @@ Event types: violence against activists · collective actions · legal resources
 
 Prefix `[api]` or `[nuxt]` when the commit touches one side only; no prefix when it is cross-cutting (root files, submodule, skills). Subject in Spanish.
 
+`docs/` works on the same branch name as the monorepo. Its pointer rides inside the code commit that motivated the docs change, at most once per branch — never as a stand-alone «docs: puntero» commit, except at merge with `main` if the branch left docs progress unpinned.
+
 ## Testing
 
 A small unit suite on the api side (`manage.py test source`); the rest are re-runnable diagnostics that hit real services and cost money. See [TESTING.md](TESTING.md) before running any.

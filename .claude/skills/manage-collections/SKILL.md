@@ -53,6 +53,8 @@ class ModelASchema(CatalogSchema):
 `viewset_class` is required. `mini_viewset_class` auto-registers a
 `{snake}_mini` endpoint when a lightweight ViewSet exists for selectors.
 
+`create_only_nested = True` is a design decision, not a permission: the collection is only created from its parent's sheet, never from its own panel. It ships in `iter_collection_data()` and the front hides the «Crear» button of the standalone list (`PanelsResult.vue`); nested creation under a record keeps working, and the API still accepts a POST. Use it when a record makes no sense on its own — `LocationSchema` (`api/space_time/catalog_schema.py:27`) sets it because a `Location` requires a project, event or impact, and the serializer rejects the orphan with a 400.
+
 `icon` and `color` are **initial defaults only** — written to the DB on first
 `migrate_ps_schemas` run and never overwritten, so frontend changes are
 preserved. `help_text` and `description` are DB-only (no schema field); set
@@ -74,6 +76,7 @@ class MyModelSchema(CollectionSchema):
     color = "purple"
     can_merge = True
     xls_export = True
+    create_only_nested = True  # only created from its parent's sheet
     all_filters = [
         FilterRef("project_types"),
         FilterRef("states", hidden=True),

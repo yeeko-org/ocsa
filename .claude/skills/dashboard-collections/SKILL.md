@@ -31,7 +31,7 @@ middleware/dashboard.js → store.fetchCatalogs()
 
 ### Forma de `collection_data`
 
-Del backend (`api/ps_schema/registry.py::_base_collection_dict`, líneas 176-195): `app_label`, `snake_name`, `model_name` (PascalCase, el `object_name` del modelo), `name`, `plural_name`, `level`, `cat_params`, `sort_fields`, `extra_massive_edit_fields`; más, por registry, `icon`, `color`, `open_insertion`, `available_actions` (`merge` / `massive_edit` / `massive_delete`), `xls_export`, `all_filters` y `fields[]`. Cada entrada de `fields[]` trae `name`, `real_name`, `primary_key`, `relation_type` (`simple|one_to_many|many_to_many|…`), `field_type`, `is_editable`, `null`, `width` y, si es relación, `related_snake_name` / `related_model` / `related_app_label`.
+Del backend (`api/ps_schema/registry.py::_base_collection_dict`, líneas 175-194): `app_label`, `snake_name`, `model_name` (PascalCase, el `object_name` del modelo), `name`, `plural_name`, `level`, `cat_params`, `sort_fields`, `extra_massive_edit_fields`; más, por registry (`CollectionRegistry.iter_collection_data`, líneas 403-428), `icon`, `color`, `open_insertion`, `available_actions` (`merge` / `massive_edit` / `massive_delete`), `xls_export`, `create_only_nested`, `all_filters` y `fields[]`. Cada entrada de `fields[]` trae `name`, `real_name`, `primary_key`, `relation_type` (`simple|one_to_many|many_to_many|…`), `field_type`, `is_editable`, `null`, `width` y, si es relación, `related_snake_name` / `related_model` / `related_app_label`.
 
 **En OCSA los metadatos derivados de los campos se calculan en el front**, en `composables/cats.js::calculateSchemas` (no en el backend):
 
@@ -98,6 +98,7 @@ En `PanelCommon.vue:176-200`:
 CollectionDisplay.vue        filtros, búsqueda (debounce 800 ms), orden, paginación, fetch
   ├─ chips de filtros + FiltersList.vue          (§4)
   └─ PanelsResult.vue        barra de acciones (crear/masivas), diálogo de alta y edición, paginación
+                             el botón «Crear» se oculta con collection_data.create_only_nested
        └─ PanelList.vue      resuelve {Model}Header y {Model}Sheet; v-for de filas
             └─ PanelCommon.vue  un panel de expansión; al abrir trae el detalle completo;
                                 resuelve {Model}Edit y {Model}EditSimple
@@ -134,6 +135,8 @@ Los chips de arriba controlan qué filtros están visibles (`visible_filters`); 
 
 Un caso especial: en una colección `category_subtype`, las relaciones m2m hacia un `category_type` se omiten (`SheetCommon.vue:36-39`).
 
+Una colección que solo tiene sentido bajo su padre lleva `create_only_nested: true` en su schema (skill `manage-collections`): eso apaga el botón «Crear» de `PanelsResult` en su lista propia y **solo ahí** —el botón del modo `is_mini` de `CollectionDisplay` y las altas que monte un `{Model}Sheet` a medida no consultan la clave—, así que el alta anidada sigue viva. Hoy la usa `location`.
+
 Así el detalle de un padre muestra a sus hijos sin una línea de código por modelo. Para personalizarlo, escribe un `{Model}Sheet.vue` que haga otra cosa —`ProjectSheet`, `ActorSheet`, `ParticipantTypeSheet` y `StatusProjectSheet` montan sus propios `CollectionDisplay`.
 
 ## 6. CRUD: colección vs categoría
@@ -145,6 +148,8 @@ Así el detalle de un padre muestra a sus hijos sin una línea de código por mo
 | Base de la API | `/{snake_name}/` | `/catalogs/{snake_name}/` |
 | save / patch / delete | `saveSimple` / `patchSimple` / `deleteSimple` | `saveCatalog` / `patchCatalog` / `deleteCatalog` |
 | efecto colateral | ninguno (el servidor es la fuente de verdad) | además muta `store.cats` en sitio y reconstruye `all_nodes` (o solo el filter group, en `patchCatalog`) |
+
+`create_only_nested` no toca este enrutamiento: es solo el botón (§5), y el POST sigue disponible para quien lo arme.
 
 `getLastId()` (`store/index.js:17-28`) decide POST vs PUT a partir del pk y de `is_new`, y desvía a `massive_patch/` cuando el payload trae `elems_ids`. `EditCommon` llama a `saveElement` / `deleteElement`; nunca habla con la API directamente.
 
