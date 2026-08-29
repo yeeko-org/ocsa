@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from api.permissions import BULK_ACTIONS
 from api.views.common_serializers import MunicipalitySimpleSerializer
 from space_time.geolocate import apply_geolocation
 from space_time.geometry import normalize_location_geometry
@@ -60,6 +61,15 @@ GEOMETRY_FIELDS = ["geojson", "type_location", "latitude", "longitude"]
 # Derivados de la geometría por el servidor: el editor los muestra, pero
 # nunca los manda.
 DERIVED_FIELDS = ["municipalities"]
+# La ubicación siempre cuelga de una ficha: al menos uno de los tres.
+OWNER_FIELDS = ["project", "event", "impact"]
+
+
+def _resulting(instance, attrs: dict, field: str):
+    """Valor que quedaría tras la escritura, para un patch parcial."""
+    if field in attrs:
+        return attrs[field]
+    return getattr(instance, f"{field}_id", None)
 
 
 class LocationGeometryMixin(serializers.ModelSerializer):
@@ -79,8 +89,24 @@ class LocationGeometryMixin(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = DERIVED_FIELDS
 
+    def _is_bulk_action(self) -> bool:
+        """La edición masiva valida el lote con un serializer sin
+        instancia y solo los campos editados: pedirle dueño rechazaría
+        todo lote que no toque la pertenencia."""
+        view = self.context.get("view")
+        return getattr(view, "action", None) in BULK_ACTIONS
+
     def validate(self, attrs: dict) -> dict:
         attrs = super().validate(attrs)
+        # Antes del corte por geometría: una ubicación huérfana no se
+        # lista ni se alcanza desde ninguna ficha, así que nadie la
+        # corrige después.
+        if not self._is_bulk_action() and not any(
+                _resulting(self.instance, attrs, field)
+                for field in OWNER_FIELDS):
+            raise serializers.ValidationError(
+                "Una ubicación debe pertenecer a un proyecto, un evento "
+                "o un impacto.")
         if not any(field in attrs for field in GEOMETRY_FIELDS):
             return attrs
 

@@ -32,6 +32,12 @@ MIN_CROSSING_AREA_M2 = 10_000.0
 # representa con un solo punto.
 LOCALITY_BUFFER_M = 500.0
 
+# Metros: hasta dónde se da por buena la localidad capturada de un trazo
+# o de un pin. Vive aquí, y no en `far_pins`/`off_traces`, para que la
+# marca editorial y el aviso en vivo del editor usen el mismo número.
+# Decidido por Ricardo el 2026-08-28.
+LOCALITY_TOLERANCE_M = 5_000.0
+
 # El AGEEML usa «Ninguno» como marcador de localidad sin nombre, no como
 # topónimo: son 1,610 filas del catálogo, casi todas ranchos y predios
 # sueltos. Ninguna ubicación debe recibir una de ellas como localidad.
@@ -55,6 +61,9 @@ class PointResolution:
 class GeometryResolution:
     municipalities: list = field(default_factory=list)
     single_municipality: object | None = None
+    # Todas las que toca el trazo; `locality` solo se llena cuando es una
+    # sola, porque el motor no elige entre varias.
+    localities: list = field(default_factory=list)
     locality: object | None = None
     centroid: tuple | None = None
 
@@ -254,6 +263,7 @@ def resolve_geometry(feature: dict,
         municipalities=[(municipality, measure)
                         for municipality, measure in crossed],
         single_municipality=single,
+        localities=localities,
         locality=locality,
         centroid=_centroid(geometry),
     )
@@ -298,19 +308,33 @@ def _crossing_measure(geometry, polygon) -> float | None:
     return piece.length if piece.length >= MIN_CROSSING_LENGTH_M else None
 
 
+def _catalog_localities(municipalities: list, mapped: set):
+    """Localidades vigentes con coordenadas y sin polígono cargado.
+
+    `mapped` trae las que sí tienen `LocalityGeometry`: una localidad con
+    polígono nunca se mide por su punto, porque el polígono ya dio la
+    respuesta.
+    """
+    from space_time.models import Locality
+
+    rows = without_placeholders(Locality.objects.filter(
+        municipality__in=municipalities, is_current=True,
+        latitude__isnull=False, longitude__isnull=False))
+    return [locality for locality in rows if locality.pk not in mapped]
+
+
 def _localities_near(geometry, municipalities: list) -> list:
     """Localidades que toca el trazo, dentro de los municipios cruzados.
 
-    La localidad amanzanada cuenta si su polígono corta el trazo; la que
-    solo tiene punto de catálogo, si ese punto cae en el buffer. Una
-    localidad con polígono nunca se mide por su punto: el polígono ya
-    dio la respuesta.
+    Es el criterio del **motor**, del que sale el autollenado de
+    `locality` (docs `adr-0026`): la localidad amanzanada cuenta solo si
+    su polígono corta el trazo, y la que solo tiene punto de catálogo,
+    si ese punto cae en el buffer de `LOCALITY_BUFFER_M`. La tolerancia
+    más ancha de la revisión editorial es otra función,
+    `localities_within`, y no toca esta.
     """
     if not municipalities:
         return []
-    from space_time.models import Locality
-
-    area = geometry.buffer(LOCALITY_BUFFER_M)
     touched, mapped = [], set()
     for municipality in municipalities:
         index = _locality_index(municipality.pk)
@@ -318,16 +342,41 @@ def _localities_near(geometry, municipalities: list) -> list:
         touched.extend(
             locality
             for locality, _ in _query(index, geometry, "intersects"))
-    rows = without_placeholders(Locality.objects.filter(
-        municipality__in=municipalities, is_current=True,
-        latitude__isnull=False, longitude__isnull=False))
-    for locality in rows:
-        if locality.pk in mapped:
-            continue
-        point = point_in_meters(locality.latitude, locality.longitude)
-        if area.contains(point):
-            touched.append(locality)
+    area = geometry.buffer(LOCALITY_BUFFER_M)
+    touched.extend(
+        locality for locality in _catalog_localities(municipalities, mapped)
+        if area.contains(
+            point_in_meters(locality.latitude, locality.longitude)))
     return touched
+
+
+def localities_within(geometry, municipalities: list,
+                      buffer_m: float = LOCALITY_TOLERANCE_M) -> list:
+    """Localidades a `buffer_m` o menos del trazo, en sus municipios.
+
+    Mide por distancia, no por contacto, y con el mismo criterio que
+    `far_pins` usa para el pin: la amanzanada contra su polígono, la que
+    solo existe como fila del AGEEML contra su punto de catálogo. Es lo
+    que consume el endpoint para avisar en vivo, con la tolerancia de
+    `LOCALITY_TOLERANCE_M`; el autollenado del motor sigue por
+    `_localities_near`.
+    """
+    if not municipalities or geometry is None or geometry.is_empty:
+        return []
+    area = geometry.buffer(buffer_m)
+    near, mapped = [], set()
+    for municipality in municipalities:
+        index = _locality_index(municipality.pk)
+        mapped.update(locality.pk for locality in index[1])
+        near.extend(
+            locality for locality, polygon in _query(index, area)
+            if geometry.distance(polygon) <= buffer_m)
+    near.extend(
+        locality for locality in _catalog_localities(municipalities, mapped)
+        if geometry.distance(
+            point_in_meters(locality.latitude, locality.longitude))
+        <= buffer_m)
+    return near
 
 
 def _centroid(geometry) -> tuple | None:

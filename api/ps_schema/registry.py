@@ -421,6 +421,7 @@ class CollectionRegistry:
                     schema_cls.xls_export_class is not None
                     or schema_cls.xls_export
                 ),
+                'create_only_nested': schema_cls.create_only_nested,
                 'all_filters': [
                     filter_to_dict(f)
                     for f in schema_cls.all_filters],

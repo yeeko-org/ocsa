@@ -11,7 +11,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from space_time.completeness import location_pending_q
 from space_time.geo_import import GeoImportError, read_geo_file
-from space_time.geolocate import resolve_point
+from space_time.geolocate import (
+    LOCALITY_TOLERANCE_M, feature_to_shape, localities_within,
+    resolve_geometry, resolve_point)
 from space_time.geometry import (
     has_geometry_q, infer_type_location, normalize_location_geometry)
 from space_time.models import (
@@ -19,6 +21,8 @@ from space_time.models import (
     Municipality,
     Location,)
 
+from api.views.common_serializers import (
+    LocalitySimpleSerializer, MunicipalitySimpleSerializer)
 from api.views.space_time.serializers import (
     MunicipalityRetrieveSerializer,
     StateListSerializer,
@@ -31,7 +35,7 @@ from api.views.space_time.serializers import (
     GeoImportSerializer,
     StateRetrieveSerializer,)
 from api.views.common_views import (
-    BaseViewSet, OnlyByFilterMixin, ClickHistoryMixin)
+    BaseViewSet, OnlyByFilterMixin, ClickHistoryMixin, MassiveEdit)
 
 
 
@@ -82,7 +86,7 @@ class LocationFilter(OnlyByFilterMixin):
         fields = ['only_by', "status_location", "state", "type_location"]
 
 
-class LocationViewSet(ClickHistoryMixin, BaseViewSet):
+class LocationViewSet(ClickHistoryMixin, MassiveEdit, BaseViewSet):
     permission_classes = [LocationPermission]
     queryset = Location.objects.all().exclude(
         project__isnull=True, event__isnull=True, impact__isnull=True)\
@@ -130,16 +134,27 @@ class LocationViewSet(ClickHistoryMixin, BaseViewSet):
         }
         return action_serializer.get(self.action, self.serializer_class)
 
-    @action(detail=False, methods=['get'], url_path='geolocate',
+    @action(detail=False, methods=['get', 'post'], url_path='geolocate',
             permission_classes=[permissions.IsAuthenticated])
     def geolocate(self, request):
-        """Sugiere entidad, municipio y localidad de un par de coordenadas.
+        """Sugiere entidad, municipio y localidad antes de guardar.
 
-        Ruta de lista y no de detalle porque el editor la consulta al
-        soltar el pin, antes de guardar: no toca la base. `state` es el
-        estado ya capturado —si el punto cae dentro, se respeta y se
-        ahorra la búsqueda por polígono—.
+        Ruta de lista y no de detalle porque el editor la consulta
+        mientras dibuja, sobre una ubicación que puede no existir aún:
+        no toca la base.
+
+        GET, para un punto: `lat`, `lon` y el `state` ya capturado —si
+        el punto cae dentro, se respeta y se ahorra la búsqueda por
+        polígono—.
+
+        POST, para un trazo: `{"geojson": <Feature o geometría>,
+        "state": <id|null>}`. Devuelve además los municipios que el
+        trazo atraviesa, en el orden del motor (de mayor a menor
+        medida), las localidades a `LOCALITY_TOLERANCE_M` o menos del
+        trazo y el centroide con el que se pinta el pin.
         """
+        if request.method == 'POST':
+            return self._geolocate_geometry(request)
         try:
             latitude = float(request.query_params["lat"])
             longitude = float(request.query_params["lon"])
@@ -158,6 +173,56 @@ class LocationViewSet(ClickHistoryMixin, BaseViewSet):
             'state': _named(resolution.state),
             'municipality': _named(resolution.municipality),
             'locality': _named(resolution.locality),
+        })
+
+    @staticmethod
+    def _geolocate_geometry(request):
+        feature = request.data.get('geojson')
+        if not isinstance(feature, dict) or not feature:
+            return Response(
+                {'detail': 'Falta el trazo o no es un objeto GeoJSON: se '
+                           'espera «geojson» con un Feature o una '
+                           'geometría.'},
+                status=400)
+        try:
+            state = request.data.get('state') or None
+            state_id = int(state) if state else None
+        except (TypeError, ValueError):
+            state_id = None
+        # `feature_to_shape` solo desenvuelve Features: una geometría
+        # pelona trae su propio «type» y lo haría buscar un «geometry»
+        # que no existe.
+        if feature.get('type') != 'Feature' and 'coordinates' in feature:
+            feature = {'type': 'Feature', 'geometry': feature}
+        try:
+            resolution = resolve_geometry(feature, state_id)
+        except (AttributeError, KeyError, TypeError, ValueError):
+            return Response(
+                {'detail': 'No se pudo leer el trazo: revisa que el '
+                           'GeoJSON tenga coordenadas válidas.'},
+                status=400)
+        municipalities = [
+            municipality for municipality, _ in resolution.municipalities]
+        centroid = resolution.centroid
+        # La lista del aviso no es la del autollenado: aquí se toleran
+        # 5 km y allá se exige contacto a 500 m (docs `adr-0026`), así
+        # que se recalcula con la tolerancia del editor.
+        nearby = localities_within(
+            feature_to_shape(feature), municipalities, LOCALITY_TOLERANCE_M)
+        return Response({
+            'state': _named(_geometry_state(
+                resolution.single_municipality, municipalities)),
+            # adr-0026: el municipio base es único; el motor no elige
+            # entre varios atravesados.
+            'municipality': _named(resolution.single_municipality),
+            'locality': _named(resolution.locality),
+            'municipalities': MunicipalitySimpleSerializer(
+                municipalities, many=True).data,
+            # Todas las que quedan cerca, no solo la única: el editor
+            # avisa con ellas cuando la localidad capturada queda lejos.
+            'localities': LocalitySimpleSerializer(nearby, many=True).data,
+            'centroid': None if not centroid else {
+                'latitude': centroid[0], 'longitude': centroid[1]},
         })
 
     @action(detail=False, methods=['post'], url_path='import_geo',
@@ -206,6 +271,20 @@ class LocationViewSet(ClickHistoryMixin, BaseViewSet):
                 temporary.write(chunk)
             temporary.flush()
             return read_geo_file(temporary.name, upload.name, layer)
+
+
+def _geometry_state(single_municipality, municipalities: list):
+    """Estado de un trazo: el del municipio base, o el que comparten.
+
+    Un trazo puede cruzar la frontera estatal; sugerir un estado cuando
+    los atravesados no coinciden sería elegir por el capturista.
+    """
+    if single_municipality is not None:
+        return single_municipality.state
+    states = {municipality.state_id for municipality in municipalities}
+    if len(states) == 1:
+        return municipalities[0].state
+    return None
 
 
 def _named(instance) -> dict | None:

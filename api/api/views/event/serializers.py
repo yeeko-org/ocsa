@@ -3,7 +3,8 @@ from event.models import Event, Involved, EventType
 
 from api.views.actor.serializers import MentionBaseSerializer
 from api.views.common_serializers import (
-    ConditionalFieldsMixin, ParticipantFullSerializer)
+    ConditionalFieldsMixin, MunicipalitySimpleSerializer,
+    ParticipantFullSerializer)
 from project.models import Conflict
 from space_time.models import Location
 from df.models import Displacement
@@ -29,6 +30,8 @@ class InvolvedFullSerializer(InvolvedSerializer):
 
 
 class LocationSimpleSerializer(ConditionalFieldsMixin):
+    municipalities_full = MunicipalitySimpleSerializer(
+        many=True, read_only=True, source='municipalities')
     class Meta:
         model = Location
         fields = '__all__'

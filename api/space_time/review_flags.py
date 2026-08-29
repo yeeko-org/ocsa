@@ -1,15 +1,28 @@
 """Marca para revisión editorial, en el dashboard, lo que no cuadra.
 
-Dos clases de ubicación, recomputadas de los datos en cada corrida:
+Seis clases de ubicación, recomputadas de los datos en cada corrida:
 
 - `far_pin`: puntos con proyecto cuyo pin está a más de dos kilómetros
   del municipio capturado o fuera del estado capturado
   (`space_time/far_pins.py`).
+- `far_pin_locality`: puntos cuyo pin está a más de `--locality-threshold`
+  de la localidad capturada (`space_time/far_pins.py`).
+- `trace_off_municipality`: líneas y polígonos cuyo trazo no toca el
+  polígono del municipio capturado (`space_time/off_traces.py`).
+- `trace_off_locality`: líneas y polígonos cuyo trazo está a más de
+  `--locality-threshold` de la localidad capturada
+  (`space_time/off_traces.py`).
+- `state_mismatch`: el estado capturado no es el del municipio capturado
+  (`space_time/state_mismatch.py`).
 - `legacy_name`: las dos ubicaciones cuyo nombre de localidad del legado
   no tiene resolución posible. Van por id porque cada una es un
   veredicto humano individual, como `HUMAN_VERDICTS` del backfill.
 
-En las dos clases se agrega un comentario fechado y firmado, con la
+Una misma ubicación puede salir por varias clases: cada razón agrega su
+propio comentario y su propia fila del CSV, pero el estatus se mueve una
+sola vez.
+
+En todas las clases se agrega un comentario fechado y firmado, con la
 convención del front (`\\n\\n` + `DD/MM/YYYY - Nombre: texto`), porque el
 estatus solo no dice por qué. El estatus se mueve a «Aprobado (con
 observaciones)» únicamente cuando estaba en «Aprobado»: en cualquier
@@ -29,8 +42,13 @@ from pathlib import Path
 from django.core.management.base import CommandError
 from django.db import transaction
 
-from space_time.far_pins import THRESHOLD_KM, name_of, scan
+from space_time.far_pins import (
+    LOCALITY_THRESHOLD_KM, THRESHOLD_KM, name_of, scan,
+    scan_localities as scan_locality_pins)
 from space_time.models import Location
+from space_time.off_traces import (
+    scan as scan_traces, scan_localities as scan_trace_localities)
+from space_time.state_mismatch import scan as scan_states
 
 AUTHOR = "Ricardo"
 APPROVED = "finished"
@@ -41,19 +59,21 @@ DEFAULT_OUT = ".claude/review_flags_{day}.csv"
 CSV_FIELDS = ("location_id", "project_id", "project", "reason",
               "status_before", "status_after", "comment")
 FAR_PIN = "far_pin"
+FAR_PIN_LOCALITY = "far_pin_locality"
+TRACE_OFF_MUNICIPALITY = "trace_off_municipality"
+TRACE_OFF_LOCALITY = "trace_off_locality"
+STATE_MISMATCH = "state_mismatch"
 LEGACY_NAME = "legacy_name"
 BATCH_SIZE = 500
 
 # Localidades del legado sin resolución posible: el nombre capturado
-# tiene más de una candidata y no hay dato que desempate. Van por id
-# porque son dictámenes humanos, no una regla.
+# tiene más de una candidata en su municipio y no hay dato que desempate.
+# Van por id porque son dictámenes humanos, no una regla.
 LEGACY_UNRESOLVED = {
-    12302: ("Loreto",
-            "en Chínipas hay dos candidatas, «Ignacio Valenzuela Lagarda "
-            "(Loreto)» y «Los Alamillos de Loreto», y la capturada es la "
-            "segunda"),
-    12643: ("Los Napuchis",
-            "en Carichí hay siete localidades homónimas"),
+    # Chínipas: «Ignacio Valenzuela Lagarda (Loreto)» y «Los Alamillos
+    # de Loreto».
+    12302: ("Loreto", 2),
+    12643: ("Los Napuchis", 7),
 }
 
 
@@ -97,9 +117,42 @@ def far_pin_text(pin) -> str:
     return " ".join(parts)
 
 
-def legacy_text(name: str, reason: str) -> str:
-    return (f"la localidad del legado «{name}» no se pudo resolver: "
-            f"{reason}; revisar.")
+def off_trace_text(off) -> str:
+    """Qué se le dice al editor sobre un trazo fuera de su municipio.
+
+    Los municipios que sí atraviesa no se enumeran: ya quedan guardados
+    en el M2M y el editor los ve en la ficha.
+    """
+    captured = name_of(off.location.municipality)
+    if not off.crossed:
+        return (f"el trazo no toca el municipio capturado ({captured}) "
+                f"ni ningún otro; revisar trazo o municipio.")
+    return f"el trazo no toca el municipio capturado ({captured})."
+
+
+def far_locality_text(pin) -> str:
+    """Qué se le dice al editor sobre un pin lejos de su localidad."""
+    return (f"el pin está a {pin.distance:.1f} km de la localidad "
+            f"capturada ({name_of(pin.location.locality)}).")
+
+
+def off_locality_text(off) -> str:
+    """Qué se le dice al editor sobre un trazo lejos de su localidad."""
+    return (f"la localidad capturada ({name_of(off.location.locality)}) "
+            f"está a {off.distance:.1f} km del trazo.")
+
+
+def state_mismatch_text(mismatch) -> str:
+    """Qué se le dice al editor sobre un estado que no es del municipio."""
+    municipality = mismatch.location.municipality
+    return (f"el estado capturado ({name_of(mismatch.location.state)}) no "
+            f"es el del municipio ({name_of(municipality)}, en "
+            f"{name_of(municipality.state)}).")
+
+
+def legacy_text(name: str, candidates: int) -> str:
+    return (f"la localidad del legado «{name}» tiene {candidates} "
+            f"candidatas en el catálogo; revisar.")
 
 
 class Entry:
@@ -117,19 +170,54 @@ class Entry:
         return sorted({reason for reason, _ in self.texts})
 
 
-def select(threshold: float = THRESHOLD_KM) -> tuple[dict, int, list[int]]:
+def select(threshold: float = THRESHOLD_KM,
+           locality_threshold: float | None = None
+           ) -> tuple[dict, dict, list[int]]:
     """Recomputa la selección desde los datos.
 
-    Devuelve las entradas por id, cuántos puntos se revisaron y los ids
-    dictaminados que ya no existen en la base.
+    Devuelve las entradas por id, cuántas ubicaciones se revisaron de
+    cada clase medible y los ids dictaminados que ya no existen.
     """
+    if locality_threshold is None:
+        locality_threshold = LOCALITY_THRESHOLD_KM
     entries: dict[int, Entry] = {}
-    found, seen = scan(threshold)
+
+    def entry_for(location) -> Entry:
+        return entries.setdefault(location.pk, Entry(location))
+
+    found, seen_pins = scan(threshold)
     for pin in found:
-        entry = entries.setdefault(pin.location.pk, Entry(pin.location))
-        entry.add(FAR_PIN, far_pin_text(pin))
+        entry_for(pin.location).add(FAR_PIN, far_pin_text(pin))
+    locality_pins, locality_seen = scan_locality_pins(locality_threshold)
+    for pin in locality_pins:
+        entry_for(pin.location).add(FAR_PIN_LOCALITY, far_locality_text(pin))
+    off_traces, seen_traces = scan_traces()
+    for off in off_traces:
+        entry_for(off.location).add(
+            TRACE_OFF_MUNICIPALITY, off_trace_text(off))
+    off_localities, trace_locality_seen = scan_trace_localities(
+        locality_threshold)
+    for off in off_localities:
+        entry_for(off.location).add(TRACE_OFF_LOCALITY, off_locality_text(off))
+    mismatches, seen_states = scan_states()
+    for mismatch in mismatches:
+        entry_for(mismatch.location).add(
+            STATE_MISMATCH, state_mismatch_text(mismatch))
+    seen = {
+        "pins": seen_pins,
+        "traces": seen_traces,
+        "locality_pins": locality_seen["seen"],
+        "locality_polygon": locality_seen["polygon"],
+        "locality_point": locality_seen["point"],
+        "locality_unmeasurable": locality_seen["unmeasurable"],
+        "trace_localities": trace_locality_seen["seen"],
+        "trace_locality_polygon": trace_locality_seen["polygon"],
+        "trace_locality_point": trace_locality_seen["point"],
+        "locality_unmeasurable_traces": trace_locality_seen["unmeasurable"],
+        "states": seen_states,
+    }
     missing = []
-    for pk, (name, reason) in sorted(LEGACY_UNRESOLVED.items()):
+    for pk, (name, candidates) in sorted(LEGACY_UNRESOLVED.items()):
         entry = entries.get(pk)
         if entry is None:
             location = (Location.objects
@@ -139,7 +227,7 @@ def select(threshold: float = THRESHOLD_KM) -> tuple[dict, int, list[int]]:
                 missing.append(pk)
                 continue
             entry = entries.setdefault(pk, Entry(location))
-        entry.add(LEGACY_NAME, legacy_text(name, reason))
+        entry.add(LEGACY_NAME, legacy_text(name, candidates))
     return entries, seen, missing
 
 
@@ -147,21 +235,26 @@ class Flagger:
     """Aplica (o simula) las marcas y deja el CSV de lo que cambiaría."""
 
     def __init__(self, apply: bool, out: str, threshold: float = THRESHOLD_KM,
-                 day: date | None = None, expect: int | None = None):
+                 day: date | None = None, expect: int | None = None,
+                 locality_threshold: float | None = None):
         self.apply = apply
         self.out = Path(out)
         self.threshold = threshold
+        self.locality_threshold = (LOCALITY_THRESHOLD_KM
+                                   if locality_threshold is None
+                                   else locality_threshold)
         self.day = day or date.today()
         self.expect = expect
         self.deviation = ""
-        self.seen = 0
+        self.seen: dict[str, int] = {}
         self.missing: list[int] = []
         self.counts: dict[str, dict[str, int]] = {}
         self.rows: list[dict] = []
         self.pending: list[Location] = []
 
     def run(self) -> list[str]:
-        entries, self.seen, self.missing = select(self.threshold)
+        entries, self.seen, self.missing = select(
+            self.threshold, self.locality_threshold)
         for pk in sorted(entries):
             self.flag(entries[pk])
         # Antes de escribir: la guarda no sirve si la desviación se
@@ -185,12 +278,19 @@ class Flagger:
         location = entry.location
         status_before = location.status_location_id
         # El texto ya presente no se repite: la corrida es idempotente
-        # aunque cambie la fecha de la firma.
-        fresh = [(reason, text) for reason, text in entry.texts
-                 if text not in (location.comments or "")]
+        # aunque cambie la fecha de la firma. La cuenta va por razón y no
+        # por entrada: una ubicación puede traer una razón ya comentada y
+        # otra nueva, y cada una cuenta en su propio renglón.
+        comments = location.comments or ""
+        fresh, marked = [], set()
+        for reason, text in entry.texts:
+            if text in comments:
+                marked.add(reason)
+            else:
+                fresh.append((reason, text))
+        for reason in sorted(marked):
+            self.count(reason, "ya_marcada")
         if not fresh:
-            for reason in entry.reasons:
-                self.count(reason, "ya_marcada")
             return
         status_after = (FLAGGED if status_before == APPROVED
                         else status_before)
@@ -228,8 +328,24 @@ class Flagger:
         changed = len({row["location_id"] for row in self.rows
                        if row["status_before"] != row["status_after"]})
         lines = [
-            f"Puntos con proyecto y coordenadas revisados: {self.seen}",
-            f"Umbral: {self.threshold} km",
+            f"Puntos con proyecto y coordenadas revisados: "
+            f"{self.seen.get('pins', 0)}",
+            f"Trazos con municipio capturado revisados: "
+            f"{self.seen.get('traces', 0)}",
+            f"Puntos con localidad capturada revisados: "
+            f"{self.seen.get('locality_pins', 0)} "
+            f"({self.seen.get('locality_polygon', 0)} medidos contra "
+            f"polígono, {self.seen.get('locality_point', 0)} contra el "
+            f"punto del catálogo)",
+            f"Trazos con localidad capturada revisados: "
+            f"{self.seen.get('trace_localities', 0)} "
+            f"({self.seen.get('trace_locality_polygon', 0)} medidos contra "
+            f"polígono, {self.seen.get('trace_locality_point', 0)} contra "
+            f"el punto del catálogo)",
+            f"Ubicaciones con estado y municipio capturados revisadas: "
+            f"{self.seen.get('states', 0)}",
+            f"Umbral: {self.threshold} km "
+            f"(localidad: {self.locality_threshold} km)",
             f"{prefix}Ubicaciones marcadas: {len(self.pending)} "
             f"({len(self.rows)} comentarios; {changed} cambian de estatus)",
         ]
@@ -239,6 +355,12 @@ class Flagger:
                 f"  {reason}: estatus {buckets['estatus']}, "
                 f"solo comentario {buckets['solo_comentario']}, "
                 f"ya marcadas {buckets['ya_marcada']}")
+        unmeasurable = (self.seen.get("locality_unmeasurable", 0)
+                        + self.seen.get("locality_unmeasurable_traces", 0))
+        if unmeasurable:
+            lines.append(
+                f"Localidades capturadas sin polígono ni coordenadas (no "
+                f"medibles): {unmeasurable}")
         if self.deviation:
             lines.append(self.deviation)
         if self.missing:

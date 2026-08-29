@@ -30,6 +30,8 @@ from space_time.models import Location
 
 
 class LocationSimpleSerializer(ConditionalFieldsMixin):
+    municipalities_full = MunicipalitySimpleSerializer(
+        many=True, read_only=True, source='municipalities')
     class Meta:
         model = Location
         fields = '__all__'
@@ -42,6 +44,8 @@ class DisplacementSimpleSerializer(serializers.ModelSerializer):
 
 
 class LocationSemiFullSerializer(ConditionalFieldsMixin):
+    municipalities_full = MunicipalitySimpleSerializer(
+        many=True, read_only=True, source='municipalities')
     municipality_full = MunicipalitySimpleSerializer(
         source='municipality', read_only=True)
     locality_full = LocalitySimpleSerializer(
@@ -52,7 +56,7 @@ class LocationSemiFullSerializer(ConditionalFieldsMixin):
         # exclude = ['geojson', 'ubicacion_id_ref']
         fields = [
             "id", "project", "state", "municipality", "municipality_full",
-            "locality", "locality_full", "details",
+            "locality", "locality_full", "municipalities_full", "details",
             "type_location", "status_location"]
 
 

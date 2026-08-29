@@ -184,6 +184,8 @@ class CollectionSchema(BaseSchema):
     xls_export: bool = False
     xls_export_class: type | None = None
     can_massive_delete: bool = False
+    # Se crea solo desde la ficha de su padre, nunca desde su panel.
+    create_only_nested: bool = False
 
     # When set, register_routes also registers {snake_name}_mini
     mini_viewset_class: type | None = None

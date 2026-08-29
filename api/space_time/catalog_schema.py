@@ -24,6 +24,7 @@ class LocationSchema(CollectionSchema):
     plural_name = "Ubicaciones"
     viewset_class = LocationViewSet
     can_massive_edit = True
+    create_only_nested = True
     sort_fields = [
         'id',
         'status_location__order',
@@ -38,7 +39,7 @@ class LocationSchema(CollectionSchema):
         ),
         ComponentFilter(
             title="Tipo de ubicación", field="type_location",
-            component="LocationType", hidden=True,
+            component="LocationType", hidden=False,
         ),
         ComponentFilter(
             title="Marcada en el mapa", field="has_geo_data",

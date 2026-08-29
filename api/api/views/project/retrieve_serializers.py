@@ -20,6 +20,8 @@ class ExtractivismTypeSerializer(serializers.ModelSerializer):
 
 
 class LocationFullSerializer(serializers.ModelSerializer):
+    municipalities_full = MunicipalitySimpleSerializer(
+        many=True, read_only=True, source='municipalities')
     municipality_full = MunicipalitySimpleSerializer(
         source='municipality', read_only=True)
     locality_full = LocalitySimpleSerializer(
