@@ -88,6 +88,11 @@ research/r_queries/config.R
 .claude/dashboard_orphans_*.csv
 .claude/aviso_equipo_*.xlsx
 
+# Ensayos de un umbral contra la base y el script que los cuenta: se
+# rehacen con el comando, y su valor se queda en la tarea
+.claude/dryrun_*.csv
+.claude/dryrun_*.py
+
 # Los dictámenes que consume `--fill --verdicts` sí se versionan: son
 # trabajo humano, no salida regenerable
 !.claude/verdicts/

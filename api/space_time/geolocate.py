@@ -156,7 +156,8 @@ def _locality_index(municipality_id: int) -> tuple:
 
     rows = list(without_placeholders(
         LocalityGeometry.objects
-        .filter(locality__municipality_id=municipality_id)
+        .filter(locality__municipality_id=municipality_id,
+                locality__is_current=True)
         .select_related("locality"), "locality__name"))
     return _build_index(rows, "locality")
 
@@ -235,7 +236,10 @@ def _locality_for_point(point: Point, municipality):
 
     La cercanía es solo respaldo: en una mancha urbana que el INEGI
     representa con un punto único al centro, la localidad rural de al
-    lado suele quedar más cerca que ese centro.
+    lado suele quedar más cerca que ese centro. Y solo hasta
+    `LOCALITY_TOLERANCE_M`: en un municipio despoblado la más cercana
+    puede estar a decenas de kilómetros, y escribirla sería inventar el
+    sitio en vez de derivarlo.
     """
     if municipality is None:
         return None
@@ -245,7 +249,11 @@ def _locality_for_point(point: Point, municipality):
     candidates = _locality_points(municipality.pk)
     if not candidates:
         return None
-    return min(candidates, key=lambda pair: point.distance(pair[1]))[0]
+    locality, reference = min(
+        candidates, key=lambda pair: point.distance(pair[1]))
+    if point.distance(reference) > LOCALITY_TOLERANCE_M:
+        return None
+    return locality
 
 
 def resolve_geometry(feature: dict,
@@ -352,7 +360,8 @@ def _localities_near(geometry, municipalities: list) -> list:
 
 def localities_within(geometry, municipalities: list,
                       buffer_m: float = LOCALITY_TOLERANCE_M) -> list:
-    """Localidades a `buffer_m` o menos del trazo, en sus municipios.
+    """`[(Locality, metros), ...]` a `buffer_m` o menos, de más cerca a
+    más lejos.
 
     Mide por distancia, no por contacto, y con el mismo criterio que
     `far_pins` usa para el pin: la amanzanada contra su polígono, la que
@@ -360,6 +369,9 @@ def localities_within(geometry, municipalities: list,
     que consume el endpoint para avisar en vivo, con la tolerancia de
     `LOCALITY_TOLERANCE_M`; el autollenado del motor sigue por
     `_localities_near`.
+
+    Sirve igual a un punto que a un trazo: la distancia de shapely no
+    distingue, y el aviso del editor es el mismo en los dos casos.
     """
     if not municipalities or geometry is None or geometry.is_empty:
         return []
@@ -368,15 +380,49 @@ def localities_within(geometry, municipalities: list,
     for municipality in municipalities:
         index = _locality_index(municipality.pk)
         mapped.update(locality.pk for locality in index[1])
-        near.extend(
-            locality for locality, polygon in _query(index, area)
-            if geometry.distance(polygon) <= buffer_m)
-    near.extend(
-        locality for locality in _catalog_localities(municipalities, mapped)
-        if geometry.distance(
+        for locality, polygon in _query(index, area):
+            distance = geometry.distance(polygon)
+            if distance <= buffer_m:
+                near.append((locality, distance))
+    for locality in _catalog_localities(municipalities, mapped):
+        distance = geometry.distance(
             point_in_meters(locality.latitude, locality.longitude))
-        <= buffer_m)
+        if distance <= buffer_m:
+            near.append((locality, distance))
+    near.sort(key=lambda pair: pair[1])
     return near
+
+
+def locality_points(localities: list) -> dict:
+    """`{id: [lon, lat]}` con qué se dibuja cada localidad en el mapa.
+
+    El centroide del polígono para la amanzanada y el punto del catálogo
+    AGEEML para la que no lo tiene. Es dónde ponerle la etiqueta, no
+    contra qué se midió: la distancia de la amanzanada va contra todo su
+    polígono, así que un pin dentro de la mancha marca 0 km aunque el
+    centroide quede a kilómetros.
+    """
+    from space_time.models import LocalityGeometry
+
+    points = {}
+    rows = LocalityGeometry.objects.filter(
+        locality_id__in=[locality.pk for locality in localities])
+    for row in rows:
+        try:
+            geometry = shapely_wkb.loads(bytes(row.wkb))
+        except Exception:
+            continue
+        if geometry.is_empty:
+            continue
+        centre = to_latlon(geometry.centroid)
+        points[row.locality_id] = [round(centre.x, 6), round(centre.y, 6)]
+    for locality in localities:
+        if locality.pk in points:
+            continue
+        if locality.latitude is None or locality.longitude is None:
+            continue
+        points[locality.pk] = [locality.longitude, locality.latitude]
+    return points
 
 
 def _centroid(geometry) -> tuple | None:

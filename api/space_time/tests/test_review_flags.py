@@ -17,16 +17,24 @@ from tempfile import TemporaryDirectory
 
 from django.test import SimpleTestCase, TestCase
 
+from shapely import wkb as shapely_wkb
+
 from project.models import Project
 from space_time.far_pins import (
     locality_point, locality_polygon, municipality_polygon,
-    scan_localities as scan_locality_pins)
-from space_time.models import Location
+    municipality_simplification_m, scan as scan_pins,
+    scan_localities as scan_locality_pins, state_polygon,
+    state_simplification_m)
+from space_time.models import (
+    Location, Municipality, MunicipalityGeometry, StateGeometry)
 from space_time.off_traces import (
-    scan as scan_traces, scan_localities as scan_trace_localities)
+    scan as scan_traces, scan_base_municipality as scan_base,
+    scan_in_other_state, scan_localities as scan_trace_localities,
+    scan_states as scan_off_states)
 from space_time.review_flags import (
     APPROVED, FLAGGED, Entry, Flagger, Reverter, append_comment,
-    far_locality_text, off_locality_text, off_trace_text, signed,
+    base_off_crossed_text, far_locality_text, in_other_state_text,
+    off_locality_text, off_state_text, off_trace_text, signed,
     state_mismatch_text, strip_comment)
 from space_time.state_mismatch import scan as scan_states
 from space_time.tests.test_geolocate import SyntheticCartography
@@ -165,9 +173,10 @@ class OffTraceTests(SyntheticCartography, TestCase):
 
     def setUp(self):
         super().setUp()
-        # El polígono del municipio se cachea por id y los ids se
-        # reciclan entre tests, que hacen rollback.
+        # El polígono del municipio y su simplificación se cachean por
+        # id, y los ids se reciclan entre tests, que hacen rollback.
         municipality_polygon.cache_clear()
+        municipality_simplification_m.cache_clear()
 
     def trace(self, municipality, points):
         return Location.objects.create(
@@ -194,6 +203,106 @@ class OffTraceTests(SyntheticCartography, TestCase):
         self.trace(self.west, [(0.999, 0.5), (1.8, 0.5)])
 
         found, seen = scan_traces()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual(found, [])
+
+    def test_el_trazo_a_diez_metros_del_borde_no_se_marca(self):
+        """La gracia es la simplificación de la capa (50 m en la
+        cartografía sintética): por debajo de ella la separación es del
+        dibujo y no de la captura."""
+        self.trace(self.west, [(1.001, 0.5), (1.5, 0.5)])
+
+        found, seen = scan_traces()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual(found, [])
+
+
+class BaseOffCrossedTests(SyntheticCartography, TestCase):
+    """El municipio capturado que el trazo no atraviesa.
+
+    A diferencia de `trace_off_municipality`, el corte es la medida del
+    motor y no el contacto: el roce cuenta allá y no cuenta aquí.
+    """
+
+    def setUp(self):
+        super().setUp()
+        municipality_polygon.cache_clear()
+        municipality_simplification_m.cache_clear()
+
+    def trace(self, municipality, points):
+        return Location.objects.create(
+            type_location="line", state=self.state,
+            municipality=municipality,
+            geojson=self._feature("LineString", points))
+
+    def test_el_roce_de_diez_metros_no_cuenta_como_atravesado(self):
+        """Justo el caso que `trace_off_municipality` deja pasar: el
+        trazo toca el oeste, pero el motor solo atraviesa el este."""
+        location = self.trace(self.west, [(0.999, 0.5), (1.8, 0.5)])
+
+        found, seen = scan_base()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual([off.location.pk for off in found], [location.pk])
+        self.assertIn(self.west.name, base_off_crossed_text(found[0]))
+
+    def test_el_trazo_que_si_atraviesa_su_municipio_no_se_marca(self):
+        self.trace(self.west, [(0.2, 0.5), (0.8, 0.5)])
+
+        found, seen = scan_base()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual(found, [])
+
+
+class OffStateTests(SyntheticCartography, TestCase):
+    """La selección de trazos fuera del estado capturado.
+
+    Es la única razón que alcanza a un trazo sin municipio capturado.
+    """
+
+    def setUp(self):
+        super().setUp()
+        state_polygon.cache_clear()
+        state_simplification_m.cache_clear()
+
+    def trace(self, points):
+        return Location.objects.create(
+            type_location="line", state=self.state,
+            geojson=self._feature("LineString", points))
+
+    def test_el_trazo_fuera_del_estado_se_marca_sin_municipio(self):
+        """A 2 km al este del polígono estatal, y sin municipio
+        capturado: ninguna otra razón lo vería."""
+        location = self.trace([(2.2, 0.5), (2.4, 0.5)])
+
+        found, seen = scan_off_states()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual([off.location.pk for off in found], [location.pk])
+        self.assertEqual(found[0].distance, 2.0)
+        text = off_state_text(found[0])
+        self.assertIn("2.0 km", text)
+        # El estado capturado se nombra; los calculados no, porque el
+        # dashboard ya los muestra.
+        self.assertIn(self.state.name, text)
+        self.assertNotIn(self.other_state.name, text)
+
+    def test_el_trazo_a_veinte_metros_del_borde_no_se_marca(self):
+        """La gracia es la simplificación de la capa estatal (50 m)."""
+        self.trace([(2.002, 0.5), (2.01, 0.5)])
+
+        found, seen = scan_off_states()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual(found, [])
+
+    def test_el_trazo_dentro_de_su_estado_no_se_marca(self):
+        self.trace([(0.2, 0.5), (1.8, 0.5)])
+
+        found, seen = scan_off_states()
 
         self.assertEqual(seen, 1)
         self.assertEqual(found, [])
@@ -259,16 +368,19 @@ class FarLocalityPinTests(SyntheticCartography, TestCase):
 
     def setUp(self):
         super().setUp()
-        # Ambas cachés van por id de localidad y los ids se reciclan
-        # entre tests, que hacen rollback.
+        # Todas las cachés van por id y los ids se reciclan entre
+        # tests, que hacen rollback.
         locality_polygon.cache_clear()
         locality_point.cache_clear()
+        municipality_polygon.cache_clear()
+        state_polygon.cache_clear()
+        state_simplification_m.cache_clear()
 
-    def pin(self, locality, fx, fy):
+    def pin(self, locality, fx, fy, **extra):
         latitude, longitude = self._latlon(fx, fy)
         return Location.objects.create(
             type_location="point", state=self.state, locality=locality,
-            latitude=latitude, longitude=longitude)
+            latitude=latitude, longitude=longitude, **extra)
 
     def test_el_pin_lejos_de_su_localidad_se_marca(self):
         """5.7 km al punto de catálogo de la única del oeste."""
@@ -293,6 +405,31 @@ class FarLocalityPinTests(SyntheticCartography, TestCase):
         self.assertEqual(seen["polygon"], 1)
         self.assertEqual(found, [])
 
+    def test_el_pin_aproximado_no_entra_al_universo(self):
+        """Su coordenada señala el rumbo, no el sitio: medirle
+        kilómetros a la localidad no dice nada. El mismo pin en otro
+        estatus sí sale marcado."""
+        self.pin(self.only_one, 0.9, 0.9,
+                 status_location=self.approximate)
+
+        found, seen = scan_locality_pins(2.0)
+
+        self.assertEqual(seen["seen"], 0)
+        self.assertEqual(found, [])
+
+    def test_el_pin_aproximado_si_se_mide_contra_municipio_y_estado(self):
+        """La exclusión es solo de la localidad: contra el municipio y
+        contra el estado la imprecisión del rumbo no salva nada."""
+        location = self.pin(
+            self.only_one, 1.9, 0.9, municipality=self.west,
+            status_location=self.approximate,
+            project=Project.objects.create(name="Aproximado"))
+
+        found, seen = scan_pins()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual([pin.location.pk for pin in found], [location.pk])
+
 
 class StateMismatchTests(SyntheticCartography, TestCase):
     """La selección de estados que no son los de su municipio."""
@@ -312,3 +449,65 @@ class StateMismatchTests(SyntheticCartography, TestCase):
         self.assertIn(self.other_state.name, text)
         self.assertIn(self.west.name, text)
         self.assertIn(self.state.name, text)
+
+
+class InOtherStateTests(SyntheticCartography, TestCase):
+    """Trazos que desbordan a otro estado sin salirse del capturado.
+
+    Es la forma del caso 4513: un polígono repartido en muchos
+    municipios del estado capturado y uno solo del vecino. Su distancia
+    al polígono estatal es cero, así que `trace_off_state` no lo ve.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        # Tercer municipio, ya en la entidad ajena y pegado al este: sin
+        # él no hay frontera estatal que desbordar. Su estado necesita
+        # polígono porque los candidatos salen del índice estatal.
+        cls.foreign = Municipality.objects.create(
+            inegi_code="003", complete_code="98-003",
+            name="Municipio 003", std_name="municipio 003",
+            state=cls.other_state)
+        square = cls._box(2.0, 0.0, 3.0, 1.0)
+        MunicipalityGeometry.objects.create(
+            municipality=cls.foreign, wkb=shapely_wkb.dumps(square))
+        StateGeometry.objects.create(
+            state=cls.other_state, wkb=shapely_wkb.dumps(square))
+
+    def setUp(self):
+        super().setUp()
+        state_polygon.cache_clear()
+        state_simplification_m.cache_clear()
+
+    def trace(self, points):
+        return Location.objects.create(
+            type_location="polygon", state=self.state,
+            geojson=self._feature("Polygon", points))
+
+    def test_el_trazo_que_desborda_al_estado_vecino_se_marca(self):
+        """Ocupa casi todo el este y entra 20 ha al municipio ajeno: no
+        se salió de su estado, pero sí atraviesa uno de otro."""
+        location = self.trace(
+            [(1.2, 0.2), (2.2, 0.2), (2.2, 0.8), (1.2, 0.8)])
+
+        found, seen = scan_in_other_state()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual([off.location.pk for off in found], [location.pk])
+        # Lo que ninguna otra razón alcanza: contra su propio estado el
+        # trazo está a cero.
+        self.assertEqual(scan_off_states()[0], [])
+        text = in_other_state_text(found[0])
+        self.assertIn("un municipio de otro estado", text)
+        self.assertIn(self.state.name, text)
+        self.assertNotIn(self.other_state.name, text)
+        self.assertNotIn(self.foreign.name, text)
+
+    def test_el_trazo_que_se_queda_en_su_estado_no_se_marca(self):
+        self.trace([(0.2, 0.2), (1.8, 0.2), (1.8, 0.8), (0.2, 0.8)])
+
+        found, seen = scan_in_other_state()
+
+        self.assertEqual(seen, 1)
+        self.assertEqual(found, [])

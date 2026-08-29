@@ -13,7 +13,7 @@ from space_time.completeness import location_pending_q
 from space_time.geo_import import GeoImportError, read_geo_file
 from space_time.geolocate import (
     LOCALITY_TOLERANCE_M, feature_to_shape, localities_within,
-    resolve_geometry, resolve_point)
+    locality_points, point_in_meters, resolve_geometry, resolve_point)
 from space_time.geometry import (
     has_geometry_q, infer_type_location, normalize_location_geometry)
 from space_time.models import (
@@ -150,8 +150,14 @@ class LocationViewSet(ClickHistoryMixin, MassiveEdit, BaseViewSet):
         POST, para un trazo: `{"geojson": <Feature o geometría>,
         "state": <id|null>}`. Devuelve además los municipios que el
         trazo atraviesa, en el orden del motor (de mayor a menor
-        medida), las localidades a `LOCALITY_TOLERANCE_M` o menos del
-        trazo y el centroide con el que se pinta el pin.
+        medida), y el centroide con el que se pinta el pin.
+
+        Los dos métodos devuelven `localities`: las candidatas a
+        `LOCALITY_TOLERANCE_M` o menos de lo dibujado —del punto o del
+        trazo— dentro de los municipios que resolvió el motor, de más
+        cerca a más lejos y con su `distance_km`. La lista no se
+        recorta: el front decide cuántas dibuja, y el aviso de
+        localidad lejana necesita verlas todas.
         """
         if request.method == 'POST':
             return self._geolocate_geometry(request)
@@ -169,10 +175,18 @@ class LocationViewSet(ClickHistoryMixin, MassiveEdit, BaseViewSet):
         except (TypeError, ValueError):
             state_id = None
         resolution = resolve_point(latitude, longitude, state_id)
+        # El mismo universo que el motor: las localidades del municipio
+        # resuelto, medidas contra su polígono si es amanzanada —0 si el
+        # pin cae dentro— y contra su punto de catálogo si no lo es.
+        nearby = localities_within(
+            point_in_meters(latitude, longitude),
+            [resolution.municipality] if resolution.municipality else [],
+            LOCALITY_TOLERANCE_M)
         return Response({
             'state': _named(resolution.state),
             'municipality': _named(resolution.municipality),
             'locality': _named(resolution.locality),
+            'localities': _locality_candidates(nearby),
         })
 
     @staticmethod
@@ -220,7 +234,7 @@ class LocationViewSet(ClickHistoryMixin, MassiveEdit, BaseViewSet):
                 municipalities, many=True).data,
             # Todas las que quedan cerca, no solo la única: el editor
             # avisa con ellas cuando la localidad capturada queda lejos.
-            'localities': LocalitySimpleSerializer(nearby, many=True).data,
+            'localities': _locality_candidates(nearby),
             'centroid': None if not centroid else {
                 'latitude': centroid[0], 'longitude': centroid[1]},
         })
@@ -285,6 +299,24 @@ def _geometry_state(single_municipality, municipalities: list):
     if len(states) == 1:
         return municipalities[0].state
     return None
+
+
+def _locality_candidates(nearby: list) -> list[dict]:
+    """Candidatas de `localities_within` listas para el mapa del editor.
+
+    A lo que ya serializa `LocalitySimpleSerializer` se le agregan la
+    distancia en kilómetros y el `point` con que el front la dibuja; sin
+    ese par de datos la lista no alcanza para pintar nada ni para
+    ordenar el aviso.
+    """
+    points = locality_points([locality for locality, _ in nearby])
+    items = []
+    for locality, distance in nearby:
+        item = dict(LocalitySimpleSerializer(locality).data)
+        item['distance_km'] = round(distance / 1000.0, 3)
+        item['point'] = points.get(locality.pk)
+        items.append(item)
+    return items
 
 
 def _named(instance) -> dict | None:

@@ -171,6 +171,29 @@ class GeolocateTests(SyntheticCartography, TestCase):
             latitude, longitude, self.state.pk)
         self.assertEqual(resolution.locality, self.only_one)
 
+    def test_la_localidad_retirada_con_poligono_tampoco_se_elige(self):
+        """El índice de polígonos filtra `is_current` como los demás
+        caminos: sin eso, un punto dentro de la mancha de una localidad
+        que el INEGI retiró la recibiría por intersección."""
+        LocalityGeometry.objects.create(
+            locality=self.retired,
+            wkb=shapely_wkb.dumps(self._box(0.65, 0.65, 0.75, 0.75)))
+        geolocate.clear_indexes()
+        latitude, longitude = self._latlon(0.7, 0.7)
+        resolution = geolocate.resolve_point(
+            latitude, longitude, self.state.pk)
+        self.assertEqual(resolution.locality, self.only_one)
+
+    def test_la_localidad_a_mas_de_cinco_kilometros_no_se_asigna(self):
+        """El vecino más cercano tiene tope: en la esquina noroeste del
+        municipio oeste la única vigente queda a 6.8 km, y escribirla
+        sería inventar el sitio."""
+        latitude, longitude = self._latlon(0.02, 0.98)
+        resolution = geolocate.resolve_point(
+            latitude, longitude, self.state.pk)
+        self.assertEqual(resolution.municipality, self.west)
+        self.assertIsNone(resolution.locality)
+
     def test_la_localidad_ninguno_no_cuenta_para_el_trazo(self):
         """La línea solo toca el marcador: sin él no hay localidad."""
         feature = self._feature("LineString", [(0.54, 0.54), (0.56, 0.56)])

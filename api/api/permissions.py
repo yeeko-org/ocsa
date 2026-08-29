@@ -164,7 +164,9 @@ class LocationPermission(BaseObjectPermission):
 
     def has_write_permission_object(self, request, view, obj: Location):
 
-        if obj.status_location.open_editor:
+        # Sin status no hay candado que aplicar: el dashboard ya lee la
+        # ubicación sin status como editable (StatusDetail.vue).
+        if not obj.status_location or obj.status_location.open_editor:
             return True
 
         return request.user.is_admin

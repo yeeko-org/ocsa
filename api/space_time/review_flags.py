@@ -1,14 +1,23 @@
 """Marca para revisión editorial, en el dashboard, lo que no cuadra.
 
-Seis clases de ubicación, recomputadas de los datos en cada corrida:
+Nueve clases de ubicación, recomputadas de los datos en cada corrida:
 
-- `far_pin`: puntos con proyecto cuyo pin está a más de dos kilómetros
+- `far_pin`: puntos con proyecto cuyo pin está a más de `--threshold`
   del municipio capturado o fuera del estado capturado
   (`space_time/far_pins.py`).
 - `far_pin_locality`: puntos cuyo pin está a más de `--locality-threshold`
   de la localidad capturada (`space_time/far_pins.py`).
 - `trace_off_municipality`: líneas y polígonos cuyo trazo no toca el
   polígono del municipio capturado (`space_time/off_traces.py`).
+- `trace_off_state`: líneas y polígonos cuyo trazo no toca el polígono
+  del estado capturado; no exige municipio capturado, y por eso es la
+  única que alcanza a los trazos sin él (`space_time/off_traces.py`).
+- `trace_in_other_state`: líneas y polígonos que atraviesan municipios de
+  un estado ajeno al capturado, aunque no se hayan salido del suyo
+  (`space_time/off_traces.py`).
+- `base_off_crossed`: líneas y polígonos cuyo municipio capturado no
+  está entre los que el motor da por atravesados
+  (`space_time/off_traces.py`).
 - `trace_off_locality`: líneas y polígonos cuyo trazo está a más de
   `--locality-threshold` de la localidad capturada
   (`space_time/off_traces.py`).
@@ -47,7 +56,9 @@ from space_time.far_pins import (
     scan_localities as scan_locality_pins)
 from space_time.models import Location
 from space_time.off_traces import (
-    scan as scan_traces, scan_localities as scan_trace_localities)
+    scan as scan_traces, scan_base_municipality, scan_in_other_state,
+    scan_localities as scan_trace_localities,
+    scan_states as scan_trace_states)
 from space_time.state_mismatch import scan as scan_states
 
 AUTHOR = "Ricardo"
@@ -61,6 +72,9 @@ CSV_FIELDS = ("location_id", "project_id", "project", "reason",
 FAR_PIN = "far_pin"
 FAR_PIN_LOCALITY = "far_pin_locality"
 TRACE_OFF_MUNICIPALITY = "trace_off_municipality"
+TRACE_OFF_STATE = "trace_off_state"
+TRACE_IN_OTHER_STATE = "trace_in_other_state"
+BASE_OFF_CROSSED = "base_off_crossed"
 TRACE_OFF_LOCALITY = "trace_off_locality"
 STATE_MISMATCH = "state_mismatch"
 LEGACY_NAME = "legacy_name"
@@ -99,7 +113,12 @@ def strip_comment(comments: str | None, line: str) -> str | None:
 
 
 def far_pin_text(pin) -> str:
-    """Qué se le dice al editor sobre un pin lejano, según por qué salió."""
+    """Qué se le dice al editor sobre un pin lejano, según por qué salió.
+
+    El estado y el municipio calculados no se nombran: el dashboard ya
+    los muestra en la tarjeta de municipios, y repetirlos en el
+    comentario los congela con la fecha de la corrida.
+    """
     parts = []
     if pin.far_municipality:
         parts.append(
@@ -107,13 +126,10 @@ def far_pin_text(pin) -> str:
             f"capturado ({name_of(pin.location.municipality)}); revisar "
             f"coordenada o municipio.")
     if pin.far_state:
-        computed = name_of(getattr(pin.resolution, "state", None))
-        captured = name_of(pin.location.state)
         parts.append(
-            f"El pin cae en {computed}, no en {captured}."
-            if computed else
-            f"El pin no cae dentro de ningún estado; el capturado es "
-            f"{captured}.")
+            f"El pin no cae dentro del estado capturado "
+            f"({name_of(pin.location.state)}); revisar coordenada o "
+            f"estado.")
     return " ".join(parts)
 
 
@@ -128,6 +144,35 @@ def off_trace_text(off) -> str:
         return (f"el trazo no toca el municipio capturado ({captured}) "
                 f"ni ningún otro; revisar trazo o municipio.")
     return f"el trazo no toca el municipio capturado ({captured})."
+
+
+def off_state_text(off) -> str:
+    """Qué se le dice al editor sobre un trazo fuera de su estado.
+
+    Los estados en los que sí cae no se enumeran, igual que los
+    municipios de `off_trace_text`: el dashboard ya los muestra.
+    """
+    return (f"el trazo está a {off.distance:.1f} km del estado capturado "
+            f"({name_of(off.location.state)}); revisar trazo o estado.")
+
+
+def in_other_state_text(off) -> str:
+    """Qué se le dice al editor sobre un trazo que desborda su estado.
+
+    Cuántos municipios ajenos atraviesa sí se dice —es la magnitud del
+    desborde, y no un dato que la ficha repita—; cuáles son, no.
+    """
+    count = len(off.crossed)
+    municipalities = "un municipio" if count == 1 else f"{count} municipios"
+    return (f"el trazo atraviesa {municipalities} de otro estado, además "
+            f"del capturado ({name_of(off.location.state)}); revisar trazo "
+            f"o estado.")
+
+
+def base_off_crossed_text(off) -> str:
+    """Qué se le dice al editor sobre un municipio base no atravesado."""
+    return (f"el municipio capturado ({name_of(off.location.municipality)}) "
+            f"no está entre los que el trazo atraviesa.")
 
 
 def far_locality_text(pin) -> str:
@@ -195,6 +240,17 @@ def select(threshold: float = THRESHOLD_KM,
     for off in off_traces:
         entry_for(off.location).add(
             TRACE_OFF_MUNICIPALITY, off_trace_text(off))
+    off_states, seen_trace_states = scan_trace_states()
+    for off in off_states:
+        entry_for(off.location).add(TRACE_OFF_STATE, off_state_text(off))
+    in_other, seen_in_other = scan_in_other_state()
+    for off in in_other:
+        entry_for(off.location).add(
+            TRACE_IN_OTHER_STATE, in_other_state_text(off))
+    base_off, seen_base = scan_base_municipality()
+    for off in base_off:
+        entry_for(off.location).add(
+            BASE_OFF_CROSSED, base_off_crossed_text(off))
     off_localities, trace_locality_seen = scan_trace_localities(
         locality_threshold)
     for off in off_localities:
@@ -206,6 +262,9 @@ def select(threshold: float = THRESHOLD_KM,
     seen = {
         "pins": seen_pins,
         "traces": seen_traces,
+        "trace_states": seen_trace_states,
+        "in_other_state": seen_in_other,
+        "base_municipality": seen_base,
         "locality_pins": locality_seen["seen"],
         "locality_polygon": locality_seen["polygon"],
         "locality_point": locality_seen["point"],
@@ -331,7 +390,13 @@ class Flagger:
             f"Puntos con proyecto y coordenadas revisados: "
             f"{self.seen.get('pins', 0)}",
             f"Trazos con municipio capturado revisados: "
-            f"{self.seen.get('traces', 0)}",
+            f"{self.seen.get('traces', 0)} "
+            f"({self.seen.get('base_municipality', 0)} también contra los "
+            f"municipios atravesados)",
+            f"Trazos con estado capturado revisados: "
+            f"{self.seen.get('trace_states', 0)} "
+            f"({self.seen.get('in_other_state', 0)} también contra los "
+            f"estados de los municipios atravesados)",
             f"Puntos con localidad capturada revisados: "
             f"{self.seen.get('locality_pins', 0)} "
             f"({self.seen.get('locality_polygon', 0)} medidos contra "

@@ -22,10 +22,12 @@ from space_time.review_flags import DEFAULT_OUT, Flagger, Reverter
 class Command(BaseCommand):
     help = ("Agrega comentario fechado —y pasa de «Aprobado» a «Aprobado "
             "(con observaciones)»— a las ubicaciones con pin lejos del "
-            "municipio o de la localidad capturados, trazo fuera del "
-            "municipio capturado o lejos de la localidad capturada, estado "
-            "que no es el del municipio, o localidad del legado "
-            "irresoluble.")
+            "municipio o de la localidad capturados o fuera del estado "
+            "capturado, trazo fuera del "
+            "municipio o del estado capturados o lejos de la localidad "
+            "capturada, trazo que desborda a otro estado, municipio "
+            "capturado que el trazo no atraviesa, estado que no es el del "
+            "municipio, o localidad del legado irresoluble.")
 
     def add_arguments(self, parser):
         parser.add_argument(

@@ -6,6 +6,12 @@ municipio capturado y al del estado capturado (0 si cae dentro). Sale la
 fila cuando el pin está a más de `THRESHOLD_KM` de su municipio o fuera
 de su estado: o el pin está mal puesto, o lo capturado no corresponde.
 
+Fuera del estado se juzga sin umbral editorial, pero no sin margen: los
+polígonos del INEGI se guardan simplificados, y un pin sobre el borde
+puede caer unos metros del lado de afuera por el dibujo y no por la
+captura. El margen es la tolerancia con que se simplificó la capa
+(`GeometryBase.simplified_m`), leída de la fila y no fijada aquí.
+
 La distancia a la localidad capturada se mide aparte (`scan_localities`)
 porque su universo es otro —los puntos con localidad, tengan o no
 municipio— y porque su umbral se decide por separado.
@@ -21,14 +27,15 @@ from functools import lru_cache
 from shapely import wkb as shapely_wkb
 
 from space_time.geolocate import (
-    LOCALITY_TOLERANCE_M, point_in_meters, resolve_point)
+    APPROXIMATE_STATUS, LOCALITY_TOLERANCE_M, point_in_meters, resolve_point)
 from space_time.models import (
     Locality, LocalityGeometry, Location, MunicipalityGeometry, StateGeometry)
 
-# Kilómetros: por debajo de esto el desfase cabe en el margen de un
-# municipio mal dibujado o un pin puesto «al ojo». Decidido por Ricardo
-# el 2026-08-28 (antes eran 10 km).
-THRESHOLD_KM = 2.0
+# Kilómetros: cualquier desfase que ya no quepa en el ruido cartográfico.
+# Son 25 veces la simplificación de la capa municipal (20 m), así que lo
+# que sale es captura y no dibujo. Decidido por Ricardo el 2026-08-29
+# (antes 2 km, y antes 10 km).
+THRESHOLD_KM = 0.5
 
 # La localidad admite más margen que el municipio y no lo hereda: el
 # número es el mismo que el editor aplica al trazo, y vive una sola vez
@@ -45,6 +52,8 @@ class FarPin:
     to_state: float | None
     resolution: object
     threshold: float = THRESHOLD_KM
+    # Kilómetros de gracia contra el estado: la simplificación de la capa.
+    state_grace: float = 0.0
 
     @property
     def far_municipality(self) -> bool:
@@ -53,7 +62,8 @@ class FarPin:
 
     @property
     def far_state(self) -> bool:
-        return self.to_state is not None and self.to_state > 0
+        return (self.to_state is not None
+                and self.to_state > self.state_grace)
 
 
 @dataclass
@@ -91,6 +101,17 @@ def locality_point(locality_id: int):
     return point_in_meters(row.latitude, row.longitude)
 
 
+@lru_cache(maxsize=None)
+def state_simplification_m(state_id: int) -> float:
+    return _simplification_m(StateGeometry, "state_id", state_id)
+
+
+@lru_cache(maxsize=None)
+def municipality_simplification_m(municipality_id: int) -> float:
+    return _simplification_m(
+        MunicipalityGeometry, "municipality_id", municipality_id)
+
+
 def _polygon(model, field: str, value: int):
     row = model.objects.filter(**{field: value}).first()
     if row is None:
@@ -99,6 +120,20 @@ def _polygon(model, field: str, value: int):
         return shapely_wkb.loads(bytes(row.wkb))
     except Exception:
         return None
+
+
+def _simplification_m(model, field: str, value: int) -> float:
+    """Metros con que se simplificó ese polígono, 0 si no hay fila.
+
+    Es el margen de las comprobaciones sin umbral editorial: por debajo
+    de la propia tolerancia del dibujo no hay nada que reportarle a un
+    editor.
+    """
+    row = (model.objects.filter(**{field: value})
+           .only("simplified_m").first())
+    if row is None or row.simplified_m is None:
+        return 0.0
+    return float(row.simplified_m)
 
 
 def distance_km(point, polygon) -> float | None:
@@ -125,9 +160,10 @@ def universe():
 def scan(threshold: float = THRESHOLD_KM) -> tuple[list[FarPin], int]:
     """Devuelve los pines lejanos y cuántos puntos se revisaron.
 
-    El umbral solo aplica al municipio: caer fuera del estado capturado
-    no admite margen, porque ahí lo capturado y lo calculado se
-    contradicen sin ambigüedad.
+    El umbral editorial solo aplica al municipio: caer fuera del estado
+    capturado no admite margen de captura, porque ahí lo capturado y lo
+    calculado se contradicen sin ambigüedad. Sí admite el margen del
+    dibujo, la simplificación de la capa estatal.
     """
     found, seen = [], 0
     for location in universe().iterator(chunk_size=500):
@@ -139,16 +175,19 @@ def scan(threshold: float = THRESHOLD_KM) -> tuple[list[FarPin], int]:
         to_state = (
             distance_km(point, state_polygon(location.state_id))
             if location.state_id else None)
+        grace = (state_simplification_m(location.state_id) / 1000.0
+                 if location.state_id else 0.0)
         far_municipality = (
             to_municipality is not None and to_municipality > threshold)
-        far_state = to_state is not None and to_state > 0
+        far_state = to_state is not None and to_state > grace
         if not far_municipality and not far_state:
             continue
         resolution = resolve_point(
             location.latitude, location.longitude, location.state_id)
         found.append(FarPin(
             location=location, to_municipality=to_municipality,
-            to_state=to_state, resolution=resolution, threshold=threshold))
+            to_state=to_state, resolution=resolution, threshold=threshold,
+            state_grace=grace))
     return found, seen
 
 
@@ -157,11 +196,18 @@ def locality_universe():
 
     No se pide proyecto, al revés que `universe()`: la incoherencia es
     entre la coordenada y el catálogo, y existe igual sin ficha detrás.
+
+    Los puntos «Aprobado (Aproximado)» quedan fuera, y solo de aquí: su
+    coordenada señala el rumbo y no el sitio, así que medirle kilómetros
+    a la localidad no dice nada —el motor tampoco se la llena—. Contra
+    el municipio y contra el estado sí se miden: esas dos resisten la
+    imprecisión.
     """
     return (
         Location.objects
         .filter(type_location="point", locality__isnull=False,
                 latitude__isnull=False, longitude__isnull=False)
+        .exclude(status_location_id=APPROXIMATE_STATUS)
         .select_related("state", "municipality", "locality", "project",
                         "status_location")
         .order_by("id"))

@@ -70,6 +70,12 @@ class LocationSchema(CollectionSchema):
                  "description": "Junta en una sola lista las ubicaciones "
                                 "con cualquiera de los pendientes de "
                                 "arriba."},
+                {"plural_name": "Sin localidad", "value": "no_locality",
+                 "description": "Ya están marcadas en el mapa, pero nadie "
+                                "anotó en qué localidad quedan. No entra "
+                                "en «alguno de los casos anteriores»: hay "
+                                "ubicaciones que no corresponden a "
+                                "ninguna localidad."},
             ],
         ),
     ]

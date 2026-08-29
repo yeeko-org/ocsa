@@ -25,10 +25,15 @@ from space_time.models import Location
 
 NO_GEOMETRY = "no_geometry"
 NO_MUNICIPALITY = "no_municipality"
+NO_LOCALITY = "no_locality"
 COMPLETE_UNAPPROVED = "complete_unapproved"
 NO_APPROVED_LOCATION = "no_approved_location"
 ANY_PENDING = "any_pending"
 
+# `no_locality` queda fuera: la localidad no entra en la definición de
+# completa (adr-0024), así que sumarla a `any_pending` convertiría en
+# pendiente a toda ubicación que legítimamente no tiene una. Es un
+# encargo que se pide aparte.
 LOCATION_OPTIONS = (NO_GEOMETRY, NO_MUNICIPALITY, COMPLETE_UNAPPROVED)
 
 
@@ -73,6 +78,8 @@ def location_pending_q(option: str) -> Q | None:
         condition = no_geometry_q()
     elif option == NO_MUNICIPALITY:
         condition = has_geometry_q() & Q(municipality__isnull=True)
+    elif option == NO_LOCALITY:
+        condition = has_geometry_q() & Q(locality__isnull=True)
     elif option == COMPLETE_UNAPPROVED:
         condition = complete_q() & unapproved_q()
     elif option == ANY_PENDING:
