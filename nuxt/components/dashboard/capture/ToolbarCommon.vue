@@ -89,19 +89,39 @@ const parent_object = computed(() => {
   return {[props.main_collection_name]: props.parent_id}
 })
 
-const mainForm = ref(null)
+const mainForm = ref([])
 const childValidators = ref([])
+
+// La fila tiene que seguir al registro y no a su posición: al insertar arriba,
+// una clave por índice deja cada componente montado donde estaba y le entrega
+// el registro del vecino, así que su estado interno (mapa abierto, watchers
+// de LocationMex) queda apuntando a otro registro. Los no guardados no tienen
+// id, y su identidad se toma del propio objeto sin ensuciar el payload.
+const temp_keys = new WeakMap()
+let temp_seq = 0
+
+function itemKey(item, index) {
+  if (!item) return `empty-${index}`
+  if (item.id) return `id-${item.id}`
+  if (!temp_keys.has(item))
+    temp_keys.set(item, `new-${++temp_seq}`)
+  return temp_keys.get(item)
+}
+
+// Con claves estables Vue mueve los nodos sin volver a montarlos, y el arreglo
+// de refs de plantilla conserva el orden de montaje: se indexa a mano porque
+// saveItem valida mainForm[index].
+function setFormRef(el, index) {
+  if (el) mainForm.value[index] = el
+}
+
+onBeforeUpdate(() => {
+  mainForm.value = []
+})
 
 function registerChildValidator(validateFn) {
   childValidators.value.push(validateFn)
 }
-// function registerChildValidator(validateFn, metadata = {}) {
-//   console.log("Registering child validator:", {
-//     validateFn,
-//     metadata
-//   })
-//   childValidators.value.push({validate: validateFn, ...metadata})
-// }
 
 function unregisterChildValidator(validateFn) {
   const idx = childValidators.value.indexOf(validateFn)
@@ -185,15 +205,19 @@ async function validateAllForms(index=null, only_current=false) {
   return true
 }
 
+// El padre da de baja por identidad de función, así que registro y baja tienen
+// que compartir la misma referencia, no dos envoltorios equivalentes.
+const parentValidator = () => validateAllForms(null, false)
+
 onMounted(() => {
   if (parentRegister) {
-    parentRegister(() => validateAllForms(null, false))
+    parentRegister(parentValidator)
   }
 })
 
 onBeforeUnmount(() => {
   if (parentUnregister) {
-    parentUnregister(validateAllForms)
+    parentUnregister(parentValidator)
   }
 })
 
@@ -399,7 +423,7 @@ const color_child_card = computed(() => {
       </v-card>
       <template
         v-for="(item, index) in main_array"
-        :key="index"
+        :key="itemKey(item, index)"
       >
         <v-card
           v-if="show_all_discarded || (item && item.discarded !== true)"
@@ -434,7 +458,7 @@ const color_child_card = computed(() => {
                 Para guardar esto, acepta el elemento dependiente
               </v-alert>
               <v-form
-                ref="mainForm"
+                :ref="el => setFormRef(el, index)"
                 :class="{'pre_item': item.path && !item.id}"
               >
                 <div class="d-flex flex-wrap">

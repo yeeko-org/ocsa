@@ -182,7 +182,8 @@ function selectItem(item) {
       color="secondary"
     >
       <v-btn
-        v-if="collection_data.level !== 'secondary' && !in_sheet"
+        v-if="collection_data.level !== 'secondary' && !in_sheet
+          && !collection_data.create_only_nested"
         color="accent"
         @click="addItem"
         class="mr-3"

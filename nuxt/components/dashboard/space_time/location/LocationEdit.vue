@@ -84,13 +84,22 @@ const location_type_full = computed(() => LOCATION_TYPES.find(
 
 const close_position = useClosePosition(full_main)
 
-const {notices: geo_notices, suggest: suggestGeo, clear: clearGeo} =
-    useGeolocate(full_main)
+const {
+  notices: geo_notices,
+  warnings: geo_warnings,
+  suggest: suggestGeo,
+  suggestGeometry: suggestGeoGeometry,
+  clear: clearGeo,
+} = useGeolocate(full_main)
 
 function applyFeatureAndSuggest(feature) {
   applyFeature(feature)
-  if (full_main.value.type_location !== 'point' || !feature) return
-  suggestGeo(full_main.value.latitude, full_main.value.longitude)
+  if (full_main.value.type_location === 'point') {
+    if (!feature) return
+    suggestGeo(full_main.value.latitude, full_main.value.longitude)
+    return
+  }
+  suggestGeoGeometry(feature)
 }
 
 // Los avisos son de la importación anterior: no sobreviven a un intento
@@ -190,6 +199,7 @@ function applyImported({feature, type_location, warnings}) {
       v-model:overwrote_saved="overwrote_saved"
       :import_warnings="import_warnings"
       :geo_notices="geo_notices"
+      :geo_warnings="geo_warnings"
     />
     <v-textarea
       v-model="full_main.details"

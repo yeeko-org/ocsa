@@ -57,6 +57,11 @@ export default defineNuxtConfig({
         transformAssetUrls,
       },
     },
+    // Se descubre tarde (import dinámico): forzar su pre-bundle al arranque
+    // evita la re-optimización a media sesión que invalida los chunks ?v=.
+    optimizeDeps: {
+      include: ['lodash/debounce.js'],
+    },
   },
 
   compatibilityDate: '2025-08-06'

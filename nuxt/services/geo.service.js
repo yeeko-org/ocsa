@@ -34,8 +34,18 @@ async function geolocate(lat, lon, state_id = null) {
   );
 }
 
+// Las líneas y polígonos no caben en la query string: mismo endpoint que
+// `geolocate`, pero con la geometría en el cuerpo.
+async function geolocateGeometry(feature, state_id = null) {
+  const { $api } = useNuxtApp()
+  return await handleRequest(() => $api.post(
+    '/location/geolocate/', { geojson: feature, state: state_id })
+  );
+}
+
 export const geoService = {
   getMunicipalities,
   getLocalities,
   geolocate,
+  geolocateGeometry,
 }

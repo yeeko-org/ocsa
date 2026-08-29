@@ -93,6 +93,15 @@ export function useLocationDraw(options) {
       .map(asFeature)
   })
 
+  // El respaldo se reconoce por sus llaves: sólo el municipio trae `state`,
+  // y una cabecera municipal admite menos acercamiento que una localidad.
+  function closeView(close_pos) {
+    return {
+      center: [close_pos.longitude, close_pos.latitude],
+      zoom: close_pos.state ? 12 : 13,
+    }
+  }
+
   function initializeMap() {
     if (isMapInitialized.value) return
     mapboxgl.accessToken = ACCESS_TOKEN
@@ -107,9 +116,9 @@ export function useLocationDraw(options) {
       zoom = 13
     }
     else if (close_position.value) {
-      const close_pos = close_position.value
-      center = [close_pos.longitude, close_pos.latitude]
-      zoom = close_pos.state ? 12 : 13
+      const view = closeView(close_position.value)
+      center = view.center
+      zoom = view.zoom
     }
 
     map.value = new mapboxgl.Map({
@@ -314,6 +323,15 @@ export function useLocationDraw(options) {
     await nextTick()
     map.value?.resize()
   }
+
+  // Cambiar de estado, municipio o localidad con el mapa abierto reencuadra,
+  // pero sólo mientras no haya geometría: si ya hay algo dibujado, el
+  // encuadre lo manda la figura y no el selector.
+  watch(close_position, (close_pos) => {
+    if (!isMapInitialized.value || !close_pos) return
+    if (existingFeatures.value.length) return
+    map.value.flyTo(closeView(close_pos))
+  })
 
   onMounted(initializeMap)
 

@@ -14,15 +14,25 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  // Lo capturado que no cuadra con el trazo: mismo trato que los avisos,
+  // pero en amarillo, porque pide una corrección y no sólo informa.
+  geo_warnings: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 // Cerrar un aviso no puede tocar el arreglo del padre, que es su dueño
 const dismissed = ref([])
 
-watch(() => props.geo_notices, () => dismissed.value = [])
+watch(() => [props.geo_notices, props.geo_warnings],
+    () => dismissed.value = [])
 
 const visible_notices = computed(
     () => props.geo_notices.filter(msg => !dismissed.value.includes(msg)))
+
+const visible_warnings = computed(
+    () => props.geo_warnings.filter(msg => !dismissed.value.includes(msg)))
 
 const import_error = defineModel('import_error', {type: String, default: ''})
 const overwrote_saved = defineModel(
@@ -68,6 +78,18 @@ const overwrote_saved = defineModel(
     v-for="msg in visible_notices"
     :key="msg"
     type="info"
+    variant="tonal"
+    class="mb-2"
+    density="compact"
+    closable
+    @click:close="dismissed.push(msg)"
+  >
+    {{ msg }}
+  </v-alert>
+  <v-alert
+    v-for="msg in visible_warnings"
+    :key="msg"
+    type="warning"
     variant="tonal"
     class="mb-2"
     density="compact"

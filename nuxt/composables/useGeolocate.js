@@ -24,10 +24,31 @@ const FIELD_NOTICES = {
   },
 }
 
+// Los nombres salen del catálogo ya cargado en el store; sin él el aviso
+// sigue valiendo, sólo que sin nombrar lo capturado.
+const named = name => name ? ` (${name})` : ''
+
+// La tolerancia de la localidad la aplica el servidor al armar la lista
+// (`LOCALITY_TOLERANCE_M`); aquí sólo se nombra, para que el aviso diga
+// por qué salió.
+const LOCALITY_TOLERANCE_KM = 5
+
+const GEOMETRY_WARNINGS = {
+  municipality: name => `El municipio capturado${named(name)} no está `
+      + `entre los que atraviesa el trazo.`,
+  locality: name => `La localidad capturada${named(name)} está a más de `
+      + `${LOCALITY_TOLERANCE_KM} km del trazo.`,
+}
+
 /**
- * Sugerencia de estado, municipio y localidad a partir de las coordenadas de
- * un punto. A diferencia del servidor, que sólo llena lo vacío, aquí se
- * sobrescribe lo ya elegido y por eso hay que avisarle al usuario.
+ * Sugerencia de estado, municipio y localidad a partir de la geometría.
+ *
+ * `suggest` (punto) sobrescribe lo ya elegido —la excepción documentada al
+ * criterio del motor— y por eso avisa al usuario; `suggestGeometry` (línea o
+ * polígono) no toca los selectores, porque un trazo se edita por tramos y la
+ * sugerencia calculada sobre uno parcial se quedaría pegada: el servidor los
+ * llena al guardar, con el trazo ya completo. A cambio contrasta lo capturado
+ * contra el trazo y deja en `warnings` lo que no cuadra, sin bloquear nada.
  *
  * @param {Ref<Object>} full_main modelo de la ubicación
  */
@@ -35,7 +56,11 @@ export function useGeolocate(full_main) {
   const geo_store = useGeoNewStore()
 
   const notices = ref([])
+  const warnings = ref([])
   let timer = null
+  // Última respuesta del trazo: los avisos se recalculan contra ella al
+  // corregir un selector, sin volver a preguntarle al servidor.
+  let last_geometry = null
   // Lo último que puso la sugerencia: si los selectores ya no coinciden es
   // que el usuario los movió a mano y los avisos dejaron de describirlos.
   let last_suggested = null
@@ -44,7 +69,9 @@ export function useGeolocate(full_main) {
 
   function clear() {
     notices.value = []
+    warnings.value = []
     last_suggested = null
+    last_geometry = null
     if (timer) {
       clearTimeout(timer)
       timer = null
@@ -120,6 +147,57 @@ export function useGeolocate(full_main) {
     applying = false
   }
 
+  function inResponse(list, id) {
+    // Una respuesta sin la lista no es una lista vacía: no se avisa de
+    // lo que el servidor no informó.
+    if (!Array.isArray(list)) return true
+    return list.some(item => item.id === id)
+  }
+
+  // Contra lo que se enviaría, no contra lo guardado: el aviso tiene que
+  // salir antes de guardar y desaparecer en cuanto se corrige el selector.
+  function checkGeometry() {
+    warnings.value = []
+    const loc = full_main.value
+    if (!last_geometry || !loc) return
+    if (loc.municipality
+        && !inResponse(last_geometry.municipalities, loc.municipality))
+      warnings.value.push(GEOMETRY_WARNINGS.municipality(
+          municipalityName(loc.state, loc.municipality)))
+    if (loc.locality
+        && !inResponse(last_geometry.localities, loc.locality))
+      warnings.value.push(GEOMETRY_WARNINGS.locality(
+          localityName(loc.municipality, loc.locality)))
+  }
+
+  async function runSuggestGeometry(feature) {
+    const response = await geoService.geolocateGeometry(
+        feature, full_main.value.state)
+    const data = response?.data
+    if (!data) return
+    notices.value = []
+    // Vista previa de la franja: LocationMunicipalities muestra los
+    // municipios atravesados antes de guardar.
+    full_main.value.municipalities_full = data.municipalities || []
+    last_geometry = data
+    checkGeometry()
+  }
+
+  function suggestGeometry(feature) {
+    if (timer) clearTimeout(timer)
+    if (!feature) {
+      timer = null
+      last_geometry = null
+      warnings.value = []
+      if (full_main.value) full_main.value.municipalities_full = []
+      return
+    }
+    timer = setTimeout(() => {
+      timer = null
+      runSuggestGeometry(feature)
+    }, DEBOUNCE_MS)
+  }
+
   async function runSuggest(lat, lon) {
     const response = await geoService.geolocate(
         lat, lon, full_main.value.state)
@@ -149,5 +227,9 @@ export function useGeolocate(full_main) {
         clear()
       })
 
-  return {notices, suggest, clear}
+  watch(
+      () => [full_main.value?.municipality, full_main.value?.locality],
+      () => checkGeometry())
+
+  return {notices, warnings, suggest, suggestGeometry, clear}
 }
