@@ -87,15 +87,22 @@ const close_position = useClosePosition(full_main)
 const {
   notices: geo_notices,
   warnings: geo_warnings,
+  candidates: geo_candidates,
+  candidates_text: geo_candidates_text,
+  can_replace: geo_can_replace,
+  has_replacement: geo_has_replacement,
   suggest: suggestGeo,
   suggestGeometry: suggestGeoGeometry,
+  replaceAll: replaceGeo,
+  undoReplace: undoReplaceGeo,
   clear: clearGeo,
 } = useGeolocate(full_main)
 
 function applyFeatureAndSuggest(feature) {
   applyFeature(feature)
   if (full_main.value.type_location === 'point') {
-    if (!feature) return
+    // Sin coordenadas la llamada no sale, pero hay que avisarle igual: es
+    // lo que retira las candidatas y la resolución del pin borrado.
     suggestGeo(full_main.value.latitude, full_main.value.longitude)
     return
   }
@@ -200,6 +207,8 @@ function applyImported({feature, type_location, warnings}) {
       :import_warnings="import_warnings"
       :geo_notices="geo_notices"
       :geo_warnings="geo_warnings"
+      :candidates_text="geo_candidates_text"
+      :location="full_main"
     />
     <v-textarea
       v-model="full_main.details"
@@ -229,6 +238,11 @@ function applyImported({feature, type_location, warnings}) {
       :full_main="full_main"
       v-model:expanded="expanded_map"
       :can_expand="!second_level"
+      :candidates="geo_candidates"
+      :can_replace="geo_can_replace"
+      :has_replacement="geo_has_replacement"
+      @replace="replaceGeo"
+      @undo-replace="undoReplaceGeo"
       @update:location="applyFeatureAndSuggest"
       @imported="applyImported"
       @import-error="setImportError"

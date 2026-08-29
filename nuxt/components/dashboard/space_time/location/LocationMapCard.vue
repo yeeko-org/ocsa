@@ -15,11 +15,19 @@ const props = defineProps({
   can_expand: {
     type: Boolean,
     default: true
-  }
+  },
+  // Localidades cercanas por dibujar como marcadores secundarios
+  candidates: {
+    type: Array,
+    default: () => []
+  },
+  can_replace: Boolean,
+  has_replacement: Boolean,
 });
 
 const emit = defineEmits([
-  'update:location', 'close', 'imported', 'import-error']);
+  'update:location', 'close', 'imported', 'import-error', 'replace',
+  'undo-replace']);
 
 const is_expanded = defineModel('expanded', {type: Boolean, default: false});
 
@@ -32,6 +40,7 @@ const {location_type_full, isSatelliteView, toggleMapStyle, resize,
       full_main: toRef(props, 'full_main'),
       close_position: toRef(props, 'close_position'),
       container: mapContainer,
+      candidates: toRef(props, 'candidates'),
       onUpdate: (feature) => emit('update:location', feature),
     });
 
@@ -67,6 +76,21 @@ watch(is_expanded, resize);
       >
         <v-icon>
           {{ location_type_full.draw_icon }}
+        </v-icon>
+      </v-btn>
+      <!-- Un solo lugar para las dos caras del reemplazo: aplicar lo que
+           calculó el motor y devolver lo que había antes. -->
+      <v-btn
+        icon
+        variant="text"
+        :disabled="!can_replace && !has_replacement"
+        @click="has_replacement ? emit('undo-replace') : emit('replace')"
+        v-tooltip:bottom="has_replacement
+          ? 'Deshacer el reemplazo automático'
+          : 'Reemplazar estado, municipio y localidad con lo calculado'"
+      >
+        <v-icon>
+          {{ has_replacement ? 'reset_wrench' : 'build' }}
         </v-icon>
       </v-btn>
       <GeoImportButton

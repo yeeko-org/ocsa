@@ -24,11 +24,13 @@ const AUTO_ARM_ON_MOUNT = false
  * @param {Ref<Object>} options.close_position centro de respaldo (localidad
  *   o municipio) cuando la ubicación aún no tiene geometría
  * @param {Ref<HTMLElement>} options.container contenedor del mapa
+ * @param {Ref<Array>} options.candidates localidades cercanas por dibujar
+ *   como marcadores secundarios: `{id, label, point: [lon, lat]}`
  * @param {Function} options.onUpdate recibe la Feature ensamblada (o null)
  */
 export function useLocationDraw(options) {
-  const {location_type, full_main, close_position, container, onUpdate} =
-      options
+  const {location_type, full_main, close_position, container, candidates,
+    onUpdate} = options
 
   const map = ref(null)
   const draw = ref(null)
@@ -140,7 +142,46 @@ export function useLocationDraw(options) {
       map.value.on('draw.delete', clearDrawing)
 
       zoomToFeatures(existingFeatures.value)
+      drawCandidates(candidates?.value)
     })
+  }
+
+  // Marcadores DOM y no una capa de símbolos: el texto de una capa depende
+  // del fontstack del estilo —y aquí hay dos, que se alternan y reconstruyen
+  // todas las capas—, mientras que un marcador sobrevive al cambio.
+  let candidate_markers = []
+
+  function clearCandidates() {
+    candidate_markers.forEach(marker => marker.remove())
+    candidate_markers = []
+  }
+
+  function candidateElement(label) {
+    const wrapper = document.createElement('div')
+    wrapper.style.cssText =
+        'display:flex;align-items:center;pointer-events:none;'
+    const dot = document.createElement('span')
+    dot.style.cssText = 'width:8px;height:8px;border-radius:50%;'
+        + 'background:#ffb300;border:2px solid #fff;flex:none;'
+    const text = document.createElement('span')
+    text.textContent = label
+    text.style.cssText = 'margin-left:4px;padding:1px 4px;font-size:11px;'
+        + 'color:#fff;background:rgba(0,0,0,0.55);border-radius:3px;'
+        + 'white-space:nowrap;'
+    wrapper.append(dot, text)
+    return wrapper
+  }
+
+  function drawCandidates(items) {
+    clearCandidates()
+    if (!map.value || !items?.length) return
+    for (const item of items) {
+      if (!item.point) continue
+      candidate_markers.push(new mapboxgl.Marker({
+        element: candidateElement(item.label),
+        anchor: 'left',
+      }).setLngLat(item.point).addTo(map.value))
+    }
   }
 
   // Capa propia para los puntos: los estilos de draw no distinguen el punto
@@ -333,11 +374,17 @@ export function useLocationDraw(options) {
     map.value.flyTo(closeView(close_pos))
   })
 
+  if (candidates)
+    watch(candidates, items => {
+      if (isMapInitialized.value) drawCandidates(items)
+    })
+
   onMounted(initializeMap)
 
   // Sin esto cada remonte del card abandona un mapa vivo, con su contexto
   // WebGL: el navegador sólo admite un puñado antes de perderlos.
   onUnmounted(() => {
+    clearCandidates()
     map.value?.remove()
     map.value = null
     draw.value = null
