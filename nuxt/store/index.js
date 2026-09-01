@@ -524,6 +524,17 @@ export const useMainStore = defineStore('main', {
 
   },
   getters: {
+    // Catálogo de grupos indexado por `key_name`; cualquier vocabulario
+    // (`location` o `status_location`) se normaliza antes de consultarlo.
+    status_groups_dict(state) {
+      if (!state.cats?.status_group)
+        return {}
+      return state.cats.status_group.reduce((obj, group) => {
+        obj[group.key_name] = {
+          ...group, field_name: `status_${group.key_name}`}
+        return obj
+      }, {})
+    },
     status_dict(state) {
       if (!state.cats.status_control)
         return {}
