@@ -5,6 +5,7 @@ import LocationPersistAlert from
     '~/components/dashboard/space_time/location/LocationPersistAlert.vue'
 import {buildAlertComment} from '~/composables/useGeolocate.js'
 import {patchElement} from '~/composables/save_elements.js'
+import {useStatusGroup} from '~/composables/useStatusGroup.js'
 import {useAuthStore} from '~/store/auth.js'
 import {useDashboardStore} from '~/store/dash.js'
 import {useMainStore} from '~/store/index.js'
@@ -41,21 +42,19 @@ const props = defineProps({
   },
 })
 
-const {schemas, status_dict} = storeToRefs(useMainStore())
+const {schemas} = storeToRefs(useMainStore())
 const authStore = useAuthStore()
 const {user_details_ocsa} = authStore
-const {is_staff} = storeToRefs(authStore)
 const {showSnackbar} = useDashboardStore()
 
 // El botón guarda el aviso como comentario, o sea escribe la ubicación: el
-// candado del status lo cierra igual que a los demás campos.
-const can_persist = computed(() => {
-  if (!props.location) return false
-  if (is_staff.value) return true
-  const status_name = props.location.status_location
-  if (!status_name) return true
-  return status_dict.value.location?.[status_name]?.open_editor !== false
+// candado del status lo cierra igual que a los demás campos, y con la
+// misma escalera que el resto del front.
+const {is_readonly: status_locked} = useStatusGroup('location', {
+  record: () => props.location,
 })
+const can_persist = computed(
+  () => !!props.location && !status_locked.value)
 
 // Cerrar un aviso no puede tocar el arreglo del padre, que es su dueño
 const dismissed = ref([])

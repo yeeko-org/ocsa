@@ -11,8 +11,8 @@ let mapActorsPromise = null;
 import { useGeoNewStore } from "~/store/geo.js";
 import { useDashboardStore } from "~/store/dash.js";
 import { calculateNewCats, hydrateFilterGroup } from "~/composables/nodes.js";
-import { calculateSchemas } from "~/composables/cats.js";
-import { calculate_status } from "~/composables/filters.js";
+import {
+  calculateSchemas, calculate_status } from "~/composables/cats.js";
 
 function getLastId(data) {
   if (data.elems_ids){

@@ -3,7 +3,6 @@ import {useMainStore} from '~/store/index'
 const mainStore = useMainStore()
 import FiltersList from "~/components/dashboard/common/select/FiltersList.vue";
 import PanelsResult from "~/components/dashboard/common/main/PanelsResult.vue";
-// import { status_filters } from "~/composables/filters.js";
 
 import {storeToRefs} from "pinia";
 import ExportButton from "~/components/dashboard/common/utils/ExportButton.vue";

@@ -1,15 +1,9 @@
 <script setup>
-import { useMainStore } from '~/store'
-import { storeToRefs } from 'pinia'
-import {useAuthStore} from "~/store/auth.js";
-const authStore = useAuthStore()
-const mainStore = useMainStore()
-import {status_filters} from "~/composables/filters.js";
-
-const { is_full_editor } = storeToRefs(authStore);
+import StatusChip from '~/components/dashboard/status/StatusChip.vue'
+import {useStatusGroup} from '~/composables/useStatusGroup.js'
 
 const props = defineProps({
-  collection: String,
+  collection: [String, Object],
   is_filter: Boolean,
   density: {
     type: String,
@@ -31,54 +25,34 @@ const props = defineProps({
 
 const final_filters = defineModel({type: Object, required: true})
 
-const { status } = storeToRefs(mainStore)
-
-const simple_name = computed(() => {
-  return props.collection.replace('status_', '');
-})
-
-const items_built = computed(() => {
-  return status.value[simple_name.value]
-})
-
-const label = computed(() => {
-  return "Status " + status_filters[`${field.value}`].name
-})
-
-const field = computed(() => {
-  if (props.collection.includes('status_'))
-    return props.collection
-  return `status_${props.collection}`
-})
-
-const status_selected = computed(() => {
-  const status_name = final_filters.value[field.value]
-  if (!status_name) return {open_editor: true}
-  return items_built.value.find(item => item.name === status_name)
-})
-
-// Como filtro siempre se puede elegir; el candado solo aplica a la edición.
-const is_readonly = computed(() => {
-  if (props.is_filter) return false
-  return props.readonly || (
-    !is_full_editor.value && !status_selected.value.open_editor)
-})
+const {field, label, items, display, is_readonly, isSelectable} =
+  useStatusGroup(() => props.collection, {
+    record: final_filters,
+    is_filter: () => props.is_filter,
+    readonly: () => props.readonly,
+  })
 
 // El `#item` slot no informa al v-select de qué opciones están
 // deshabilitadas; sin `item-props` seguirían siendo elegibles con teclado.
-const item_props = (item) => ({
-  disabled: !props.is_filter && (
-    props.readonly || (!is_full_editor.value && !item.open_selectable)),
-})
+const item_props = (item) => ({disabled: !isSelectable(item)})
 
 const emits = defineEmits(['change-status'])
 
 </script>
 
 <template>
+  <StatusChip
+    v-if="is_readonly && display"
+    :main="final_filters"
+    :collection="collection"
+    left_label
+    custom_class="flex-row"
+    :hide_details="hide_details"
+  />
   <v-select
+    v-else
     v-model="final_filters[field]"
-    :items="items_built"
+    :items="items"
     item-title="public_name"
     item-value="name"
     :variant="is_filter ? 'underlined' : 'outlined'"

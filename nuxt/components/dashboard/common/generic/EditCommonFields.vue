@@ -26,15 +26,15 @@ const loading_edition = ref(false)
 
 const emits = defineEmits(['update-status', 'update-comments'])
 
-function saveStatus(new_status, status_group) {
+function saveStatus(new_status, group) {
   if (!full_main.value.id)
     return
 
   loading_edition.value = true
-  let params = {[status_group]: new_status}
+  let params = {[group.field_name]: new_status}
   patchElement(props.final_collection_data, full_main.value.id, params)
     .then((res)=>{
-      emits('update-status', {status_group, new_status, res})
+      emits('update-status', {group, new_status, res})
       setTimeout(() => {
         loading_edition.value = false
       }, 800)
@@ -79,13 +79,13 @@ function saveStatus(new_status, status_group) {
             v-for="status_group in final_collection_data.status_groups"
             :key="status_group.name"
             v-model="full_main"
-            :collection="status_group.name"
+            :collection="status_group"
             :readonly="!status_group.is_editable"
             style="max-width: 300px;"
             density="default"
             class="mr-1"
             :loading="loading_edition"
-            @change-status="saveStatus($event, status_group.name)"
+            @change-status="saveStatus($event, status_group)"
           />
         </template>
         <Comments

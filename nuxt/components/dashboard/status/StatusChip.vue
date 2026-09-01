@@ -1,7 +1,5 @@
 <script setup>
-import { useMainStore } from '~/store'
-import { storeToRefs } from 'pinia'
-import {status_filters} from "~/composables/filters.js";
+import {useStatusGroup} from '~/composables/useStatusGroup.js'
 
 const props = defineProps({
   main: {
@@ -9,12 +7,11 @@ const props = defineProps({
     required: true,
   },
   collection: {
-    type: String,
+    type: [String, Object],
     required: true,
   },
   hide_details: Boolean,
   left_label: Boolean,
-  bold_text: Boolean,
   custom_class: {
     type: String,
     required: false,
@@ -39,57 +36,15 @@ const props = defineProps({
     default: 'default',
   },
 });
-const mainStore = useMainStore();
 
-const want_edit_note = ref(false);
-
-const { status_dict } = storeToRefs(mainStore);
-
-// Compute item_built using the status_dict and props
-const field = computed(() => {
-  if (props.collection.includes('status_'))
-    return props.collection
-  return `status_${props.collection}`
+const {short_label, display} = useStatusGroup(() => props.collection, {
+  record: () => props.main,
 })
-
-const simple_name = computed(() => {
-  return props.collection.replace('status_', '');
-})
-
-const item_built = computed(() => {
-  const status_field = props.main[field.value];
-  try{
-    return status_dict.value[simple_name.value][status_field] ||
-      {
-        public_name: "Sin definir",
-        color: "grey",
-        color_text: "white",
-        icon: "help",
-        back_text: "text-grey-darken-1",
-      };
-  }
-  catch (e){
-    console.log("error", e)
-    console.log("field", field.value)
-    console.log("status_dict", status_dict.value)
-    console.log("props.collection", props.collection)
-    console.log("status_field", status_field)
-    return null
-  }
-});
-
-const label = computed(() => {
-  if (status_filters[props.collection] === undefined)
-    return 'Status:';
-
-  return `${status_filters[props.collection].short_name}:`;
-})
-
 </script>
 
 <template>
   <div
-    v-if="item_built"
+    v-if="display"
     class="d-flex text-body-medium align-center"
     :class="custom_class"
   >
@@ -98,35 +53,35 @@ const label = computed(() => {
       class="text-body-small text-grey-darken-1"
       :class="props.left_label ? 'mr-1' : 'mb-n1'"
     >
-      {{ label }}
+      {{ short_label }}
     </span>
     <v-icon
       v-if="props.x_small"
-      :color="disabled ? `${item_built.color}-lighten-2` : item_built.color"
+      :color="disabled ? `${display.color}-lighten-2` : display.color"
       class="ml-1"
       x-small
-    >{{item_built.icon}}</v-icon>
+    >{{display.icon}}</v-icon>
     <v-chip
       v-else
-      :color="item_built.color || 'grey'"
+      :color="display.color || 'grey'"
       :size="props.disabled ? 'small' : chip_size"
       :disabled="props.disabled"
       :icon="props.only_icon"
-      :class="`${item_built.back_text} ${props.bold_text ? 'font-weight-bold' : ''}`"
+      :class="display.back_text"
       :variant="props.chip_variant"
     >
       <v-icon
         v-if="props.show_icon"
-        :color="item_built.color_text"
+        :color="display.color_text"
         class="mr-1"
       >
-        {{(!item_built.icon || item_built.icon === 'check_circle')
+        {{(!display.icon || display.icon === 'check_circle')
           ? 'fiber_manual_record'
-          : item_built.icon
+          : display.icon
         }}
       </v-icon>
       <template v-if="!props.only_icon">
-        {{ item_built.public_name }}
+        {{ display.public_name }}
       </template>
     </v-chip>
     <v-tooltip
@@ -135,10 +90,10 @@ const label = computed(() => {
     >
       <div
         style="max-width: 300px;"
-        :class="item_built.back_text"
+        :class="display.back_text"
       >
-        <b>{{item_built.public_name}}</b> <br>
-        {{item_built.description || '--'}}
+        <b>{{display.public_name}}</b> <br>
+        {{display.description || '--'}}
       </div>
     </v-tooltip>
   </div>

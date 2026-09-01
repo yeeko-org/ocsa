@@ -140,7 +140,7 @@ function sendMassiveEdit() {
           <StatusDetail
             v-if="field.is_status"
             v-model="full_main"
-            :collection="field.field_name"
+            :collection="field"
             clearable
             hide-details
             style="max-width: 320px; min-width: 200px;"

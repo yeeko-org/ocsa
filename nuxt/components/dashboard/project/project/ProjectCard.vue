@@ -51,7 +51,6 @@ const parent_project = computed(() => {
         :main="full_main"
         collection="validation"
         custom_class="flex-row mt-n1"
-        bold_text
         chip_size="x-small"
         chip_variant="outlined"
         left_label

@@ -1,4 +1,4 @@
-import {computed, unref} from 'vue'
+import {computed, toValue} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useMainStore} from '~/store'
 import {useAuthStore} from '~/store/auth.js'
@@ -64,7 +64,7 @@ export function useStatusGroup(source, options = {}) {
   const {is_full_editor, is_superuser} = storeToRefs(auth_store)
 
   const group = computed(() => {
-    const raw = unref(source)
+    const raw = toValue(source)
     if (raw && typeof raw === 'object' && raw.field_name)
       return raw
     const key = groupKeyOf(raw)
@@ -84,7 +84,7 @@ export function useStatusGroup(source, options = {}) {
     key_name.value ? status_dict.value[key_name.value] || {} : {})
 
   const status_name = computed(() => {
-    const main = unref(record)
+    const main = toValue(record)
     if (!main || !field.value) return null
     return main[field.value] || null
   })
@@ -105,8 +105,8 @@ export function useStatusGroup(source, options = {}) {
       is_full_editor: is_full_editor.value,
     },
     selected: selected.value,
-    is_filter: unref(is_filter) || false,
-    readonly: unref(readonly) || false,
+    is_filter: toValue(is_filter) || false,
+    readonly: toValue(readonly) || false,
   }))
 
   const is_readonly = computed(() => policy.value.is_readonly)

@@ -136,10 +136,9 @@ const emits = defineEmits(['open-panel'])
             v-if="status_group.name !== 'status_retro'
               || main[status_group.name]"
             :main="main"
-            :collection="status_group.name"
+            :collection="status_group"
             chip_size="small"
             class="ml-1"
-            :bold_text="false"
           />
         </div>
       </div>

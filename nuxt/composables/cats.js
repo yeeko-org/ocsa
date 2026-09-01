@@ -1,3 +1,5 @@
+import colorMixin from "~/mixins/colorMixin.js";
+
 // const calculateSchemas = (data) => {
 export function calculateSchemas(data) {
   let filter_groups = data.filter_groups.map(fg => {
@@ -147,4 +149,16 @@ export function calculateSchemas(data) {
     "filter_groups": filter_groups,
     "filters_dict": filters_dict,
   }
+}
+// Agrupa el catálogo plano de status por su grupo y le calcula los colores
+// derivados (`color_text`, `back_text`) que consumen chip y select.
+export function calculate_status(status_control) {
+  return status_control.reduce((obj, st) => {
+    st = colorMixin.methods.getComplementColor(st)
+    if (obj[st.group])
+      obj[st.group].push(st)
+    else
+      obj[st.group] = [st]
+    return obj
+  }, {})
 }

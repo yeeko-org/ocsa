@@ -13,7 +13,6 @@ const dashboardStore = useDashboardStore()
 import { saveElement, deleteElement } from "~/composables/save_elements.js";
 const { schemas, status_dict } = storeToRefs(mainStore)
 const { showSnackbar } = dashboardStore
-import {status_filters} from "~/composables/filters.js";
 
 const props = defineProps({
   // full_main: Object,
@@ -97,12 +96,9 @@ function finishSave(snackbar_msg='Se ha guardado el registro'){
   showSnackbar(snackbar_msg)
 }
 
-function updateStatus({status_group, new_status, res}){
-  const status_key = status_group.replace('status_', '')
-  const new_status_obj = status_dict.value[status_key][new_status]
-  const status_info = status_filters[status_group]
-  // console.log('status_info', status_info)
-  const msg = `Status ${status_info.name} actualizado
+function updateStatus({group, new_status, res}){
+  const new_status_obj = status_dict.value[group.key_name][new_status]
+  const msg = `Status de ${group.public_name} actualizado
     a "${new_status_obj.public_name}"`
   finishSave(msg)
   if (!props.in_dialog)
