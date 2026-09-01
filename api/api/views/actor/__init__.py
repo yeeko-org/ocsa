@@ -80,7 +80,6 @@ class ActorViewMixin(viewsets.ModelViewSet):
 
 
 class ActorViewSet(MassiveEdit, ActorViewMixin):
-    lock_status_field = "status_validation"
 
     serializer_class = ActorBaseSerializer
 

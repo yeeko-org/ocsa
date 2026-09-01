@@ -128,7 +128,6 @@ class ProjectViewSetMixin(viewsets.ModelViewSet):
 class ProjectViewSet(
         ClickHistoryMixin, CustomDeleteMixin, ActionFileMixin, MassiveEdit,
         ProjectViewSetMixin):
-    lock_status_field = "status_validation"
     queryset = Project.objects.all().select_related(
         "parent_project",
         "conflict",
