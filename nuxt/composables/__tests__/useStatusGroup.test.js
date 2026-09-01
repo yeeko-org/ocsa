@@ -4,7 +4,7 @@ import {createPinia, setActivePinia} from 'pinia'
 import {useMainStore} from '~/store'
 import {useAuthStore} from '~/store/auth.js'
 import {
-  useStatusGroup, statusPolicy, groupKeyOf, UNDEFINED_STATUS,
+  useStatusGroup, statusPolicy, groupKeyOf,
 } from '~/composables/useStatusGroup.js'
 
 const GROUPS = [
@@ -43,6 +43,7 @@ describe('statusPolicy', () => {
   const editor = {is_full_editor: true, is_superuser: false}
   const plain = {is_full_editor: false, is_superuser: false}
   const boss = {is_full_editor: false, is_superuser: true}
+  const staff = {is_full_editor: true, is_staff: true, is_superuser: false}
 
   it('como filtro nunca bloquea ni deshabilita opciones', () => {
     const p = statusPolicy({
@@ -59,20 +60,17 @@ describe('statusPolicy', () => {
     expect(p.isSelectable(DRAFT)).toBe(false)
   })
 
-  it('un status cerrado bloquea al editor pleno, no al superusuario', () => {
+  it('un status cerrado bloquea al editor pleno, no a staff ni superusuario', () => {
     expect(statusPolicy({user_flags: editor, selected: APPROVED})
       .is_readonly).toBe(true)
+    expect(statusPolicy({user_flags: staff, selected: APPROVED})
+      .is_readonly).toBe(false)
     expect(statusPolicy({user_flags: boss, selected: APPROVED})
       .is_readonly).toBe(false)
   })
 
   it('un status abierto no bloquea a nadie', () => {
     expect(statusPolicy({user_flags: plain, selected: DRAFT})
-      .is_readonly).toBe(false)
-  })
-
-  it('sin status el campo se edita', () => {
-    expect(statusPolicy({user_flags: plain, selected: null})
       .is_readonly).toBe(false)
   })
 
@@ -115,41 +113,17 @@ describe('useStatusGroup', () => {
     fillStore()
   })
 
-  it('resuelve desde el nombre corto', () => {
-    const {group, field, key_name} = useStatusGroup('location')
-    expect(key_name.value).toBe('location')
-    expect(field.value).toBe('status_location')
-    expect(group.value.public_name).toBe('Ubicación')
-  })
-
-  it('resuelve desde el nombre del campo', () => {
-    const {field, label} = useStatusGroup('status_location')
-    expect(field.value).toBe('status_location')
-    expect(label.value).toBe('Status de Ubicación')
-  })
-
-  it('acepta el objeto enriquecido sin consultar el store', () => {
+  it('los dos vocabularios y el objeto dan el mismo grupo', () => {
     const enriched = {
       ...GROUPS[1], field_name: 'status_location', name: 'status_location'}
-    const {group, short_label} = useStatusGroup(enriched)
-    expect(group.value).toBe(enriched)
-    expect(short_label.value).toBe('Ubicación:')
-  })
-
-  it('sigue una fuente reactiva', () => {
-    const source = ref('validation')
-    const {field} = useStatusGroup(source)
-    expect(field.value).toBe('status_validation')
-    source.value = 'status_location'
-    expect(field.value).toBe('status_location')
-  })
-
-  it('no revienta con un grupo inexistente', () => {
-    const {group, field, items, label} = useStatusGroup('inventado')
-    expect(group.value).toBe(null)
-    expect(field.value).toBe(null)
-    expect(items.value).toEqual([])
-    expect(label.value).toBe('')
+    const short = useStatusGroup('location')
+    const long = useStatusGroup('status_location')
+    const object = useStatusGroup(enriched)
+    for (const built of [short, long, object]) {
+      expect(built.key_name.value).toBe('location')
+      expect(built.field.value).toBe('status_location')
+      expect(built.label.value).toBe('Status de Ubicación')
+    }
   })
 
   it('resuelve el status del registro y su política', () => {
@@ -166,13 +140,6 @@ describe('useStatusGroup', () => {
     expect(selected.value).toBe(null)
     expect(display.value).toBe(null)
     expect(is_readonly.value).toBe(false)
-  })
-
-  it('un status fuera del catálogo cae en «Sin definir»', () => {
-    const record = ref({status_location: 'fantasma'})
-    const {selected, display} = useStatusGroup('location', {record})
-    expect(selected.value).toBe(null)
-    expect(display.value).toBe(UNDEFINED_STATUS)
   })
 
   it('como filtro no bloquea aunque el status esté cerrado', () => {

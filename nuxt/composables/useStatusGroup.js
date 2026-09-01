@@ -28,12 +28,15 @@ export function groupKeyOf(source) {
  */
 export function statusPolicy(
   {user_flags = {}, selected = null, is_filter = false, readonly = false}) {
-  const {is_superuser = false, is_full_editor = false} = user_flags
+  const {
+    is_superuser = false, is_staff = false, is_full_editor = false,
+  } = user_flags
 
   const is_readonly = (() => {
     if (is_filter) return false
     if (readonly) return true
-    if (is_superuser) return false
+    // Mismo peldaño que el servidor (`is_admin`): staff salta el candado.
+    if (is_superuser || is_staff) return false
     // Sin status no hay candado; tener uno legacy tampoco cierra el campo
     // (task-71: se ve siempre, solo no se asigna).
     return selected?.open_editor === false
@@ -61,7 +64,7 @@ export function useStatusGroup(source, options = {}) {
   const main_store = useMainStore()
   const auth_store = useAuthStore()
   const {status, status_dict, status_groups_dict} = storeToRefs(main_store)
-  const {is_full_editor, is_superuser} = storeToRefs(auth_store)
+  const {is_full_editor, is_staff, is_superuser} = storeToRefs(auth_store)
 
   const group = computed(() => {
     const raw = toValue(source)
@@ -102,6 +105,7 @@ export function useStatusGroup(source, options = {}) {
   const policy = computed(() => statusPolicy({
     user_flags: {
       is_superuser: is_superuser.value,
+      is_staff: is_staff.value,
       is_full_editor: is_full_editor.value,
     },
     selected: selected.value,
