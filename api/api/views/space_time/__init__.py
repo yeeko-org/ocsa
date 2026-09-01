@@ -88,6 +88,38 @@ class LocationFilter(OnlyByFilterMixin):
 
 class LocationViewSet(ClickHistoryMixin, MassiveEdit, BaseViewSet):
     permission_classes = [LocationPermission]
+    lock_status_field = "status_location"
+    _massive_projects_before = set()
+
+    def after_massive_update(self, ids: list, update_data: dict) -> None:
+        """Rederiva el status_location de los proyectos tocados.
+
+        `.update()` no pasa por Location.save(), que es donde vive la
+        herencia de adr-0027. Se juntan los proyectos de antes y de
+        después porque el lote también puede reasignar `project`.
+        """
+        if not {"status_location", "project"} & set(update_data):
+            return None
+        from project.models import Project
+        from utils.universal import apply_project_status_location
+        project_ids = set(
+            Location.objects.filter(id__in=ids)
+            .exclude(project__isnull=True)
+            .values_list("project_id", flat=True))
+        project_ids |= self._massive_projects_before
+        for project in Project.objects.filter(id__in=project_ids):
+            apply_project_status_location(project)
+        return None
+
+    def editable_ids(self, request, elements_ids) -> list:
+        ids = super().editable_ids(request, elements_ids)
+        # Los proyectos dueños se leen antes del update: si el lote
+        # reasigna `project`, después ya no serían alcanzables.
+        self._massive_projects_before = set(
+            Location.objects.filter(id__in=ids)
+            .exclude(project__isnull=True)
+            .values_list("project_id", flat=True))
+        return ids
     queryset = Location.objects.all().exclude(
         project__isnull=True, event__isnull=True, impact__isnull=True)\
         .select_related("event", "impact", "project")\

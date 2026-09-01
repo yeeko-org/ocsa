@@ -149,43 +149,56 @@ class BaseStatusViewSet(BaseGenericViewSet):
 
 class MassiveEdit(viewsets.ModelViewSet):
 
-    @action(detail=False, methods=['post'])
-    def massive_edit(self, request):
+    # Status que cierra la edición del registro, si el modelo tiene uno.
+    # El lote no llama a get_object(), así que has_object_permission no
+    # corre y el candado hay que aplicarlo al queryset (task-99).
+    lock_status_field = None
+
+    def editable_ids(self, request, elements_ids) -> list:
+        """Los ids del lote que este usuario podría editar uno por uno.
+
+        Los que no pasan se omiten en silencio: la respuesta trae lo
+        que sí cambió y no se distingue de un lote completo.
+        """
+        elements = self.get_queryset().filter(id__in=elements_ids)
+        is_admin = getattr(request.user, "is_admin", False)
+        if self.lock_status_field and not is_admin:
+            elements = elements.exclude(
+                **{f"{self.lock_status_field}__open_editor": False})
+        return list(elements.values_list("id", flat=True))
+
+    def after_massive_update(self, ids: list, update_data: dict) -> None:
+        """Gancho para lo que `.update()` se salta al no llamar save()."""
+        return None
+
+    def apply_massive(self, request):
+        elements_ids = request.data.pop('elems_ids')
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        elements_ids = request.data.pop('elems_ids')
 
         update_data = {}
         # for field in self.massive_fields:
         for field in data:
             update_data[field] = data[field]
 
-        queryset = self.get_queryset()
-        elements = queryset.filter(id__in=elements_ids)
-        elements.update(**update_data)
+        # Se congelan los ids: si el lote mueve el status, volver a
+        # evaluar el queryset filtrado dejaría fuera lo recién guardado.
+        ids = self.editable_ids(request, elements_ids)
+        self.get_queryset().filter(id__in=ids).update(**update_data)
+        self.after_massive_update(ids, update_data)
 
+        elements = self.get_queryset().filter(id__in=ids)
         list_serializer = self.get_serializer(elements, many=True)
         return Response(list_serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def massive_edit(self, request):
+        return self.apply_massive(request)
 
     @action(detail=True, methods=['patch'])
     def massive_patch(self, request, pk=None):
-        elements_ids = request.data.pop('elems_ids')
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        update_data = {}
-        # for field in self.massive_fields:
-        for field in data:
-            update_data[field] = data[field]
-
-        queryset = self.get_queryset()
-        elements = queryset.filter(id__in=elements_ids)
-        elements.update(**update_data)
-
-        list_serializer = self.get_serializer(elements, many=True)
-        return Response(list_serializer.data)
+        return self.apply_massive(request)
 
 
 class OnlyByFilterMixin(FilterSet):
