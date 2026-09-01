@@ -15,18 +15,18 @@ from api.views.space_time.serializers import LocationSerializer
 from profile_auth.models import User
 from project.models import Project
 from space_time.models import Location, State
-from work_flux.models import StatusControl
+from work_flux.test_helpers import make_status
 
 
 class LocationOwnerTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.validation = StatusControl.objects.create(
+        cls.validation = make_status(
             name="val", group="validation", public_name="Validado")
         # Guardar una ubicación recalcula el status_location de su
         # proyecto, y sin ubicaciones con status el valor es «empty».
-        StatusControl.objects.create(
+        make_status(
             name="empty", group="location", public_name="Sin ubicación")
         cls.project = Project.objects.create(
             name="Presa", status_validation=cls.validation)

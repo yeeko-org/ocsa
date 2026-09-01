@@ -1,11 +1,19 @@
 from django.contrib import admin
-from work_flux.models import StatusControl
+from work_flux.models import StatusControl, StatusGroup
+
+
+@admin.register(StatusGroup)
+class StatusGroupAdmin(admin.ModelAdmin):
+    list_display = ["public_name", "key_name", "order", "bar_hidden"]
+    list_editable = ["order", "bar_hidden"]
 
 
 @admin.register(StatusControl)
 class StatusControlAdmin(admin.ModelAdmin):
     list_display = [
         "public_name", "name", "group", "order", "is_public",
-        "open_editor", "open_selectable", "color", "icon", "priority"]
+        "open_editor", "open_selectable", "is_legacy", "color", "icon",
+        "priority"]
     list_editable = ["order", "color", "icon", "priority"]
     list_filter = ["group"]
+    list_select_related = ["group"]

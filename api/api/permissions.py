@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Any, List, Optional
 
 from rest_framework.permissions import (
@@ -6,15 +7,24 @@ from rest_framework.request import Request
 
 from source.models import Note
 from space_time.models import Location
-from work_flux.models import StatusControl
+from work_flux.models import StatusControl, StatusGroup
 
 soft_actions = ["POST", "PATCH"]
-# Los FK a StatusControl; `status_project` apunta a otro modelo y queda fuera.
-STATUS_FIELDS = [
-    "status_register", "status_validation", "status_location", "status_retro"]
 # Acciones masivas: son detail=True pero nunca llaman a get_object(), así
 # que has_object_permission no corre y el filtro debe aplicarse antes.
 BULK_ACTIONS = ["massive_edit", "massive_patch"]
+
+
+@lru_cache(maxsize=1)
+def status_fields() -> tuple:
+    """Los FK a StatusControl, derivados del catálogo de grupos.
+
+    `status_project` apunta a otro modelo y queda fuera justamente
+    porque no es un grupo. En caché: son cuatro filas que cambian una
+    vez por década, y un reinicio del proceso basta para releerlas.
+    """
+    return tuple(
+        group.field_name for group in StatusGroup.objects.all())
 
 
 def non_selectable_writes(
@@ -29,7 +39,7 @@ def non_selectable_writes(
     if not hasattr(data, "get"):
         return []
     wanted = []
-    for field in STATUS_FIELDS:
+    for field in status_fields():
         value = data.get(field)
         if not value or not isinstance(value, str):
             continue

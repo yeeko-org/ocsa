@@ -2,19 +2,37 @@ from django.db import models
 from typing import Callable
 
 
-GROUP_CHOICES = [
-    ("register", "Registro"),
-    ("validation", "Validación"),
-    ("location", "Ubicación"),
-    ("retro", "Retroalimentación"),
-]
+class StatusGroup(models.Model):
+    key_name = models.CharField(max_length=30, primary_key=True)
+    public_name = models.CharField(max_length=120)
+    order = models.IntegerField(default=0)
+    bar_hidden = models.BooleanField(
+        default=False, verbose_name="oculto en la barra de filtros")
+
+    @property
+    def field_name(self) -> str:
+        """Nombre del FK a StatusControl que lleva este grupo.
+
+        La convención `status_<key_name>` la comparten los modelos, los
+        filtros del front y las claves de ordenamiento; no es un dato
+        editable, así que se deriva en vez de guardarse.
+        """
+        return f"status_{self.key_name}"
+
+    def __str__(self) -> str:
+        return self.public_name
+
+    class Meta:
+        ordering = ["order"]
+        verbose_name = "Grupo de status"
+        verbose_name_plural = "Grupos de status"
 
 
 class StatusControl(models.Model):
     name = models.CharField(max_length=120, primary_key=True)
-    group = models.CharField(
-        max_length=10, choices=GROUP_CHOICES,
-        verbose_name="grupo de status", default="petition")
+    group = models.ForeignKey(
+        StatusGroup, on_delete=models.PROTECT, related_name="statuses",
+        verbose_name="grupo de status", default="validation")
     public_name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     color = models.CharField(
@@ -44,7 +62,9 @@ class StatusControl(models.Model):
     priority = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.group} - {self.public_name}"
+        # `group_id` y no `group`: conserva la salida previa al FK y evita
+        # una consulta por fila en los desplegables del admin.
+        return f"{self.group_id} - {self.public_name}"
 
     class Meta:
         ordering = ["group", "order"]

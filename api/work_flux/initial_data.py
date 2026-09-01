@@ -1,4 +1,13 @@
-from .models import StatusControl
+from .models import StatusControl, StatusGroup
+
+
+# key_name, public_name, order
+INIT_GROUPS = [
+    ("register", "Registro", 4),
+    ("validation", "Validación", 5),
+    ("location", "Ubicación", 6),
+    ("retro", "Feedback", 6),
+]
 
 
 class InitStatus:
@@ -95,17 +104,29 @@ class InitStatus:
                 "No hay comentarios que agregar, tamopco es perfectamente "
                 "claro, pero no requiere aclaración."),
         ]
+        for key_name, public_name, order in INIT_GROUPS:
+            StatusGroup.objects.get_or_create(
+                key_name=key_name,
+                defaults={"public_name": public_name, "order": order})
+
+        existing = set(StatusControl.objects.values_list("name", flat=True))
         order = -1
         for data in init_status:
             name = data[0]
             group = data[1]
-            public_name = data[2]
-            color = data[3]
-            icon = data[4]
-            is_public = data[5]
-            open_editor = data[6]
-            open_selectable = data[7]
-            is_legacy = data[8]
+            # El contador avanza incluso para los que ya existen: así una
+            # fila nueva cae en el hueco que le tocaba en la lista.
+            order += 2
+            if group == "register" and order < 20:
+                order = 20
+            if group == "location" and order < 40:
+                order = 40
+            if group == "retro" and order < 60:
+                order = 60
+            # La semilla siembra una vez; a partir de ahí el admin es la
+            # fuente viva de estos campos y nadie los pisa (task-86).
+            if name in existing:
+                continue
             try:
                 priority = data[9]
             except IndexError:
@@ -114,25 +135,17 @@ class InitStatus:
                 description = data[10]
             except IndexError:
                 description = None
-            status, _ = StatusControl.objects.get_or_create(
-                name=name
+            StatusControl.objects.create(
+                name=name,
+                group_id=group,
+                public_name=data[2],
+                color=data[3],
+                icon=data[4],
+                is_public=data[5],
+                order=order,
+                open_editor=data[6],
+                open_selectable=data[7],
+                is_legacy=data[8],
+                priority=priority,
+                description=description,
             )
-            status.group = group
-            status.public_name = public_name
-            status.color = color
-            status.icon = icon
-            status.is_public = is_public
-            order += 2
-            if group == "register" and order < 20:
-                order = 20
-            if group == "location" and order < 40:
-                order = 40
-            if group == "retro" and order < 60:
-                order = 60
-            status.order = order
-            status.open_editor = open_editor
-            status.open_selectable = open_selectable
-            status.is_legacy = is_legacy
-            status.priority = priority
-            status.description = description
-            status.save()

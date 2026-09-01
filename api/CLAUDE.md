@@ -43,7 +43,7 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
 - Settings: `core/settings/__init__.py` (single file)
 - PostgreSQL with `unaccent` extension; `AUTH_USER_MODEL = "profile_auth.User"`
 - The local DB is a restored copy of production (RDS, not the EC2). Procedure and freshness check: docs `2026-08-26-copia-de-produccion-a-local`
-- `migrate_initial_data` overwrites hand-edited `order`/`color`/`icon`/`priority` of every `StatusControl` (docs `task-86`): never run it against a real DB; create rows from the shell
+- `migrate_initial_data` only creates the `StatusControl` rows that are missing; existing rows are never touched — the admin is the living source of `order`/`color`/`icon`/`priority` (docs `task-86`)
 
 ### External Integrations
 - **OpenAI / Google Generative AI**: AI-assisted record pre-classification

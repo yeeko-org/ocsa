@@ -13,7 +13,7 @@ from space_time.completeness import (
     ANY_PENDING, COMPLETE_UNAPPROVED, LOCATION_OPTIONS, NO_APPROVED_LOCATION,
     NO_GEOMETRY, NO_MUNICIPALITY, location_pending_q, project_pending_q)
 from space_time.models import Location, Municipality, State
-from work_flux.models import StatusControl
+from work_flux.test_helpers import make_status
 
 
 class PendingFiltersTests(TestCase):
@@ -27,10 +27,10 @@ class PendingFiltersTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.aprobado = StatusControl.objects.create(
+        cls.aprobado = make_status(
             name="aprobado", group="location", public_name="Aprobada",
             is_public=True)
-        cls.inicial = StatusControl.objects.create(
+        cls.inicial = make_status(
             name="inicial", group="location", public_name="Inicial",
             is_public=False)
 

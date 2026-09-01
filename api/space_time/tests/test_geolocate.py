@@ -15,7 +15,7 @@ from space_time.backfill import HUMAN_VERDICTS, apply_and_diff
 from space_time.models import (
     Locality, LocalityGeometry, Location, Municipality, MunicipalityGeometry,
     State, StateGeometry)
-from work_flux.models import StatusControl
+from work_flux.test_helpers import make_status
 
 
 class SyntheticCartography:
@@ -64,10 +64,10 @@ class SyntheticCartography:
         LocalityGeometry.objects.create(
             locality=cls.placeholder,
             wkb=shapely_wkb.dumps(cls._box(0.53, 0.53, 0.57, 0.57)))
-        cls.approximate = StatusControl.objects.create(
+        cls.approximate = make_status(
             name=geolocate.APPROXIMATE_STATUS, group="location",
             public_name="Aprobado (Aproximado)")
-        cls.approved = StatusControl.objects.create(
+        cls.approved = make_status(
             name="finished", group="location", public_name="Aprobado")
 
     @classmethod

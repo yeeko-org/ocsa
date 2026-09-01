@@ -16,7 +16,7 @@ from api.views.map.visibility import (
 from project.models import Project
 from source.models import Mention, Note, Source
 from space_time.models import Location
-from work_flux.models import StatusControl
+from work_flux.test_helpers import make_status
 
 
 class MapVisibilityTests(TestCase):
@@ -25,22 +25,22 @@ class MapVisibilityTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.val_pub = StatusControl.objects.create(
+        cls.val_pub = make_status(
             name="val_pub", group="validation", public_name="Validado",
             is_public=True)
-        cls.val_priv = StatusControl.objects.create(
+        cls.val_priv = make_status(
             name="val_priv", group="validation", public_name="En revisión",
             is_public=False)
-        cls.loc_pub = StatusControl.objects.create(
+        cls.loc_pub = make_status(
             name="loc_pub", group="location", public_name="Aprobada",
             is_public=True)
-        cls.loc_priv = StatusControl.objects.create(
+        cls.loc_priv = make_status(
             name="loc_priv", group="location", public_name="Inicial",
             is_public=False)
-        cls.reg_pub = StatusControl.objects.create(
+        cls.reg_pub = make_status(
             name="reg_pub", group="register", public_name="Publicada",
             is_public=True)
-        cls.reg_priv = StatusControl.objects.create(
+        cls.reg_priv = make_status(
             name="reg_priv", group="register", public_name="Capturada",
             is_public=False)
 

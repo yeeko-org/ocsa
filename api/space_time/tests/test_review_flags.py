@@ -38,7 +38,7 @@ from space_time.review_flags import (
     state_mismatch_text, strip_comment)
 from space_time.state_mismatch import scan as scan_states
 from space_time.tests.test_geolocate import SyntheticCartography
-from work_flux.models import StatusControl
+from work_flux.test_helpers import make_status
 
 DAY = date(2026, 8, 28)
 HUMAN = "12/03/2026 - Gabriel: el punto es aproximado"
@@ -73,12 +73,12 @@ class FlaggerTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.approved = StatusControl.objects.create(
+        cls.approved = make_status(
             name=APPROVED, group="location", public_name="Aprobado")
-        cls.flagged = StatusControl.objects.create(
+        cls.flagged = make_status(
             name=FLAGGED, group="location",
             public_name="Aprobado (con observaciones)")
-        cls.filled = StatusControl.objects.create(
+        cls.filled = make_status(
             name="filled", group="location", public_name="Datos completos")
         cls.project = Project.objects.create(name="Proyecto de prueba")
 

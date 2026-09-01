@@ -185,6 +185,7 @@ class InitSector:
                 except StatusControl.DoesNotExist:
                     status_validation = StatusControl.objects.create(
                         name=st_validation_id,
+                        group_id="validation",
                         public_name=st_validation_id
                     )
             else:
