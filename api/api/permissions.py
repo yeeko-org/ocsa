@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Any, List, Optional
 
+from django.db.models import Q
 from rest_framework.permissions import (
     BasePermission, SAFE_METHODS, IsAuthenticatedOrReadOnly)
 from rest_framework.request import Request
@@ -27,13 +28,13 @@ def status_fields() -> tuple:
         group.field_name for group in StatusGroup.objects.all())
 
 
-def non_selectable_writes(
+def wanted_status_names(
         request: Request, obj: Optional[Any] = None) -> List[str]:
-    """Status con open_selectable=False que el payload quiere asignar.
+    """Status que el payload quiere asignar.
 
     Con `obj` se ignoran los campos que no cambian: permanecer en un
-    status no seleccionable siempre se permite; solo se vigila el
-    movimiento hacia uno.
+    status vedado siempre se permite; solo se vigila el movimiento
+    hacia uno.
     """
     data = request.data
     if not hasattr(data, "get"):
@@ -46,10 +47,28 @@ def non_selectable_writes(
         if obj is not None and getattr(obj, f"{field}_id", None) == value:
             continue
         wanted.append(value)
+    return wanted
+
+
+def blocked_status_writes(
+        request: Request, obj: Optional[Any] = None) -> List[str]:
+    """Status que el payload quiere asignar y este usuario no puede.
+
+    Dos ejes independientes: `open_selectable=False` lo levanta el
+    editor pleno; `is_legacy=True` solo el superusuario, porque un
+    estatus legacy se ve siempre pero no se asigna (task-71).
+    """
+    user = request.user
+    if user.is_superuser:
+        return []
+    wanted = wanted_status_names(request, obj)
     if not wanted:
         return []
+    blocked = Q(is_legacy=True)
+    if not user.is_full_editor:
+        blocked |= Q(open_selectable=False)
     return list(StatusControl.objects
-                .filter(name__in=wanted, open_selectable=False)
+                .filter(Q(name__in=wanted) & blocked)
                 .values_list("name", flat=True))
 
 
@@ -68,19 +87,20 @@ class BaseReadOnlyPermission(BasePermission):
     def allows_status_target(
             self, request: Request, view: Any,
             obj: Optional[Any] = None) -> bool:
-        """Solo un editor pleno puede asignar un status no seleccionable.
+        """Rechaza el payload que mueve un registro a un status vedado.
 
+        Qué está vedado para quién lo decide blocked_status_writes.
         Sin `obj` (creación o edición masiva) basta con que el payload
         traiga uno; en el detalle se difiere a has_object_permission,
         donde sí puede compararse contra el valor actual.
         """
-        if request.user.is_full_editor:
+        if request.user.is_superuser:
             return True
         is_detail_write = request.method in ["PATCH", "PUT"]
         if obj is None and is_detail_write:
             if getattr(view, "action", None) not in BULK_ACTIONS:
                 return True
-        return not non_selectable_writes(request, obj)
+        return not blocked_status_writes(request, obj)
 
     def has_write_permission(self, request, view):
         """Override this method in subclasses"""
