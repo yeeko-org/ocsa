@@ -315,7 +315,7 @@ function selectItem(item) {
           <v-chip
             v-for="filter in current_filters"
             :key="filter.key_name"
-            :label="!filter.collection"
+            :label="!filter.is_status"
             :value="filter"
             :disabled="filter.disabled"
             class="mr-1 py-1"

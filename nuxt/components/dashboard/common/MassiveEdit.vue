@@ -76,8 +76,8 @@ const merged_params = computed(() => {
       params[field_name] = full_main.value[field_name] || null
   })
   visible_filters.value.forEach(filter_box => {
-    if (filter_box.collection)
-      params[filter_box.collection] = full_main.value[filter_box.collection]
+    if (filter_box.is_status)
+      params[filter_box.field_name] = full_main.value[filter_box.field_name]
   })
 
   return params
@@ -131,16 +131,16 @@ function sendMassiveEdit() {
             class="mb-4"
 
           >
-            {{ field.name }}
+            {{ field.short_name || field.name }}
           </v-chip>
         </div>
         <template
           v-if="active_fields.includes(field.name)"
         >
           <StatusDetail
-            v-if="field.collection"
+            v-if="field.is_status"
             v-model="full_main"
-            :collection="field.key_name"
+            :collection="field.field_name"
             clearable
             hide-details
             style="max-width: 320px; min-width: 200px;"

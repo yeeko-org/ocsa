@@ -1,5 +1,3 @@
-import {status_filters} from "~/composables/filters.js";
-
 // const calculateSchemas = (data) => {
 export function calculateSchemas(data) {
   let filter_groups = data.filter_groups.map(fg => {
@@ -13,6 +11,15 @@ export function calculateSchemas(data) {
     obj[fg.key_name] = fg
     return obj
   }, {})
+  // El grupo trae `key_name`; el FK que lo lleva en cada modelo se llama
+  // `status_<key_name>`. La propiedad no viaja en el payload (el
+  // serializer solo emite columnas), así que se deriva una vez aquí.
+  const groups_by_field = (data.status_group || []).reduce((obj, group) => {
+    obj[`status_${group.key_name}`] = {
+      ...group, field_name: `status_${group.key_name}`}
+    return obj
+  }, {})
+
   const has_fields = [
     "comments", "description", "help_text", "order", "color", "icon"]
   // const name_fields = ["name", "title", "description"]
@@ -84,19 +91,36 @@ export function calculateSchemas(data) {
     }
 
     const status_groups = coll.fields.reduce((arr, field)=>{
-      if (field.related_model === 'StatusControl')
-        arr.push({name: field.name, is_editable: field.is_editable !== false})
+      if (field.related_model !== 'StatusControl')
+        return arr
+      const group = groups_by_field[field.name]
+      if (!group){
+        console.error("Sin grupo de status para el campo", field.name)
+        return arr
+      }
+      arr.push({
+        ...group,
+        name: field.name,
+        is_status: true,
+        is_editable: field.is_editable !== false,
+        // `hidden` es el contrato genérico de la barra de filtros, que
+        // comparten los FilterRef del backend; `bar_hidden` es el nombre
+        // del catálogo. Se alinean aquí para no tocar CollectionDisplay.
+        hidden: group.bar_hidden,
+        // La barra de filtros y la edición masiva rotulan cualquier filtro
+        // con `short_name`; el nombre único del grupo cubre ese contrato.
+        short_name: group.public_name,
+      })
       return arr
     }, [])
     coll.status_groups = status_groups
     status_groups.forEach(sg => {
-      const status = status_filters[sg.name]
       // Como filtro sigue disponible; lo que el schema cierra es la edición.
       collection_filters.push(
-        sg.is_editable ? status : {...status, can_massive_edit: false})
+        sg.is_editable ? sg : {...sg, can_massive_edit: false})
       available_sorts.push({
-        value: `${status.collection}__order`,
-        title: `Status ${status.name}`
+        value: `${sg.field_name}__order`,
+        title: `Status de ${sg.public_name}`
       })
     })
     if (coll.name_field)
