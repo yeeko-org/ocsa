@@ -6,7 +6,7 @@ from ps_schema import generate_serializer
 from ps_schema.models import LEVEL_CHOICES
 from ps_schema.registry import catalog_registry, collection_registry
 from source.models import QualifySchema
-from work_flux.models import StatusControl
+from work_flux.models import StatusControl, StatusGroup
 
 from profile_auth.models import User
 from api.views.auth.serializers import UserProfileSerializer
@@ -41,6 +41,7 @@ class CatalogsView(APIView):
         manual_registry = {
             "qualify_schema": QualifySchema,
             "status_control": StatusControl,
+            "status_group": StatusGroup,
         }
         for key, model_cls in manual_registry.items():
             ser_class = generate_serializer(model_cls)
