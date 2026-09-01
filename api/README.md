@@ -64,7 +64,7 @@ Los datos de ubicación tienen que cargarse primero antes de las migraciones de 
 Órden de ejecución de migración de datos:
 
 python manage.py migrate
-python manage.py migrate_initial_data  # solo sobre una base recién creada: sobrescribe los campos de StatusControl editados a mano
+python manage.py migrate_initial_data  # solo crea los StatusControl (y StatusGroup) que faltan; las filas existentes no se tocan
 
 (OPCIONAL) Migrar los usuarios de la base de datos de producción
 
