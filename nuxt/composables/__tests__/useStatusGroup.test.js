@@ -9,9 +9,9 @@ import {
 
 const GROUPS = [
   {key_name: 'validation', public_name: 'Validación', order: 5,
-    bar_hidden: false},
+    hidden: false},
   {key_name: 'location', public_name: 'Ubicación', order: 6,
-    bar_hidden: false},
+    hidden: false},
 ]
 
 // `open_editor` y `open_selectable` son el discriminante de la escalera:

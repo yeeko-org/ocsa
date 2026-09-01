@@ -105,10 +105,6 @@ export function calculateSchemas(data) {
         name: field.name,
         is_status: true,
         is_editable: field.is_editable !== false,
-        // `hidden` es el contrato genérico de la barra de filtros, que
-        // comparten los FilterRef del backend; `bar_hidden` es el nombre
-        // del catálogo. Se alinean aquí para no tocar CollectionDisplay.
-        hidden: group.bar_hidden,
         // La barra de filtros y la edición masiva rotulan cualquier filtro
         // con `short_name`; el nombre único del grupo cubre ese contrato.
         short_name: group.public_name,

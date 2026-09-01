@@ -6,7 +6,7 @@ class StatusGroup(models.Model):
     key_name = models.CharField(max_length=30, primary_key=True)
     public_name = models.CharField(max_length=120)
     order = models.IntegerField(default=0)
-    bar_hidden = models.BooleanField(
+    hidden = models.BooleanField(
         default=False, verbose_name="oculto en la barra de filtros")
 
     @property
