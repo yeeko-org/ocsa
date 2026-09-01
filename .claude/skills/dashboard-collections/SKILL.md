@@ -23,7 +23,7 @@ middleware/dashboard.js → store.fetchCatalogs()
   GET /catalogs/all/ → data
     ├─ calculateSchemas(data)   composables/cats.js    → store.schemas
     ├─ calculateNewCats(data,…) composables/nodes.js   → store.all_nodes (árboles D3)
-    └─ calculate_status(…)      composables/filters.js → store.status
+    └─ calculate_status(…)      composables/cats.js    → store.status (agrupa status_control por grupo)
   store.current_collection_data = schemas.collections_dict[current_collection]
 ```
 
@@ -43,7 +43,7 @@ Del backend (`api/ps_schema/registry.py::_base_collection_dict`, líneas 175-194
 | `other_fields` | campos `simple` que no son pk, name_field ni de `has` | `cats.js:38-41` |
 | `is_category` | `level.includes('category_')` → enruta a `/catalogs/` | `cats.js:73` |
 | `child_relation_fields` | campos `one_to_many` / `many_to_many` → listas hijas | `cats.js:22-25` |
-| `status_groups` | campos cuyo `related_model === 'StatusControl'`, con su `is_editable` | `cats.js:87-94` |
+| `status_groups` | campos cuyo `related_model === 'StatusControl'`, enriquecidos con el catálogo `status_group` (`key_name`, `public_name`, `order`, `hidden`, `hide_when_empty`, `field_name` derivado) más `is_status: true` e `is_editable` | `cats.js:19-23, 95-114` |
 | `collection_filters` | la lista de filtros ensamblada y ordenada (§4) | `cats.js:53-108` |
 | `available_sorts` | opciones del select «Ordenar por» | `cats.js:43-52, 95-113` |
 
@@ -114,15 +114,17 @@ Los filtros del tope de cada lista se ensamblan en `cats.js` dentro de `collecti
 
 1. **`all_filters`** declarados en el `CollectionSchema` del backend. Un `FilterRef` se resuelve contra `filters_dict` (los `FilterGroupSchema` registrados); un filtro custom sin `filter_name` se conserva con `is_custom: true` y `order: 12` (`cats.js:53-67`).
 2. **Grupo de categoría** — si `is_category`, se agrega el `FilterGroupSchema` que corresponde al nivel, con `forced_level` y `order: 1` (`cats.js:73-86`).
-3. **Status groups** — por cada campo relacionado con `StatusControl` se agrega su filtro de status y una opción de ordenamiento; si el schema marca el campo como no editable, el filtro viaja con `can_massive_edit: false` (`cats.js:87-101`).
+3. **Status groups** — por cada campo relacionado con `StatusControl` se agrega el grupo enriquecido como filtro (`is_status: true`) y una opción de ordenamiento `<field_name>__order`; si el schema marca el campo como no editable, el filtro viaja con `can_massive_edit: false` (`cats.js:95-122`). Los metadatos del grupo vienen del catálogo `status_group` (modelo `StatusGroup`, docs `adr-0030`), no de un registro a mano en el front.
 
 `FiltersList.vue` despacha cada filtro a un widget según su forma:
 
 | Forma del filtro | Widget |
 |---|---|
-| tiene `collection` | `StatusDetail` (select de status) |
+| `is_status` | `StatusDetail` (select de status; en modo lectura pinta `StatusChip`) |
 | tiene `key_name` | `SelectGroup` (select jerárquico sobre los árboles D3 de `all_nodes`) |
 | tiene `component` | custom: `TripleBooleanFilter`, `RangeDates`, `UserSelect`, `OnlyByFilter`, `LocationType`, `ConflictFilter` |
+
+`StatusDetail` y `StatusChip` aceptan en `collection` el grupo enriquecido o un string en cualquiera de los dos vocabularios (`location` / `status_location`); los resuelve `composables/useStatusGroup.js`, que también exporta `statusPolicy`, la única definición de la escalera de permisos del front: superusuario, staff y editor pleno saltan `open_editor`; `is_legacy` solo lo asigna el superusuario; `open_selectable` limita a quien no es editor pleno. En Location el servidor es más estricto (exige `is_admin`) — asimetría anotada en docs `task-25`.
 
 Los chips de arriba controlan qué filtros están visibles (`visible_filters`); con 3 filtros o menos, `simplified_filters` colapsa la fila de chips y pone los widgets junto al buscador (`CollectionDisplay.vue:76, 221-224`). Todos los widgets escriben en el mismo ref `final_filters`.
 
@@ -202,4 +204,5 @@ Algunos textos visibles son deliberados y no deberían aparecer nunca en el fluj
 | Edición masiva | `nuxt/components/dashboard/common/MassiveEdit.vue` |
 | Fallbacks genéricos | `nuxt/components/dashboard/common/generic/{HeaderGeneric,HeaderCommon,SheetCommon,EditGeneric,EditCommon,EditCommonFields,CardGeneric,CardCommon}.vue` |
 | Widgets de filtros | `nuxt/components/dashboard/common/select/FiltersList.vue` |
+| Grupos de status y escalera de permisos | `nuxt/composables/useStatusGroup.js` |
 | Contrato del backend | skill `manage-collections`, `api/ps_schema/registry.py`, `api/ps_schema/schemas.py` |

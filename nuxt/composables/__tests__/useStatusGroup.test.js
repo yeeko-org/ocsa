@@ -60,9 +60,11 @@ describe('statusPolicy', () => {
     expect(p.isSelectable(DRAFT)).toBe(false)
   })
 
-  it('un status cerrado bloquea al editor pleno, no a staff ni superusuario', () => {
-    expect(statusPolicy({user_flags: editor, selected: APPROVED})
+  it('un status cerrado bloquea al usuario normal, no al editor pleno', () => {
+    expect(statusPolicy({user_flags: plain, selected: APPROVED})
       .is_readonly).toBe(true)
+    expect(statusPolicy({user_flags: editor, selected: APPROVED})
+      .is_readonly).toBe(false)
     expect(statusPolicy({user_flags: staff, selected: APPROVED})
       .is_readonly).toBe(false)
     expect(statusPolicy({user_flags: boss, selected: APPROVED})

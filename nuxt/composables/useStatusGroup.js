@@ -35,8 +35,10 @@ export function statusPolicy(
   const is_readonly = (() => {
     if (is_filter) return false
     if (readonly) return true
-    // Mismo peldaño que el servidor (`is_admin`): staff salta el candado.
-    if (is_superuser || is_staff) return false
+    // El editor pleno también salta el candado: así lo hace el servidor en
+    // Actor/Project/Note (open_editor solo gatea su DELETE); en Location
+    // responde 403 y esa asimetría queda anotada en task-25.
+    if (is_superuser || is_staff || is_full_editor) return false
     // Sin status no hay candado; tener uno legacy tampoco cierra el campo
     // (task-71: se ve siempre, solo no se asigna).
     return selected?.open_editor === false
