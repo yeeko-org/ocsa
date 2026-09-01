@@ -4,8 +4,9 @@ from work_flux.models import StatusControl, StatusGroup
 
 @admin.register(StatusGroup)
 class StatusGroupAdmin(admin.ModelAdmin):
-    list_display = ["public_name", "key_name", "order", "hidden"]
-    list_editable = ["order", "hidden"]
+    list_display = [
+        "public_name", "key_name", "order", "hidden", "hide_when_empty"]
+    list_editable = ["order", "hidden", "hide_when_empty"]
 
 
 @admin.register(StatusControl)

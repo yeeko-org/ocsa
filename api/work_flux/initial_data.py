@@ -1,12 +1,12 @@
 from .models import StatusControl, StatusGroup
 
 
-# key_name, public_name, order
+# key_name, public_name, order, hide_when_empty
 INIT_GROUPS = [
-    ("register", "Registro", 4),
-    ("validation", "Validación", 5),
-    ("location", "Ubicación", 6),
-    ("retro", "Feedback", 6),
+    ("register", "Registro", 4, False),
+    ("validation", "Validación", 5, False),
+    ("location", "Ubicación", 6, False),
+    ("retro", "Feedback", 6, True),
 ]
 
 
@@ -104,10 +104,12 @@ class InitStatus:
                 "No hay comentarios que agregar, tamopco es perfectamente "
                 "claro, pero no requiere aclaración."),
         ]
-        for key_name, public_name, order in INIT_GROUPS:
+        for key_name, public_name, order, hide_when_empty in INIT_GROUPS:
             StatusGroup.objects.get_or_create(
                 key_name=key_name,
-                defaults={"public_name": public_name, "order": order})
+                defaults={
+                    "public_name": public_name, "order": order,
+                    "hide_when_empty": hide_when_empty})
 
         existing = set(StatusControl.objects.values_list("name", flat=True))
         order = -1

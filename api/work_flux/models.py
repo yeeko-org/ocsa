@@ -8,6 +8,9 @@ class StatusGroup(models.Model):
     order = models.IntegerField(default=0)
     hidden = models.BooleanField(
         default=False, verbose_name="oculto en la barra de filtros")
+    # El chip del grupo no se pinta si el registro no trae status; hoy
+    # solo retro, que es opcional en todas las colecciones.
+    hide_when_empty = models.BooleanField(default=False)
 
     @property
     def field_name(self) -> str:

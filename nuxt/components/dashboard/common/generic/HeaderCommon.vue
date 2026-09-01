@@ -133,7 +133,7 @@ const emits = defineEmits(['open-panel'])
           :key="status_group.name"
         >
           <StatusChip
-            v-if="status_group.name !== 'status_retro'
+            v-if="!status_group.hide_when_empty
               || main[status_group.name]"
             :main="main"
             :collection="status_group"

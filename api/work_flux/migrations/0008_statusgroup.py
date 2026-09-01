@@ -2,24 +2,26 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
-# key_name, public_name, order — el orden viene del registro que el front
-# llevaba a mano en `nuxt/composables/filters.js`; los dos «6» son los que
-# ya tenía, no un empate nuevo.
+# key_name, public_name, order, hide_when_empty — el orden viene del
+# registro que el front llevaba a mano en `nuxt/composables/filters.js`;
+# los dos «6» son los que ya tenía, no un empate nuevo.
 INITIAL_GROUPS = [
-    ("register", "Registro", 4),
-    ("validation", "Validación", 5),
-    ("location", "Ubicación", 6),
-    ("retro", "Feedback", 6),
+    ("register", "Registro", 4, False),
+    ("validation", "Validación", 5, False),
+    ("location", "Ubicación", 6, False),
+    ("retro", "Feedback", 6, True),
 ]
 
 
 def seed_groups(apps, schema_editor):
     StatusGroup = apps.get_model("work_flux", "StatusGroup")
     StatusControl = apps.get_model("work_flux", "StatusControl")
-    for key_name, public_name, order in INITIAL_GROUPS:
+    for key_name, public_name, order, hide_when_empty in INITIAL_GROUPS:
         StatusGroup.objects.get_or_create(
             key_name=key_name,
-            defaults={"public_name": public_name, "order": order},
+            defaults={
+                "public_name": public_name, "order": order,
+                "hide_when_empty": hide_when_empty},
         )
     known = set(StatusGroup.objects.values_list("key_name", flat=True))
     orphans = sorted(
@@ -37,7 +39,7 @@ def seed_groups(apps, schema_editor):
 
 def drop_groups(apps, schema_editor):
     StatusGroup = apps.get_model("work_flux", "StatusGroup")
-    keys = [key_name for key_name, _, _ in INITIAL_GROUPS]
+    keys = [key_name for key_name, *_ in INITIAL_GROUPS]
     StatusGroup.objects.filter(key_name__in=keys).delete()
 
 
@@ -58,6 +60,7 @@ class Migration(migrations.Migration):
                 ("hidden", models.BooleanField(
                     default=False,
                     verbose_name="oculto en la barra de filtros")),
+                ("hide_when_empty", models.BooleanField(default=False)),
             ],
             options={
                 "verbose_name": "Grupo de status",
