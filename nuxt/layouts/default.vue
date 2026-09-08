@@ -1,4 +1,5 @@
 <script setup>
+import logo from '~/assets/logo_ocsa.png'
 // Layout genérico (home y páginas sin layout propio). El mapa usa su
 // propio layout 'map' a pantalla completa; aquí no se carga estado del
 // mapa para no acoplar la home a esos stores.
@@ -23,18 +24,12 @@ const public_links = [
   <v-app>
     <v-app-bar app color="primary" dark flat height="52">
       <v-toolbar-title>
-        <v-card
-          variant="flat"
-          color="transparent"
-          class="cursor-pointer"
-          href="https://ocsa.ibero.mx"
-          min-width="100"
-        >
-          <span class="text-white text-headline-small font-weight-bold">OCSA</span>
+        <a href="https://ocsa.ibero.mx" class="d-inline-flex align-center">
+          <img :src="logo" alt="OCSA" height="28" class="d-block">
           <v-tooltip activator="parent" location="bottom">
             Ir al inicio del sitio del OCSA
           </v-tooltip>
-        </v-card>
+        </a>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-menu location="bottom">

@@ -1,4 +1,5 @@
 <script setup>
+import logo from '~/assets/logo_ocsa.png'
 const menu_drawer = ref(false)
 import {useMainStore} from "~/store/index.js";
 import {useDashboardStore} from "~/store/dash.js";
@@ -171,6 +172,12 @@ const main_collections = computed(() => {
         color="white"
         class="mt-1"
       ></v-app-bar-nav-icon>
+      <a
+        href="https://ocsa.ibero.mx"
+        class="d-inline-flex align-center mt-1 mr-3"
+      >
+        <img :src="logo" alt="OCSA" height="28" class="d-block">
+      </a>
       <client-only>
         <v-toolbar-title class="d-flex align-center mt-1">
           <v-icon class="mr-3" color="white">
