@@ -8,7 +8,9 @@ export const LOCATION_TYPES = [
     geometry_type: 'Point',
     draw_mode: 'draw_point',
     draw_icon: 'location_on',
-    helps: ['Haz clic en el mapa para colocar un punto.']
+    helps: [
+      {text: "Haz clic en el mapa para colocar un punto."},
+    ]
   },
   {
     id: 'line',
@@ -20,10 +22,10 @@ export const LOCATION_TYPES = [
     draw_mode: 'draw_line_string',
     draw_icon: 'polyline',
     helps: [
-      'Haz clic para empezar a dibujar una línea.',
-      'Haz clic de nuevo para agregar cada punto.',
-      'Haz doble clic para finalizar la línea.',
-      'Puedes dibujar múltiples líneas.',
+      {text: "Haz clic para empezar a dibujar una línea."},
+      {text: "Haz clic de nuevo para agregar cada punto."},
+      {text: "Haz doble clic para finalizar la línea."},
+      {text: "Puedes dibujar múltiples líneas."},
     ],
   },
   {
@@ -36,10 +38,10 @@ export const LOCATION_TYPES = [
     draw_mode: 'draw_polygon',
     draw_icon: 'highlight_mouse_cursor',
     helps: [
-      'Haz clic para empezar a dibujar un polígono.',
-      'Haz clic de nuevo para agregar cada punto.',
-      'Haz doble clic para finalizar el polígono.',
-      'Puedes dibujar múltiples polígonos.',
+      {text: "Haz clic para empezar a dibujar un polígono."},
+      {text: "Haz clic de nuevo para agregar cada punto."},
+      {text: "Haz doble clic para finalizar el polígono."},
+      {text: "Puedes dibujar múltiples polígonos."},
     ],
   },
 ]

@@ -15,7 +15,6 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  // Ayudas del tipo de ubicación; sólo llegan con el mapa abierto
   helps: {
     type: Array,
     default: null,
@@ -202,9 +201,9 @@ async function persist(text) {
   >
     <div
       v-for="msg in helps"
-      :key="msg"
+      :key="msg.text"
     >
-      {{ msg }}
+      {{ msg.text }}
     </div>
   </v-alert>
 </template>

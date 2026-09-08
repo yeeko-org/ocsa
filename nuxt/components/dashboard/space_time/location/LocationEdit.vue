@@ -201,15 +201,6 @@ function applyImported({feature, type_location, warnings}) {
       :municipalities_full="full_main.municipalities_full"
       :type_location="full_main.type_location"
     />
-    <LocationAlerts
-      v-model:import_error="import_error"
-      v-model:overwrote_saved="overwrote_saved"
-      :import_warnings="import_warnings"
-      :geo_notices="geo_notices"
-      :geo_warnings="geo_warnings"
-      :candidates_text="geo_candidates_text"
-      :location="full_main"
-    />
     <v-textarea
       v-model="full_main.details"
       label="Detalles adicionales (incluyendo colonia)"
@@ -221,8 +212,15 @@ function applyImported({feature, type_location, warnings}) {
       auto-grow
     >
     </v-textarea>
-    <!-- Las ayudas del tipo van debajo del textarea, pegadas al mapa, y los
-         avisos de importación arriba: mismo componente, dos posiciones. -->
+    <LocationAlerts
+      v-model:import_error="import_error"
+      v-model:overwrote_saved="overwrote_saved"
+      :import_warnings="import_warnings"
+      :geo_notices="geo_notices"
+      :geo_warnings="geo_warnings"
+      :candidates_text="geo_candidates_text"
+      :location="full_main"
+    />
     <LocationAlerts
       :helps="show_map ? location_type_full.helps : null"
     />
