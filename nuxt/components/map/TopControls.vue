@@ -2,15 +2,17 @@
 import _debounce from 'lodash/debounce.js'
 import { useDisplay } from 'vuetify'
 import { useMapStore } from '~/store/map.js'
+import logo from '~/assets/logo_ocsa.png'
+import { MOBILE_GEOMETRY } from '~/components/map/filters/filterRegistry.js'
 
 const mapStore = useMapStore()
-const { xs } = useDisplay()
+const { smAndDown } = useDisplay()
 
 // El buscador es solo un vehículo (decisions §3): al elegir, dispara la
 // acción (vuela el mapa + abre el detalle vía targetProjectId) y se limpia.
 // Nunca queda lleno ni refleja la selección hecha desde marcador o lista.
 const search = ref(null)
-// En xs el buscador se compacta a un ícono que expande la caja.
+// En teléfono el buscador se compacta a un ícono que expande la caja.
 const searchOpen = ref(false)
 
 // Resultados de MiniSearch (búsqueda 100% en cliente). Vacío hasta teclear:
@@ -32,7 +34,7 @@ function onSearchInput(val) {
 function onSearchSelect(id) {
   if (id == null) return
   mapStore.targetProjectId = id
-  if (xs.value) searchOpen.value = false
+  if (smAndDown.value) searchOpen.value = false
   nextTick(() => {
     search.value = null
     searchText.value = ''
@@ -46,6 +48,7 @@ function onSearchSelect(id) {
 
 // Enlaces al sitio público (antes en el menú "⋮" del app-bar global).
 const public_links = [
+  { title: 'Inicio', href: 'https://ocsa.ibero.mx' },
   {
     title: 'Quiénes somos',
     href: 'https://ocsa.ibero.mx/quienes-somos',
@@ -60,27 +63,36 @@ const public_links = [
 
 <template>
   <!-- Isla superior izquierda: marca OCSA + búsqueda global. La leyenda de
-       extractivismo flota aparte, a su derecha (ExtractivismLegend). -->
+       extractivismo y el rail flotan aparte. En teléfono la isla ocupa todo
+       el ancho —logo | espacio | buscador | menú— y es blanca sólida. -->
   <v-sheet
     class="map-top-left d-flex align-center pa-1"
+    :class="smAndDown
+      ? 'map-top-left--phone'
+      : 'map-top-left--desktop map-glass'"
     rounded="lg"
     elevation="4"
   >
-    <v-card
-      variant="text"
-      class="px-2 cursor-pointer"
+    <a
+      class="brand d-flex align-center px-2"
       href="https://ocsa.ibero.mx"
-      min-width="0"
     >
-      <span
-        class="text-headline-large font-weight-bold text-primary"
+      <img
+        :src="logo"
+        alt="OCSA"
+        height="32"
+        class="brand__logo"
       >
-        OCSA
-      </span>
-      <v-tooltip activator="parent" location="bottom">
+      <v-tooltip
+        v-if="!smAndDown"
+        activator="parent"
+        location="bottom"
+      >
         Ir al inicio del sitio del OCSA
       </v-tooltip>
-    </v-card>
+    </a>
+
+    <v-spacer v-if="smAndDown && !searchOpen"/>
 
     <v-menu location="bottom">
       <template v-slot:activator="{ props }">
@@ -88,6 +100,7 @@ const public_links = [
           icon="more_vert"
           variant="text"
           density="comfortable"
+          :class="{ 'order-last': smAndDown }"
           v-bind="props"
         ></v-btn>
       </template>
@@ -101,9 +114,10 @@ const public_links = [
       </v-list>
     </v-menu>
 
-    <!-- Buscador global (vehículo, §3). En xs se compacta a un ícono. -->
+    <!-- Buscador global (vehículo, §3). En teléfono se compacta a un ícono y,
+         abierto, llena el hueco entre logo y menú. -->
     <v-btn
-      v-if="xs && !searchOpen"
+      v-if="smAndDown && !searchOpen"
       icon="search"
       variant="text"
       density="comfortable"
@@ -123,10 +137,11 @@ const public_links = [
       :search="searchText"
       menu-icon=""
       append-inner-icon="search"
-      :autofocus="xs"
-      min-width="240"
-      max-width="300"
-      class="ml-1"
+      :autofocus="smAndDown"
+      :min-width="smAndDown ? 0 : 240"
+      :max-width="smAndDown ? undefined : 300"
+      class="ml-1 search-field"
+      :class="{ 'flex-grow-1': smAndDown }"
       clearable
       @update:search="onSearchInput"
       @update:model-value="onSearchSelect"
@@ -137,9 +152,34 @@ const public_links = [
 <style scoped>
 .map-top-left {
   position: absolute;
+  z-index: 3;
+}
+
+.map-top-left--desktop {
   top: 10px;
   left: 10px;
-  z-index: 3;
-  background-color: #ffffffe6;
+}
+
+.map-top-left--phone {
+  top: v-bind('MOBILE_GEOMETRY.islandTop + "px"');
+  left: 8px;
+  right: 8px;
+  height: v-bind('MOBILE_GEOMETRY.islandH + "px"');
+  background-color: #fff;
+}
+
+.brand {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.brand__logo {
+  display: block;
+  width: auto;
+}
+
+/* El campo nunca desborda la isla: cede ancho en lugar de crecer. */
+.search-field {
+  min-width: 0;
 }
 </style>

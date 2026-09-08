@@ -2,7 +2,10 @@
 
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
-import {useMapStore} from "~/store/map.js";
+import {
+  useMapStore, SHEET_REST_PX, SHEET_MID_SNAP,
+} from "~/store/map.js";
+import {useDisplay} from "vuetify";
 import ProjectMiniCard from "~/components/map/panel/ProjectMiniCard.vue";
 import ProjectDetail from "~/components/map/panel/ProjectDetail.vue";
 
@@ -21,7 +24,10 @@ const {
   targetProjectId,
   projectLocations,
   readyGets,
+  sheetSnap,
+  sheetCoveredPx,
 } = storeToRefs(mapStore)
+const { smAndDown } = useDisplay()
 
 // Altura fija de cada fila
 const ITEM_HEIGHT = 76
@@ -69,8 +75,23 @@ const view = computed(() => {
   return 'list'
 })
 
-const listHeight = computed(() =>
-  props.embedded ? 'calc(92vh - 128px)' : '70vh')
+// Sheet a altura completa: es el único estado con pie (Excel).
+const sheetFull = computed(() => props.embedded && sheetSnap.value === 1)
+const sheetAtRest = computed(() => sheetSnap.value === SHEET_REST_PX)
+
+// Botón de la cabecera: en reposo sube al snap medio; en cualquier otro
+// snap vuelve al reposo.
+function toggleSheet() {
+  sheetSnap.value = sheetAtRest.value ? SHEET_MID_SNAP : SHEET_REST_PX
+}
+
+// En el sheet el contenido mide lo que cubre el snap menos el asa; cabecera
+// y pie son fijos y el cuerpo (lista o detalle) toma el resto por flex, así
+// nunca hay aritmética que desfase el pie respecto de la lista.
+const SHEET_HANDLE = 15
+const contentHeight = computed(() =>
+  `${Math.max(sheetCoveredPx.value - SHEET_HANDLE, 0)}px`)
+const listHeight = computed(() => props.embedded ? '100%' : '70vh')
 
 // Filtra menciones/eventos/impactos del proyecto hijo dentro del payload
 // completo del agrupador (que los trae todos mezclados).
@@ -176,17 +197,37 @@ function exportProjects() {
 </script>
 
 <template>
-  <div class="panel-content">
+  <div
+    class="panel-content"
+    :class="{ 'panel-content--sheet': embedded }"
+    :style="embedded ? { height: contentHeight } : undefined"
+  >
     <!-- Cabecera: pill / lista -->
     <div
       v-if="view === 'pill' || view === 'list'"
-      class="d-flex align-center px-3 py-2"
-      :class="{ 'panel-header': view === 'list' }"
+      class="d-flex align-center px-3"
+      :class="[
+        { 'panel-header': view === 'list' },
+        embedded ? 'py-0' : 'py-2',
+      ]"
     >
-      <span class="text-title-large font-weight-bold">{{ countLabel }}</span>
+      <span
+        class="font-weight-bold"
+        :class="embedded ? 'text-title-medium' : 'text-title-large'"
+      >
+        {{ countLabel }}
+      </span>
       <v-spacer/>
       <v-btn
-        v-if="view === 'list' || view === 'pill'"
+        v-if="embedded"
+        :icon="sheetAtRest ? 'keyboard_double_arrow_up' : 'close'"
+        variant="text"
+        class="mr-n2"
+        :aria-label="sheetAtRest ? 'Ver la lista' : 'Bajar el panel'"
+        @click="toggleSheet"
+      />
+      <v-btn
+        v-if="!embedded"
         prepend-icon="download"
         variant="tonal"
         color="green-darken-2"
@@ -219,7 +260,8 @@ function exportProjects() {
         icon="chevron_left"
         variant="text"
         density="comfortable"
-        v-tooltip="view === 'child' ? 'Volver al agrupador' : 'Volver a la lista'"
+        v-tooltip="smAndDown ? null
+          : view === 'child' ? 'Volver al agrupador' : 'Volver a la lista'"
         @click="view === 'child' ? backToParent() : backToList()"
       />
       <div class="breadcrumb text-truncate text-body-medium d-flex align-center">
@@ -244,14 +286,14 @@ function exportProjects() {
         icon="close"
         variant="text"
         density="comfortable"
-        v-tooltip="'Cerrar'"
+        v-tooltip="smAndDown ? null : 'Cerrar'"
         @click="backToList"
       />
     </div>
 
     <!-- Cuerpo -->
     <v-expand-transition>
-      <div v-if="view !== 'pill'">
+      <div v-if="view !== 'pill'" :class="{ 'panel-body': embedded }">
         <v-divider/>
 
         <!-- Lista -->
@@ -275,6 +317,7 @@ function exportProjects() {
             :items="filteredProjects"
             :item-height="ITEM_HEIGHT"
             :height="listHeight"
+            :class="{ 'panel-list': embedded }"
           >
             <template #default="{ item }">
               <v-card
@@ -298,8 +341,8 @@ function exportProjects() {
         <!-- Detalle / hijo -->
         <div
           v-else
-          class="overflow-y"
-          :style="{ maxHeight: embedded ? 'calc(92vh - 64px)' : '78vh' }"
+          :class="embedded ? 'panel-detail' : 'overflow-y-auto'"
+          :style="embedded ? undefined : { maxHeight: '78vh' }"
         >
           <ProjectDetail
             :selectedProject="view === 'child'
@@ -315,6 +358,23 @@ function exportProjects() {
         </div>
       </div>
     </v-expand-transition>
+
+    <!-- Pie del sheet a altura completa: descarga. -->
+    <div
+      v-if="sheetFull"
+      class="panel-footer d-flex align-center px-3 py-1"
+    >
+      <v-btn
+        prepend-icon="download"
+        variant="tonal"
+        color="green-darken-2"
+        size="small"
+        :loading="loadingExport"
+        @click="exportProjects"
+      >
+        Descargar Excel
+      </v-btn>
+    </div>
   </div>
 </template>
 
@@ -322,6 +382,36 @@ function exportProjects() {
 
 .panel-header {
   background-color: #f5f5f5;
+}
+
+.panel-footer {
+  background-color: #f5f5f5;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  flex: 0 0 auto;
+}
+
+/* Sheet: columna de alto fijo; el cuerpo toma el resto y desplaza dentro. */
+.panel-content--sheet {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.panel-list,
+.panel-detail {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.panel-detail {
+  overflow-y: auto;
 }
 
 /* Necesario para que text-truncate funcione dentro del flex del header. */

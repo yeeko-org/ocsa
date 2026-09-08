@@ -6,6 +6,7 @@ import {useDisplay} from "vuetify";
 
 import {useMainStore} from "~/store/index.js";
 import {useMapStore} from "~/store/map.js";
+import { MOBILE_GEOMETRY } from '~/components/map/filters/filterRegistry.js'
 const mainStore = useMainStore()
 const { cats } = storeToRefs(mainStore)
 const mapStore = useMapStore()
@@ -19,19 +20,25 @@ const extractivism_types_list = computed(() => {
 </script>
 
 <template>
+  <!-- En teléfono no hay sheet de fondo: los chips sólidos leen sobre el
+       mapa por sí mismos (colores ya verificados en contraste), y van más
+       juntos (gap 4 px). -->
   <v-sheet
-    color="#FFFFFF60"
+    :color="smAndDown ? 'transparent' : '#FFFFFF60'"
     :class="[
-      'sheet-filters pl-3 pt-1 pb-1 d-flex align-center',
-      smAndDown ? 'legend-mobile' : 'legend-desktop',
+      'sheet-filters d-flex align-center',
+      smAndDown ? 'legend-mobile' : 'legend-desktop pl-3 pt-1 pb-1',
     ]"
   >
-    <div class="text-title-small pr-3 font-weight-medium flex-shrink-0">
+    <div
+      v-if="!smAndDown"
+      class="text-title-small pr-3 font-weight-medium flex-shrink-0"
+    >
       Tipos de extractivismo:
     </div>
     <v-chip-group
       v-model="mapStore.filters.extractivism"
-      show-arrows
+      show-arrows="desktop"
       multiple
       class="flex-grow-1"
       style="min-width: 0;"
@@ -52,6 +59,7 @@ const extractivism_types_list = computed(() => {
           <v-icon color="white" class="mr-1">{{ e_type.icon }}</v-icon>
         </template>
         <v-tooltip
+          v-if="!smAndDown"
           activator="parent"
           location="bottom"
           max-width="300"
@@ -80,16 +88,22 @@ const extractivism_types_list = computed(() => {
 /* md+: a la derecha de la isla superior (logo + buscador), NO dentro. */
 .legend-desktop {
   top: 12px;
-  left: 410px;
+  left: 450px;
   right: 12px;
   max-width: 1130px;
 }
 
-/* sm/xs: franja bajo la isla, sobre el rail horizontal (top: 112px). */
+.legend-mobile .v-chip {
+  margin-inline-end: 4px;
+  margin-inline-start: 0;
+}
+
+/* sm/xs: franja bajo las dos islas (buscador y rail). */
 .legend-mobile {
-  top: 64px;
+  top: v-bind('MOBILE_GEOMETRY.legendTop + "px"');
   left: 8px;
   right: 8px;
+  height: v-bind('MOBILE_GEOMETRY.legendH + "px"');
 }
 
 

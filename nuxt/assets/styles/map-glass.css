@@ -1,0 +1,26 @@
+/*
+ * Superficies "vidrio" que flotan sobre el mapa (isla superior, rail, tira
+ * de filtros activos). Vive fuera de las CSS layers de Vuetify para ganar
+ * al fondo que `.v-sheet` pinta por defecto.
+ */
+.map-glass {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Sin desenfoque cuando el usuario lo pide o el equipo es modesto (la clase
+   `map-low-end` la pone pages/mapa.vue leyendo deviceMemory / cores). */
+@media (prefers-reduced-transparency: reduce) {
+  .map-glass {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+html.map-low-end .map-glass {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}

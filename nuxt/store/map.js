@@ -1,10 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, reactive, shallowRef, computed, watch } from 'vue'
 import { useMainStore } from '~/store/index.js'
-import { FILTER_REGISTRY } from '~/components/map/filters/filterRegistry.js'
+import {
+  FILTER_REGISTRY, MOBILE_GEOMETRY,
+} from '~/components/map/filters/filterRegistry.js'
 import {
   buildProjectIndex, buildActorIndex, runSearch,
 } from '~/components/map/common/searchIndex.js'
+
+// Alto en reposo del bottom-sheet de teléfono (vaul acepta px en string).
+export const SHEET_REST_PX = '64px'
+// Snap medio: al que sube el sheet al seleccionar un proyecto.
+export const SHEET_MID_SNAP = 0.45
 
 export const useMapStore = defineStore('map', () => {
   const mainStore = useMainStore()
@@ -68,6 +75,11 @@ export const useMapStore = defineStore('map', () => {
   const toggleChipsCompact = () => { chipsCompact.value = !chipsCompact.value }
   // Abrir un picker colapsa el rail expandido.
   watch(activePickerKey, key => { if (key) railExpanded.value = false })
+  // Bottom-sheet de teléfono (ProjectsPanel): snap activo y píxeles que
+  // cubre del mapa. Lo publica el panel; lo lee el padding del mapa.
+  const sheetSnap = ref(SHEET_REST_PX)
+  const sheetCoveredPx = ref(0)
+
   // Contador de cargas listas (locations + catálogos = 2).
   const readyGets = ref(0)
   // Id del proyecto cuyo detalle está abierto. Fuente de verdad única
@@ -478,6 +490,20 @@ export const useMapStore = defineStore('map', () => {
   const anyAdjacentChips = computed(() =>
     capsulesByGroup.value.some(g => g.blocks.some(b => b.length >= 3)))
 
+  // Total de valores activos en todos los grupos (píldora «Limpiar n»).
+  const activeFilterCount = computed(() =>
+    capsulesByGroup.value.reduce((n, g) => n + chipCount(g), 0))
+
+  // Alto de la banda superior en teléfono: hasta la leyenda, o hasta la
+  // píldora «Limpiar» cuando hay filtros activos. Lo consume el padding
+  // lógico del mapa (pages/mapa.vue).
+  const topBandHeight = computed(() => {
+    const G = MOBILE_GEOMETRY
+    const end = hasActiveFilters.value
+      ? G.pillTop + G.pillH : G.legendTop + G.legendH
+    return end + G.gap
+  })
+
   // Quita un valor concreto de un filtro (cerrar un chip).
   function removeCapsule(cap) {
     if (cap.stateKey === 'actors')
@@ -621,8 +647,12 @@ export const useMapStore = defineStore('map', () => {
     purposeOptions,
     positionGroups,
     positionTypeOptions,
+    topBandHeight,
+    sheetSnap,
+    sheetCoveredPx,
     // Cápsulas / conteo
     capsulesByGroup,
+    activeFilterCount,
     countFor,
     hasActiveFilters,
     anyAdjacentChips,

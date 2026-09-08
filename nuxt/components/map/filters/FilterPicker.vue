@@ -6,6 +6,9 @@ import { useMainStore } from '~/store/index.js'
 import { useMapStore } from '~/store/map.js'
 import MultiSelectMap from '~/components/map/filters/MultiSelectMap.vue'
 import HelpTooltip from '~/components/map/common/HelpTooltip.vue'
+import {
+  RAIL_TONE, tileLabelWidth,
+} from '~/components/map/filters/filterRegistry.js'
 
 // Picker de un rail-group (decisions §4, Capa D): botón-ícono persistente
 // (Capa A) + popover transitorio (v-menu en escritorio / v-bottom-sheet en
@@ -71,25 +74,58 @@ const purposeModel = computed({
     v-bind="overlayProps"
   >
     <template #activator="{ props: actProps }">
-      <div class="d-flex align-center">
+      <!-- Teléfono: tile ícono + etiqueta (dos líneas), todo el tile es el
+           blanco táctil. -->
+      <v-btn
+        v-if="smAndDown"
+        class="rail-tile text-none"
+        variant="text"
+        :color="RAIL_TONE"
+        :active="isOpen || hasSelection"
+        v-bind="actProps"
+      >
         <v-badge
           :model-value="hasSelection"
           :content="count"
-          :color="rg.color"
+          :color="RAIL_TONE"
+          location="top end"
+          offset-x="-6"
+          offset-y="4"
+          class="rail-tile__badge"
+        >
+          <v-icon :icon="rg.icon" size="28"/>
+        </v-badge>
+        <span
+          class="rail-tile__label"
+          :style="{ width: tileLabelWidth(rg.label) }"
+        >
+          {{ rg.label }}
+        </span>
+      </v-btn>
+      <div v-else class="d-flex align-center">
+        <v-badge
+          :model-value="hasSelection"
+          :content="count"
+          :color="RAIL_TONE"
           location="bottom end"
           offset-x="2"
           offset-y="2"
         >
           <v-btn
             :icon="rg.icon"
-            :color="rg.color"
+            :color="RAIL_TONE"
             :variant="hasSelection ? 'tonal' : 'text'"
             :active="isOpen"
             size="large"
             v-bind="actProps"
           />
         </v-badge>
-        <v-tooltip activator="parent" :text="rg.label" location="end"/>
+        <v-tooltip
+          v-if="!smAndDown"
+          activator="parent"
+          :text="rg.label"
+          location="end"
+        />
       </div>
     </template>
 
@@ -167,4 +203,38 @@ const purposeModel = computed({
 </template>
 
 <style scoped>
+/* Tile del rail en teléfono: ícono arriba, etiqueta a dos líneas debajo,
+   relleno igual arriba y abajo; ancho según contenido (mín. 64 px). Ícono y
+   etiqueta heredan el color del botón (RAIL_TONE). */
+.rail-tile {
+  flex-direction: column;
+  height: auto;
+  width: auto;
+  min-width: 64px;
+  padding: 6px 8px;
+  gap: 4px;
+}
+
+/* Badge chico, abajo-derecha del ícono, dentro de la caja del tile. */
+.rail-tile__badge :deep(.v-badge__badge) {
+  font-size: 0.625rem;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+}
+
+.rail-tile :deep(.v-btn__content) {
+  flex-direction: column;
+  gap: 4px;
+  white-space: normal;
+}
+
+.rail-tile__label {
+  font-size: 0.625rem;
+  line-height: 1.15;
+  font-weight: 500;
+  text-align: center;
+  min-width: min-content;
+  max-width: 76px;
+}
 </style>

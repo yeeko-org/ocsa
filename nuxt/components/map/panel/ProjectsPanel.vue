@@ -2,25 +2,41 @@
 
 import {storeToRefs} from "pinia";
 import {useDisplay} from "vuetify";
-import {useMapStore} from "~/store/map.js";
+import {
+  useMapStore, SHEET_REST_PX, SHEET_MID_SNAP,
+} from "~/store/map.js";
 import { DrawerRoot, DrawerPortal, DrawerContent, DrawerHandle } from "vaul-vue";
 import ProjectsPanelContent from "~/components/map/panel/ProjectsPanelContent.vue";
 
 const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
-const { targetProjectId } = storeToRefs(mapStore)
+const { targetProjectId, sheetSnap, sheetCoveredPx } = storeToRefs(mapStore)
 
-// Fracción visible del sheet en "peek" (solo la barra del contador).
-const PEEK = 0.12
+// Alturas preset del sheet: reposo (solo la barra del contador), media
+// pantalla y completa. El snap activo vive en el store para que el mapa
+// recalcule su padding lógico en cada cambio.
+const SNAP_POINTS = [SHEET_REST_PX, SHEET_MID_SNAP, 1]
 const drawerOpen = ref(true)     // el sheet vive siempre montado en móvil
-const activeSnap = ref(PEEK)
 
 // Abrir un detalle (desde cualquier fuente: buscador, marcador o lista)
-// sube el sheet a pantalla casi completa. Al cerrar no lo bajamos: el
-// usuario queda en la lista y baja el sheet manualmente si quiere.
+// sube el sheet al snap medio: el proyecto queda en la parte visible.
+// Al cerrar no lo bajamos: el usuario baja el sheet manualmente si quiere.
 watch(targetProjectId, (id) => {
-  if (id) activeSnap.value = 1
+  if (id) sheetSnap.value = SHEET_MID_SNAP
 })
+
+// Píxeles del mapa que cubre el sheet en su snap actual (vaul mide contra
+// window.innerHeight; los px del reposo llegan como string).
+function measureCovered() {
+  if (typeof window === 'undefined') return
+  const snap = sheetSnap.value
+  sheetCoveredPx.value = typeof snap === 'string'
+    ? Number.parseInt(snap, 10)
+    : Math.round((snap || 0) * window.innerHeight)
+}
+watch(sheetSnap, measureCovered, { immediate: true })
+onMounted(() => window.addEventListener('resize', measureCovered))
+onUnmounted(() => window.removeEventListener('resize', measureCovered))
 
 // reka-ui cierra un Dialog no modal cuando el foco sale de él (focusin en
 // cualquier botón del mapa), y vaul solo veta el pointerdown externo:
@@ -43,15 +59,15 @@ function keepOpen(event) {
       <ProjectsPanelContent/>
     </v-card>
 
-    <!-- Móvil: bottom-sheet (vaul-vue, headless) -->
+    <!-- Móvil: bottom-sheet (vaul-vue, headless). Toda la superficie
+         arrastra; vaul arbitra contra el scroll interno de la lista. -->
     <DrawerRoot
       v-else
       v-model:open="drawerOpen"
-      v-model:activeSnapPoint="activeSnap"
-      :snap-points="[PEEK, 1]"
+      v-model:activeSnapPoint="sheetSnap"
+      :snap-points="SNAP_POINTS"
       :modal="false"
       :dismissible="false"
-      handle-only
     >
       <DrawerPortal>
         <DrawerContent class="panel-drawer" @focus-outside="keepOpen">
@@ -74,13 +90,15 @@ function keepOpen(event) {
 
 /* Bottom-sheet móvil: vaul es headless, aportamos el estilo del panel.
    vaul controla el transform/translate según el snap; nosotros damos
-   tamaño y aspecto. */
+   tamaño y aspecto. La altura debe ser la del viewport: vaul traslada el
+   sheet desde su borde superior en `innerHeight - snap`, así que con menos
+   altura el reposo en px quedaba fuera de pantalla. */
 .panel-drawer {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 92vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -92,6 +110,7 @@ function keepOpen(event) {
 
 .panel-drawer__handle {
   flex: 0 0 auto;
+  margin: 5px auto;
 }
 
 </style>

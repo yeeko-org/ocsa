@@ -2,13 +2,16 @@
 import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useMapStore } from '~/store/map.js'
+import { MOBILE_GEOMETRY } from '~/components/map/filters/filterRegistry.js'
 import FilterPicker from '~/components/map/filters/FilterPicker.vue'
 import FilterActors from '~/components/map/filters/custom/FilterActors.vue'
 
-// Rail de íconos de filtro (decisions §4, Capa A): columna delgada siempre
-// visible — botón menu + 8 íconos (uno por rail-group) + zona inferior de
-// acciones. El botón menu expande/colapsa el rail mostrando los nombres
-// (Capa C); al expandirse, los chips se desplazan a la derecha.
+// Rail de íconos de filtro (decisions §4, Capa A). Escritorio: columna
+// delgada siempre visible — botón menu + 8 íconos (uno por rail-group) +
+// zona inferior de acciones; el botón menu expande/colapsa el rail mostrando
+// los nombres (Capa C). Teléfono: isla propia bajo el buscador, una tira
+// horizontal de tiles estilo barra de navegación (ícono + etiqueta debajo),
+// sin menú ni acciones — limpiar es la píldora de FilterChips.
 const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
 
@@ -30,14 +33,13 @@ function collapseRail() {
   <client-only>
     <v-sheet
       v-click-outside="collapseRail"
-      :class="smAndDown ? 'rail-horizontal' : 'rail-vertical'"
-      class="map-rail pa-1 d-flex ga-2 align-center"
-      color="#FFFFFFA9"
+      :class="smAndDown ? 'rail-horizontal' : 'rail-vertical ga-2'"
+      class="map-rail map-glass pa-1 d-flex align-center"
       rounded="lg"
       elevation="4"
     >
       <!-- Botón menu → expande/colapsa el rail (Capa C). -->
-      <div class="rail-item d-flex align-center">
+      <div v-if="!smAndDown" class="rail-item d-flex align-center">
         <v-btn
           icon="menu"
           variant="text"
@@ -53,7 +55,8 @@ function collapseRail() {
       </div>
 
       <!-- Íconos de filtro (Capa A): actores tiene su propio componente. Con el
-           rail expandido, cada ícono muestra su nombre al lado. -->
+           rail expandido, cada ícono muestra su nombre al lado; en teléfono,
+           debajo. -->
       <div
         v-for="g in groups"
         :key="g.id"
@@ -61,7 +64,7 @@ function collapseRail() {
       >
         <FilterActors v-if="g.id === 'actors'"/>
         <FilterPicker v-else :group="g.id"/>
-        <v-expand-x-transition>
+        <v-expand-x-transition v-if="!smAndDown">
           <span
             v-if="mapStore.railExpanded"
             class="rail-label cursor-pointer"
@@ -72,9 +75,10 @@ function collapseRail() {
         </v-expand-x-transition>
       </div>
 
-      <!-- Zona de acciones: limpiar + comprimir. Botones `flat` (sólidos) para
-           diferenciarlos de los íconos de filtro (text/tonal). -->
-      <template v-if="mapStore.hasActiveFilters">
+      <!-- Zona de acciones (escritorio): limpiar + comprimir. Botones `flat`
+           (sólidos) para diferenciarlos de los íconos de filtro
+           (text/tonal). -->
+      <template v-if="!smAndDown && mapStore.hasActiveFilters">
         <v-divider class="my-2 align-self-stretch"/>
         <v-expand-x-transition>
           <div
@@ -146,9 +150,6 @@ function collapseRail() {
 .map-rail {
   position: absolute;
   z-index: 2;
-  /* Glassmorphism: fondo blanco ~85 % + desenfoque del mapa detrás. */
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Escritorio: columna vertical en el borde izquierdo, bajo la barra superior.
@@ -176,14 +177,24 @@ function collapseRail() {
   width: 100%;
 }
 
-/* Móvil: tira horizontal arriba. */
+/* Móvil: isla horizontal de tiles, scroll táctil con barra oculta. */
 .rail-horizontal {
   left: 8px;
   right: 8px;
-  top: 112px;
+  top: v-bind('MOBILE_GEOMETRY.railTop + "px"');
+  height: v-bind('MOBILE_GEOMETRY.railH + "px"');
   flex-direction: row;
-  align-items: center;
-  gap: 4px;
+  gap: 0;
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.rail-horizontal::-webkit-scrollbar {
+  display: none;
+}
+
+.rail-horizontal .rail-item {
+  flex: 0 0 auto;
 }
 </style>

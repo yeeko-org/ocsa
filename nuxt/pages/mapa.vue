@@ -13,6 +13,7 @@ import FilterRail from "~/components/map/filters/FilterRail.vue";
 import FilterChips from "~/components/map/filters/FilterChips.vue";
 import { useMapFilterUrl } from "~/components/map/filters/useMapFilterUrl.js";
 import { useMapStyle, MAP_STYLE } from "~/components/map/engine/useMapStyle.js";
+import { SHEET_REST_PX, SHEET_MID_SNAP } from "~/store/map.js";
 import { useDisplay } from "vuetify";
 
 definePageMeta({
@@ -21,14 +22,11 @@ definePageMeta({
 
 const mapContainer = ref(null);
 let map = ref(null);
+// `map.loaded()` vuelve a ser false mientras cargan teselas después del
+// evento 'load'; si los datos llegan en ese hueco, un `on('load')` tardío
+// nunca dispara. Esta bandera recuerda que el evento ya ocurrió.
+let mapLoadFired = false;
 const { smAndDown } = useDisplay()
-
-// Padding de fitBounds: reserva lo que el chrome tapa del mapa. Escritorio:
-// el panel abajo-derecha y el pill inferior. Móvil: las bandas superiores y
-// el bottom-sheet en reposo (peek).
-const fitPadding = computed(() => smAndDown.value
-  ? { top: 180, bottom: 50, left: 24, right: 24 }
-  : { top: 80, bottom: 120, left: 80, right: 420 })
 
 const mapStore = useMapStore()
 const { loadData, hydrateProjectLocations } = mapStore
@@ -36,7 +34,46 @@ const {
   projectLocations,
   readyGets,
   targetProjectId,
+  topBandHeight,
+  sheetCoveredPx,
 } = storeToRefs(mapStore)
+
+// Padding de fitBounds: reserva lo que el chrome tapa del mapa. Escritorio:
+// el panel abajo-derecha y el pill inferior. Teléfono: la banda superior y
+// el sheet en su snap medio (al que sube al seleccionar), con un margen
+// para que el proyecto no quede pegado al borde.
+function fitPadding() {
+  if (!smAndDown.value)
+    return { top: 80, bottom: 120, left: 80, right: 420 }
+  return {
+    top: topBandHeight.value + 16,
+    bottom: Math.round(window.innerHeight * SHEET_MID_SNAP) + 16,
+    left: 24,
+    right: 24,
+  }
+}
+
+// Padding lógico del mapa en teléfono: la cámara, fitBounds y getBounds
+// trabajan sobre la región que ni la banda superior ni el sheet tapan. Se
+// reaplica en cada cambio de snap.
+function applyPadding() {
+  if (!map.value || !smAndDown.value) return
+  map.value.setPadding({
+    top: topBandHeight.value,
+    bottom: sheetCoveredPx.value,
+    left: 0,
+    right: 0,
+  })
+}
+watch([topBandHeight, sheetCoveredPx], applyPadding)
+
+// Sin desenfoque en equipos modestos: la clase la lee map-glass.css.
+const LOW_END_CLASS = 'map-low-end'
+function isLowEndDevice() {
+  const mem = navigator.deviceMemory
+  const cores = navigator.hardwareConcurrency
+  return (mem != null && mem <= 2) || (cores != null && cores <= 4)
+}
 
 const {
   initializeMapLayers,
@@ -65,11 +102,13 @@ useMapFilterUrl();
 if (mapStore.filters.actors.length) mapStore.ensureActors();
 
 onMounted(() => {
+  if (isLowEndDevice()) document.documentElement.classList.add(LOW_END_CLASS)
   buildPreMap();
   loadData();
 });
 
 onUnmounted(() => {
+  document.documentElement.classList.remove(LOW_END_CLASS)
   if (map.value) {
     map.value.remove();
     map.value = null;
@@ -88,6 +127,10 @@ watch(readyGets, (newVal) => {
 // así que un watch por identidad basta para re-pintar (sin deep).
 watch(() => mapStore.visibleProjectIds, updateMapData);
 
+// flush 'post': la selección también sube el sheet al snap medio y eso
+// reaplica el padding con setPadding (un jumpTo, que detiene toda animación
+// en curso). Este watcher corre después de ese, así el fitBounds no se
+// cancela.
 watch(targetProjectId, (newId) => {
   if (!newId || !map.value) return;
 
@@ -132,12 +175,12 @@ watch(targetProjectId, (newId) => {
   // 3. Mover el mapa
   if (!bounds.isEmpty()) {
     map.value.fitBounds(bounds, {
-      padding: fitPadding.value,
+      padding: fitPadding(),
       maxZoom: 12,
       duration: 1500
     });
   }
-});
+}, { flush: 'post' });
 
 function buildPreMap() {
   if (!mapContainer.value) return;
@@ -150,18 +193,35 @@ function buildPreMap() {
     // el tamaño del contenedor, así México siempre abarca la pantalla.
     bounds: [[-118.4, 14.5], [-86.7, 32.7]], // [SW, NE] de México
     fitBoundsOptions: { padding: 20 },
-    // Controles y leyendas de Mapbox abajo-izquierda (el panel de proyectos
-    // ocupa la esquina inferior derecha). La atribución por defecto sale
-    // abajo-derecha, así que la desactivamos y la re-añadimos a la izquierda.
+    // Rotación e inclinación bloqueadas: el norte siempre arriba.
+    dragRotate: false,
+    pitchWithRotate: false,
+    // Escritorio: controles y leyendas de Mapbox abajo-izquierda (el panel
+    // de proyectos ocupa la esquina inferior derecha). Teléfono: la
+    // atribución abajo-derecha, ambos levantados sobre el sheet en reposo
+    // (CSS abajo): setPadding no mueve los controles.
     logoPosition: 'bottom-left',
     attributionControl: false,
   });
-  map.value.addControl(new mapboxgl.AttributionControl(), 'bottom-left');
-  map.value.addControl(new mapboxgl.NavigationControl(), 'bottom-left');
+  map.value.touchZoomRotate.disableRotation();
+  map.value.touchPitch.disable();
+  const phone = smAndDown.value
+  map.value.addControl(
+    new mapboxgl.AttributionControl({ compact: phone }),
+    phone ? 'bottom-right' : 'bottom-left');
+  // Teléfono: sin NavigationControl (el pellizco hace zoom; sin brújula
+  // porque la rotación está bloqueada).
+  if (!phone)
+    map.value.addControl(
+      new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-left');
+  map.value.once('load', () => {
+    mapLoadFired = true;
+    applyPadding();
+  });
 }
 
 function initBuildMap() {
-  if (map.value.loaded()) {
+  if (mapLoadFired || map.value.loaded()) {
     console.log("Map already loaded, initializing directly.");
     buildMap();
   } else {
@@ -178,7 +238,8 @@ function initBuildMap() {
 function buildMap(){
   initializeMapLayers();
   updateMapData();
-  setupInteractions(map);
+  // Sin popup de hover en teléfono: el toque solo selecciona el proyecto.
+  setupInteractions(map, { hoverPopup: !smAndDown.value });
   setupClusterMarkers();
   // Carga diferida del índice de facetas: ya pintamos el mapa, no bloquea el
   // primer paint. Al llegar, visibleProjectIds cambia y el watch re-pinta.
@@ -203,7 +264,11 @@ function buildMap(){
     :is_switching="isSwitching"
     @toggle="toggleMapStyle"/>
 
-  <div class="map-container" ref="mapContainer">
+  <div
+    class="map-container"
+    :class="{ 'map-container--phone': smAndDown }"
+    ref="mapContainer"
+  >
 
   </div>
 
@@ -216,6 +281,14 @@ function buildMap(){
   width: 100%;
   /* Sin app-bar: el mapa ocupa todo el viewport (dvh = mejor en móvil). */
   height: 100dvh;
+}
+
+/* Teléfono: logo y atribución sobre el sheet en reposo (nunca tapados de
+   forma permanente; el sheet a media o completa altura los cubre solo
+   mientras el usuario lo tiene arriba). */
+.map-container--phone .mapboxgl-ctrl-bottom-left,
+.map-container--phone .mapboxgl-ctrl-bottom-right {
+  bottom: v-bind(SHEET_REST_PX);
 }
 
 

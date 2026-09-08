@@ -2,18 +2,26 @@
 import { computed } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useMapStore } from '~/store/map.js'
-import { RAIL_GEOMETRY } from '~/components/map/filters/filterRegistry.js'
+import {
+  RAIL_GEOMETRY, MOBILE_GEOMETRY, RAIL_TONE,
+} from '~/components/map/filters/filterRegistry.js'
 import ExtractivismIcons from '~/components/dashboard/project/ExtractivismIcons.vue'
 
-// Filas de chips de filtros activos (decisions §4.3, Capa B): a la derecha del
-// rail, una banda por rail-group alineada a su ícono. Cada grupo expone
-// `blocks` (uno normalmente; dos en Actores). Cada bloque se dibuja como una
-// cuadrícula adaptativa de 2 columnas (regla gradual en `gridRows`) limitada a
-// `maxCells`. En modo comprimido cada grupo colapsa a un chip "{n} filtros".
+// Filas de chips de filtros activos (decisions §4.3, Capa B). Escritorio: a
+// la derecha del rail, una banda por rail-group alineada a su ícono. Cada
+// grupo expone `blocks` (uno normalmente; dos en Actores). Cada bloque se
+// dibuja como una cuadrícula adaptativa de 2 columnas (regla gradual en
+// `gridRows`) limitada a `maxCells`. En modo comprimido cada grupo colapsa a
+// un chip "{n} filtros". Teléfono: no hay chips; solo una píldora «Limpiar n
+// filtros» bajo la leyenda, que existe únicamente con filtros activos.
 const { smAndDown } = useDisplay()
 const mapStore = useMapStore()
 
 const rows = computed(() => mapStore.capsulesByGroup)
+const clearLabel = computed(() => {
+  const n = mapStore.activeFilterCount
+  return `Limpiar ${n} filtro${n === 1 ? '' : 's'}`
+})
 const chipCount = group => group.blocks.reduce((n, b) => n + b.length, 0)
 
 // Desplazamiento: los chips se corren a la derecha cuando el rail se expande.
@@ -47,9 +55,23 @@ function openPicker(id) {
 
 <template>
   <client-only>
-    <!-- Por ahora solo escritorio; en móvil el layout cambia. -->
+    <!-- Teléfono: sin chips; una píldora discreta bajo la leyenda que limpia
+         todo. El ::before lleva el blanco táctil a 48 px sin engordarla. -->
+    <v-btn
+      v-if="smAndDown && mapStore.hasActiveFilters"
+      class="map-clear-pill text-none"
+      variant="elevated"
+      color="surface"
+      size="small"
+      rounded="pill"
+      prepend-icon="filter_alt_off"
+      @click="mapStore.clearAllFilters()"
+    >
+      {{ clearLabel }}
+    </v-btn>
+
     <div
-      v-if="!smAndDown"
+      v-else-if="!smAndDown"
       class="map-chips d-flex flex-column"
       :style="{ left: chipsLeft }"
     >
@@ -64,7 +86,7 @@ function openPicker(id) {
           <v-chip
             size="small"
             variant="tonal"
-            :color="group.color"
+            :color="RAIL_TONE"
             class="cursor-pointer align-self-start"
             @click="openPicker(group.id)"
           >
@@ -94,7 +116,7 @@ function openPicker(id) {
                   size="small"
                   variant="tonal"
                   base-color="white"
-                  :color="cell.color"
+                  :color="RAIL_TONE"
                   close-icon="clear"
                   closable
                   class="cursor-pointer special-chip"
@@ -125,7 +147,7 @@ function openPicker(id) {
                   v-else
                   size="small"
                   variant="tonal"
-                  :color="group.color"
+                  :color="RAIL_TONE"
                   class="cursor-pointer"
                   @click="openPicker(group.id)"
                 >
@@ -186,5 +208,24 @@ function openPicker(id) {
   backdrop-filter: blur(2px);
    -webkit-backdrop-filter: blur(2px);
   background-color: rgba(0, 150, 136, 0.2);
+}
+
+/* Teléfono: píldora alineada a la derecha bajo la leyenda, a la altura de
+   sus chips (v-chip small = 24 px). */
+.map-clear-pill {
+  position: absolute;
+  z-index: 2;
+  right: 8px;
+  top: v-bind('MOBILE_GEOMETRY.pillTop + "px"');
+  height: v-bind('MOBILE_GEOMETRY.pillH + "px"');
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.72) !important;
+}
+
+/* Blanco táctil de 48 px: el área del botón crece sin cambiar su caja. */
+.map-clear-pill::before {
+  content: '';
+  position: absolute;
+  inset: -12px 0;
 }
 </style>

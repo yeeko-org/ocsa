@@ -11,6 +11,27 @@ export const RAIL_GEOMETRY = {
   expandedExtra: 196,  // px que se desplazan los chips con el rail expandido
 }
 
+// Tono neutro del rail, sus badges y los chips de filtros activos: el color
+// por grupo (`color` del registro) ya no se usa ahí; el color solo codifica
+// datos (extractivismo en leyenda, pines y clusters).
+export const RAIL_TONE = 'blue-grey-darken-2'
+
+// Banda superior en teléfono (smAndDown): isla del buscador, isla del rail,
+// leyenda y —solo con filtros activos— la píldora «Limpiar», apiladas con
+// 4 px entre sí. Fuente única para los `top` de los componentes y para el
+// padding lógico del mapa (store/map.js → topBandHeight).
+export const MOBILE_GEOMETRY = {
+  gap: 4,
+  islandTop: 8,
+  islandH: 48,
+  railTop: 60,
+  railH: 71,
+  legendTop: 135,
+  legendH: 36,
+  pillTop: 175,
+  pillH: 24,
+}
+
 // Registro declarativo de los filtros del mapa (decisions §4). Config
 // ESTÁTICA: declara solo lo que NO se puede derivar del backend. El resto
 // (name/plural/description, opciones y —para eventos/afectaciones— también
@@ -103,3 +124,10 @@ export const FILTER_REGISTRY = [
     custom: true,
   },
 ]
+
+// Ancho de la etiqueta de un tile del rail (teléfono): la mitad del texto a
+// una línea (≈5.6 px por carácter a 10 px) más un margen, para que quepa en
+// dos líneas; el CSS lo acota entre la palabra más larga y 76 px.
+export function tileLabelWidth(label) {
+  return `${Math.ceil((label || '').length / 2 * 5.6) + 8}px`
+}

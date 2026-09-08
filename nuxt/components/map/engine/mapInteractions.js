@@ -4,7 +4,9 @@ import { useMapStore } from "~/store/map.js";
 import {storeToRefs} from "pinia";
 import { GEOMETRY_TYPES } from "~/composables/location_types.js";
 
-export function setupInteractions(map) {
+// `hoverPopup`: en teléfono no hay hover y Mapbox sintetiza mouseenter al
+// tocar, así que el popup no se registra y el toque solo selecciona.
+export function setupInteractions(map, { hoverPopup = true } = {}) {
   const mainStore = useMainStore()
   const { targetProjectId } = storeToRefs(useMapStore())
   const {cats, megaproject_types_dict } = storeToRefs(mainStore)
@@ -86,6 +88,8 @@ export function setupInteractions(map) {
       targetProjectId.value = project.id;
     });
   });
+
+  if (!hoverPopup) return
 
   // Hover del punto: el popup se ancla en la coordenada exacta de la feature.
   map.value.on('mouseenter', 'unclustered-point', (e) => {
