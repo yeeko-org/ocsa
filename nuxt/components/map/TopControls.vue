@@ -69,7 +69,7 @@ const public_links = [
     class="map-top-left d-flex align-center pa-1"
     :class="smAndDown
       ? 'map-top-left--phone'
-      : 'map-top-left--desktop map-glass'"
+      : 'map-top-left--desktop'"
     rounded="lg"
     elevation="4"
   >
@@ -158,6 +158,7 @@ const public_links = [
 .map-top-left--desktop {
   top: 10px;
   left: 10px;
+  background-color: #ffffffe6;
 }
 
 .map-top-left--phone {

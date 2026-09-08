@@ -42,15 +42,26 @@ const {
 // el panel abajo-derecha y el pill inferior. Teléfono: la banda superior y
 // el sheet en su snap medio (al que sube al seleccionar), con un margen
 // para que el proyecto no quede pegado al borde.
+// Mapbox ignora un fitBounds cuyo padding no cabe en el lienzo (solo avisa),
+// y un setPadding que lo rebase invierte la región lógica: en horizontal
+// (844×390) la banda más el sheet lo rebasan. Se reparte como máximo el 80 %
+// del alto entre arriba y abajo.
+const MAX_PADDED_FRACTION = 0.8
+function clampVertical(top, bottom) {
+  const max = Math.round(window.innerHeight * MAX_PADDED_FRACTION)
+  if (top + bottom <= max) return { top, bottom }
+  const scale = max / (top + bottom)
+  return { top: Math.round(top * scale), bottom: Math.round(bottom * scale) }
+}
+
 function fitPadding() {
   if (!smAndDown.value)
     return { top: 80, bottom: 120, left: 80, right: 420 }
-  return {
-    top: topBandHeight.value + 16,
-    bottom: Math.round(window.innerHeight * SHEET_MID_SNAP) + 16,
-    left: 24,
-    right: 24,
-  }
+  const vertical = clampVertical(
+    topBandHeight.value + 16,
+    Math.round(window.innerHeight * SHEET_MID_SNAP) + 16,
+  )
+  return { ...vertical, left: 24, right: 24 }
 }
 
 // Padding lógico del mapa en teléfono: la cámara, fitBounds y getBounds
@@ -58,12 +69,8 @@ function fitPadding() {
 // reaplica en cada cambio de snap.
 function applyPadding() {
   if (!map.value || !smAndDown.value) return
-  map.value.setPadding({
-    top: topBandHeight.value,
-    bottom: sheetCoveredPx.value,
-    left: 0,
-    right: 0,
-  })
+  const vertical = clampVertical(topBandHeight.value, sheetCoveredPx.value)
+  map.value.setPadding({ ...vertical, left: 0, right: 0 })
 }
 watch([topBandHeight, sheetCoveredPx], applyPadding)
 

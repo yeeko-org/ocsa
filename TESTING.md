@@ -11,6 +11,8 @@ Mapa de niveles del monorepo. El detalle vive de cada lado; aquí solo está qu�
 
 Los diagnósticos del lado de la API no son tests: verifican contra el mundo real (proxy, PressReader, Gemini, la base) y varios **cuestan dinero o cuota**. Léase [api/TESTING.md](api/TESTING.md) antes de correr cualquiera; ahí están los comandos, las credenciales que hacen falta (todas en `api/.env`) y cuáles son gratis.
 
+Revisión manual obligatoria al subir `reka-ui` o `vaul-vue`: el bottom-sheet del mapa público sobrevive porque `ProjectsPanel.vue` veta el evento `focus-outside` del `DrawerContent`; si la librería deja de emitirlo o de respetar `preventDefault`, el sheet vuelve a desaparecer al tocar cualquier botón del mapa sin que nada falle en consola. Cómo comprobarlo: abrir `/mapa` a 390×844, tocar un botón del rail y verificar que `.panel-drawer` sigue en el DOM (task-31).
+
 Para verificar a mano el dashboard en el navegador hacen falta credenciales locales: están en `docs/keys/local-dashboard-credentials.md` (submódulo privado), nunca en este repo.
 
 Cuando se monte una suite de verdad, esta tabla se actualiza aquí y el detalle de comandos se queda en el TESTING.md del lado que corresponda.

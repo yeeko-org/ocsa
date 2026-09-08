@@ -15,6 +15,8 @@ This skill informs the dialogue with Ricardo. It never authorizes a creative sol
 
 Source tags: [Apple] `references/apple-hig.md` · [M2] [M3] `references/material.md` · [Google] `references/google-maps-sdk.md` · [Mapbox] `references/mapbox.md` · [WCAG] `references/wcag.md` · [NN/g] `references/nngroup.md`. Read a reference only when you need the argument around a rule.
 
+The archived Material 2 bottom-sheet page was consulted in full: it adds the 8 dp elevation of a standard sheet co-existing with a panned region, the initial-appearance and full-screen behaviour, and the mobile→side-sheet scaling. It names no map or location case — that one is Material 3's — so `references/material.md` keeps only the [M2] passages the rules above cite, under their own heading.
+
 ## Vocabulary
 
 Material's words are the skill's: **drag handle** and **preset heights**. Apple calls the same things *grabber* and *detents*; NN/g says *grab handle*. In code the term is **snap** (`snapPoints` in vaul-vue, the sheet library the panel uses). One pattern, four names.
@@ -53,7 +55,7 @@ The canvas fills the whole container so dragging the sheet never reveals a seam;
 
 - **A map smaller than 200×200 px shows no controls.** Google hides them by default at that size; use it as the threshold for what survives when a sheet reduces the visible map. [Google]
 - **Corner conventions**: zoom bottom-right, compass top-left and only when bearing or tilt is non-zero, locate top-right, marker toolbar bottom-right on selection. Use logical positions (start/end) so RTL works. [Google]
-- **Bottom-right belongs to the map controls on this map.** Material would put a FAB there, but this map has no FAB. Whether the zoom buttons survive on phones (pinch already zooms) is undecided; it is Ricardo's call, not a convention. [Google, M3, resolved]
+- **Bottom-right belongs to the map controls on this map.** Material would put a FAB there, but this map has no FAB. Whether the zoom buttons survive on phones (pinch already zooms) is undecided; it is Ricardo's call, not a convention. [Google, M2, resolved]
 - **Cooperative gestures only when the map lives inside a scrolling page.** A full-screen map takes every gesture (`greedy`); a map embedded in a page requires two fingers or Ctrl so page scroll does not zoom it. Mapbox: `cooperativeGestures`. [Google]
 - **Distinguish interactive elements from the map without hover**, and space them for imprecise taps. A label that shares the app's tint colour looks tappable. [Mapbox]
 

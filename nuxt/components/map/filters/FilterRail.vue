@@ -33,8 +33,10 @@ function collapseRail() {
   <client-only>
     <v-sheet
       v-click-outside="collapseRail"
-      :class="smAndDown ? 'rail-horizontal' : 'rail-vertical ga-2'"
-      class="map-rail map-glass pa-1 d-flex align-center"
+      :class="smAndDown
+        ? 'rail-horizontal map-glass'
+        : 'rail-vertical ga-2 rail-glass-desktop'"
+      class="map-rail pa-1 d-flex align-center"
       rounded="lg"
       elevation="4"
     >
@@ -150,6 +152,14 @@ function collapseRail() {
 .map-rail {
   position: absolute;
   z-index: 2;
+}
+
+/* Escritorio conserva su vidrio original; el compartido (map-glass) es el
+   del teléfono, más transparente. */
+.rail-glass-desktop {
+  background-color: #FFFFFFA9 !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Escritorio: columna vertical en el borde izquierdo, bajo la barra superior.

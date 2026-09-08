@@ -132,12 +132,12 @@ const purposeModel = computed({
     <v-card min-width="340" max-width="460" class="pa-2">
       <div class="text-title-medium font-weight-bold px-2 pt-1 pb-2 d-flex
         align-center">
-        <v-icon :color="rg.color" :icon="rg.icon" class="mr-2"/>
+        <v-icon :color="RAIL_TONE" :icon="rg.icon" class="mr-2"/>
         {{ rg.label }}
         <HelpTooltip
           :title="rg.label"
           :description="rg.description"
-          :color="rg.color"
+          :color="RAIL_TONE"
         />
       </div>
 
@@ -174,7 +174,7 @@ const purposeModel = computed({
             <HelpTooltip
               :title="labelFor(sel)"
               :description="helpFor(sel)"
-              :color="rg.color"
+              :color="RAIL_TONE"
             />
           </div>
           <MultiSelectMap
