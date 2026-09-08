@@ -22,6 +22,13 @@ watch(targetProjectId, (id) => {
   if (id) activeSnap.value = 1
 })
 
+// reka-ui cierra un Dialog no modal cuando el foco sale de él (focusin en
+// cualquier botón del mapa), y vaul solo veta el pointerdown externo:
+// `dismissible=false` no cubre ese camino. Vetamos el focus-outside aquí.
+function keepOpen(event) {
+  event.preventDefault()
+}
+
 </script>
 
 <template>
@@ -47,7 +54,7 @@ watch(targetProjectId, (id) => {
       handle-only
     >
       <DrawerPortal>
-        <DrawerContent class="panel-drawer">
+        <DrawerContent class="panel-drawer" @focus-outside="keepOpen">
           <DrawerHandle class="panel-drawer__handle"/>
           <ProjectsPanelContent embedded/>
         </DrawerContent>

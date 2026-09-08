@@ -17,6 +17,11 @@ const props = defineProps({
 })
 
 const { smAndDown } = useDisplay()
+
+// `location`/`offset` son del v-menu: pasados al v-bottom-sheet lo
+// reposicionan al borde superior de la pantalla.
+const overlayProps = computed(() =>
+  smAndDown.value ? {} : { location: 'end', offset: 8 })
 const mainStore = useMainStore()
 const mapStore = useMapStore()
 
@@ -63,8 +68,7 @@ const purposeModel = computed({
     :is="smAndDown ? VBottomSheet : VMenu"
     v-model="isOpen"
     :close-on-content-click="false"
-    location="end"
-    :offset="8"
+    v-bind="overlayProps"
   >
     <template #activator="{ props: actProps }">
       <div class="d-flex align-center">

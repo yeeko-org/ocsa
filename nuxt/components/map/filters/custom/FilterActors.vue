@@ -7,6 +7,11 @@ import ActorSearch from '~/components/map/filters/custom/ActorSearch.vue'
 import HelpTooltip from '~/components/map/common/HelpTooltip.vue'
 
 const { smAndDown } = useDisplay()
+
+// `location`/`offset` son del v-menu: pasados al v-bottom-sheet lo
+// reposicionan al borde superior de la pantalla.
+const overlayProps = computed(() =>
+  smAndDown.value ? {} : { location: 'end', offset: 8 })
 const mapStore = useMapStore()
 
 const rg = computed(() => mapStore.resolveGroup('actors') || {})
@@ -28,8 +33,7 @@ watch(isOpen, open => { if (open) mapStore.ensureActors() })
     :is="smAndDown ? VBottomSheet : VMenu"
     v-model="isOpen"
     :close-on-content-click="false"
-    location="end"
-    :offset="8"
+    v-bind="overlayProps"
   >
     <template #activator="{ props: actProps }">
       <div class="d-flex align-center">

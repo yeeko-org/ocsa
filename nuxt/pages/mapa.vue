@@ -13,6 +13,7 @@ import FilterRail from "~/components/map/filters/FilterRail.vue";
 import FilterChips from "~/components/map/filters/FilterChips.vue";
 import { useMapFilterUrl } from "~/components/map/filters/useMapFilterUrl.js";
 import { useMapStyle, MAP_STYLE } from "~/components/map/engine/useMapStyle.js";
+import { useDisplay } from "vuetify";
 
 definePageMeta({
   layout: 'map',
@@ -20,6 +21,14 @@ definePageMeta({
 
 const mapContainer = ref(null);
 let map = ref(null);
+const { smAndDown } = useDisplay()
+
+// Padding de fitBounds: reserva lo que el chrome tapa del mapa. Escritorio:
+// el panel abajo-derecha y el pill inferior. Móvil: las bandas superiores y
+// el bottom-sheet en reposo (peek).
+const fitPadding = computed(() => smAndDown.value
+  ? { top: 180, bottom: 50, left: 24, right: 24 }
+  : { top: 80, bottom: 120, left: 80, right: 420 })
 
 const mapStore = useMapStore()
 const { loadData, hydrateProjectLocations } = mapStore
@@ -123,9 +132,7 @@ watch(targetProjectId, (newId) => {
   // 3. Mover el mapa
   if (!bounds.isEmpty()) {
     map.value.fitBounds(bounds, {
-      // El panel de proyectos vive abajo-derecha: reservamos ese costado
-      // (y el inferior para el pill) para que el encuadre no quede tapado.
-      padding: { top: 80, bottom: 120, left: 80, right: 420 },
+      padding: fitPadding.value,
       maxZoom: 12,
       duration: 1500
     });
