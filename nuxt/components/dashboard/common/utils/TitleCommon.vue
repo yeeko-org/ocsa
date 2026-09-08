@@ -24,7 +24,7 @@ const props = defineProps({
 <template>
   <div
     :class="card_class"
-    style="text-wrap: pretty; overflow: hidden;"
+    style="white-space: normal; text-wrap: pretty; overflow: hidden;"
     :style="`width: ${title_width}px; max-height: ${max_height}px;`"
   >
     {{ title_text }}
