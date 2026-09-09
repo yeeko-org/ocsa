@@ -20,3 +20,10 @@
 html.map-no-scroll {
   overflow: hidden;
 }
+
+/* Antes de que cargue Material Symbols, el nombre del ícono es texto largo
+   que desborda el .v-icon; en celular Chromium hace zoom-out para caber y
+   vaul mide un innerHeight falso (el sheet queda fuera de pantalla). */
+.material-symbols-outlined {
+  overflow: hidden;
+}

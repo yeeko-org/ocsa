@@ -480,8 +480,14 @@ export const useMapStore = defineStore('map', () => {
     return g ? chipCount(g) : 0
   }
 
+  // Extractivismo no tiene cápsula (se elige en la leyenda, §5): se suma
+  // aparte y cuenta como un solo filtro sin importar cuántos tipos haya.
+  const legendFilterCount = computed(() =>
+    filters.extractivism.length > 0 ? 1 : 0)
+
   // ¿Hay algún filtro activo? Controla la Capa B y "limpiar todo".
   const hasActiveFilters = computed(() =>
+    legendFilterCount.value > 0 ||
     capsulesByGroup.value.some(g => chipCount(g) > 0))
 
   // ¿Algún grupo muestra dos chips lado a lado? (un bloque con ≥3 chips, que
@@ -492,6 +498,7 @@ export const useMapStore = defineStore('map', () => {
 
   // Total de valores activos en todos los grupos (píldora «Limpiar n»).
   const activeFilterCount = computed(() =>
+    legendFilterCount.value +
     capsulesByGroup.value.reduce((n, g) => n + chipCount(g), 0))
 
   // Alto de la banda superior en teléfono: hasta la leyenda, o hasta la
