@@ -31,7 +31,7 @@ Public-map visibility has a single source: `api/views/map/visibility.py` (`visib
 
 ### Permissions (`profile_auth/`)
 - `IsFullEditorOrReadOnly` — default; full editors can write, others read-only
-- `ByStatusOrReadOnly` — editing gated by record status
+- `ByStatusOrReadOnly` — object writes require `is_full_editor` first, then are gated by `status_register.open_editor`; crashes on notes without status (docs `task-112`)
 - `IsEditorOrCreateOrRead` — allows creation with validation
 - `DynamicCatalogPermission` — for catalog endpoints
 - `LocationPermission` — for geographic data
@@ -46,7 +46,7 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
 - `migrate_initial_data` only creates the `StatusControl` rows that are missing; existing rows are never touched — the admin is the living source of `order`/`color`/`icon`/`priority` (docs `task-86`)
 
 ### External Integrations
-- **OpenAI / Google Generative AI**: AI-assisted record pre-classification
+- **OpenAI / Google Generative AI**: AI-assisted record pre-classification, and link → print-title matching for notes created with a link (`source/link_match.py`)
 - **BeautifulSoup / lxml**: news scraping from multiple sources
 - **openpyxl / yeekooxlsx_export**: Excel exports
 - **Redis**: caches the public map's facets/actors index (db 1 in production). Rebuilt by `rebuild_map_index` (06:00 UTC cron) or on demand via `POST map/index/rebuild/`; nothing else expires it

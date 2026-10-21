@@ -31,6 +31,13 @@ const saving = ref(false)
 const editForm = ref(null)
 const dialog_delete = ref(false)
 const errors = ref(null)
+// Un 400 con `detail` (y `reason`) es un mensaje para el editor, no un
+// diccionario de errores por campo.
+const errors_text = computed(() => {
+  const err = errors.value
+  if (!err?.detail) return err
+  return err.reason ? `${err.detail}: ${err.reason}` : err.detail
+})
 
 const {
   report_data: delete_report_data,
@@ -86,7 +93,9 @@ async function saveRecord() {
       emits('merge-items', res)
     else{
       emits('item-saved', {res, is_new})
-      finishSave()
+      // El servidor puede avisar algo que sigue en curso (p. ej. la nota
+      // que se trae del enlace en segundo plano).
+      finishSave(res.message)
     }
   })
 }
@@ -150,7 +159,7 @@ async function deleteRecord() {
       class="mb-3"
       style="white-space: pre-wrap;"
     >
-      {{errors}}
+      {{errors_text}}
     </v-alert>
     <AlertInfo
       :help_text="final_collection_data.help_text"

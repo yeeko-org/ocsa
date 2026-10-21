@@ -1,6 +1,6 @@
 # TESTING
 
-Estado real del repo, no un ideal: hay **dos suites montadas** —el invariante de escritura de adjuntos, en `source/tests.py`, y el criterio de visibilidad del mapa, en `space_time/tests/`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
+Estado real del repo, no un ideal: hay **dos suites montadas** —el invariante de escritura de adjuntos y la nota desde enlace, en `source/`, y el criterio de visibilidad del mapa, en `space_time/tests/`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
 
 Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el mundo real (la red, la base) en vez de contra aserciones. Se corren a mano cuando hace falta, no en cada commit.
 
@@ -8,7 +8,7 @@ Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el 
 
 | Nivel | Estado |
 |---|---|
-| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos) y `space_time` (visibilidad del mapa, filtros de pendientes y geolocalización) |
+| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos, nota desde enlace) y `space_time` (visibilidad del mapa, filtros de pendientes y geolocalización) |
 | E2E | No montado |
 | Diagnósticos manuales | **Sí** — ver abajo |
 
@@ -23,6 +23,10 @@ DATABASE_SCHEMA= python manage.py test source --noinput
 ```
 
 Ocho tests, ~0.04 s, **sin red y sin costo**: cubren el invariante de escritura de adjuntos de `source/attachment/` —si algo falla, no queda fila `NoteFile` sin archivo real detrás, y los adjuntos previos solo desaparecen cuando el nuevo ya está escrito—. Seis usan un generador de laboratorio (excepción de red, contenido vacío, `build` que devuelve `None`, storage caído al escribir, camino feliz con `replace=True`, y `replace=False` que ni siquiera descarga); dos ejercitan los generadores reales de Reforma y La Jornada con su llamada de red y su render parcheados con `unittest.mock`. El storage no se toca: cada test redirige el campo `NoteFile.file` a un directorio temporal.
+
+### Nota desde enlace (`source`)
+
+Corre con el mismo comando. `source/test_note_from_link.py`, treinta y ocho tests **sin red y sin costo** (Gemini, el raspado del listado y el hilo parcheados): normalización de títulos y URLs, fuente por dominio, fecha de edición de Proceso, el cotejo URL → título exacto → contención → difuso → Gemini (`source/link_match.py`), la regla del listado (un día con lote real no se vuelve a raspar; los artículos de `pdf_import` cuentan como candidatos pero no como listado), los 400 baratos de alta y de `fetch_from_link`, la cadena de tres pasadas (se detiene en el primer fallo, precaptura vacía no es error, precaptura congelada se salta), que una pasada fallida suelta el artículo y borra solo el adjunto generado en esa corrida, que el lote reclama del registro sintético sin tocar artículos de otro lote, y que llenar la nota no pisa campos capturados ni toca `status_register`.
 
 ### Visibilidad del mapa y geolocalización (`space_time`)
 
@@ -87,6 +91,14 @@ ROUND=6 python .claude/diagnostics/rerun_political_opinion.py report
 ```
 
 El segundo escribe en `ArticleQualify` con `is_test=True`, **sin tocar** `Article.criteria` ni `certainty_degree`, y es reanudable: salta lo ya calificado con el mismo esquema, así que re-ejecutarlo no vuelve a cobrar. Cada corrida necesita un `ROUND` propio —ancla su `QualifySchema` a un `ScrapedRecord` marcador con fechas de 1900— y acepta `ENGINE` para comparar modelos. Se usó para fijar `adr-0006` y `adr-0007`; el detalle está en `../docs/records/2026-08-01-criterio-de-opinion-politica.md`.
+
+### Nota desde enlace, cronometrada (gasta)
+
+```bash
+python .claude/diagnostics/time_note_from_link.py [--no-gemini] [--keep]
+```
+
+Corre la cadena del hilo sin hilo sobre cinco casos fijos (o `--link/--date/--title`), con proxy, PressReader y Gemini reales; borra la nota desechable al terminar e imprime tiempos por etapa y el comentario que el hilo habría dejado. No sobrescribe nada —la clasificación que el lote ya dejó en el artículo se reutiliza—, pero sí crea artículos: los de un listado raspado en un día (o mes de Proceso) sin lote se quedan en el registro sintético de la fuente. `--no-gemini` salta las pasadas de clasificación, no el cotejo: si URL, título exacto, contención y similitud no bastan, `prepare_article` sí llama a Gemini para emparejar títulos.
 
 ### Política de fallos del ciclo de clasificación
 

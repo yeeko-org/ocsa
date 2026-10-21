@@ -354,6 +354,17 @@ class PdfCleanResult(BaseModel):
     paragraphs: list[str] = []
 
 
+class LinkMatchResult(BaseModel):
+    """Qué título impreso corresponde a la nota del enlace.
+
+    `candidate` es el número de la lista enviada (desde 1); `matched=false`
+    es la respuesta explícita de que ninguno coincide.
+    """
+    matched: bool
+    candidate: int | None = None
+    reason: str = Field(default="", max_length=300)
+
+
 class NoteHydrated(RootModel, PathMixin):
     root: list[MentionFull] = []
 

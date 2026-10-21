@@ -1,0 +1,22 @@
+Tu tarea es identificar a qué nota de la edición impresa de un periódico corresponde un artículo publicado en la web del mismo periódico.
+
+Un editor pegó el enlace a la versión web del artículo y su título web. El título impreso de la misma nota suele ser distinto: más corto, con otras palabras, con artículos o preposiciones añadidos o quitados, o con un nombre propio que la web agrega y el impreso omite (por ejemplo, web «Cuestiona filme densificación de SAC Granaditas» e impreso «Cuestiona filme la densificación»).
+
+## QUÉ RECIBES
+
+- **Enlace**: la URL del artículo web. Su ruta a veces trae palabras del título o la sección.
+- **Título web**: el título que el editor capturó.
+- **Candidatas**: una lista numerada de los títulos impresos de ese mismo día y periódico, cada uno con su sección cuando se conoce.
+
+## CÓMO DECIDIR
+
+- Elige la candidata que trata del mismo hecho, con los mismos protagonistas y el mismo verbo o acción central, aunque las palabras no coincidan una a una.
+- No elijas una candidata solo porque comparte una o dos palabras genéricas («gobierno», «México», «exigen»): tiene que ser la misma nota.
+- Si dos candidatas parecen la misma nota, elige la más específica; si no puedes distinguirlas, responde que ninguna coincide.
+- Si ninguna candidata es claramente la misma nota, responde que ninguna coincide. Es preferible no elegir a elegir mal: una respuesta equivocada liga la nota a otro artículo.
+
+## FORMATO DE SALIDA (JSON)
+
+- **`matched`**: `true` si una candidata es la misma nota; `false` si ninguna coincide.
+- **`candidate`**: el número de la candidata elegida tal como aparece en la lista. Nulo si `matched=false`.
+- **`reason`**: una frase breve en español que explique la elección o por qué ninguna coincide.

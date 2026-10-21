@@ -381,6 +381,16 @@ export const useMainStore = defineStore('main', {
         return {errors: error.response.data}
       }
     },
+    async fetchNoteFromLink(note_id) {
+      const { $api } = useNuxtApp()
+      try {
+        let response = await $api.post(`note/${note_id}/fetch_from_link/`);
+        return response.data
+      } catch (error) {
+        console.error(error);
+        return {errors: error.response.data}
+      }
+    },
     async savePreCapture({data, note_id}) {
       const { $api } = useNuxtApp()
       try {

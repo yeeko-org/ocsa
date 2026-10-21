@@ -144,14 +144,19 @@ class ManagerScraper(ABC):
         self.scraped_record.save()
 
     def check_overlapping_records(self, from_date, to_date):
+        # Import diferido: pdf_import.utils carga PyMuPDF.
+        from source.pdf_import.utils import LEGACY_FROM_DATE, LEGACY_TO_DATE
         from_date = date_in_date(from_date)
         to_date = date_in_date(to_date)
 
+        # El registro sintético aloja los artículos de pdf_import y los de
+        # notas traídas por enlace sin haber raspado nada: nunca debe
+        # frenar un lote, que además reclama esos artículos.
         overlapping_records = ScrapedRecord.objects.filter(
             from_date__lte=to_date,
             to_date__gte=from_date,
             source=self.get_source(),
-        )
+        ).exclude(from_date=LEGACY_FROM_DATE, to_date=LEGACY_TO_DATE)
 
         self.overlapping_dates = [
             [record.from_date.strftime("%Y/%m/%d"),
@@ -225,8 +230,19 @@ class ManagerScraper(ABC):
             "published_date": date_in_date(date_),
             "scraped": self.scraped_record,
         }
-        article_obj, _ = Article.objects.get_or_create(
+        article_obj, created = Article.objects.select_related(
+            "scraped").get_or_create(
             uid=uid, source=self.get_source(), defaults=defaults)
+        if created:
+            return
+        # Import diferido: pdf_import.utils carga PyMuPDF.
+        from source.pdf_import.utils import is_synthetic_record
+        # Una nota traída por enlace en un día sin lote deja los artículos
+        # del listado en el registro sintético; el lote real los reclama
+        # para que su raspado y su clasificación los alcancen.
+        if is_synthetic_record(article_obj.scraped):
+            article_obj.scraped = self.scraped_record
+            article_obj.save(update_fields=["scraped"])
 
     def scrape_articles(self, update: bool = False):
         articles = Article.objects.filter(scraped=self.scraped_record)

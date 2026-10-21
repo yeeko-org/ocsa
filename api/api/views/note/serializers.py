@@ -255,10 +255,16 @@ class NoteFullSerializer(ConditionalFieldsMixin):
     mentions = MentionMegaFullSerializer(many=True, read_only=True)
     articles = ArticleSimpleSerializer(read_only=True, many=True)
     pre_mentions = serializers.JSONField(read_only=True)
+    link_fetchable = serializers.SerializerMethodField()
 
     class Meta:
         model = Note
         fields = '__all__'
+
+    def get_link_fetchable(self, obj: Note) -> bool:
+        # Import diferido, como en la vista: arrastra scrapers y PyMuPDF.
+        from source.note_from_link import is_link_fetchable
+        return is_link_fetchable(obj.link)
 
 
 class NoteCreateSerializer(serializers.ModelSerializer):

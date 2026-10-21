@@ -100,6 +100,11 @@ def article_has_content(article: Article) -> bool:
     return bool(article.paragraphs) or bool(article.images)
 
 
+def is_synthetic_record(record: ScrapedRecord | None) -> bool:
+    return bool(record) and record.from_date == LEGACY_FROM_DATE \
+        and record.to_date == LEGACY_TO_DATE
+
+
 def get_synthetic_scraped_record(source: Source) -> ScrapedRecord:
     """ScrapedRecord sintético reutilizado por fuente.
 

@@ -16,8 +16,12 @@ export default defineNuxtPlugin((nuxtApp) => {
     }
   })
 
-  api.interceptors.request.use((config) => {
-    const cookie_auth = useCookie('auth_ocsa')
+  api.interceptors.request.use(async (config) => {
+    // Axios corre el interceptor fuera del contexto síncrono del plugin, y
+    // ahí useCookie no encuentra la instancia de Nuxt. En SSR runWithContext
+    // devuelve una promesa; en el cliente, el ref directo (el await no estorba).
+    const cookie_auth = await nuxtApp.runWithContext(
+      () => useCookie('auth_ocsa'))
 
     if (cookie_auth.value) {
       config.headers.Authorization = `Token ${cookie_auth.value}`

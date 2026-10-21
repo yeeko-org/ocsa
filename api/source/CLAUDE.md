@@ -30,7 +30,7 @@ Diagnóstico: `python source/scraper/scraper_access_test.py [YYYY/MM/DD]`
 
 `python manage.py regenerate_note_files --mode reforma|backfill|all [--ids] [--limit] [--dry-run]` cubre los dos universos de task-42. Se apoya en `source/attachment/generate_attachment()`, así que **exige un `Article` ligado a la nota**: sin él no hay de dónde sacar el folio ni la fecha, y la nota se salta reportando la razón (no se inventa contenido).
 
-**El generador no alcanza a la mayoría del universo de Reforma.** De las notas cuyo único adjunto es el autogenerado-portada, más de la mitad no tiene `Article` — son capturas manuales o notas anteriores al scraping. Esas quedan fuera del alcance del comando por diseño.
+**El generador no alcanza a la mayoría del universo de Reforma.** De las notas cuyo único adjunto es el autogenerado-portada, más de la mitad no tiene `Article` — son capturas manuales o notas anteriores al scraping. Esas quedan fuera del alcance del comando por diseño; una captura manual con `link` de Jornada o Reforma puede ganar su `Article` con «Traer información del enlace» (`source/note_from_link.py`), y desde ahí el comando sí la alcanza.
 
 **Las que sí tienen `Article` no traen `metadata["paginas"]`**: todas caen en `resolve_page_from_section()`, o sea una descarga del XML de sección por nota. Es la ruta cara y la que hay que presupuestar en la corrida masiva, no la barata.
 
@@ -50,6 +50,7 @@ Article
   └── pre_capture                          ← JSON con menciones extraídas por IA
 
 Article → Note                             ← conversión editorial
+Note(link) → Article                       ← nota por enlace: camino inverso, la Note existe antes que el Article (`source/note_from_link.py`)
 Note
   ├── pre_mentions    ← copia inicial del JSON de pre_capture
   ├── frozen_pre_capture ← si True, bloquea re-procesamiento
@@ -75,19 +76,22 @@ Los cuatro flujos heredan de `BaseCriteriaManager` (`source/criteria/__init__.py
 | `FirstCriteriaManager`, `SecondCriteriaManager` | `api/api/views/scraping/views.py` |
 | `PreCaptureManager` | vistas de artículo y nota |
 | `ReclassifyLegalManager` | `manage.py reclassify_legal_events` |
+| `First`/`Second`/`PreCaptureManager` vía `note_from_link.run_gemini_chain` | hilo de la nota por enlace: llama `build_gemini_request()` + `get_ai_criteria()` directamente, solo para las pasadas que al artículo le faltan (nunca sobrescribe lo que calculó el lote) |
 
 Dos trampas: `prompt_name`, `version` y `seconds_cache` son atributos de
 clase sin default global —una subclase sin `version` revienta al
 construirse—, y `first`/`second` emiten el subtítulo sin numerar (`adr-0011`)
 porque su esquema acota las referencias a `ge=1` y un `[0]` rompe la
-validación. `pdf_import/clean.py` queda fuera del contrato a propósito.
+validación. `pdf_import/clean.py` y `source/link_match.py` (`LinkMatcher`, cotejo enlace → título impreso) quedan fuera del contrato a propósito.
+
+El hilo de la nota por enlace (`pipeline_thread`) cierra su conexión con `connections.close_all()` en el `finally`; el `connection.close()` comentado de `api/views/scraping/views.py` sigue igual (`adr-0002`).
 
 ---
 
 ## Pre-captura asistida por IA
 
 El proceso lo orquesta `source/criteria/pre_capture.py` (`PreCaptureManager`).
-Solo procesa artículos con `second_certainty_degree > 100` y sin `Note` aún.
+La compuerta «`second_certainty_degree > 100` y sin `Note` aún» es solo del lote (`get_articles_objects`, `recover_sections.classify`); las vías directas —`start_pre_capture`, `ArticleViewSet.select` y la nota por enlace— corren sin ella y sobre artículos ya ligados. `get_ai_criteria` registra una lista vacía de Gemini como `CriteriaError("No response AI service")`; solo la nota por enlace la lee como «sin menciones relevantes» (`is_empty_precapture`), el lote la sigue tratando como error.
 
 El prompt usado está en `source/prompts/gemini_pre_capture_criteria_v2.txt`.
 Los esquemas Pydantic de validación del JSON de salida están en
@@ -121,6 +125,8 @@ idempotentes: extracción del crudo (PyMuPDF → `Article.html_content`) y
 limpieza con Gemini orientada por el título de la `Note`
 (→ `Article.paragraphs`). Excluye La Jornada. Disparador:
 `python manage.py import_pdf_notes`. Esquema: `PdfCleanResult`.
+
+**El `ScrapedRecord` sintético por fuente** (`pdf_import/utils.py`, rango fijo 2017-01-01..2023-05-31) resuelve el FK `Article.scraped` NOT NULL sin migración. También aloja los artículos del listado de un día sin lote que raspa la nota por enlace, con fechas fuera de su rango; `record_article` los reclama cuando un lote real pasa por ese día, y `check_overlapping_records` lo excluye para que nunca bloquee un lote.
 
 ---
 

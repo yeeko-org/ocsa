@@ -3,8 +3,10 @@
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import {useDashboardStore} from "~/store/dash.js";
+import {useAuthStore} from "~/store/auth.js";
 const mainStore = useMainStore()
 const dashboardStore = useDashboardStore()
+const { is_full_editor } = storeToRefs(useAuthStore())
 
 import MentionDetails from "~/components/dashboard/source/MentionDetails.vue";
 import CollectionDisplay from "~/components/dashboard/CollectionDisplay.vue";
@@ -12,7 +14,7 @@ import FilesToolbar from "~/components/dashboard/capture/FilesToolbar.vue";
 import ParagraphsContent from "~/components/dashboard/capture/ParagraphsContent.vue";
 import ParagraphsProjectsContent from "~/components/dashboard/capture/ParagraphsProjectsContent.vue";
 
-const { saveSimple, sendPreCapture } = mainStore
+const { saveSimple, sendPreCapture, fetchNoteFromLink } = mainStore
 const { schemas } = storeToRefs(mainStore)
 const { showSnackbar } = dashboardStore
 import { useSaveElements } from "~/composables/save_elements.js";
@@ -53,6 +55,30 @@ async function preCapture() {
   const res = await sendPreCapture(props.full_main.id)
   loading_precapture.value = false
   mixMentions(res.pre_mentions)
+}
+
+const has_article = computed(() => props.full_main.articles?.length > 0)
+// `link_fetchable` lo calcula la API: el dominio tiene fuente con scraper.
+const can_fetch_link = computed(() =>
+  is_full_editor.value && props.full_main.link_fetchable
+  && !has_article.value)
+const loading_fetch_link = ref(false)
+// La cadena corre en el servidor; hasta reabrir la nota no hay nada que
+// volver a pedir, y un segundo clic solo lanzaría otra corrida.
+const link_requested = ref(false)
+
+async function fetchFromLink() {
+  loading_fetch_link.value = true
+  const res = await fetchNoteFromLink(props.full_main.id)
+  loading_fetch_link.value = false
+  if (res.errors) {
+    const reason = res.errors.reason ? `: ${res.errors.reason}` : ''
+    const msg = `${res.errors.detail || 'Error al traer la nota'}${reason}`
+    showSnackbar(msg, 'error')
+    return
+  }
+  link_requested.value = true
+  showSnackbar(res.message, 'success')
 }
 
 watch(
@@ -227,7 +253,18 @@ const two_columns = ref(true)
             {{ all_mentions.length }} menciones de proyectos
             <v-spacer></v-spacer>
             <v-btn
-              v-if="all_mentions.length === 0"
+              v-if="can_fetch_link"
+              @click="fetchFromLink"
+              color="accent"
+              class="text-none mr-2"
+              variant="elevated"
+              :loading="loading_fetch_link"
+              :disabled="link_requested"
+              append-icon="link"
+              text="Traer información del enlace"
+            ></v-btn>
+            <v-btn
+              v-if="all_mentions.length === 0 && has_article"
               @click="preCapture"
               color="accent"
               class="text-none mr-2"

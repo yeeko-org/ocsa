@@ -88,16 +88,52 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
             'update': NoteFullSerializer,
             'add_file': NoteFileSerializer,
             'start_pre_capture': NoteFullSerializer,
+            'fetch_from_link': NoteFullSerializer,
             # 'patch': NoteCreateSerializer,
 
         }
         return action_serializer.get(self.action, self.serializer_class)
 
     def create(self, request, *args, **kwargs):
+        """Alta de nota; con `link`, el artículo se trae en un hilo.
+
+        Solo el duplicado responde 400 sin crear nada; un medio sin
+        scraper guarda la nota sin pipeline, y lo demás llega después
+        como comentario de la nota.
+        """
+        from source.note_from_link import (
+            NOT_FETCHABLE_MSG, QUEUED_MSG, LinkNotFetchable,
+            NoteFromLinkError, check_link, launch_pipeline)
         data = request.data
         # data['editor'] = request.user.id
         data['editors'] = [request.user.id]
-        return super().create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        validated = serializer.validated_data
+        if not validated.get('link'):
+            return super().create(request, *args, **kwargs)
+
+        try:
+            source = check_link(validated['link'], validated['date'])
+        except LinkNotFetchable:
+            note = serializer.save()
+            self.save_click_action(request, note, 'created')
+            return self.note_with_message(note, NOT_FETCHABLE_MSG, 201)
+        except NoteFromLinkError as exc:
+            return Response(exc.as_response(), status=400)
+        note = serializer.save(source=source)
+        self.save_click_action(request, note, 'created')
+        launch_pipeline(note, request.user)
+        return self.note_with_message(note, QUEUED_MSG, 201)
+
+    def note_with_message(
+            self, note: Note, message: str, status_code: int = 200,
+    ) -> Response:
+        note_saved = self.get_queryset().get(pk=note.pk)
+        data = NoteFullSerializer(
+            note_saved, context=self.get_serializer_context()).data
+        data['message'] = message
+        return Response(data, status=status_code)
 
     def update(self, request, *args, **kwargs):
         serializer_class = self.get_serializer_class()
@@ -130,12 +166,38 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
             return Response(
                 {'detail': 'Pre-capture is already frozen for this note.'},
                 status=400)
+        article = note.articles.first()
+        if not article:
+            msg = ('La nota no tiene artículo; usa '
+                   '«Traer información del enlace»')
+            return Response({'detail': msg}, status=400)
         manager = PreCaptureManager()
-        manager.build_direct_criteria(note.articles.first())
+        manager.build_direct_criteria(article)
         note_saved = Note.objects.get(pk=note.id)
         serializer = self.get_serializer(
             note_saved, context=self.get_serializer_context())
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def fetch_from_link(self, request, pk=None):
+        """Lanza en un hilo artículo, adjunto y precaptura de la nota."""
+        from source.note_from_link import (
+            NOT_FETCHABLE_MSG, QUEUED_MSG, LinkNotFetchable,
+            NoteFromLinkError, check_link, launch_pipeline)
+        note = self.get_object()
+        if note.articles.exists():
+            return Response(
+                {'detail': 'La nota ya tiene artículo.'}, status=400)
+        try:
+            check_link(note.link, note.date, note=note)
+        except LinkNotFetchable:
+            return self.note_with_message(note, NOT_FETCHABLE_MSG)
+        except NoteFromLinkError as exc:
+            return Response(exc.as_response(), status=400)
+        if not launch_pipeline(note, request.user):
+            msg = 'Ya se está trayendo la información de esta nota.'
+            return Response({'detail': msg}, status=400)
+        return self.note_with_message(note, QUEUED_MSG)
 
     @action(detail=True, methods=['post'])
     def edit_pre_capture(self, request, pk=None):

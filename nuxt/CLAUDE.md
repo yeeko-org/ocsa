@@ -12,7 +12,7 @@ Package manager is pnpm (`packageManager` in `package.json`; the lockfile is git
 ## Architecture
 
 ### API & Auth
-- `plugins/api.ts` — creates an axios instance (`$api`) with base URL from `NUXT_API_URL` (client-side under `ocsa.ibero.mx` it switches to the relative `/api-ocsa`, the Ibero nginx same-origin proxy); auto-injects token from `auth_ocsa` cookie via request interceptor.
+- `plugins/api.ts` — creates an axios instance (`$api`) with base URL from `NUXT_API_URL` (client-side under `ocsa.ibero.mx` it switches to the relative `/api-ocsa`, the Ibero nginx same-origin proxy); auto-injects token from `auth_ocsa` cookie via an async request interceptor: `useCookie` runs inside `nuxtApp.runWithContext` and is awaited, because axios calls the interceptor outside the plugin's sync context; in SSR that await is what makes server-side requests carry the token.
 - `store/auth.js` — token lives in `auth_ocsa` cookie, 24-hour TTL. Roles: `is_staff`, `is_full_editor`, `is_mini_editor`.
 - `middleware/dashboard.js` — protects all `/dashboard/*` routes: checks auth, fetches catalogs on first load, sets active collection from route params.
 
@@ -28,7 +28,7 @@ Each data domain is a "collection" (e.g. `actores`, `proyectos`, `eventos`). Cat
 - Files named `{Model}{Header|Sheet|Edit|EditSimple|Card}.vue` under `components/dashboard/{app_label}/{snake_name}/` are loaded by name convention, with the path built at runtime: **nothing imports them, and that is normal**.
 - **Warning**: a grep with zero importers on those files does NOT mean dead code. Never rename, move, delete or refactor them without reading the skill first.
 - All the detail (suffixes, resolvers, fallbacks, props, emits, filters, massive edit, CRUD contract) lives in the `dashboard-collections` skill.
-- CRUD is entirely dialog-driven: `DialogEdit`, `DialogDelete`, `DialogSearch`.
+- CRUD is entirely dialog-driven: `DialogEdit`, `DialogDelete`, `DialogSearch`. The generic `EditCommon` shows a save response's `message` as the snackbar (replacing the default text) and renders a 400 carrying `detail`/`reason` as plain text.
 - Mix of Options API (older) and `<script setup>` (preferred for new code).
 
 ### Maps
