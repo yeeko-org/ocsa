@@ -43,7 +43,12 @@ export function calculateSchemas(data) {
       obj[field] = coll.fields.some(f => f.name === field)
       return obj
     }, {})
-    const other_fields = has_fields.concat([coll.pk, coll.name_field])
+    // Solo como texto separado por comas (Actor, Project, IndigenousGroup):
+    // State los guarda como lista JSON y no se edita en este campo.
+    coll.has.alternative_names = coll.fields.some(
+      f => f.name === 'alternative_names' && f.is_string)
+    const other_fields = has_fields.concat(
+      [coll.pk, coll.name_field, 'alternative_names'])
     coll.other_fields = coll.fields.filter(f =>
       !other_fields.includes(f.name) && f.relation_type === 'simple')
 

@@ -83,7 +83,7 @@ class ProjectExport(ModelExport):
     columns = [
         XlsColumn("id"),
         XlsColumn("name", width=35),
-        XlsColumn("alternative_name", width=25),
+        XlsColumn("alternative_names", width=25),
         XlsColumn("description", width=40),
         Include(ConflictMiniBlock, through="conflict"),
         Include(ProjectExpandBlock),

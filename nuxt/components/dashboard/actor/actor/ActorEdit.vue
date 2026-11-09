@@ -43,14 +43,6 @@ function deleteExtraParents() {
 </script>
 
 <template>
-  <v-col cols="12" class="d-flex pa-0" :order="col_order">
-    <v-text-field
-      v-model="full_main.alternative_names"
-      label="Nombres alternativos"
-      variant="outlined"
-      class="mb-2"
-    />
-  </v-col>
   <v-col cols="12" md="6" class="d-flex pa-0" :order="col_order">
     <SelectGroup
       v-model="full_main"

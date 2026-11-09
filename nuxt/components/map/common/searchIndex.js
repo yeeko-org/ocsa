@@ -1,4 +1,5 @@
 import MiniSearch from 'minisearch'
+import {foldText} from '~/composables/foldText.js'
 
 // Búsqueda 100% en cliente (api-contract "Búsqueda principal"): no hay
 // endpoint server-side. Con los nombres de proyecto (geojson) y todos los
@@ -8,11 +9,9 @@ import MiniSearch from 'minisearch'
 // (store/map.js, como shallowRef) para compartirse entre el buscador global
 // y el de actores sin reconstruirlas por componente.
 
-// Plegado de acentos + minúsculas, aplicado tanto al indexar como al buscar:
-// "rio" debe encontrar "Río", "angel" → "Ángel". NFD separa la tilde en un
-// diacrítico combinante (rango U+0300–U+036F) que se elimina.
-export const processTerm = (term) =>
-  term.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+// El plegado es el mismo de los selects del dashboard (sin acentos ni
+// apóstrofos), aplicado tanto al indexar como al buscar.
+export const processTerm = foldText
 
 // prefix: empareja por prefijo (búsqueda incremental al teclear).
 // fuzzy 0.2: tolera ~20% de erratas por término.
@@ -21,20 +20,20 @@ const SEARCH_OPTS = { prefix: true, fuzzy: 0.2 }
 // Etiqueta del proyecto, espejo de `searchableProjects` (store/map.js):
 // incluye el nombre alternativo entre paréntesis cuando existe.
 const projectLabel = (p) =>
-  p.alternative_name ? `${p.name} (${p.alternative_name})` : p.name
+  p.alternative_names ? `${p.name} (${p.alternative_names})` : p.name
 
 // Índice de proyectos: busca por nombre y nombre alternativo; guarda lo
 // necesario para pintar la opción sin volver al store.
 export function buildProjectIndex(projects) {
   const index = new MiniSearch({
-    fields: ['name', 'alternative_name'],
-    storeFields: ['id', 'name', 'alternative_name'],
+    fields: ['name', 'alternative_names'],
+    storeFields: ['id', 'name', 'alternative_names'],
     processTerm,
   })
   index.addAll(projects.map(p => ({
     id: p.id,
     name: p.name,
-    alternative_name: p.alternative_name || '',
+    alternative_names: p.alternative_names || '',
   })))
   return index
 }

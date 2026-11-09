@@ -49,7 +49,7 @@ class FilterRef:
 class ComponentFilter:
     """
     Filtro renderizado como componente Vue en el dashboard.
-    Usado en CollectionSchema.all_filters.
+    Usado en CollectionSchema.all_filters y CatalogSchema.all_filters.
 
     `description` explica el filtro completo; cada entrada de
     `custom_options` admite su propia clave "description" para explicar
@@ -127,6 +127,12 @@ class CatalogSchema(BaseSchema):
     open_insertion: bool = None
     optional_category: bool = False
 
+    # --- Merge ---------------------------------------------------------------
+    # Al fusionar, el nombre absorbido pasa a alternative_names del destino.
+    # Opt-in: en catálogos cuyos nombres llevan comas, split_names los
+    # partiría en fragmentos.
+    merge_keeps_name: bool = False
+
     # --- ViewSet generation -------------------------------------------------
     # base: "status" → BaseStatusViewSet
     #       "generic" → BaseGenericViewSet
@@ -145,6 +151,13 @@ class CatalogSchema(BaseSchema):
 
     # filterset_fields: None = inherit from base; [] = disable
     filterset_fields: list | None = None
+
+    # search_fields: None = inherit from base (['name'])
+    search_fields: list | None = None
+
+    # all_filters: mismos filtros que CollectionSchema.all_filters; el
+    # campo de un ComponentFilter tiene que estar en filterset_fields.
+    all_filters: list = []     # List[FilterRef | ComponentFilter]
 
     # extra_mixins: inserted before base class in MRO
     extra_mixins: list = []

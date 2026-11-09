@@ -132,7 +132,7 @@ def _generate_viewset(schema_cls: type[CatalogSchema]) -> type:
     perm = schema_cls.permission
     perm_cls = perm if isinstance(perm, type) else perm_map[perm]
 
-    qs = schema_cls.model.objects.all()
+    qs = _with_m2m(schema_cls.model)
     if schema_cls.count_fields:
         for ann_name, related_path in schema_cls.count_fields.items():
             qs = qs.annotate(**{ann_name: Count(related_path, distinct=True)})
@@ -150,6 +150,8 @@ def _generate_viewset(schema_cls: type[CatalogSchema]) -> type:
     }
     if schema_cls.filterset_fields is not None:
         attrs['filterset_fields'] = schema_cls.filterset_fields
+    if schema_cls.search_fields is not None:
+        attrs['search_fields'] = schema_cls.search_fields
 
     if full_ser or list_ser:
         def get_serializer_class(self,
@@ -166,6 +168,13 @@ def _generate_viewset(schema_cls: type[CatalogSchema]) -> type:
 
     bases = tuple(schema_cls.extra_mixins) + (base_cls,)
     return type(f'{schema_cls.model.__name__}AutoViewSet', bases, attrs)
+
+
+def _with_m2m(model: type):
+    # '__all__' serializa cada M2M propio como lista de ids: sin prefetch
+    # sería una consulta por fila (IndigenousGroup.states, event_types…).
+    m2m = [f.name for f in model._meta.many_to_many]
+    return model.objects.prefetch_related(*m2m)
 
 
 def _model_collection_key(model: type) -> str:
@@ -233,6 +242,10 @@ class CatalogRegistry:
         self._filter_groups[schema_cls.key_name] = schema_cls
         return schema_cls
 
+    def schema_for_model(self, model: type) -> type[CatalogSchema] | None:
+        return next(
+            (s for s in self._schemas.values() if s.model is model), None)
+
     def get_viewset(self, snake_name: str) -> type:
         """Return the ViewSet class for a registered snake_name."""
         schema_cls = self._schemas[snake_name]
@@ -256,7 +269,7 @@ class CatalogRegistry:
         for snake_name, schema_cls in self._schemas.items():
             ser_class = generate_serializer(schema_cls.model)
             result[snake_name] = ser_class(
-                schema_cls.model.objects.all(), many=True).data
+                _with_m2m(schema_cls.model), many=True).data
         return result
 
     def iter_collection_data(self):
@@ -275,7 +288,9 @@ class CatalogRegistry:
                     ) if flag
                 ],
                 'xls_export': False,
-                'all_filters': [],
+                'all_filters': [
+                    filter_to_dict(f)
+                    for f in schema_cls.all_filters],
             }
             yield data['app_label'], data
 

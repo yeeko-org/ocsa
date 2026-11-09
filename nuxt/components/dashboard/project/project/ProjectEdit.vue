@@ -79,15 +79,6 @@ function confirmInherit() {
 
 <template>
   <v-col cols="12" md="6" class="pa-0 d-flex" :order="col_order">
-    <v-text-field
-      v-model="full_main.alternative_name"
-      label="Nombres alternativos"
-      variant="outlined"
-      class="mr-2"
-      style="max-width: 460px;"
-    />
-  </v-col>
-  <v-col cols="12" md="6" class="pa-0 d-flex" :order="col_order">
     <CardCommon
       :full_main="full_main.conflict && full_main.conflict_full"
       collection_name="conflict"

@@ -65,7 +65,7 @@ class ProjectSimpleSerializer(ConditionalFieldsMixin):
     class Meta:
         model = Project
         fields = [
-            'id', 'name', 'alternative_name', 'description',
+            'id', 'name', 'alternative_names', 'description',
             'megaproject_type', 'is_grouper', 'parent_project',
         ]
 

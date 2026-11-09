@@ -77,10 +77,10 @@ const parent_project = computed(() => {
         </div>
       </div>
       <div
-        v-if="full_main.alternative_name"
+        v-if="full_main.alternative_names"
         class="text-body-small"
       >
-        ({{ full_main.alternative_name }})
+        ({{ full_main.alternative_names }})
       </div>
     </div>
     <div class="d-flex flex-wrap align-center mt-2">

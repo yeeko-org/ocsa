@@ -3,6 +3,7 @@
 import StatusChip from "~/components/dashboard/status/StatusChip.vue";
 import { VSelect, VAutocomplete } from "vuetify/components"
 import {useRules} from "~/composables/useRules.js";
+import {matchesSearch, sortBySearch} from "~/composables/selectSearch.js";
 const { rules } = useRules()
 
 const props = defineProps({
@@ -36,49 +37,21 @@ const emits = defineEmits(['open-dialog', 'update-value'])
 
 const searchQuery = ref('')
 
-const customFilter = (value, query, item) => {
-  if (!query) return true
+const customFilter = (value, query, item) =>
+  matchesSearch(item.raw, query, props.item_title)
 
-  const searchText = query.toLowerCase()
-  const name = (item.raw[props.item_title] || '').toLowerCase()
-  const description = (item.raw.description || '').toLowerCase()
-
-  return name.includes(searchText) || description.includes(searchText)
+// State trae alternative_names como lista JSON (a veces []): solo el texto
+// de los catálogos se muestra.
+const altNamesText = (raw) => {
+  const names = raw.alternative_names
+  return typeof names === 'string' && names.trim() ? names : ''
 }
 
-// Sort items: name matches first, then description matches
 const sortedItems = computed(() => {
   if (!searchQuery.value || !props.is_autocomplete) {
     return props.items
   }
-
-  const query = searchQuery.value.toLowerCase()
-
-  return [...props.items].sort((a, b) => {
-    const aName = (a[props.item_title] || '').toLowerCase()
-    const bName = (b[props.item_title] || '').toLowerCase()
-    const aDesc = (a.description || '').toLowerCase()
-    const bDesc = (b.description || '').toLowerCase()
-
-    const aMatchesName = aName.includes(query)
-    const bMatchesName = bName.includes(query)
-
-    // Both match in name - keep order
-    if (aMatchesName && bMatchesName) return 0
-
-    // Only one matches in name - prioritize it
-    if (aMatchesName) return -1
-    if (bMatchesName) return 1
-
-    // Neither matches in name, check description
-    const aMatchesDesc = aDesc.includes(query)
-    const bMatchesDesc = bDesc.includes(query)
-
-    if (aMatchesDesc && !bMatchesDesc) return -1
-    if (!aMatchesDesc && bMatchesDesc) return 1
-
-    return 0
-  })
+  return sortBySearch(props.items, searchQuery.value, props.item_title)
 })
 
 const show_add = computed(() => {
@@ -183,9 +156,15 @@ function openDialog(is_add=true){
         </template>
         <template
           v-slot:subtitle
-          v-if="item.raw.description"
+          v-if="item.raw.description || altNamesText(item.raw)"
         >
-          <div class="d-flex align-start">
+          <div
+            v-if="altNamesText(item.raw)"
+            class="text-truncate"
+          >
+            {{ altNamesText(item.raw) }}
+          </div>
+          <div v-if="item.raw.description" class="d-flex align-start">
             {{ item.raw.description.substring(0, 120) }}{{ item.raw.description.length > 120 ? '...' : '' }}
             <v-tooltip
               v-if="item.raw.description"

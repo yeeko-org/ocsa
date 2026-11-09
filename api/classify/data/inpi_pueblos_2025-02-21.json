@@ -1,0 +1,1759 @@
+{
+ "title": "Catálogo Nacional de Pueblos y Comunidades Indígenas y Afromexicanas (INPI)",
+ "version": "Actualización publicada en el DOF el 21/02/2025 (Acuerdo Cuarto); expedido originalmente en el DOF el 09/08/2024",
+ "sources": [
+  {
+   "role": "primary",
+   "what": "Tabla del Acuerdo Cuarto: denominación, autodenominación en lengua indígena y número de comunidades",
+   "url": "https://catalogo.inpi.gob.mx/wp-content/uploads/2024/08/2025_02_21_MAT_inpi.pdf",
+   "retrieved": "2026-11-08"
+  },
+  {
+   "role": "secondary",
+   "what": "Nombres con que el micrositio del INPI presenta a cada pueblo (selector «Consulta catálogo por pueblo») y familia lingüística cuando la ficha del pueblo la menciona",
+   "url": "https://catalogo.inpi.gob.mx/consulta-por-pueblo-2/",
+   "retrieved": "2026-11-08"
+  },
+  {
+   "role": "cross-check",
+   "what": "Edición completa del DOF del 21/02/2025",
+   "url": "https://www.diputados.gob.mx/LeyesBiblio/dof/2025/feb/DOF_21feb25.pdf",
+   "retrieved": "no descargado"
+  },
+  {
+   "role": "original",
+   "what": "Acuerdo de expedición, DOF 09/08/2024 (la lista viene en imágenes)",
+   "url": "https://www.dof.gob.mx/nota_detalle.php?codigo=5735635&fecha=09/08/2024",
+   "retrieved": "no descargado"
+  }
+ ],
+ "fields": {
+  "name": "Nombre en OCSA: «Autodenominación (Denominación DOF)» cuando difieren, la denominación del DOF sola cuando coinciden; apóstrofo recto. Regla de Ricardo del 09/11/2026",
+  "dof_name": "Denominación del pueblo en la tabla del DOF, sin el asterisco",
+  "self_designation": "Columna «Autodenominación en lengua indígena», literal",
+  "name_not_self_identified": "La fila lleva asterisco: «Los representantes de este pueblo no se identifican con esta denominación»",
+  "communities": "Número de comunidades indígenas y afromexicanas registradas",
+  "microsite_name": "Nombre en el selector del micrositio, sin el prefijo «Pueblo»",
+  "source_alternatives": "Formas que dan el DOF o el micrositio, partidas por «/» u «o»",
+  "extra_variants": "Grafías de uso común en prensa agregadas por OCSA; NO vienen del INPI",
+  "language_family": "Solo cuando la ficha del pueblo en el micrositio la nombra; null en otro caso",
+  "autonym": "Autodenominación elegida para el nombre; null cuando el nombre es la denominación del DOF sola",
+  "alternative_names": "Todas las demás formas: autodenominación y denominación del DOF sueltas, las del DOF y el micrositio, las grafías de prensa y su forma sin apóstrofos ni diacríticos (salvo la ñ)"
+ },
+ "notes": [
+  "Las filas del DOF suman 16,045 comunidades; el «Total general» impreso dice 16,044. Se conservan los números de cada fila.",
+  "La tabla del DOF numera dos veces el 30 (Kumiai y Mixe); aquí Mixe va como 39, que es su posición.",
+  "El DOF trae 70 pueblos indígenas y 1 afromexicano. Las 70 «comunidades pluriculturales» (personas de más de un pueblo en un mismo territorio) no son un pueblo y no se incluyen.",
+  "El micrositio presenta «Matlatzinca o Pirinda» y además «Pirinda» (con enlace roto); el DOF los cuenta como dos pueblos (Matlatzinca, 12 comunidades; Pirinda, 80) y aquí se sigue al DOF."
+ ],
+ "pueblos": [
+  {
+   "no": 1,
+   "name": "Kuti' (Akateko)",
+   "dof_name": "Akateko",
+   "self_designation": "Kuti'",
+   "name_not_self_identified": false,
+   "communities": 5,
+   "microsite_name": "Akateko",
+   "microsite_url": "https://catalogo.inpi.gob.mx/akateko/",
+   "source_alternatives": [
+    "Kuti'"
+   ],
+   "extra_variants": [
+    "Acateco"
+   ],
+   "language_family": null,
+   "autonym": "Kuti'",
+   "alternative_names": [
+    "Kuti'",
+    "Akateko",
+    "Acateco",
+    "Kuti"
+   ]
+  },
+  {
+   "no": 2,
+   "name": "Ñomndaa (Amuzgo)",
+   "dof_name": "Amuzgo",
+   "self_designation": "Ñomndaa/Tzjon Noan",
+   "name_not_self_identified": false,
+   "communities": 83,
+   "microsite_name": "Amuzgo",
+   "microsite_url": "https://catalogo.inpi.gob.mx/amuzgo/",
+   "source_alternatives": [
+    "Ñomndaa",
+    "Tzjon Noan"
+   ],
+   "extra_variants": [
+    "Ñomdaa"
+   ],
+   "language_family": null,
+   "autonym": "Ñomndaa",
+   "alternative_names": [
+    "Ñomndaa",
+    "Amuzgo",
+    "Tzjon Noan",
+    "Ñomdaa"
+   ]
+  },
+  {
+   "no": 3,
+   "name": "N'dee (Apache)",
+   "dof_name": "Apache",
+   "self_designation": "N’dee",
+   "name_not_self_identified": true,
+   "communities": 1,
+   "microsite_name": "N’dee o N’nee o Ndé",
+   "microsite_url": "https://catalogo.inpi.gob.mx/ndee/",
+   "source_alternatives": [
+    "N’dee",
+    "N’nee",
+    "Ndé"
+   ],
+   "extra_variants": [
+    "Ndee"
+   ],
+   "language_family": null,
+   "autonym": "N'dee",
+   "alternative_names": [
+    "N'dee",
+    "Apache",
+    "N'nee",
+    "Ndé",
+    "Ndee",
+    "Nnee",
+    "Nde"
+   ]
+  },
+  {
+   "no": 4,
+   "name": "Numte oote (Ayapaneco)",
+   "dof_name": "Ayapaneco",
+   "self_designation": "Numte oote",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Ayapaneco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/ayapaneco/",
+   "source_alternatives": [
+    "Numte oote"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Numte oote",
+   "alternative_names": [
+    "Numte oote",
+    "Ayapaneco"
+   ]
+  },
+  {
+   "no": 5,
+   "name": "Caxcan",
+   "dof_name": "Caxcan",
+   "self_designation": "Caxcan",
+   "name_not_self_identified": false,
+   "communities": 4,
+   "microsite_name": "Caxcan",
+   "microsite_url": "https://catalogo.inpi.gob.mx/caxcan/",
+   "source_alternatives": [],
+   "extra_variants": [
+    "Cazcan",
+    "Caxcán"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Cazcan",
+    "Caxcán"
+   ]
+  },
+  {
+   "no": 6,
+   "name": "Cha' jna'a (Chatino)",
+   "dof_name": "Chatino",
+   "self_designation": "Cha’ jna’a",
+   "name_not_self_identified": false,
+   "communities": 135,
+   "microsite_name": "Chatino",
+   "microsite_url": "https://catalogo.inpi.gob.mx/chatino/",
+   "source_alternatives": [
+    "Cha’ jna’a"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Cha' jna'a",
+   "alternative_names": [
+    "Cha' jna'a",
+    "Chatino",
+    "Cha jnaa"
+   ]
+  },
+  {
+   "no": 7,
+   "name": "Éza'r (Chichimeco)",
+   "dof_name": "Chichimeco",
+   "self_designation": "Éza'r/Úza'/Guachichil",
+   "name_not_self_identified": false,
+   "communities": 29,
+   "microsite_name": "Chichimeca",
+   "microsite_url": "https://catalogo.inpi.gob.mx/chichimeco/",
+   "source_alternatives": [
+    "Chichimeca",
+    "Jonaz",
+    "Guachichil",
+    "Éza'r",
+    "Úza'"
+   ],
+   "extra_variants": [
+    "Chichimeca Jonaz"
+   ],
+   "language_family": "oto-mangue",
+   "autonym": "Éza'r",
+   "alternative_names": [
+    "Éza'r",
+    "Chichimeco",
+    "Chichimeca",
+    "Jonaz",
+    "Guachichil",
+    "Úza'",
+    "Chichimeca Jonaz",
+    "Ezar",
+    "Uza"
+   ]
+  },
+  {
+   "no": 8,
+   "name": "Tsa köwï (Chinanteco)",
+   "dof_name": "Chinanteco",
+   "self_designation": "Dsa Maji’i/Dza Kï / Dsa Je+ Jmein/tsa kö 'wí++/Tsa köwï",
+   "name_not_self_identified": false,
+   "communities": 416,
+   "microsite_name": "Chinanteco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/chinanteco/",
+   "source_alternatives": [
+    "Dsa Maji’i",
+    "Dza Kï",
+    "Dsa Je+ Jmein",
+    "tsa kö 'wí++",
+    "Tsa köwï"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Tsa köwï",
+   "alternative_names": [
+    "Tsa köwï",
+    "Chinanteco",
+    "Dsa Maji'i",
+    "Dza Kï",
+    "Dsa Je+ Jmein",
+    "tsa kö 'wí++",
+    "Tsa kowi",
+    "Dsa Majii",
+    "Dza Ki",
+    "tsa ko wi++"
+   ]
+  },
+  {
+   "no": 9,
+   "name": "Ngiwa (Chocholteco)",
+   "dof_name": "Chocholteco",
+   "self_designation": "Ngiwa",
+   "name_not_self_identified": false,
+   "communities": 68,
+   "microsite_name": "Chocholteco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/chocholteco/",
+   "source_alternatives": [
+    "Ngiwa"
+   ],
+   "extra_variants": [
+    "Chocho",
+    "Ngigua"
+   ],
+   "language_family": null,
+   "autonym": "Ngiwa",
+   "alternative_names": [
+    "Ngiwa",
+    "Chocholteco",
+    "Chocho",
+    "Ngigua"
+   ]
+  },
+  {
+   "no": 10,
+   "name": "Ch'ol",
+   "dof_name": "Ch'ol",
+   "self_designation": "Ch'ol/Lakty'añ/Mel Cholelob",
+   "name_not_self_identified": false,
+   "communities": 500,
+   "microsite_name": "Ch’ol",
+   "microsite_url": "https://catalogo.inpi.gob.mx/chol/",
+   "source_alternatives": [
+    "Lakty'añ",
+    "Mel Cholelob",
+    "Ch’ol"
+   ],
+   "extra_variants": [
+    "Chol",
+    "Ch´ol"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Lakty'añ",
+    "Mel Cholelob",
+    "Chol",
+    "Laktyañ"
+   ]
+  },
+  {
+   "no": 11,
+   "name": "Chontal de Oaxaca",
+   "dof_name": "Chontal de Oaxaca",
+   "self_designation": "Chontal de Oaxaca",
+   "name_not_self_identified": false,
+   "communities": 59,
+   "microsite_name": "Chontal de Oaxaca",
+   "microsite_url": "https://catalogo.inpi.gob.mx/chontal-de-oaxaca/",
+   "source_alternatives": [],
+   "extra_variants": [
+    "Tequistlateco",
+    "Slijuala xanuk"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Tequistlateco",
+    "Slijuala xanuk"
+   ]
+  },
+  {
+   "no": 12,
+   "name": "Yokot'an (Chontal de Tabasco)",
+   "dof_name": "Chontal de Tabasco",
+   "self_designation": "Yokot'an",
+   "name_not_self_identified": true,
+   "communities": 143,
+   "microsite_name": "Chontal de Tabasco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/yokotan-chontal-de-tabasco/",
+   "source_alternatives": [
+    "Yokot'an"
+   ],
+   "extra_variants": [
+    "Yokotán",
+    "Yokotan"
+   ],
+   "language_family": null,
+   "autonym": "Yokot'an",
+   "alternative_names": [
+    "Yokot'an",
+    "Chontal de Tabasco",
+    "Yokotán",
+    "Yokotan"
+   ]
+  },
+  {
+   "no": 13,
+   "name": "Koti' chuj (Chuj)",
+   "dof_name": "Chuj",
+   "self_designation": "Koti' chuj",
+   "name_not_self_identified": false,
+   "communities": 21,
+   "microsite_name": "Chuj",
+   "microsite_url": "https://catalogo.inpi.gob.mx/chuj/",
+   "source_alternatives": [
+    "Koti' chuj"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Koti' chuj",
+   "alternative_names": [
+    "Koti' chuj",
+    "Chuj",
+    "Koti chuj"
+   ]
+  },
+  {
+   "no": 14,
+   "name": "Coca",
+   "dof_name": "Coca",
+   "self_designation": "Coca",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Coca",
+   "microsite_url": "https://catalogo.inpi.gob.mx/coca/",
+   "source_alternatives": [],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": []
+  },
+  {
+   "no": 15,
+   "name": "Cochimí",
+   "dof_name": "Cochimí",
+   "self_designation": "Cochimí",
+   "name_not_self_identified": false,
+   "communities": 2,
+   "microsite_name": "Cochimí",
+   "microsite_url": "https://catalogo.inpi.gob.mx/cochimi/",
+   "source_alternatives": [],
+   "extra_variants": [
+    "Cochimi"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Cochimi"
+   ]
+  },
+  {
+   "no": 16,
+   "name": "Náayeri (Cora)",
+   "dof_name": "Cora",
+   "self_designation": "Náayeri",
+   "name_not_self_identified": false,
+   "communities": 10,
+   "microsite_name": "Cora",
+   "microsite_url": "https://catalogo.inpi.gob.mx/cora/",
+   "source_alternatives": [
+    "Náayeri"
+   ],
+   "extra_variants": [
+    "Náyeri",
+    "Nayeri"
+   ],
+   "language_family": null,
+   "autonym": "Náayeri",
+   "alternative_names": [
+    "Náayeri",
+    "Cora",
+    "Náyeri",
+    "Nayeri",
+    "Naayeri"
+   ]
+  },
+  {
+   "no": 17,
+   "name": "Cucapá",
+   "dof_name": "Cucapá",
+   "self_designation": "Cucapá/Kuapá",
+   "name_not_self_identified": false,
+   "communities": 2,
+   "microsite_name": "Cucapá",
+   "microsite_url": "https://catalogo.inpi.gob.mx/cucapa/",
+   "source_alternatives": [
+    "Kuapá"
+   ],
+   "extra_variants": [
+    "Cucapa",
+    "Cocopah"
+   ],
+   "language_family": "cochimí-yumana",
+   "autonym": null,
+   "alternative_names": [
+    "Kuapá",
+    "Cucapa",
+    "Cocopah",
+    "Kuapa"
+   ]
+  },
+  {
+   "no": 18,
+   "name": "Ñoo Dibaku (Cuicateco)",
+   "dof_name": "Cuicateco",
+   "self_designation": "Ñoo Dibaku/Ñaa Dibaku",
+   "name_not_self_identified": false,
+   "communities": 53,
+   "microsite_name": "Cuicateco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/cuicateco/",
+   "source_alternatives": [
+    "Ñoo Dibaku",
+    "Ñaa Dibaku"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Ñoo Dibaku",
+   "alternative_names": [
+    "Ñoo Dibaku",
+    "Cuicateco",
+    "Ñaa Dibaku"
+   ]
+  },
+  {
+   "no": 19,
+   "name": "Makurawe (Guarijío)",
+   "dof_name": "Guarijío",
+   "self_designation": "Makurawe/Warijó",
+   "name_not_self_identified": false,
+   "communities": 29,
+   "microsite_name": "Guarijío",
+   "microsite_url": "https://catalogo.inpi.gob.mx/guarijio/",
+   "source_alternatives": [
+    "Makurawe",
+    "Warijó"
+   ],
+   "extra_variants": [
+    "Macurawe",
+    "Guarijó",
+    "Guarijíos"
+   ],
+   "language_family": null,
+   "autonym": "Makurawe",
+   "alternative_names": [
+    "Makurawe",
+    "Guarijío",
+    "Warijó",
+    "Macurawe",
+    "Guarijó",
+    "Guarijíos",
+    "Guarijio",
+    "Warijo",
+    "Guarijo",
+    "Guarijios"
+   ]
+  },
+  {
+   "no": 20,
+   "name": "Téenek (Huasteco)",
+   "dof_name": "Huasteco",
+   "self_designation": "Téenek/Tenek",
+   "name_not_self_identified": false,
+   "communities": 319,
+   "microsite_name": "Teének o Huasteco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/teenek-huasteco/",
+   "source_alternatives": [
+    "Téenek",
+    "Tenek",
+    "Teének"
+   ],
+   "extra_variants": [
+    "Tének"
+   ],
+   "language_family": "maya",
+   "autonym": "Téenek",
+   "alternative_names": [
+    "Téenek",
+    "Huasteco",
+    "Tenek",
+    "Teének",
+    "Tének",
+    "Teenek"
+   ]
+  },
+  {
+   "no": 21,
+   "name": "Ikoots (Huave)",
+   "dof_name": "Huave",
+   "self_designation": "Ikoots",
+   "name_not_self_identified": true,
+   "communities": 4,
+   "microsite_name": "Ikoots o Huave",
+   "microsite_url": "https://catalogo.inpi.gob.mx/ikoots-huave/",
+   "source_alternatives": [
+    "Ikoots"
+   ],
+   "extra_variants": [
+    "Ikoot"
+   ],
+   "language_family": null,
+   "autonym": "Ikoots",
+   "alternative_names": [
+    "Ikoots",
+    "Huave",
+    "Ikoot"
+   ]
+  },
+  {
+   "no": 22,
+   "name": "Wixárika (Huichol)",
+   "dof_name": "Huichol",
+   "self_designation": "Wixárika",
+   "name_not_self_identified": true,
+   "communities": 52,
+   "microsite_name": "Wixárika",
+   "microsite_url": "https://catalogo.inpi.gob.mx/wixarika-huichol/",
+   "source_alternatives": [
+    "Wixárika"
+   ],
+   "extra_variants": [
+    "Wixaritari",
+    "Wirrárika"
+   ],
+   "language_family": "yuto-azteca",
+   "autonym": "Wixárika",
+   "alternative_names": [
+    "Wixárika",
+    "Huichol",
+    "Wixaritari",
+    "Wirrárika",
+    "Wixarika",
+    "Wirrarika"
+   ]
+  },
+  {
+   "no": 23,
+   "name": "Ixcateco",
+   "dof_name": "Ixcateco",
+   "self_designation": "Ixcateco",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Ixcateco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/ixcateco/",
+   "source_alternatives": [],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": []
+  },
+  {
+   "no": 24,
+   "name": "Ixil",
+   "dof_name": "Ixil",
+   "self_designation": "Ixil",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Ixil",
+   "microsite_url": "https://catalogo.inpi.gob.mx/ixil/",
+   "source_alternatives": [],
+   "extra_variants": [],
+   "language_family": "maya",
+   "autonym": null,
+   "alternative_names": []
+  },
+  {
+   "no": 25,
+   "name": "Popti' (Jakalteko)",
+   "dof_name": "Jakalteko",
+   "self_designation": "Jakalteko pop ti' jacalteco",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Jakalteko",
+   "microsite_url": "https://catalogo.inpi.gob.mx/jakalteko/",
+   "source_alternatives": [
+    "Popti'",
+    "Jacalteco"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Popti'",
+   "alternative_names": [
+    "Popti'",
+    "Jakalteko",
+    "Jacalteco",
+    "Popti"
+   ]
+  },
+  {
+   "no": 26,
+   "name": "Kaqchikel",
+   "dof_name": "Kaqchikel",
+   "self_designation": "kakchikel",
+   "name_not_self_identified": false,
+   "communities": 2,
+   "microsite_name": "Kaqchikel",
+   "microsite_url": "https://catalogo.inpi.gob.mx/kaqchikel/",
+   "source_alternatives": [
+    "Kakchikel"
+   ],
+   "extra_variants": [
+    "Cakchiquel"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Kakchikel",
+    "Cakchiquel"
+   ]
+  },
+  {
+   "no": 27,
+   "name": "K'iche'",
+   "dof_name": "K'iche'",
+   "self_designation": "k´iche´",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "K'iche'",
+   "microsite_url": "https://catalogo.inpi.gob.mx/kiche/",
+   "source_alternatives": [
+    "K´iche´"
+   ],
+   "extra_variants": [
+    "Quiché"
+   ],
+   "language_family": "maya",
+   "autonym": null,
+   "alternative_names": [
+    "Quiché",
+    "Kiche",
+    "Quiche"
+   ]
+  },
+  {
+   "no": 28,
+   "name": "Kickapoo",
+   "dof_name": "Kickapoo",
+   "self_designation": "Kickapoo",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Kickapoo",
+   "microsite_url": "https://catalogo.inpi.gob.mx/kickapoo/",
+   "source_alternatives": [],
+   "extra_variants": [
+    "Kikapú"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Kikapú",
+    "Kikapu"
+   ]
+  },
+  {
+   "no": 29,
+   "name": "Ko'lew (Kiliwa)",
+   "dof_name": "Kiliwa",
+   "self_designation": "Ko'lew",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Kiliwa",
+   "microsite_url": "https://catalogo.inpi.gob.mx/kiliwa/",
+   "source_alternatives": [
+    "Ko'lew"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Ko'lew",
+   "alternative_names": [
+    "Ko'lew",
+    "Kiliwa",
+    "Kolew"
+   ]
+  },
+  {
+   "no": 30,
+   "name": "Kumiai",
+   "dof_name": "Kumiai",
+   "self_designation": "Kumiai",
+   "name_not_self_identified": false,
+   "communities": 6,
+   "microsite_name": "Kumiai",
+   "microsite_url": "https://catalogo.inpi.gob.mx/kumiai/",
+   "source_alternatives": [],
+   "extra_variants": [
+    "Kumeyaay"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Kumeyaay"
+   ]
+  },
+  {
+   "no": 31,
+   "name": "Jach-t'aan (Lacandón)",
+   "dof_name": "Lacandón",
+   "self_designation": "Jach-t’aan",
+   "name_not_self_identified": false,
+   "communities": 2,
+   "microsite_name": "Lacandón",
+   "microsite_url": "https://catalogo.inpi.gob.mx/hach-winik-lacandon/",
+   "source_alternatives": [
+    "Jach-t’aan",
+    "Hach winik"
+   ],
+   "extra_variants": [
+    "Lacandon"
+   ],
+   "language_family": null,
+   "autonym": "Jach-t'aan",
+   "alternative_names": [
+    "Jach-t'aan",
+    "Lacandón",
+    "Hach winik",
+    "Lacandon",
+    "Jach-taan"
+   ]
+  },
+  {
+   "no": 32,
+   "name": "Toq yol (Mam)",
+   "dof_name": "Mam",
+   "self_designation": "Toq yol",
+   "name_not_self_identified": false,
+   "communities": 94,
+   "microsite_name": "Mam",
+   "microsite_url": "https://catalogo.inpi.gob.mx/mam/",
+   "source_alternatives": [
+    "Toq yol"
+   ],
+   "extra_variants": [],
+   "language_family": "maya",
+   "autonym": "Toq yol",
+   "alternative_names": [
+    "Toq yol",
+    "Mam"
+   ]
+  },
+  {
+   "no": 33,
+   "name": "Bot'una (Matlatzinca)",
+   "dof_name": "Matlatzinca",
+   "self_designation": "Bot'una",
+   "name_not_self_identified": false,
+   "communities": 12,
+   "microsite_name": "Matlatzinca o Pirinda",
+   "microsite_url": "https://catalogo.inpi.gob.mx/matlatzinca/",
+   "source_alternatives": [
+    "Bot'una"
+   ],
+   "extra_variants": [
+    "Matlazinca"
+   ],
+   "language_family": "oto-mangue",
+   "autonym": "Bot'una",
+   "alternative_names": [
+    "Bot'una",
+    "Matlatzinca",
+    "Matlazinca",
+    "Botuna"
+   ]
+  },
+  {
+   "no": 34,
+   "name": "Maya",
+   "dof_name": "Maya",
+   "self_designation": "Maya",
+   "name_not_self_identified": false,
+   "communities": 1021,
+   "microsite_name": "Maya",
+   "microsite_url": "https://catalogo.inpi.gob.mx/maya/",
+   "source_alternatives": [],
+   "extra_variants": [
+    "Maaya",
+    "Mayas"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Maaya",
+    "Mayas"
+   ]
+  },
+  {
+   "no": 35,
+   "name": "Yoreme (Mayo)",
+   "dof_name": "Mayo",
+   "self_designation": "Yoreme",
+   "name_not_self_identified": false,
+   "communities": 40,
+   "microsite_name": "Yoreme / Mayo",
+   "microsite_url": "https://catalogo.inpi.gob.mx/yoreme-mayo/",
+   "source_alternatives": [
+    "Yoreme"
+   ],
+   "extra_variants": [
+    "Yoremes",
+    "Mayo-yoreme"
+   ],
+   "language_family": null,
+   "autonym": "Yoreme",
+   "alternative_names": [
+    "Yoreme",
+    "Mayo",
+    "Yoremes",
+    "Mayo-yoreme"
+   ]
+  },
+  {
+   "no": 36,
+   "name": "Jñatjo (Mazahua)",
+   "dof_name": "Mazahua",
+   "self_designation": "Jñatjo/Jñatrjo",
+   "name_not_self_identified": false,
+   "communities": 330,
+   "microsite_name": "Mazahua",
+   "microsite_url": "https://catalogo.inpi.gob.mx/mazahua/",
+   "source_alternatives": [
+    "Jñatjo",
+    "Jñatrjo"
+   ],
+   "extra_variants": [
+    "Jñatho"
+   ],
+   "language_family": null,
+   "autonym": "Jñatjo",
+   "alternative_names": [
+    "Jñatjo",
+    "Mazahua",
+    "Jñatrjo",
+    "Jñatho"
+   ]
+  },
+  {
+   "no": 37,
+   "name": "Nashinanda'a (Mazateco)",
+   "dof_name": "Mazateco",
+   "self_designation": "Nashinanda'a",
+   "name_not_self_identified": false,
+   "communities": 244,
+   "microsite_name": "Mazateco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/mazateco/",
+   "source_alternatives": [
+    "Nashinanda'a"
+   ],
+   "extra_variants": [],
+   "language_family": "oto-mangue",
+   "autonym": "Nashinanda'a",
+   "alternative_names": [
+    "Nashinanda'a",
+    "Mazateco",
+    "Nashinandaa"
+   ]
+  },
+  {
+   "no": 38,
+   "name": "Mexikan",
+   "dof_name": "Mexikan",
+   "self_designation": "Mexikan",
+   "name_not_self_identified": false,
+   "communities": 4,
+   "microsite_name": "Meshikan",
+   "microsite_url": "https://catalogo.inpi.gob.mx/mexikan/",
+   "source_alternatives": [
+    "Meshikan"
+   ],
+   "extra_variants": [
+    "Mexicanero"
+   ],
+   "language_family": "yuto-azteca",
+   "autonym": null,
+   "alternative_names": [
+    "Meshikan",
+    "Mexicanero"
+   ]
+  },
+  {
+   "no": 39,
+   "name": "Ayuuk (Mixe)",
+   "dof_name": "Mixe",
+   "self_designation": "Ayuuk/Ayuujk/Ayook",
+   "name_not_self_identified": false,
+   "communities": 165,
+   "microsite_name": "Mixe",
+   "microsite_url": "https://catalogo.inpi.gob.mx/mixe/",
+   "source_alternatives": [
+    "Ayuuk",
+    "Ayuujk",
+    "Ayook"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Ayuuk",
+   "alternative_names": [
+    "Ayuuk",
+    "Mixe",
+    "Ayuujk",
+    "Ayook"
+   ]
+  },
+  {
+   "no": 40,
+   "name": "Ñuu Savi (Mixteco)",
+   "dof_name": "Mixteco",
+   "self_designation": "Na savi/Ñuu Saavi",
+   "name_not_self_identified": false,
+   "communities": 1174,
+   "microsite_name": "Mixteco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/mixteco/",
+   "source_alternatives": [
+    "Na savi",
+    "Ñuu Saavi"
+   ],
+   "extra_variants": [
+    "Ñuu Savi",
+    "Ñu saavi",
+    "Tu'un savi"
+   ],
+   "language_family": null,
+   "autonym": "Ñuu Savi",
+   "alternative_names": [
+    "Ñuu Savi",
+    "Mixteco",
+    "Na savi",
+    "Ñuu Saavi",
+    "Ñu saavi",
+    "Tu'un savi",
+    "Tuun savi"
+   ]
+  },
+  {
+   "no": 41,
+   "name": "Nahua",
+   "dof_name": "Nahua",
+   "self_designation": "Nahua",
+   "name_not_self_identified": false,
+   "communities": 3948,
+   "microsite_name": "Nahua / Náhuatl",
+   "microsite_url": "https://catalogo.inpi.gob.mx/nahua-nahuatl/",
+   "source_alternatives": [
+    "Náhuatl"
+   ],
+   "extra_variants": [
+    "Nahuas",
+    "Nahuatl",
+    "Masehual",
+    "Maseual",
+    "Macehual"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Náhuatl",
+    "Nahuas",
+    "Nahuatl",
+    "Masehual",
+    "Maseual",
+    "Macehual"
+   ]
+  },
+  {
+   "no": 42,
+   "name": "Hñähñu (Otomí)",
+   "dof_name": "Otomí",
+   "self_designation": "Hñahñu/Hñähñu/Ñätho/Ñuhu",
+   "name_not_self_identified": false,
+   "communities": 1337,
+   "microsite_name": "Otomí",
+   "microsite_url": "https://catalogo.inpi.gob.mx/otomi/",
+   "source_alternatives": [
+    "Hñahñu",
+    "Hñähñu",
+    "Ñätho",
+    "Ñuhu"
+   ],
+   "extra_variants": [
+    "Ñhöñhö",
+    "Ñañhu",
+    "Otomíes"
+   ],
+   "language_family": null,
+   "autonym": "Hñähñu",
+   "alternative_names": [
+    "Hñähñu",
+    "Otomí",
+    "Hñahñu",
+    "Ñätho",
+    "Ñuhu",
+    "Ñhöñhö",
+    "Ñañhu",
+    "Otomíes",
+    "Otomi",
+    "Ñatho",
+    "Ñhoñho",
+    "Otomies"
+   ]
+  },
+  {
+   "no": 43,
+   "name": "Paipai",
+   "dof_name": "Paipai",
+   "self_designation": "Pa ipai",
+   "name_not_self_identified": false,
+   "communities": 3,
+   "microsite_name": "Pai pai",
+   "microsite_url": "https://catalogo.inpi.gob.mx/pa-ipai-paipai/",
+   "source_alternatives": [
+    "Pa ipai",
+    "Pai pai"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Pa ipai",
+    "Pai pai"
+   ]
+  },
+  {
+   "no": 44,
+   "name": "Xi'iuy (Pame)",
+   "dof_name": "Pame",
+   "self_designation": "Xi¨iuy",
+   "name_not_self_identified": false,
+   "communities": 51,
+   "microsite_name": "Xi’iuy o Pame",
+   "microsite_url": "https://catalogo.inpi.gob.mx/xiiuy-pame/",
+   "source_alternatives": [
+    "Xi¨iuy",
+    "Xi’iuy"
+   ],
+   "extra_variants": [
+    "Xi'ui"
+   ],
+   "language_family": null,
+   "autonym": "Xi'iuy",
+   "alternative_names": [
+    "Xi'iuy",
+    "Pame",
+    "Xi'ui",
+    "Xiiuy",
+    "Xiui"
+   ]
+  },
+  {
+   "no": 45,
+   "name": "Tohono O'odham (Pápago)",
+   "dof_name": "Pápago",
+   "self_designation": "Tohono O’odham",
+   "name_not_self_identified": true,
+   "communities": 1,
+   "microsite_name": "Tohono O’otham o Pápago",
+   "microsite_url": "https://catalogo.inpi.gob.mx/tohono-oodham-papago/",
+   "source_alternatives": [
+    "Tohono O’odham",
+    "Tohono O’otham"
+   ],
+   "extra_variants": [
+    "Tohono O´odham",
+    "Papago"
+   ],
+   "language_family": null,
+   "autonym": "Tohono O'odham",
+   "alternative_names": [
+    "Tohono O'odham",
+    "Pápago",
+    "Tohono O'otham",
+    "Papago",
+    "Tohono Oodham",
+    "Tohono Ootham"
+   ]
+  },
+  {
+   "no": 46,
+   "name": "O'oba (Pima)",
+   "dof_name": "Pima",
+   "self_designation": "O'oba/Oichkama",
+   "name_not_self_identified": false,
+   "communities": 13,
+   "microsite_name": "Pima",
+   "microsite_url": "https://catalogo.inpi.gob.mx/pima/",
+   "source_alternatives": [
+    "O'oba",
+    "Oichkama"
+   ],
+   "extra_variants": [
+    "O'ob"
+   ],
+   "language_family": null,
+   "autonym": "O'oba",
+   "alternative_names": [
+    "O'oba",
+    "Pima",
+    "Oichkama",
+    "O'ob",
+    "Ooba",
+    "Oob"
+   ]
+  },
+  {
+   "no": 47,
+   "name": "Pirinda",
+   "dof_name": "Pirinda",
+   "self_designation": "Pirinda",
+   "name_not_self_identified": false,
+   "communities": 80,
+   "microsite_name": "Pirinda",
+   "microsite_url": null,
+   "source_alternatives": [],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": []
+  },
+  {
+   "no": 48,
+   "name": "Ngiwa (Popoloca)",
+   "dof_name": "Popoloca",
+   "self_designation": "Ngiwa",
+   "name_not_self_identified": false,
+   "communities": 14,
+   "microsite_name": "N’guiva o Popoloca",
+   "microsite_url": "https://catalogo.inpi.gob.mx/popoloca/",
+   "source_alternatives": [
+    "Ngiwa",
+    "N’guiva"
+   ],
+   "extra_variants": [],
+   "language_family": "oto-mangue",
+   "autonym": "Ngiwa",
+   "alternative_names": [
+    "Ngiwa",
+    "Popoloca",
+    "N'guiva",
+    "Nguiva"
+   ]
+  },
+  {
+   "no": 49,
+   "name": "Nuntajɨɨyi (Popoluca de la Sierra)",
+   "dof_name": "Popoluca de la Sierra",
+   "self_designation": "Nunda jɨɨyi o Angmaatyi",
+   "name_not_self_identified": false,
+   "communities": 114,
+   "microsite_name": "Popoluca",
+   "microsite_url": "https://catalogo.inpi.gob.mx/popoluca-de-la-sierra/",
+   "source_alternatives": [
+    "Popoluca",
+    "Nunda jɨɨyi",
+    "Angmaatyi"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Nuntajɨɨyi",
+   "alternative_names": [
+    "Nuntajɨɨyi",
+    "Popoluca de la Sierra",
+    "Popoluca",
+    "Nunda jɨɨyi",
+    "Angmaatyi",
+    "Nuntajiiyi",
+    "Nunda jiiyi"
+   ]
+  },
+  {
+   "no": 50,
+   "name": "K'anob'al (Q'anjob'al)",
+   "dof_name": "Q'anjob'al",
+   "self_designation": "K'anob'al",
+   "name_not_self_identified": false,
+   "communities": 13,
+   "microsite_name": "Q’anjob’al",
+   "microsite_url": "https://catalogo.inpi.gob.mx/qanjobal/",
+   "source_alternatives": [
+    "K'anob'al",
+    "Q’anjob’al"
+   ],
+   "extra_variants": [
+    "Kanjobal"
+   ],
+   "language_family": null,
+   "autonym": "K'anob'al",
+   "alternative_names": [
+    "K'anob'al",
+    "Q'anjob'al",
+    "Kanjobal",
+    "Kanobal",
+    "Qanjobal"
+   ]
+  },
+  {
+   "no": 51,
+   "name": "Mocho (Qato'k)",
+   "dof_name": "Qato'k",
+   "self_designation": "Mocho",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Mocho o Qato’k",
+   "microsite_url": "https://catalogo.inpi.gob.mx/qatok/",
+   "source_alternatives": [
+    "Mocho"
+   ],
+   "extra_variants": [
+    "Motozintleco"
+   ],
+   "language_family": null,
+   "autonym": "Mocho",
+   "alternative_names": [
+    "Mocho",
+    "Qato'k",
+    "Motozintleco",
+    "Qatok"
+   ]
+  },
+  {
+   "no": 52,
+   "name": "Q'eqchi'",
+   "dof_name": "Q'eqchi'",
+   "self_designation": "Q'eqchi'",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Q’eqchi’",
+   "microsite_url": "https://catalogo.inpi.gob.mx/qeqchi/",
+   "source_alternatives": [
+    "Q’eqchi’"
+   ],
+   "extra_variants": [
+    "Kekchí"
+   ],
+   "language_family": "maya",
+   "autonym": null,
+   "alternative_names": [
+    "Kekchí",
+    "Qeqchi",
+    "Kekchi"
+   ]
+  },
+  {
+   "no": 53,
+   "name": "Comca'ac (Seri)",
+   "dof_name": "Seri",
+   "self_designation": "Comca´ac",
+   "name_not_self_identified": false,
+   "communities": 2,
+   "microsite_name": "Comcaac / Seri",
+   "microsite_url": "https://catalogo.inpi.gob.mx/comcaac-seri/",
+   "source_alternatives": [
+    "Comca´ac",
+    "Comcaac"
+   ],
+   "extra_variants": [
+    "Konkaak",
+    "Seris"
+   ],
+   "language_family": null,
+   "autonym": "Comca'ac",
+   "alternative_names": [
+    "Comca'ac",
+    "Seri",
+    "Comcaac",
+    "Konkaak",
+    "Seris"
+   ]
+  },
+  {
+   "no": 54,
+   "name": "Tu'un va'a Ñuu Chatuta-Yuta Ñii' (Tacuate)",
+   "dof_name": "Tacuate",
+   "self_designation": "Tu'un va'a Ñuu Chatuta-Yuta Ñii'",
+   "name_not_self_identified": false,
+   "communities": 15,
+   "microsite_name": "Tacuate",
+   "microsite_url": "https://catalogo.inpi.gob.mx/tacuate/",
+   "source_alternatives": [
+    "Tu'un va'a Ñuu Chatuta-Yuta Ñii'"
+   ],
+   "extra_variants": [],
+   "language_family": "oto-mangue",
+   "autonym": "Tu'un va'a Ñuu Chatuta-Yuta Ñii'",
+   "alternative_names": [
+    "Tu'un va'a Ñuu Chatuta-Yuta Ñii'",
+    "Tacuate",
+    "Tuun vaa Ñuu Chatuta-Yuta Ñii"
+   ]
+  },
+  {
+   "no": 55,
+   "name": "Rarámuri (Tarahumara)",
+   "dof_name": "Tarahumara",
+   "self_designation": "Rarámuri/Ralámuli",
+   "name_not_self_identified": false,
+   "communities": 401,
+   "microsite_name": "Rarámuri o Ralámuli",
+   "microsite_url": "https://catalogo.inpi.gob.mx/raramuli-tarahumara/",
+   "source_alternatives": [
+    "Rarámuri",
+    "Ralámuli"
+   ],
+   "extra_variants": [
+    "Tarahumaras",
+    "Raramuri"
+   ],
+   "language_family": null,
+   "autonym": "Rarámuri",
+   "alternative_names": [
+    "Rarámuri",
+    "Tarahumara",
+    "Ralámuli",
+    "Tarahumaras",
+    "Raramuri",
+    "Ralamuli"
+   ]
+  },
+  {
+   "no": 56,
+   "name": "P'urhépecha (Tarasco)",
+   "dof_name": "Tarasco",
+   "self_designation": "Pʾurhépecha",
+   "name_not_self_identified": true,
+   "communities": 218,
+   "microsite_name": "P’urhépecha",
+   "microsite_url": "https://catalogo.inpi.gob.mx/purhepecha-tarasco/",
+   "source_alternatives": [
+    "Pʾurhépecha",
+    "P’urhépecha"
+   ],
+   "extra_variants": [
+    "Purépecha",
+    "Purhépecha"
+   ],
+   "language_family": null,
+   "autonym": "P'urhépecha",
+   "alternative_names": [
+    "P'urhépecha",
+    "Tarasco",
+    "Purépecha",
+    "Purhépecha",
+    "Purhepecha",
+    "Purepecha"
+   ]
+  },
+  {
+   "no": 57,
+   "name": "Jamasapij (Tepehua)",
+   "dof_name": "Tepehua",
+   "self_designation": "Jamasapij",
+   "name_not_self_identified": false,
+   "communities": 19,
+   "microsite_name": "Tepehua",
+   "microsite_url": "https://catalogo.inpi.gob.mx/tepehua/",
+   "source_alternatives": [
+    "Jamasapij"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Jamasapij",
+   "alternative_names": [
+    "Jamasapij",
+    "Tepehua"
+   ]
+  },
+  {
+   "no": 58,
+   "name": "Ódami (Tepehuano del Norte)",
+   "dof_name": "Tepehuano del Norte",
+   "self_designation": "Ódami",
+   "name_not_self_identified": false,
+   "communities": 19,
+   "microsite_name": "Ódami / Tepehuano del norte",
+   "microsite_url": "https://catalogo.inpi.gob.mx/odami-tepehuano-del-norte/",
+   "source_alternatives": [
+    "Ódami"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "Ódami",
+   "alternative_names": [
+    "Ódami",
+    "Tepehuano del Norte",
+    "Odami"
+   ]
+  },
+  {
+   "no": 59,
+   "name": "O'dam (Tepehuano del Sur)",
+   "dof_name": "Tepehuano del Sur",
+   "self_designation": "O'dam/Au’dam",
+   "name_not_self_identified": false,
+   "communities": 23,
+   "microsite_name": "O’dam / Au’dam / Tepehuano del sur",
+   "microsite_url": "https://catalogo.inpi.gob.mx/odam-audam-tepehuano-del-sur/",
+   "source_alternatives": [
+    "O'dam",
+    "Au’dam"
+   ],
+   "extra_variants": [],
+   "language_family": null,
+   "autonym": "O'dam",
+   "alternative_names": [
+    "O'dam",
+    "Tepehuano del Sur",
+    "Au'dam",
+    "Odam",
+    "Audam"
+   ]
+  },
+  {
+   "no": 60,
+   "name": "Wää 'oot (Texistepequeño)",
+   "dof_name": "Texistepequeño",
+   "self_designation": "Wää 'oot",
+   "name_not_self_identified": false,
+   "communities": 28,
+   "microsite_name": "Texistepequeño",
+   "microsite_url": "https://catalogo.inpi.gob.mx/texistepequeno/",
+   "source_alternatives": [
+    "Wää 'oot"
+   ],
+   "extra_variants": [
+    "Popoluca de Texistepec"
+   ],
+   "language_family": null,
+   "autonym": "Wää 'oot",
+   "alternative_names": [
+    "Wää 'oot",
+    "Texistepequeño",
+    "Popoluca de Texistepec",
+    "Waa oot"
+   ]
+  },
+  {
+   "no": 61,
+   "name": "Pjiekakjoo (Tlahuica)",
+   "dof_name": "Tlahuica",
+   "self_designation": "Pjiekakjoo",
+   "name_not_self_identified": false,
+   "communities": 1,
+   "microsite_name": "Tlahuica",
+   "microsite_url": "https://catalogo.inpi.gob.mx/tlahuica/",
+   "source_alternatives": [
+    "Pjiekakjoo"
+   ],
+   "extra_variants": [
+    "Ocuilteco",
+    "Atzinca"
+   ],
+   "language_family": null,
+   "autonym": "Pjiekakjoo",
+   "alternative_names": [
+    "Pjiekakjoo",
+    "Tlahuica",
+    "Ocuilteco",
+    "Atzinca"
+   ]
+  },
+  {
+   "no": 62,
+   "name": "Me'phaa (Tlapaneco)",
+   "dof_name": "Tlapaneco",
+   "self_designation": "Me’phaa",
+   "name_not_self_identified": true,
+   "communities": 435,
+   "microsite_name": "Me’phaa o Tlapaneco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/mephaa-tlapaneco/",
+   "source_alternatives": [
+    "Me’phaa"
+   ],
+   "extra_variants": [
+    "Me´phaa",
+    "Mephaa",
+    "Tlapanecos"
+   ],
+   "language_family": null,
+   "autonym": "Me'phaa",
+   "alternative_names": [
+    "Me'phaa",
+    "Tlapaneco",
+    "Mephaa",
+    "Tlapanecos"
+   ]
+  },
+  {
+   "no": 63,
+   "name": "Tojolabal",
+   "dof_name": "Tojolabal",
+   "self_designation": "Tojol -ab'al",
+   "name_not_self_identified": false,
+   "communities": 209,
+   "microsite_name": "Tojolabal",
+   "microsite_url": "https://catalogo.inpi.gob.mx/tojolabal/",
+   "source_alternatives": [
+    "Tojol -ab'al"
+   ],
+   "extra_variants": [
+    "Tojol-ab'al"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Tojol -ab'al",
+    "Tojol-ab'al",
+    "Tojol -abal",
+    "Tojol-abal"
+   ]
+  },
+  {
+   "no": 64,
+   "name": "Tutunakú (Totonaco)",
+   "dof_name": "Totonaco",
+   "self_designation": "Totonaku/Tutunakú",
+   "name_not_self_identified": false,
+   "communities": 589,
+   "microsite_name": "Tutunakuj o Totonaca",
+   "microsite_url": "https://catalogo.inpi.gob.mx/totonaco/",
+   "source_alternatives": [
+    "Totonaku",
+    "Tutunakú",
+    "Tutunakuj",
+    "Totonaca"
+   ],
+   "extra_variants": [
+    "Tutunaku"
+   ],
+   "language_family": null,
+   "autonym": "Tutunakú",
+   "alternative_names": [
+    "Tutunakú",
+    "Totonaco",
+    "Totonaku",
+    "Tutunakuj",
+    "Totonaca",
+    "Tutunaku"
+   ]
+  },
+  {
+   "no": 65,
+   "name": "Ni zì xanj a (Triqui)",
+   "dof_name": "Triqui",
+   "self_designation": "Ni zì xanj a",
+   "name_not_self_identified": false,
+   "communities": 56,
+   "microsite_name": "Triqui",
+   "microsite_url": "https://catalogo.inpi.gob.mx/triqui/",
+   "source_alternatives": [
+    "Ni zì xanj a"
+   ],
+   "extra_variants": [
+    "Trique"
+   ],
+   "language_family": null,
+   "autonym": "Ni zì xanj a",
+   "alternative_names": [
+    "Ni zì xanj a",
+    "Triqui",
+    "Trique",
+    "Ni zi xanj a"
+   ]
+  },
+  {
+   "no": 66,
+   "name": "Bats'il Ants-Winiketik (Tseltal)",
+   "dof_name": "Tseltal",
+   "self_designation": "Bats´il Ants-Winiketik",
+   "name_not_self_identified": false,
+   "communities": 885,
+   "microsite_name": "Tseltal",
+   "microsite_url": "https://catalogo.inpi.gob.mx/tseltal/",
+   "source_alternatives": [
+    "Bats´il Ants-Winiketik"
+   ],
+   "extra_variants": [
+    "Tzeltal"
+   ],
+   "language_family": null,
+   "autonym": "Bats'il Ants-Winiketik",
+   "alternative_names": [
+    "Bats'il Ants-Winiketik",
+    "Tseltal",
+    "Tzeltal",
+    "Batsil Ants-Winiketik"
+   ]
+  },
+  {
+   "no": 67,
+   "name": "Bats'i k'op (Tsotsil)",
+   "dof_name": "Tsotsil",
+   "self_designation": "Bats’i k’op",
+   "name_not_self_identified": false,
+   "communities": 1028,
+   "microsite_name": "Tsotsil",
+   "microsite_url": "https://catalogo.inpi.gob.mx/tsotsil/",
+   "source_alternatives": [
+    "Bats’i k’op"
+   ],
+   "extra_variants": [
+    "Tzotzil"
+   ],
+   "language_family": null,
+   "autonym": "Bats'i k'op",
+   "alternative_names": [
+    "Bats'i k'op",
+    "Tsotsil",
+    "Tzotzil",
+    "Batsi kop"
+   ]
+  },
+  {
+   "no": 68,
+   "name": "Yoeme (Yaqui)",
+   "dof_name": "Yaqui",
+   "self_designation": "Yoeme",
+   "name_not_self_identified": false,
+   "communities": 8,
+   "microsite_name": "Yoeme / Yaqui",
+   "microsite_url": "https://catalogo.inpi.gob.mx/yoeme-yaqui/",
+   "source_alternatives": [
+    "Yoeme"
+   ],
+   "extra_variants": [
+    "Yaquis"
+   ],
+   "language_family": null,
+   "autonym": "Yoeme",
+   "alternative_names": [
+    "Yoeme",
+    "Yaqui",
+    "Yaquis"
+   ]
+  },
+  {
+   "no": 69,
+   "name": "Binnizá (Zapoteco)",
+   "dof_name": "Zapoteco",
+   "self_designation": "Benne leaj/Binnizá",
+   "name_not_self_identified": false,
+   "communities": 893,
+   "microsite_name": "Zapoteco",
+   "microsite_url": "https://catalogo.inpi.gob.mx/zapoteco/",
+   "source_alternatives": [
+    "Benne leaj",
+    "Binnizá"
+   ],
+   "extra_variants": [
+    "Zapoteca"
+   ],
+   "language_family": null,
+   "autonym": "Binnizá",
+   "alternative_names": [
+    "Binnizá",
+    "Zapoteco",
+    "Benne leaj",
+    "Zapoteca",
+    "Binniza"
+   ]
+  },
+  {
+   "no": 70,
+   "name": "Angpøn (Zoque)",
+   "dof_name": "Zoque",
+   "self_designation": "Angpøn/ Oretzame Kujbuy Öre tzunitzamem",
+   "name_not_self_identified": false,
+   "communities": 159,
+   "microsite_name": "Zoque",
+   "microsite_url": "https://catalogo.inpi.gob.mx/zoque/",
+   "source_alternatives": [
+    "Angpøn",
+    "Oretzame Kujbuy Öre tzunitzamem"
+   ],
+   "extra_variants": [],
+   "language_family": "mixe-zoque",
+   "autonym": "Angpøn",
+   "alternative_names": [
+    "Angpøn",
+    "Zoque",
+    "Oretzame Kujbuy Öre tzunitzamem",
+    "Angpon",
+    "Oretzame Kujbuy Ore tzunitzamem"
+   ]
+  },
+  {
+   "no": 71,
+   "name": "Afromexicano",
+   "dof_name": "Afromexicano",
+   "self_designation": "Afromexicano",
+   "name_not_self_identified": false,
+   "communities": 444,
+   "microsite_name": "Afromexicano",
+   "microsite_url": "https://catalogo.inpi.gob.mx/afromexicano/",
+   "source_alternatives": [],
+   "extra_variants": [
+    "Afrodescendiente",
+    "Pueblo negro"
+   ],
+   "language_family": null,
+   "autonym": null,
+   "alternative_names": [
+    "Afrodescendiente",
+    "Pueblo negro"
+   ]
+  }
+ ]
+}

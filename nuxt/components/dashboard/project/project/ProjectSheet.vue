@@ -30,7 +30,7 @@ const props = defineProps({
 
 
 const project_fields = [
-  'id', 'name', 'alternative_name', 'conflict', 'megaproject_type',
+  'id', 'name', 'alternative_names', 'conflict', 'megaproject_type',
   'status_project', 'description', 'status_validation', 'is_grouper'
 ]
 

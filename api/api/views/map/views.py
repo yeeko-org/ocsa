@@ -46,7 +46,7 @@ class ProjectMapViewSet(GenericViewSet, mixins.ListModelMixin):
     filter_backends = [
         UnaccentSearchFilter, DjangoFilterBackend]
     search_fields = ['name',
-                     'alternative_name',
+                     'alternative_names',
                      '=proyecto_id_ref']
 
     def get_queryset(self):

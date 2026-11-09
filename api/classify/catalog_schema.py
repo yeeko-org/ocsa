@@ -1,4 +1,5 @@
-from ps_schema.registry import catalog_registry, CatalogSchema, FilterGroupSchema
+from ps_schema.registry import (
+    catalog_registry, CatalogSchema, FilterGroupSchema, ComponentFilter)
 from classify.models import (
     IndigenousGroup, Sector, SectorGroup,
     ParticipantGroup, ParticipantType, Belong, Country,
@@ -16,8 +17,16 @@ class IndigenousGroupSchema(CatalogSchema):
     level = "category_subtype"
     open_insertion = True
     can_merge = True
+    merge_keeps_name = True
     cat_params = {"select_component": "autocomplete"}
     count_fields = {"count": "actors"}
+    search_fields = ["name", "alternative_names"]
+    filterset_fields = ["status_validation", "is_official"]
+    all_filters = [
+        ComponentFilter(
+            title=IndigenousGroup._meta.get_field("is_official").verbose_name,
+            field="is_official", component="TripleBooleanFilter"),
+    ]
     full_serializer_class = IndigenousGroupFullSerializer
     filter_group_key = "indigenous_groups"
     filter_group_addl_config = {"subtype_is_autocomplete": True}

@@ -25,12 +25,13 @@ Still registered manually in `api/api/urls.py`: `project_location`, `*_map`,
 | Pattern | When | Key attributes |
 |---------|------|----------------|
 | **1 — Trivial** | Basic CRUD only | `model`, `level` |
-| **2 — Count + filter** | Needs annotations or filters | `count_fields`, `filterset_fields` |
+| **2 — Count + filter** | Needs annotations, filters or extra search fields | `count_fields`, `filterset_fields`, `search_fields`, `all_filters` |
 | **3 — Two serializers** | Different list vs retrieve | `list_serializer_class`, `full_serializer_class` |
 | **4 — Override** | Custom logic, custom FilterSet | `viewset_class` |
 
 ```python
-from ps_schema.registry import catalog_registry, CatalogSchema
+from ps_schema.registry import (
+    catalog_registry, CatalogSchema, ComponentFilter)
 from {app}.models import ModelA
 
 @catalog_registry.register
@@ -41,6 +42,12 @@ class ModelASchema(CatalogSchema):
     can_merge = True
     count_fields = {"items_count": "related_field"}   # pattern 2
     filterset_fields = ["status_validation", "parent"]
+    search_fields = ["name", "alternative_names"]      # default: ["name"]
+    # Boolean filter in the catalog's own list; its field must also be in
+    # filterset_fields. Reuse the model's verbose_name as the title.
+    all_filters = [ComponentFilter(
+        title="Es del catálogo oficial del INPI", field="is_official",
+        component="TripleBooleanFilter")]
     full_serializer_class = ModelAFullSerializer       # pattern 3
     # Simple FilterGroup (single category_subtype only):
     filter_group_key = "model_as"

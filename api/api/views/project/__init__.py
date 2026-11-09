@@ -117,7 +117,7 @@ class ProjectViewSetMixin(viewsets.ModelViewSet):
         UnaccentSearchFilter, OrderingFilter, DjangoFilterBackend]
     search_fields = [
         "name",
-        "alternative_name",
+        "alternative_names",
         "=proyecto_id_ref"
     ]
     ordering_fields = [

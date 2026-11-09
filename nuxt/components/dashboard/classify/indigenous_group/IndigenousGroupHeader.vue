@@ -20,6 +20,19 @@ const props = defineProps({
     :collection_data="collection_data"
   >
     <template #details>
+      <v-chip
+        v-if="main.is_official"
+        class="ml-3"
+        size="small"
+        color="primary"
+        variant="tonal"
+        label
+      >
+        INPI
+        <v-tooltip activator="parent" location="bottom">
+          Es del catálogo oficial del INPI
+        </v-tooltip>
+      </v-chip>
       <HeaderChip
         class="ml-3"
         :count="main.count"

@@ -2,6 +2,9 @@ from django.apps import apps
 from django.db import transaction
 from django.db.models.deletion import Collector
 from django.db import router
+from django.db.models import TextField, CharField
+
+from utils.alternative_names import add_alternative_names, split_names
 
 
 def related_objects_report(
@@ -143,12 +146,35 @@ class RecordMerger:
                     f"Error al procesar relación '{related.field.name}' "
                     f"del modelo '{related.related_model}': {e}"
                 )
+        self._keep_merged_name()
         if delete_merge:
             try:
                 self.delete_instance()
             except Exception as e:
                 self.errors.append(
                     f"Error al eliminar el registro con ID {merge_id}: {e}")
+
+    def _keep_merged_name(self):
+        # El nombre absorbido sigue sirviendo para buscar y pasa a los
+        # alternativos del destino, pero solo donde el CatalogSchema lo pide:
+        # un nombre de actor o de proyecto con comas se partiría en pedazos.
+        from ps_schema.registry import catalog_registry
+        schema = catalog_registry.schema_for_model(self.model_class)
+        if not schema or not schema.merge_keeps_name:
+            return
+        fields = {f.name: f for f in self.model_class._meta.get_fields()}
+        alt = fields.get("alternative_names")
+        if not isinstance(alt, (TextField, CharField)):
+            return
+        name_field = next(
+            (n for n in ("name", "title") if n in fields), None)
+        if not name_field:
+            return
+        names = [getattr(self.merge_instance, name_field) or ""]
+        names += split_names(self.merge_instance.alternative_names)
+        if add_alternative_names(
+                self.main_instance, names, name_field=name_field):
+            self.main_instance.save(update_fields=["alternative_names"])
 
     def _merge_fk_or_one_to_one(self, related):
 

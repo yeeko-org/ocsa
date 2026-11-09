@@ -77,7 +77,7 @@ class ProjectBasicSerializer(serializers.ModelSerializer):
             "id",
             "proyecto_id_ref",
             "name",
-            "alternative_name",
+            "alternative_names",
             "description",
             "comments",
             "parent_project",
@@ -110,7 +110,7 @@ class ProjectMiniBasicSerializer(serializers.ModelSerializer):
             "id",
             "proyecto_id_ref",
             "name",
-            "alternative_name",
+            "alternative_names",
             "description",
             "comments",
             "parent_project",
@@ -164,7 +164,7 @@ class ProjectLocationVizSerializer(ConditionalFieldsMixin):
     class Meta:
         model = Project
         fields = [
-            'id', 'name', 'alternative_name', 'description',
+            'id', 'name', 'alternative_names', 'description',
             'megaproject_type', 'is_grouper', 'parent_project'
         ]
 

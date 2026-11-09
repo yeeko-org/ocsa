@@ -130,8 +130,8 @@ export const useMapStore = defineStore('map', () => {
   const searchableProjects = computed(() =>
     uniqueProjects.value
       .map(p => {
-        const label = p.alternative_name
-          ? `${p.name} (${p.alternative_name})`
+        const label = p.alternative_names
+          ? `${p.name} (${p.alternative_names})`
           : p.name
         return { id: p.id, name: p.name, label }
       })

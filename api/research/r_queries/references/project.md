@@ -12,7 +12,7 @@ agrupación temática que junta varios proyectos relacionados.
 |---------|------|-------------|
 | `id` | integer | PK |
 | `name` | text | Nombre del proyecto |
-| `alternative_name` | text | Otros nombres conocidos |
+| `alternative_names` | text | Otros nombres conocidos |
 | `description` | text | |
 | `parent_project_id` | integer → `project_project.id` | Proyecto agrupador |
 | `conflict_id` | integer → `project_conflict.id` | Conflicto temático al que pertenece |

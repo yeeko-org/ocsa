@@ -64,7 +64,8 @@ class Project(CommentsMixin):
     legacy_id_mp = models.IntegerField(blank=True, null=True)
     name = models.CharField(
         max_length=255, verbose_name='Nombre común', blank=True, null=True)
-    alternative_name = models.TextField(blank=True, null=True)
+    alternative_names = models.TextField(
+        blank=True, null=True, verbose_name='Nombres alternativos')
     description = models.TextField(blank=True, null=True)
     parent_project = models.ForeignKey(
         'self', on_delete=models.CASCADE,

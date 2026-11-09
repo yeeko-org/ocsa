@@ -96,6 +96,21 @@ function saveStatus(new_status, group) {
         />
       </v-col>
       <v-col
+        v-if="final_collection_data.has.alternative_names"
+        cols="12"
+        class="d-flex pa-0"
+        order="2"
+      >
+        <v-text-field
+          v-model="full_main.alternative_names"
+          label="Nombres alternativos"
+          hint="Separados por coma; entran en la búsqueda"
+          persistent-hint
+          variant="outlined"
+          class="mb-2"
+        />
+      </v-col>
+      <v-col
         v-if="final_collection_data.has.icon || final_collection_data.has.color"
         cols="12"
         class="d-flex pa-0"

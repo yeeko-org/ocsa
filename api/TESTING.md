@@ -1,6 +1,6 @@
 # TESTING
 
-Estado real del repo, no un ideal: hay **dos suites montadas** —el invariante de escritura de adjuntos y la nota desde enlace, en `source/`, y el criterio de visibilidad del mapa, en `space_time/tests/`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
+Estado real del repo, no un ideal: hay **tres suites montadas** —el invariante de escritura de adjuntos y la nota desde enlace, en `source/`; el criterio de visibilidad del mapa, en `space_time/tests/`, y la carga del catálogo del INPI, en `classify/`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
 
 Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el mundo real (la red, la base) en vez de contra aserciones. Se corren a mano cuando hace falta, no en cada commit.
 
@@ -8,7 +8,7 @@ Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el 
 
 | Nivel | Estado |
 |---|---|
-| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos, nota desde enlace) y `space_time` (visibilidad del mapa, filtros de pendientes y geolocalización) |
+| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos, nota desde enlace), `space_time` (visibilidad del mapa, filtros de pendientes y geolocalización) y `classify` (catálogo del INPI) |
 | E2E | No montado |
 | Diagnósticos manuales | **Sí** — ver abajo |
 
@@ -48,6 +48,14 @@ Ciento catorce tests, ~1 s, **sin red y sin costo**, repartidos en el paquete `s
 - `test_massive_lock.py` (4): el candado del status en la edición masiva de ubicaciones (`task-99`) — quien no es admin ve omitidos en silencio los registros con `open_editor=False` y editados los abiertos, el admin edita todos, la respuesta trae solo los ids que cambiaron, y un cambio masivo de `status_location` rederiva el `status_location` del proyecto (`adr-0027`), que `.update()` se saltaba al no pasar por `Location.save()`.
 - `test_legacy_status.py` (3): el eje `is_legacy` de `blocked_status_writes` (`task-71`) — el editor pleno no puede mover una ubicación a un status legacy aunque sea `open_selectable`, el superusuario sí, y permanecer en uno (repetirlo en el payload) no bloquea. Los status se arman con `work_flux.test_helpers.make_status`, que siembra el `StatusGroup` que el FK exige desde la 0008.
 - `test_review_flags.py` (29): el marcado editorial de `space_time/review_flags.py` (`task-83`, pendiente 3). Protege lo que no se deshace solo: que repetir la corrida no duplique el comentario aunque cambie la fecha de la firma, que la cuenta de «ya marcadas» vaya por razón y no por entrada (una ubicación con una razón ya comentada y otra nueva suma en las dos), que el estatus se mueva a «Aprobado (con observaciones)» solo desde «Aprobado» y en cualquier otro caso quede intacto, y que `--revert` restaure el estatus previo quitando únicamente el texto agregado, sin llevarse el comentario que ya había escrito un editor. No pasa por la selección de pines contra el municipio (`far_pins.scan`), que necesita la cartografía del INEGI: parte de entradas ya seleccionadas. Las otras selecciones sí corren, sobre la cartografía sintética de `test_geolocate.py`: `trace_off_municipality` (un trazo entero en el municipio vecino sale marcado; uno que apenas roza el capturado no, porque aquí el corte es el contacto y no el umbral de cruce; y uno a 10 m del borde tampoco, por la gracia de `simplified_m`); `base_off_crossed` (ese mismo roce sí sale, porque el corte es la medida del motor); `trace_off_state` (el trazo a 2 km del polígono estatal sale aunque no tenga municipio capturado, y el que está a 20 m no); `trace_in_other_state` (el polígono con la forma del caso 4513 —repartido en su estado capturado y con una parte en el vecino— sale, y el mismo test comprueba que `trace_off_state` lo deja pasar porque su distancia al estado capturado es cero); `trace_off_locality` (el trazo a 8 km de la localidad capturada sale marcado, el que está a 3 km no —tampoco la toca, pero cae dentro de la tolerancia de 5 km—, y la localidad amanzanada se mide contra su polígono); `far_pin_locality` (el pin lejos del punto de catálogo sale marcado; la localidad amanzanada se mide contra su polígono y no contra ese punto, que la daría por lejana; y el pin «Aprobado (Aproximado)» ni entra al universo, aunque sí se mida contra municipio y estado); y `state_mismatch` (el estado capturado que no es el del municipio capturado).
+
+### Catálogo del INPI (`classify`)
+
+```bash
+DATABASE_SCHEMA= python manage.py test classify --noinput
+```
+
+`classify/test_inpi_catalog.py`, seis tests, ~0.4 s, **sin red y sin costo**, sobre un JSON de tres pueblos y uno de estados escritos en un directorio temporal: que repetir `load_inpi_catalog` no cree ni cambie nada, estados incluidos; que solo se adopte la entrada homónima del nombre o de una de sus dos partes —«Mixe», la denominación del DOF, queda como «Ayuuk (Mixe)» con «Ayuujk» entre sus alternativos— y que una entrada con otra autodenominación («Ayuujk») no se toque ni pierda sus actores, ni siquiera cuando es lo único que hay («el autónimo solo no se adopta»), porque pasarlos al pueblo es una fusión; que repetir `merge_indigenous_groups` no cambie nada (la absorbida queda `expired` con su comentario, sus actores en el oficial y su nombre entre los alternativos de este); que la fusión del dashboard (`utils/register_merge.py::RecordMerger`) pase el nombre y los alternativos de la entrada absorbida a los del destino; y que `GET /api/catalogs/indigenous_group/?q=` encuentre por `alternative_names` sin distinguir acentos. La base de test nace sin la extensión `unaccent`, así que la suite de búsqueda la crea en su `setUpTestData`.
 
 Setup compartido: `work_flux/test_helpers.py::make_status(name, group, **kw)` crea el `StatusControl` sembrando antes su `StatusGroup` (el FK lo exige desde la 0008) y limpia el caché por proceso de `api.permissions.status_fields()` cuando el grupo es nuevo.
 
@@ -238,6 +246,17 @@ python manage.py flag_locations_for_review --revert .claude/review_flags_<fecha>
 ```
 
 Sin `--apply` es solo lectura: recomputa la selección desde los datos —nunca hay lista de ids fija— y deja en `.claude/review_flags_<fecha>.csv` una fila por comentario que agregaría (ubicación, proyecto, clase, estatus antes y después, texto). Con `--apply` **escribe**, en una transacción y con `bulk_update`. Seis clases: `far_pin`, los puntos que el diagnóstico de pines lejanos selecciona (mismo módulo; `--threshold` mueve su umbral, 2 km por omisión); `far_pin_locality` y `trace_off_locality`, el pin y el trazo que quedan a más de 5 km de la localidad capturada (`--locality-threshold`, que **no** hereda de `--threshold`: es el mismo número que el editor aplica en vivo al dibujar, `geolocate.LOCALITY_TOLERANCE_M`); `trace_off_municipality`, el trazo que no toca el polígono del municipio capturado (sin umbral: basta el roce); `state_mismatch`, el estado que no es el del municipio capturado; y `legacy_name`, las dos ubicaciones dictaminadas a mano cuyo nombre de localidad del legado no tiene resolución (12302 «Loreto» y 12643 «Los Napuchis»). Una misma ubicación puede salir por varias clases: cada razón deja su comentario y su fila del CSV, y el estatus se mueve una sola vez. A todas les agrega un comentario fechado y firmado con la convención del front (`\n\n` + `DD/MM/YYYY - Ricardo: texto`); a las que están en «Aprobado» les cambia además el estatus a «Aprobado (con observaciones)», y a las demás no les mueve el estatus, porque ya están en flujo de revisión. Es idempotente: la ubicación cuyo comentario ya contiene el texto se salta. `--expect N` aborta antes de escribir si la selección se desvía más del 5 %. `--revert <csv>` deshace la corrida leyendo ese mismo CSV: restaura el estatus previo y quita solo el texto agregado. En la copia local del 2026-08-26, con los umbrales por omisión (2 km al municipio, 5 km a la localidad) y con las clases `far_pin`, `trace_off_municipality` y `legacy_name` ya aplicadas de corridas anteriores, la corrida del 2026-08-28 marcó 222 ubicaciones más (222 comentarios; 114 cambian de estatus): 195 `far_pin_locality`, 25 `trace_off_locality` y 2 `state_mismatch`, sobre 1,040 puntos con proyecto, 1,173 puntos con localidad, 150 trazos con municipio, 122 trazos con localidad y 7,739 ubicaciones con estado y municipio revisados.
+
+### Cadena del catálogo del INPI, en seco
+
+```bash
+DATABASE_NAME=ocsa-prod-20261108 DATABASE_LEGACY_NAME=ocsa-prod-20261108 \
+    python .claude/diagnostics/inpi_chain_dry_run.py
+python .claude/diagnostics/indigenous_merge_report.py   # actores de cada fusión
+python -I .claude/diagnostics/fetch_inpi_states.py --cacert /tmp/inpi_dl/bundle.pem
+```
+
+`inpi_chain_dry_run.py` corre `load_inpi_catalog` → `tidy_indigenous_groups` → `merge_indigenous_groups` en una sola transacción que revierte al final (el `--dry-run` de cada comando revierte la suya, y la fusión en seco no vería lo que cargó la carga en seco), repite la cadena para comprobar que la segunda pasada no cambia nada e imprime las entradas oficiales con sus estados, las no oficiales que quedan, los pueblos sin actor y los actores por entrada antes y después. Solo lee. `fetch_inpi_states.py` **va a la red** (gratis): pagina la tabla de comunidades de cada ficha del micrositio del INPI y reescribe `classify/data/inpi_pueblos_estados_<fecha>.json`; el servidor no manda el intermedio de GeoTrust, así que va con `--cacert` y nunca con `-k`.
 
 ### Sonda de Proceso
 

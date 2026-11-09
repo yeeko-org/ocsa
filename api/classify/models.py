@@ -73,6 +73,17 @@ class Belong(models.Model):
 
 class IndigenousGroup(models.Model):
     name = models.CharField(max_length=255)
+    # Autónimos, variantes y grafías separados por coma (como en
+    # Actor.alternative_names): entran en la búsqueda por texto.
+    alternative_names = models.TextField(
+        blank=True, null=True, verbose_name='Nombres alternativos')
+    is_official = models.BooleanField(
+        default=False, verbose_name='Es del catálogo oficial del INPI')
+    # Solo estados, no municipios: la fuente es el catálogo de comunidades
+    # del micrositio del INPI (classify/data/inpi_pueblos_estados_*.json).
+    states = models.ManyToManyField(
+        'space_time.State', blank=True, related_name='indigenous_groups',
+        verbose_name='Estados')
     description = models.TextField(blank=True, null=True)
     status_validation = models.ForeignKey(
         StatusControl, on_delete=models.CASCADE, blank=True, null=True)

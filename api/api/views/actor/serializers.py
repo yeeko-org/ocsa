@@ -10,7 +10,7 @@ class ProjectBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            'id', 'name', 'parent_project', 'alternative_name',
+            'id', 'name', 'parent_project', 'alternative_names',
             'conflict', 'megaproject_type']
 
 

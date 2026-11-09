@@ -1,0 +1,818 @@
+{
+ "title": "Estados donde el INPI registra comunidades de cada pueblo",
+ "source": "Tablas «Consulta catálogo por pueblo» del micrositio catalogo.inpi.gob.mx (Catalogo2024_1, wp-data-access)",
+ "retrieved": "2026-11-09",
+ "script": "api/.claude/diagnostics/fetch_inpi_states.py",
+ "fields": {
+  "communities": "Filas de la tabla de la ficha del pueblo",
+  "shared_page_with": "Pueblo cuya ficha se usó porque este no tiene propia; sus estados son los de esa ficha completa",
+  "labels": "Valores de la columna «Pueblo» en la tabla de la ficha, con su número de filas",
+  "states": "Entidad federativa → número de comunidades"
+ },
+ "pueblos": {
+  "Akateko": {
+   "url": "https://catalogo.inpi.gob.mx/akateko/",
+   "communities": 5,
+   "labels": {
+    "Akateko": 5
+   },
+   "states": {
+    "Chiapas": 5
+   }
+  },
+  "Amuzgo": {
+   "url": "https://catalogo.inpi.gob.mx/amuzgo/",
+   "communities": 88,
+   "labels": {
+    "Amuzgo": 88
+   },
+   "states": {
+    "Guerrero": 77,
+    "Oaxaca": 11
+   }
+  },
+  "Apache": {
+   "url": "https://catalogo.inpi.gob.mx/ndee/",
+   "communities": 1,
+   "labels": {
+    "N’dee o N’nee o Ndé": 1
+   },
+   "states": {
+    "Chihuahua": 1
+   }
+  },
+  "Ayapaneco": {
+   "url": "https://catalogo.inpi.gob.mx/ayapaneco/",
+   "communities": 1,
+   "labels": {
+    "Ayapaneco": 1
+   },
+   "states": {
+    "Tabasco": 1
+   }
+  },
+  "Caxcan": {
+   "url": "https://catalogo.inpi.gob.mx/caxcan/",
+   "communities": 4,
+   "labels": {
+    "Caxcan": 4
+   },
+   "states": {
+    "Zacatecas": 4
+   }
+  },
+  "Chatino": {
+   "url": "https://catalogo.inpi.gob.mx/chatino/",
+   "communities": 137,
+   "labels": {
+    "Chatino": 137
+   },
+   "states": {
+    "Oaxaca": 137
+   }
+  },
+  "Chichimeco": {
+   "url": "https://catalogo.inpi.gob.mx/chichimeco/",
+   "communities": 29,
+   "labels": {
+    "Chichimeca": 29
+   },
+   "states": {
+    "Guanajuato": 26,
+    "Jalisco": 2,
+    "San Luis Potosí": 1
+   }
+  },
+  "Chinanteco": {
+   "url": "https://catalogo.inpi.gob.mx/chinanteco/",
+   "communities": 445,
+   "labels": {
+    "Chinanteco": 445
+   },
+   "states": {
+    "Chiapas": 4,
+    "Chihuahua": 2,
+    "Oaxaca": 324,
+    "Veracruz de Ignacio de la Llave": 114
+   }
+  },
+  "Chocholteco": {
+   "url": "https://catalogo.inpi.gob.mx/chocholteco/",
+   "communities": 67,
+   "labels": {
+    "Chocholteco": 67
+   },
+   "states": {
+    "Oaxaca": 67
+   }
+  },
+  "Ch'ol": {
+   "url": "https://catalogo.inpi.gob.mx/chol/",
+   "communities": 500,
+   "labels": {
+    "Ch'ol": 500
+   },
+   "states": {
+    "Campeche": 67,
+    "Chiapas": 355,
+    "Quintana Roo": 1,
+    "Tabasco": 76,
+    "Veracruz de Ignacio de la Llave": 1
+   }
+  },
+  "Chontal de Oaxaca": {
+   "url": "https://catalogo.inpi.gob.mx/chontal-de-oaxaca/",
+   "communities": 61,
+   "labels": {
+    "Chontal de Oaxaca": 61
+   },
+   "states": {
+    "Oaxaca": 61
+   }
+  },
+  "Chontal de Tabasco": {
+   "url": "https://catalogo.inpi.gob.mx/yokotan-chontal-de-tabasco/",
+   "communities": 143,
+   "labels": {
+    "Chontal de Tabasco": 143
+   },
+   "states": {
+    "Campeche": 7,
+    "Tabasco": 136
+   }
+  },
+  "Chuj": {
+   "url": "https://catalogo.inpi.gob.mx/chuj/",
+   "communities": 21,
+   "labels": {
+    "Chuj": 21
+   },
+   "states": {
+    "Chiapas": 21
+   }
+  },
+  "Coca": {
+   "url": "https://catalogo.inpi.gob.mx/coca/",
+   "communities": 1,
+   "labels": {
+    "Coca": 1
+   },
+   "states": {
+    "Jalisco": 1
+   }
+  },
+  "Cochimí": {
+   "url": "https://catalogo.inpi.gob.mx/cochimi/",
+   "communities": 2,
+   "labels": {
+    "Cochimí": 2
+   },
+   "states": {
+    "Baja California": 2
+   }
+  },
+  "Cora": {
+   "url": "https://catalogo.inpi.gob.mx/cora/",
+   "communities": 10,
+   "labels": {
+    "Cora": 10
+   },
+   "states": {
+    "Campeche": 1,
+    "Nayarit": 9
+   }
+  },
+  "Cucapá": {
+   "url": "https://catalogo.inpi.gob.mx/cucapa/",
+   "communities": 2,
+   "labels": {
+    "Cucapá": 2
+   },
+   "states": {
+    "Baja California": 1,
+    "Sonora": 1
+   }
+  },
+  "Cuicateco": {
+   "url": "https://catalogo.inpi.gob.mx/cuicateco/",
+   "communities": 54,
+   "labels": {
+    "Cuicateco": 54
+   },
+   "states": {
+    "Oaxaca": 54
+   }
+  },
+  "Guarijío": {
+   "url": "https://catalogo.inpi.gob.mx/guarijio/",
+   "communities": 28,
+   "labels": {
+    "Guarijío": 28
+   },
+   "states": {
+    "Chihuahua": 21,
+    "Sonora": 7
+   }
+  },
+  "Huasteco": {
+   "url": "https://catalogo.inpi.gob.mx/teenek-huasteco/",
+   "communities": 326,
+   "labels": {
+    "Teének o Huasteco": 326
+   },
+   "states": {
+    "Querétaro Arteaga": 1,
+    "San Luis Potosí": 214,
+    "Veracruz de Ignacio de la Llave": 111
+   }
+  },
+  "Huave": {
+   "url": "https://catalogo.inpi.gob.mx/ikoots-huave/",
+   "communities": 5,
+   "labels": {
+    "Ikoots o Huave": 5
+   },
+   "states": {
+    "Oaxaca": 5
+   }
+  },
+  "Huichol": {
+   "url": "https://catalogo.inpi.gob.mx/wixarika-huichol/",
+   "communities": 50,
+   "labels": {
+    "Wixárika": 50
+   },
+   "states": {
+    "Durango": 11,
+    "Jalisco": 5,
+    "Nayarit": 34
+   }
+  },
+  "Ixcateco": {
+   "url": "https://catalogo.inpi.gob.mx/ixcateco/",
+   "communities": 1,
+   "labels": {
+    "Ixcateco": 1
+   },
+   "states": {
+    "Oaxaca": 1
+   }
+  },
+  "Ixil": {
+   "url": "https://catalogo.inpi.gob.mx/ixil/",
+   "communities": 1,
+   "labels": {
+    "Ixil": 1
+   },
+   "states": {
+    "Campeche": 1
+   }
+  },
+  "Jakalteko": {
+   "url": "https://catalogo.inpi.gob.mx/jakalteko/",
+   "communities": 1,
+   "labels": {
+    "Jakalteko": 1
+   },
+   "states": {
+    "Chiapas": 1
+   }
+  },
+  "Kaqchikel": {
+   "url": "https://catalogo.inpi.gob.mx/kaqchikel/",
+   "communities": 2,
+   "labels": {
+    "Kaqchikel": 2
+   },
+   "states": {
+    "Chiapas": 2
+   }
+  },
+  "K'iche'": {
+   "url": "https://catalogo.inpi.gob.mx/kiche/",
+   "communities": 1,
+   "labels": {
+    "K'iche'": 1
+   },
+   "states": {
+    "Campeche": 1
+   }
+  },
+  "Kickapoo": {
+   "url": "https://catalogo.inpi.gob.mx/kickapoo/",
+   "communities": 1,
+   "labels": {
+    "Kickapoo": 1
+   },
+   "states": {
+    "Coahuila": 1
+   }
+  },
+  "Kiliwa": {
+   "url": "https://catalogo.inpi.gob.mx/kiliwa/",
+   "communities": 1,
+   "labels": {
+    "Kiliwa": 1
+   },
+   "states": {
+    "Baja California": 1
+   }
+  },
+  "Kumiai": {
+   "url": "https://catalogo.inpi.gob.mx/kumiai/",
+   "communities": 6,
+   "labels": {
+    "Kumiai": 6
+   },
+   "states": {
+    "Baja California": 6
+   }
+  },
+  "Lacandón": {
+   "url": "https://catalogo.inpi.gob.mx/hach-winik-lacandon/",
+   "communities": 2,
+   "labels": {
+    "Lacandón": 2
+   },
+   "states": {
+    "Chiapas": 2
+   }
+  },
+  "Mam": {
+   "url": "https://catalogo.inpi.gob.mx/mam/",
+   "communities": 94,
+   "labels": {
+    "Mam": 94
+   },
+   "states": {
+    "Campeche": 3,
+    "Chiapas": 91
+   }
+  },
+  "Matlatzinca": {
+   "url": "https://catalogo.inpi.gob.mx/matlatzinca/",
+   "communities": 92,
+   "labels": {
+    "Matlatzinca o Pirinda": 92
+   },
+   "states": {
+    "Michoacán de Ocampo": 90,
+    "México": 2
+   }
+  },
+  "Maya": {
+   "url": "https://catalogo.inpi.gob.mx/maya/",
+   "communities": 1016,
+   "labels": {
+    "Maya": 1016
+   },
+   "states": {
+    "Campeche": 163,
+    "Quintana Roo": 225,
+    "Yucatán": 628
+   }
+  },
+  "Mayo": {
+   "url": "https://catalogo.inpi.gob.mx/yoreme-mayo/",
+   "communities": 40,
+   "labels": {
+    "Mayo": 40
+   },
+   "states": {
+    "Sinaloa": 27,
+    "Sonora": 13
+   }
+  },
+  "Mazahua": {
+   "url": "https://catalogo.inpi.gob.mx/mazahua/",
+   "communities": 358,
+   "labels": {
+    "Mazahua": 358
+   },
+   "states": {
+    "Chihuahua": 4,
+    "Michoacán de Ocampo": 47,
+    "México": 307
+   }
+  },
+  "Mazateco": {
+   "url": "https://catalogo.inpi.gob.mx/mazateco/",
+   "communities": 248,
+   "labels": {
+    "Mazateco": 248
+   },
+   "states": {
+    "Oaxaca": 228,
+    "Puebla": 2,
+    "Veracruz de Ignacio de la Llave": 18
+   }
+  },
+  "Mexikan": {
+   "url": "https://catalogo.inpi.gob.mx/mexikan/",
+   "communities": 4,
+   "labels": {
+    "Meshikan": 4
+   },
+   "states": {
+    "Durango": 3,
+    "Nayarit": 1
+   }
+  },
+  "Mixe": {
+   "url": "https://catalogo.inpi.gob.mx/mixe/",
+   "communities": 157,
+   "labels": {
+    "Mixe": 157
+   },
+   "states": {
+    "Oaxaca": 157
+   }
+  },
+  "Mixteco": {
+   "url": "https://catalogo.inpi.gob.mx/mixteco/",
+   "communities": 1243,
+   "labels": {
+    "Mixteco": 1243
+   },
+   "states": {
+    "Baja California": 7,
+    "Chihuahua": 2,
+    "Guerrero": 334,
+    "Jalisco": 1,
+    "Morelos": 3,
+    "Oaxaca": 879,
+    "Puebla": 16,
+    "Veracruz de Ignacio de la Llave": 1
+   }
+  },
+  "Nahua": {
+   "url": "https://catalogo.inpi.gob.mx/nahua-nahuatl/",
+   "communities": 4144,
+   "labels": {
+    "Nahua": 4144
+   },
+   "states": {
+    "Campeche": 2,
+    "Chiapas": 1,
+    "Ciudad de México": 53,
+    "Colima": 2,
+    "Guerrero": 598,
+    "Hidalgo": 754,
+    "Jalisco": 18,
+    "Michoacán de Ocampo": 9,
+    "Morelos": 87,
+    "México": 59,
+    "Oaxaca": 26,
+    "Puebla": 652,
+    "Quintana Roo": 1,
+    "San Luis Potosí": 300,
+    "Tabasco": 1,
+    "Tlaxcala": 76,
+    "Veracruz de Ignacio de la Llave": 1505
+   }
+  },
+  "Otomí": {
+   "url": "https://catalogo.inpi.gob.mx/otomi/",
+   "communities": 1346,
+   "labels": {
+    "Otomí": 1346
+   },
+   "states": {
+    "Campeche": 1,
+    "Chihuahua": 1,
+    "Guanajuato": 66,
+    "Hidalgo": 678,
+    "Michoacán de Ocampo": 29,
+    "México": 311,
+    "Puebla": 11,
+    "Querétaro Arteaga": 164,
+    "Tlaxcala": 1,
+    "Veracruz de Ignacio de la Llave": 84
+   }
+  },
+  "Paipai": {
+   "url": "https://catalogo.inpi.gob.mx/pa-ipai-paipai/",
+   "communities": 3,
+   "labels": {
+    "Pai pai": 3
+   },
+   "states": {
+    "Baja California": 3
+   }
+  },
+  "Pame": {
+   "url": "https://catalogo.inpi.gob.mx/xiiuy-pame/",
+   "communities": 51,
+   "labels": {
+    "Xi’iuy o Pame": 51
+   },
+   "states": {
+    "Querétaro Arteaga": 23,
+    "San Luis Potosí": 28
+   }
+  },
+  "Pápago": {
+   "url": "https://catalogo.inpi.gob.mx/tohono-oodham-papago/",
+   "communities": 1,
+   "labels": {
+    "Tohono O’otham o Pápago": 1
+   },
+   "states": {
+    "Sonora": 1
+   }
+  },
+  "Pima": {
+   "url": "https://catalogo.inpi.gob.mx/pima/",
+   "communities": 13,
+   "labels": {
+    "Pima": 13
+   },
+   "states": {
+    "Chihuahua": 12,
+    "Sonora": 1
+   }
+  },
+  "Pirinda": {
+   "url": "https://catalogo.inpi.gob.mx/matlatzinca/",
+   "communities": 92,
+   "labels": {
+    "Matlatzinca o Pirinda": 92
+   },
+   "states": {
+    "Michoacán de Ocampo": 90,
+    "México": 2
+   },
+   "shared_page_with": "Matlatzinca"
+  },
+  "Popoloca": {
+   "url": "https://catalogo.inpi.gob.mx/popoloca/",
+   "communities": 14,
+   "labels": {
+    "N’guiva o Popoloca": 14
+   },
+   "states": {
+    "Puebla": 14
+   }
+  },
+  "Popoluca de la Sierra": {
+   "url": "https://catalogo.inpi.gob.mx/popoluca-de-la-sierra/",
+   "communities": 119,
+   "labels": {
+    "Popoluca": 119
+   },
+   "states": {
+    "Veracruz de Ignacio de la Llave": 119
+   }
+  },
+  "Q'anjob'al": {
+   "url": "https://catalogo.inpi.gob.mx/qanjobal/",
+   "communities": 13,
+   "labels": {
+    "Q’anjob’al": 13
+   },
+   "states": {
+    "Campeche": 1,
+    "Chiapas": 12
+   }
+  },
+  "Qato'k": {
+   "url": "https://catalogo.inpi.gob.mx/qatok/",
+   "communities": 1,
+   "labels": {
+    "Mocho o Qato’k": 1
+   },
+   "states": {
+    "Chiapas": 1
+   }
+  },
+  "Q'eqchi'": {
+   "url": "https://catalogo.inpi.gob.mx/qeqchi/",
+   "communities": 1,
+   "labels": {
+    "Q’eqchi’": 1
+   },
+   "states": {
+    "Campeche": 1
+   }
+  },
+  "Seri": {
+   "url": "https://catalogo.inpi.gob.mx/comcaac-seri/",
+   "communities": 2,
+   "labels": {
+    "Seri": 2
+   },
+   "states": {
+    "Sonora": 2
+   }
+  },
+  "Tacuate": {
+   "url": "https://catalogo.inpi.gob.mx/tacuate/",
+   "communities": 14,
+   "labels": {
+    "Tacuate": 14
+   },
+   "states": {
+    "Oaxaca": 14
+   }
+  },
+  "Tarahumara": {
+   "url": "https://catalogo.inpi.gob.mx/raramuli-tarahumara/",
+   "communities": 402,
+   "labels": {
+    "Rarámuri o Ralámuli": 402
+   },
+   "states": {
+    "Chihuahua": 402
+   }
+  },
+  "Tarasco": {
+   "url": "https://catalogo.inpi.gob.mx/purhepecha-tarasco/",
+   "communities": 214,
+   "labels": {
+    "P’urhépecha": 214
+   },
+   "states": {
+    "Campeche": 1,
+    "Chihuahua": 1,
+    "Michoacán de Ocampo": 212
+   }
+  },
+  "Tepehua": {
+   "url": "https://catalogo.inpi.gob.mx/tepehua/",
+   "communities": 19,
+   "labels": {
+    "Tepehua": 19
+   },
+   "states": {
+    "Hidalgo": 4,
+    "Veracruz de Ignacio de la Llave": 15
+   }
+  },
+  "Tepehuano del Norte": {
+   "url": "https://catalogo.inpi.gob.mx/odami-tepehuano-del-norte/",
+   "communities": 20,
+   "labels": {
+    "Tepehuano del norte": 20
+   },
+   "states": {
+    "Chihuahua": 20
+   }
+  },
+  "Tepehuano del Sur": {
+   "url": "https://catalogo.inpi.gob.mx/odam-audam-tepehuano-del-sur/",
+   "communities": 23,
+   "labels": {
+    "Tepehuano del sur": 23
+   },
+   "states": {
+    "Durango": 7,
+    "Jalisco": 2,
+    "Nayarit": 9,
+    "Sinaloa": 5
+   }
+  },
+  "Texistepequeño": {
+   "url": "https://catalogo.inpi.gob.mx/texistepequeno/",
+   "communities": 28,
+   "labels": {
+    "Texistepequeño": 28
+   },
+   "states": {
+    "Veracruz de Ignacio de la Llave": 28
+   }
+  },
+  "Tlahuica": {
+   "url": "https://catalogo.inpi.gob.mx/tlahuica/",
+   "communities": 1,
+   "labels": {
+    "Tlahuica": 1
+   },
+   "states": {
+    "México": 1
+   }
+  },
+  "Tlapaneco": {
+   "url": "https://catalogo.inpi.gob.mx/mephaa-tlapaneco/",
+   "communities": 457,
+   "labels": {
+    "Me’phaa o Tlapaneco": 457
+   },
+   "states": {
+    "Chihuahua": 1,
+    "Guerrero": 455,
+    "Morelos": 1
+   }
+  },
+  "Tojolabal": {
+   "url": "https://catalogo.inpi.gob.mx/tojolabal/",
+   "communities": 209,
+   "labels": {
+    "Tojolabal": 209
+   },
+   "states": {
+    "Chiapas": 209
+   }
+  },
+  "Totonaco": {
+   "url": "https://catalogo.inpi.gob.mx/totonaco/",
+   "communities": 593,
+   "labels": {
+    "Tutunakuj o Totonaca": 593
+   },
+   "states": {
+    "Campeche": 1,
+    "Puebla": 151,
+    "Quintana Roo": 1,
+    "Veracruz de Ignacio de la Llave": 440
+   }
+  },
+  "Triqui": {
+   "url": "https://catalogo.inpi.gob.mx/triqui/",
+   "communities": 56,
+   "labels": {
+    "Triqui": 56
+   },
+   "states": {
+    "Baja California": 2,
+    "Oaxaca": 54
+   }
+  },
+  "Tseltal": {
+   "url": "https://catalogo.inpi.gob.mx/tseltal/",
+   "communities": 885,
+   "labels": {
+    "Tseltal": 885
+   },
+   "states": {
+    "Campeche": 3,
+    "Chiapas": 870,
+    "Tabasco": 11,
+    "Veracruz de Ignacio de la Llave": 1
+   }
+  },
+  "Tsotsil": {
+   "url": "https://catalogo.inpi.gob.mx/tsotsil/",
+   "communities": 1178,
+   "labels": {
+    "Tsotsil": 1178
+   },
+   "states": {
+    "Campeche": 5,
+    "Chiapas": 1147,
+    "Tabasco": 2,
+    "Veracruz de Ignacio de la Llave": 24
+   }
+  },
+  "Yaqui": {
+   "url": "https://catalogo.inpi.gob.mx/yoeme-yaqui/",
+   "communities": 8,
+   "labels": {
+    "Yaqui": 8
+   },
+   "states": {
+    "Sonora": 8
+   }
+  },
+  "Zapoteco": {
+   "url": "https://catalogo.inpi.gob.mx/zapoteco/",
+   "communities": 923,
+   "labels": {
+    "Zapoteco": 923
+   },
+   "states": {
+    "Chihuahua": 1,
+    "Oaxaca": 897,
+    "Veracruz de Ignacio de la Llave": 25
+   }
+  },
+  "Zoque": {
+   "url": "https://catalogo.inpi.gob.mx/zoque/",
+   "communities": 163,
+   "labels": {
+    "Zoque": 163
+   },
+   "states": {
+    "Chiapas": 128,
+    "Oaxaca": 5,
+    "Tabasco": 4,
+    "Veracruz de Ignacio de la Llave": 26
+   }
+  },
+  "Afromexicano": {
+   "url": "https://catalogo.inpi.gob.mx/afromexicano/",
+   "communities": 496,
+   "labels": {
+    "Afromexicano": 496
+   },
+   "states": {
+    "Chiapas": 16,
+    "Coahuila": 1,
+    "Guerrero": 266,
+    "Michoacán de Ocampo": 1,
+    "Morelos": 1,
+    "Oaxaca": 112,
+    "Veracruz de Ignacio de la Llave": 99
+   }
+  }
+ }
+}
