@@ -225,14 +225,12 @@ class ImpactBase(BaseModel):
     impact_type_str: str
     description: str = Field(max_length=300)
     is_potential: bool
-    locations: list[LocationBase] = []
     paragraphs: list[int] = []
 
 
 class ImpactFull(ImpactBase, CommonFull):
     impact_group: int | None = None
     impact_type: int | None = None
-    locations: list[LocationFull] = []
 
 
 class InterestFull(CommonFull):
@@ -288,14 +286,12 @@ class EventBase(BaseModel):
     description: str = Field(max_length=300)
     # involvements_text: list[str] = []
     involvements: list[InvolvementBase] = []
-    locations: list[LocationBase] = []
     paragraphs: list[int] = []
 
 
 class EventFull(EventBase, CommonFull):
     event_group: int | None = None
     purpose: int | None = None
-    locations: list[LocationFull] = []
     involvements: list[InvolvementFull] = []
 
 

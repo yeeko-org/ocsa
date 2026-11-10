@@ -15,6 +15,7 @@ from space_time.backfill import HUMAN_VERDICTS, apply_and_diff
 from space_time.models import (
     Locality, LocalityGeometry, Location, Municipality, MunicipalityGeometry,
     State, StateGeometry)
+from project.models import Project
 from work_flux.test_helpers import make_status
 
 
@@ -69,6 +70,11 @@ class SyntheticCartography:
             public_name="Aprobado (Aproximado)")
         cls.approved = make_status(
             name="finished", group="location", public_name="Aprobado")
+        # Toda ubicación cuelga de un proyecto (adr-0033), y guardarla
+        # rederiva su status_location: sin status, «empty».
+        make_status(
+            name="empty", group="location", public_name="Sin ubicación")
+        cls.project = Project.objects.create(name="Proyecto sintético")
 
     @classmethod
     def _municipality(cls, code: str, column: int):
@@ -246,7 +252,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
         resolution = geolocate.resolve_geometry(feature)
         self.assertIsNone(getattr(resolution, "state", None))
         location = Location.objects.create(
-            type_location="line", geojson=feature)
+            project=self.project, type_location="line", geojson=feature)
         filled = geolocate.apply_geolocation(location)
         self.assertEqual(location.municipality, self.west)
         self.assertIn("state", filled)
@@ -257,7 +263,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
         heredar el estado, y el índice estatal no se consulta."""
         feature = self._feature("LineString", [(0.5, 0.5), (1.5, 0.5)])
         location = Location.objects.create(
-            type_location="line", geojson=feature)
+            project=self.project, type_location="line", geojson=feature)
         filled = geolocate.apply_geolocation(location)
         self.assertIsNone(location.municipality)
         self.assertNotIn("state", filled)
@@ -290,7 +296,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
         feature = self._feature(
             "Polygon", [(0.9, 0.2), (1.0, 0.2), (1.0, 0.3), (0.9, 0.3)])
         location = Location.objects.create(
-            type_location="polygon", geojson=feature)
+            project=self.project, type_location="polygon", geojson=feature)
         geolocate.apply_geolocation(location)
         self.assertEqual(location.municipality, self.west)
         self.assertEqual(list(location.municipalities.all()), [self.west])
@@ -307,6 +313,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
     def test_solo_llena_lo_vacio(self):
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
+            project=self.project,
             type_location="point", latitude=latitude, longitude=longitude,
             municipality=self.east)
         filled = geolocate.apply_geolocation(location)
@@ -320,6 +327,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
         sitio: la localidad sería una precisión falsa, el municipio no."""
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
+            project=self.project,
             type_location="point", latitude=latitude, longitude=longitude,
             status_location=self.approximate)
         filled = geolocate.apply_geolocation(location)
@@ -331,6 +339,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
     def test_el_punto_en_otro_estatus_si_recibe_localidad(self):
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
+            project=self.project,
             type_location="point", latitude=latitude, longitude=longitude,
             status_location=self.approved)
         filled = geolocate.apply_geolocation(location)
@@ -342,7 +351,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
         la intersección con la geometría, no de una coordenada dudosa."""
         feature = self._feature("LineString", [(1.3, 0.5), (1.7, 0.5)])
         location = Location.objects.create(
-            type_location="line", geojson=feature,
+            project=self.project, type_location="line", geojson=feature,
             status_location=self.approximate)
         filled = geolocate.apply_geolocation(location)
         self.assertIn("locality", filled)
@@ -352,6 +361,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
         """El M2M es «los que atraviesa» y un punto no atraviesa nada."""
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
+            project=self.project,
             type_location="point", latitude=latitude, longitude=longitude)
         geolocate.apply_geolocation(location)
         location.save()
@@ -362,6 +372,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
         """Un punto que fue trazo arrastra la lista del trazo anterior."""
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
+            project=self.project,
             type_location="point", latitude=latitude, longitude=longitude)
         location.municipalities.set([self.west, self.east])
         geolocate.apply_geolocation(location)
@@ -370,7 +381,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
     def test_el_trazo_persiste_municipios_y_centroide(self):
         feature = self._feature("LineString", [(0.5, 0.5), (1.5, 0.5)])
         location = Location.objects.create(
-            type_location="line", geojson=feature)
+            project=self.project, type_location="line", geojson=feature)
         filled = geolocate.apply_geolocation(location)
         self.assertIn("latitude", filled)
         self.assertIsNotNone(location.latitude)
@@ -387,7 +398,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
             if "locality" in fields)
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
-            id=vetoed_id, type_location="point",
+            project=self.project, id=vetoed_id, type_location="point",
             latitude=latitude, longitude=longitude)
         filled, _, after, _sources = apply_and_diff(location)
         self.assertNotIn("locality", filled)
@@ -400,6 +411,7 @@ class GeolocateTests(SyntheticCartography, TestCase):
         """Contraprueba del veto: el bloqueo es por id, no por el lugar."""
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
+            project=self.project,
             type_location="point", latitude=latitude, longitude=longitude)
         filled, _, _, _sources = apply_and_diff(location)
         self.assertIn("locality", filled)

@@ -1,7 +1,7 @@
 """Bloques y export de Impact para exportación XLSX.
 
 ImpactBlock — bloque reutilizable (campos base de la afectación).
-ImpactExport — export completo con mención, nota y ubicación.
+ImpactExport — export completo con mención, nota y ubicación del proyecto.
 """
 from impact.models import Impact
 from api.export_blocks.conditions import expand_project
@@ -44,16 +44,12 @@ class ImpactExport(ModelExport):
     columns = [
         Include(ImpactBlock),
         Include(MentionBlock, through="mention"),
-        Include(LocationBlock),
         Include(ProjectLocationBlock, condition=expand_project),
     ]
 
     def get_annotations(self) -> dict:
-        return {
-            **LocationBlock.build_annotations("impact"),
-            **LocationBlock.build_annotations(
-                "project",
-                outer_ref="mention__project_id",
-                prefix="proj_",
-            ),
-        }
+        return LocationBlock.build_annotations(
+            "project",
+            outer_ref="mention__project_id",
+            prefix="proj_",
+        )

@@ -92,6 +92,7 @@ class ApplyVerdictsTests(SyntheticCartography, TestCase):
         return VerdictApplier(load_verdicts(paths))
 
     def location(self, **kwargs) -> Location:
+        kwargs.setdefault("project", self.project)
         return Location.objects.create(**kwargs)
 
     def test_a_details_no_repite_lo_que_details_ya_dice(self):
@@ -224,6 +225,7 @@ class VerdictBeforeEngineTests(SyntheticCartography, TestCase):
         self.addCleanup(directory.cleanup)
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
+            project=self.project,
             type_location="point", latitude=latitude, longitude=longitude,
             comments="YEEKO: Municipio no encontrado: Vecino")
         source = write_csv(Path(directory.name), "v.csv", FRAGMENT_FIELDS, [{
@@ -254,7 +256,7 @@ class VerdictBeforeEngineTests(SyntheticCartography, TestCase):
             if "locality" in fields)
         latitude, longitude = self._latlon(0.5, 0.5)
         location = Location.objects.create(
-            id=vetoed_id, type_location="point",
+            project=self.project, id=vetoed_id, type_location="point",
             latitude=latitude, longitude=longitude,
             comments="YEEKO: Localidad no encontrada: Inventada")
         source = write_csv(Path(directory.name), "v.csv", FRAGMENT_FIELDS, [{
@@ -281,6 +283,7 @@ class BackupRoundTripTests(SyntheticCartography, TestCase):
         self.addCleanup(directory.cleanup)
         original = "YEEKO: Localidad no encontrada: Polanco\n\nnota humana"
         location = Location.objects.create(
+            project=self.project,
             type_location="point", comments=original, details="algo")
         source = write_csv(Path(directory.name), "v.csv", FRAGMENT_FIELDS, [{
             "location_id": location.pk, "template": "localidad",

@@ -74,7 +74,6 @@ class NoteViewSet(ClickHistoryMixin, ActionFileMixin, viewsets.ModelViewSet):
             'mentions__project__conflict',
             'mentions__project__parent_project',
             'mentions__events__involvements',
-            'mentions__events__locations',
             'mentions__status_history',
             'articles',
         ) if is_full else queryset

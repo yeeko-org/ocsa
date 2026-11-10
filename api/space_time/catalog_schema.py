@@ -33,11 +33,6 @@ class LocationSchema(CollectionSchema):
     all_filters = [
         FilterRef("states", can_massive_edit=True),
         ComponentFilter(
-            title="Colección", field="only_by",
-            component="OnlyByFilter",
-            options=["project", "event", "impact"],
-        ),
-        ComponentFilter(
             title="Tipo de ubicación", field="type_location",
             component="LocationType", hidden=False,
         ),

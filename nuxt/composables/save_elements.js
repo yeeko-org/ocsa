@@ -130,7 +130,7 @@ export function useSaveElements() {
           return
       }
 
-      if (["involved", "eventlocation", "clicks"].includes(field.name))
+      if (["involved", "clicks"].includes(field.name))
         return
       if (field.name.includes('displacement_'))
         return

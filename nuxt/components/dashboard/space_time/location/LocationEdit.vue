@@ -22,7 +22,6 @@ const props = defineProps({
     type: Number,
     default: 5,
   },
-  second_level: Boolean,
 })
 
 const full_main = defineModel({type: Object, required: true})
@@ -147,7 +146,7 @@ function applyImported({feature, type_location, warnings}) {
 
 <template>
   <v-col
-    :cols="show_map && !second_level && !expanded_map ? 6 : 12"
+    :cols="show_map && !expanded_map ? 6 : 12"
     :order="col_order"
   >
     <div class="d-flex align-center flex-wrap ga-1 pb-3">
@@ -227,7 +226,7 @@ function applyImported({feature, type_location, warnings}) {
   </v-col>
   <v-col
     v-if="show_map"
-    :cols="second_level || expanded_map ? 12 : 6"
+    :cols="expanded_map ? 12 : 6"
     :order="col_order"
   >
     <LocationMapCard
@@ -235,7 +234,6 @@ function applyImported({feature, type_location, warnings}) {
       :location_type="full_main.type_location"
       :full_main="full_main"
       v-model:expanded="expanded_map"
-      :can_expand="!second_level"
       :candidates="geo_candidates"
       :can_replace="geo_can_replace"
       :has_replacement="geo_has_replacement"

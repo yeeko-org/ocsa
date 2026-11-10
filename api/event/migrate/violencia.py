@@ -30,8 +30,6 @@ class MigrateViolenciaToEvent(EventBase):
         self.number_mix = None
         self.number_men = None
         self.number_women = None
-        viol_to_ubic_query = self.violencia.violenciatoubicacion_set.all()  # type: ignore
-        self.set_locations(viol_to_ubic_query)
         self.set_involved_nums()
         self.sector_res = {
             "estatal": self.get_or_create_sector("Institución del Estado"),

@@ -10,10 +10,8 @@ from space_time.models import (
     Locality,
     Location,
     TYPE_LOCATIONS,)
-from api.views.event import EventSerializer
 from api.views.project import ProjectBasicSerializer
 from api.views.project.list_serializers import ProjectMiniSerializer
-from api.views.project.list_serializers import ImpactSerializer
 
 
 class LocalitySerializer(serializers.ModelSerializer):
@@ -61,8 +59,8 @@ GEOMETRY_FIELDS = ["geojson", "type_location", "latitude", "longitude"]
 # Derivados de la geometría por el servidor: el editor los muestra, pero
 # nunca los manda.
 DERIVED_FIELDS = ["municipalities"]
-# La ubicación siempre cuelga de una ficha: al menos uno de los tres.
-OWNER_FIELDS = ["project", "event", "impact"]
+# La ubicación siempre cuelga de un proyecto (adr-0033).
+OWNER_FIELD = "project"
 
 
 def _resulting(instance, attrs: dict, field: str):
@@ -98,15 +96,12 @@ class LocationGeometryMixin(serializers.ModelSerializer):
 
     def validate(self, attrs: dict) -> dict:
         attrs = super().validate(attrs)
-        # Antes del corte por geometría: una ubicación huérfana no se
-        # lista ni se alcanza desde ninguna ficha, así que nadie la
-        # corrige después.
-        if not self._is_bulk_action() and not any(
-                _resulting(self.instance, attrs, field)
-                for field in OWNER_FIELDS):
+        # Antes del corte por geometría, y aquí y no en el modelo: el
+        # campo es `blank=True` para que la edición masiva no lo exija.
+        if not self._is_bulk_action() and not _resulting(
+                self.instance, attrs, OWNER_FIELD):
             raise serializers.ValidationError(
-                "Una ubicación debe pertenecer a un proyecto, un evento "
-                "o un impacto.")
+                "Una ubicación debe pertenecer a un proyecto.")
         if not any(field in attrs for field in GEOMETRY_FIELDS):
             return attrs
 
@@ -164,18 +159,14 @@ class LocationSerializer(LocationGeometryMixin):
 
 
 class LocationSemiFullSerializer(LocationGeometryMixin):
-    # event_full = EventSerializer(read_only=True, source='event')
     project_full = ProjectMiniSerializer(read_only=True, source='project')
-    # impact_full = ImpactSerializer(read_only=True, source='impact')
 
     class Meta(LocationGeometryMixin.Meta):
         pass
 
 
 class LocationFullSerializer(LocationGeometryMixin):
-    event_full = EventSerializer(read_only=True, source='event')
     project_full = ProjectBasicSerializer(read_only=True, source='project')
-    impact_full = ImpactSerializer(read_only=True, source='impact')
 
     class Meta(LocationGeometryMixin.Meta):
         pass

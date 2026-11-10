@@ -304,10 +304,6 @@ class Command(BaseCommand):
     def parent_label(loc):
         if loc.project_id:
             return f"project {loc.project_id}"
-        if loc.event_id:
-            return f"event {loc.event_id}"
-        if loc.impact_id:
-            return f"impact {loc.impact_id}"
         return "sin padre"
 
     def step_restore_truncated(self):
@@ -499,7 +495,7 @@ class Command(BaseCommand):
         compared = [
             "state_id", "municipality_id", "locality_id", "latitude",
             "longitude", "geojson", "type_location", "details", "comments",
-            "status_location_id", "project_id", "event_id", "impact_id"]
+            "status_location_id", "project_id"]
         for ref in dups:
             rows = list(Location.objects.filter(ubicacion_id_ref=ref)
                         .order_by("id"))

@@ -18,7 +18,7 @@ class LocationBlock(ModelExport):
             ]
 
             def get_annotations(self) -> dict:
-                return LocationBlock.build_annotations("event")
+                return LocationBlock.build_annotations("project")
     """
 
     model = Location
@@ -91,8 +91,8 @@ class LocationBlock(ModelExport):
         y extrae sus campos como anotaciones planas del queryset padre.
 
         Args:
-            target: FK en Location que apunta a la entidad padre
-                (``"event"``, ``"impact"``, ``"project"``).
+            target: FK en Location que apunta a la entidad padre;
+                desde adr-0033 solo ``"project"``.
             outer_ref: campo del modelo raíz del queryset que se
                 usa en ``OuterRef``. Default ``"id"`` (el modelo
                 raíz ES la entidad). Para contextos anidados usar
@@ -152,14 +152,11 @@ class ProjectLocationBlock(ModelExport):
             ]
 
             def get_annotations(self) -> dict:
-                return {
-                    **LocationBlock.build_annotations("event"),
-                    **LocationBlock.build_annotations(
-                        "project",
-                        outer_ref="mention__project_id",
-                        prefix="proj_",
-                    ),
-                }
+                return LocationBlock.build_annotations(
+                    "project",
+                    outer_ref="mention__project_id",
+                    prefix="proj_",
+                )
     """
 
     model = Location

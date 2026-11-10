@@ -13,7 +13,7 @@ from profile_auth.models import User
 class PreCaptureManager(BaseCriteriaManager):
 
     prompt_name = "pre_capture"
-    version = "v2"
+    version = "v3"
     seconds_cache = 10
 
     def __init__(
@@ -195,7 +195,6 @@ class PreCaptureManager(BaseCriteriaManager):
                     impact.impact_type_str)
                 impact.impact_group = impact_group_mapping.get(
                     impact.impact_group_str.name, None)
-                impact.locations = map_locations(impact.locations)
 
             for event in mention.events:
                 event_map = event_group_mapping.get(
@@ -203,7 +202,6 @@ class PreCaptureManager(BaseCriteriaManager):
                 if event_map:
                     event.event_group = event_map["event_group"]
                     event.purpose = event_map.get("purpose", None)
-                event.locations = map_locations(event.locations)
 
             for status_history in mention.status_history:
                 status_text = status_history.status_project_text.lower()

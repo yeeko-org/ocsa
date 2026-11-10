@@ -180,7 +180,7 @@ class OffTraceTests(SyntheticCartography, TestCase):
 
     def trace(self, municipality, points):
         return Location.objects.create(
-            type_location="line", state=self.state,
+            project=self.project, type_location="line", state=self.state,
             municipality=municipality,
             geojson=self._feature("LineString", points))
 
@@ -233,7 +233,7 @@ class BaseOffCrossedTests(SyntheticCartography, TestCase):
 
     def trace(self, municipality, points):
         return Location.objects.create(
-            type_location="line", state=self.state,
+            project=self.project, type_location="line", state=self.state,
             municipality=municipality,
             geojson=self._feature("LineString", points))
 
@@ -270,7 +270,7 @@ class OffStateTests(SyntheticCartography, TestCase):
 
     def trace(self, points):
         return Location.objects.create(
-            type_location="line", state=self.state,
+            project=self.project, type_location="line", state=self.state,
             geojson=self._feature("LineString", points))
 
     def test_el_trazo_fuera_del_estado_se_marca_sin_municipio(self):
@@ -324,6 +324,7 @@ class OffLocalityTests(SyntheticCartography, TestCase):
 
     def trace(self, locality, points):
         return Location.objects.create(
+            project=self.project,
             type_location="line", state=self.state, locality=locality,
             geojson=self._feature("LineString", points))
 
@@ -378,6 +379,7 @@ class FarLocalityPinTests(SyntheticCartography, TestCase):
 
     def pin(self, locality, fx, fy, **extra):
         latitude, longitude = self._latlon(fx, fy)
+        extra.setdefault("project", self.project)
         return Location.objects.create(
             type_location="point", state=self.state, locality=locality,
             latitude=latitude, longitude=longitude, **extra)
@@ -436,9 +438,10 @@ class StateMismatchTests(SyntheticCartography, TestCase):
 
     def test_el_estado_ajeno_al_municipio_se_marca(self):
         location = Location.objects.create(
-            type_location="point", state=self.other_state,
+            project=self.project, type_location="point", state=self.other_state,
             municipality=self.west)
         Location.objects.create(
+            project=self.project,
             type_location="point", state=self.state, municipality=self.west)
 
         found, seen = scan_states()
@@ -482,7 +485,7 @@ class InOtherStateTests(SyntheticCartography, TestCase):
 
     def trace(self, points):
         return Location.objects.create(
-            type_location="polygon", state=self.state,
+            project=self.project, type_location="polygon", state=self.state,
             geojson=self._feature("Polygon", points))
 
     def test_el_trazo_que_desborda_al_estado_vecino_se_marca(self):

@@ -29,14 +29,6 @@ from space_time.models import Location
 #     pass
 
 
-class LocationSimpleSerializer(ConditionalFieldsMixin):
-    municipalities_full = MunicipalitySimpleSerializer(
-        many=True, read_only=True, source='municipalities')
-    class Meta:
-        model = Location
-        fields = '__all__'
-
-
 class DisplacementSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Displacement
@@ -130,7 +122,6 @@ class EventSimpleSerializer(serializers.ModelSerializer):
 
 class EventEmbedSerializer(ConditionalFieldsMixin, EventSimpleSerializer):
     involvements = InvolvedSerializer(many=True, read_only=True)
-    locations = LocationSimpleSerializer(many=True, read_only=True)
     displacements = DisplacementSimpleSerializer(many=True, read_only=True)
 
 
@@ -142,7 +133,6 @@ class ImpactSerializer(serializers.ModelSerializer):
 
 
 class ImpactEmbedSerializer(ImpactSerializer):
-    locations = LocationSimpleSerializer(many=True, read_only=True)
     displacements = DisplacementSimpleSerializer(many=True, read_only=True)
 
 

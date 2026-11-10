@@ -61,10 +61,6 @@ class PendingFiltersTests(TestCase):
         cls._location(cls.mixto, cls.aprobado)
         cls._location(cls.mixto, cls.inicial, state=None)
 
-        # Las ubicaciones de evento o impacto no se capturan: ninguna
-        # opción debe recogerlas por incompletas que estén.
-        cls.huerfana = Location.objects.create(status_location=cls.inicial)
-
     @classmethod
     def _project(cls, name):
         return Project.objects.create(name=name)
@@ -116,9 +112,3 @@ class PendingFiltersTests(TestCase):
         """Ninguna de sus dos ubicaciones cae en un cajón, y tiene una
         aprobada: `any_pending` no puede recogerlo."""
         self.assertNotIn(self.mixto.pk, self.projects_for(ANY_PENDING))
-
-    def test_las_ubicaciones_sin_proyecto_quedan_fuera(self):
-        for option in LOCATION_OPTIONS + (ANY_PENDING,):
-            with self.subTest(option=option):
-                self.assertNotIn(self.huerfana, Location.objects.filter(
-                    location_pending_q(option)))

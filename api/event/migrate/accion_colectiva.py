@@ -5,9 +5,7 @@ from classify.models import SectorGroup, Sector
 from event.models import (Event, EventGroup, InvolvedRole,
                           EventSubtype, EventType, Involved)
 from ocsa_legacy.models import (
-    AccionColectivaToUbicacion, FormaAC, Opositores, OpositoresToAC,
-    AccionesColectivas, SubformaAC)
-from space_time.models import Location
+    FormaAC, Opositores, OpositoresToAC, AccionesColectivas, SubformaAC)
 
 
 class MigrateAccionToEvent(EventBase):
@@ -17,8 +15,6 @@ class MigrateAccionToEvent(EventBase):
         self.accion_colectiva = accion_colectiva
         self.mention = self.get_mention(self.accion_colectiva)
         self.event = self.get_main_event()
-        ac_to_ubic_query = self.accion_colectiva.accioncolectivatoubicacion_set.all()
-        self.set_locations(ac_to_ubic_query)
 
     def get_main_event(self) -> Event:
         forma_ac_nombre = getattr(
@@ -34,17 +30,6 @@ class MigrateAccionToEvent(EventBase):
             event=self.event, participant=participant,
             involved_role=involved_role,
         )
-
-    def set_not_location(self):
-        ac_to_ubic_query = AccionColectivaToUbicacion.objects\
-            .filter(accion_colectiva=self.accion_colectiva)
-        for ac_to_ubic in ac_to_ubic_query:
-            location = Location.objects.filter(
-                ubicacion_id_ref=ac_to_ubic.ubicacion_id).first()  # type: ignore
-            if not location:
-                continue
-            location.event = self.event
-            location.save()
 
     def migrate_opositor(self, opositor: Opositores):
         opositor_actor, _ = self.get_actor(opositor.nombre)

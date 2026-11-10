@@ -16,16 +16,13 @@ const props = defineProps({
   },
 })
 
+// Toda ubicación cuelga de un proyecto (adr-0033).
 const dest_collection = computed(() => {
-  const available_collections = ['event', 'project', 'impact']
-  const current_collection = available_collections.find(
-    collection => props.full_main[collection]
-  )
-  if (!current_collection) return null
-  let coll = collections_summary.value[current_collection]
+  if (!props.full_main.project) return null
+  let coll = collections_summary.value.project
   if (!coll) return null
-  coll.results = [props.full_main[`${current_collection}_full`]]
-  coll.collection_data = schemas.value.collections_dict[current_collection]
+  coll.results = [props.full_main.project_full]
+  coll.collection_data = schemas.value.collections_dict.project
   return coll
 })
 

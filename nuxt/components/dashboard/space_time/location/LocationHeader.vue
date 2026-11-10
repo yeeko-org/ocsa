@@ -20,12 +20,10 @@ const props = defineProps({
   }
 })
 
+// Toda ubicación cuelga de un proyecto (adr-0033).
 const dest_collection = computed(() => {
-  const available_collections = ['event', 'project', 'impact']
-  const current_collection = available_collections.find(
-    collection => props.main[collection]
-  )
-  return collections_summary.value[current_collection] || {}
+  if (!props.main.project) return {}
+  return collections_summary.value.project || {}
 })
 
 const final_state = computed(() => {

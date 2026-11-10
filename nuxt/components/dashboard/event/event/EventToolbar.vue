@@ -1,7 +1,6 @@
 <script setup>
 
 import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
-import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
 import EventDetails from "~/components/dashboard/event/event/EventDetails.vue";
 import ParticipantSelect from "~/components/dashboard/actor/ParticipantSelect.vue";
@@ -47,8 +46,7 @@ function validate(){
     required_full_category
     :parent_id="parent_id"
     :note_id="note_id"
-    :additional_fields="{
-      'involvements': [], 'locations': [], 'displacements': []}"
+    :additional_fields="{'involvements': [], 'displacements': []}"
     required
   >
     <template #rows="{ item, index }">
@@ -107,14 +105,6 @@ function validate(){
           </v-card>
         </template>
       </ToolbarCommon>
-      <LocationsToolbar
-        v-if="item"
-        v-model="events[second_index].locations"
-        :parent_id="item.id"
-        :note_id="parent_id"
-        main_collection_name="event"
-        second_level
-      />
     </template>
   </ToolbarCommon>
 

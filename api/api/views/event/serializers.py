@@ -2,11 +2,9 @@ from rest_framework import serializers
 from event.models import Event, Involved, EventType
 
 from api.views.actor.serializers import MentionBaseSerializer
-from api.views.common_serializers import (
-    ConditionalFieldsMixin, MunicipalitySimpleSerializer,
-    ParticipantFullSerializer)
+from api.views.common_serializers import ParticipantFullSerializer
+from api.permissions import BULK_ACTIONS
 from project.models import Conflict
-from space_time.models import Location
 from df.models import Displacement
 
 
@@ -29,14 +27,6 @@ class InvolvedFullSerializer(InvolvedSerializer):
         fields = '__all__'
 
 
-class LocationSimpleSerializer(ConditionalFieldsMixin):
-    municipalities_full = MunicipalitySimpleSerializer(
-        many=True, read_only=True, source='municipalities')
-    class Meta:
-        model = Location
-        fields = '__all__'
-
-
 class DisplacementSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Displacement
@@ -45,12 +35,28 @@ class DisplacementSimpleSerializer(serializers.ModelSerializer):
 
 class EventMediumSerializer(serializers.ModelSerializer):
     involvements = InvolvedSerializer(many=True, read_only=True)
-    locations = LocationSimpleSerializer(many=True, read_only=True)
     displacements = DisplacementSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
         fields = '__all__'
+
+    def validate(self, attrs: dict) -> dict:
+        """Sin propósito fuera de los grupos que lo usan (task-125).
+
+        Un mecanismo legal que cambia a otro tipo conservaba su
+        propósito aunque el dashboard ya no lo muestre. La edición
+        masiva queda fuera a propósito: su lote no trae instancia.
+        """
+        attrs = super().validate(attrs)
+        view = self.context.get("view")
+        if getattr(view, "action", None) in BULK_ACTIONS:
+            return attrs
+        event_type = attrs.get("event_type") or getattr(
+            self.instance, "event_type", None)
+        if event_type and not event_type.event_group.show_position:
+            attrs["purpose"] = None
+        return attrs
 
 
 class EventSerializer(EventMediumSerializer):

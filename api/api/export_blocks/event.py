@@ -1,7 +1,7 @@
 """Bloques y export de Event para exportación XLSX.
 
 EventBlock — bloque reutilizable (columnas base del evento).
-EventExport — export completo con mención, ubicación.
+EventExport — export completo con mención y ubicación del proyecto.
 """
 from typing import Any
 
@@ -59,7 +59,8 @@ class EventExport(ModelExport):
     """Exportación completa de Eventos.
 
     Compone EventBlock + MentionBlock (nota, proyecto, conflicto)
-    + LocationBlock (ubicación principal vía anotaciones Subquery).
+    + ProjectLocationBlock (ubicación principal del proyecto vía
+    anotaciones Subquery).
     """
 
     model = Event
@@ -67,16 +68,12 @@ class EventExport(ModelExport):
     columns = [
         Include(EventBlock),
         Include(MentionBlock, through="mention"),
-        Include(LocationBlock),
         Include(ProjectLocationBlock, condition=expand_project),
     ]
 
     def get_annotations(self) -> dict[str, Any]:
-        return {
-            **LocationBlock.build_annotations("event"),
-            **LocationBlock.build_annotations(
-                "project",
-                outer_ref="mention__project_id",
-                prefix="proj_",
-            ),
-        }
+        return LocationBlock.build_annotations(
+            "project",
+            outer_ref="mention__project_id",
+            prefix="proj_",
+        )

@@ -1,7 +1,6 @@
   <script setup>
 
 import DisplacementToolbar from "~/components/dashboard/df/DisplacementToolbar.vue";
-import LocationsToolbar from "~/components/dashboard/space_time/LocationsToolbar.vue";
 import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 
 const impacts = defineModel({type: Array, required: true})
@@ -25,13 +24,12 @@ function validate(){
     ref="mainRef"
     filter_group_name="impact_types"
     child_relation_name="impact"
-    two_columns
     required
     partial_save
     required_field="impact_type"
     :parent_id="parent_id"
     :note_id="note_id"
-    :additional_fields="{'locations': [], 'displacements': []}"
+    :additional_fields="{'displacements': []}"
   >
     <template #rows="{ item, index }">
       <v-switch
@@ -59,16 +57,6 @@ function validate(){
         main_collection_name="impact"
         second_level
         class="px-0"
-      />
-    </template>
-    <template #second-column="{ second_index, index }">
-      <LocationsToolbar
-        v-if="impacts[second_index]"
-        v-model="impacts[second_index].locations"
-        :parent_id="impacts[second_index].id"
-        :note_id="parent_id"
-        main_collection_name="impact"
-        second_level
       />
     </template>
   </ToolbarCommon>

@@ -60,13 +60,3 @@ class EventBase(ActorBase):
         # event.duration = intervalo if not event.duration else event.duration
         event.save()
         return event
-
-    def set_locations(self, original_locations):
-        from space_time.models import Location
-        for record_to_ubic in original_locations:
-            location = Location.objects.filter(
-                ubicacion_id_ref=record_to_ubic.ubicacion_id).first()  # type: ignore
-            if not location:
-                continue
-            location.event = self.event
-            location.save()

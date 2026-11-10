@@ -1,8 +1,6 @@
 from django.db import models
 from work_flux.models import StatusControl
 from project.models import Project
-from event.models import Event
-from impact.models import Impact
 
 
 def default_alternative_names():
@@ -164,14 +162,11 @@ TYPE_LOCATIONS = (
 
 
 class Location(models.Model):
+    # blank=True a propósito: la edición masiva valida el lote sin
+    # instancia y solo con los campos editados; el dueño lo exige
+    # `LocationGeometryMixin.validate`.
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, blank=True, null=True,
-        related_name="locations")
-    event = models.ForeignKey(
-        Event, on_delete=models.CASCADE, blank=True, null=True,
-        related_name="locations")
-    impact = models.ForeignKey(
-        Impact, on_delete=models.CASCADE, blank=True, null=True,
+        Project, on_delete=models.CASCADE, blank=True,
         related_name="locations")
     state = models.ForeignKey(
         State, on_delete=models.CASCADE,

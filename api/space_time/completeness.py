@@ -37,11 +37,6 @@ ANY_PENDING = "any_pending"
 LOCATION_OPTIONS = (NO_GEOMETRY, NO_MUNICIPALITY, COMPLETE_UNAPPROVED)
 
 
-def with_project_q() -> Q:
-    """Solo las ubicaciones de proyecto: son las únicas que se capturan."""
-    return Q(project__isnull=False)
-
-
 def complete_q() -> Q:
     """Entidad, municipio y geometría presentes."""
     return (
@@ -89,7 +84,7 @@ def location_pending_q(option: str) -> Q | None:
             | (complete_q() & unapproved_q()))
     else:
         return None
-    return with_project_q() & condition
+    return condition
 
 
 def no_approved_location_q() -> Q:

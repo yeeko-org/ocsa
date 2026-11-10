@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 
 from rest_framework import viewsets, permissions
-from django_filters import BooleanFilter, CharFilter
+from django_filters import BooleanFilter, CharFilter, FilterSet
 
 from api.pagination import CustomPagination
 from api.permissions import LocationPermission
@@ -35,7 +35,7 @@ from api.views.space_time.serializers import (
     GeoImportSerializer,
     StateRetrieveSerializer,)
 from api.views.common_views import (
-    BaseViewSet, OnlyByFilterMixin, ClickHistoryMixin, MassiveEdit)
+    BaseViewSet, ClickHistoryMixin, MassiveEdit)
 
 
 
@@ -64,7 +64,7 @@ class MunicipalityListViewSet(ListSetMixin):
         return self.serializer_class
 
 
-class LocationFilter(OnlyByFilterMixin):
+class LocationFilter(FilterSet):
 
     has_geo_data = BooleanFilter(method='filter_has_geo_data')
     pending = CharFilter(method='filter_pending')
@@ -83,7 +83,7 @@ class LocationFilter(OnlyByFilterMixin):
 
     class Meta:
         model = Location
-        fields = ['only_by', "status_location", "state", "type_location"]
+        fields = ["status_location", "state", "type_location"]
 
 
 class LocationViewSet(ClickHistoryMixin, MassiveEdit, BaseViewSet):
@@ -120,9 +120,8 @@ class LocationViewSet(ClickHistoryMixin, MassiveEdit, BaseViewSet):
             .exclude(project__isnull=True)
             .values_list("project_id", flat=True))
         return ids
-    queryset = Location.objects.all().exclude(
-        project__isnull=True, event__isnull=True, impact__isnull=True)\
-        .select_related("event", "impact", "project")\
+    queryset = Location.objects.all()\
+        .select_related("project")\
         .prefetch_related("municipalities")
     serializer_class = LocationFullSerializer
     search_fields = ['state__name',

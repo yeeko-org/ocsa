@@ -22,11 +22,7 @@ PUBLIC_LOCATION = {"status_location__is_public": True}
 
 
 def visible_locations(queryset: QuerySet) -> QuerySet:
-    """Ubicaciones públicas de proyectos con validación pública.
-
-    El join a ``project`` descarta por sí solo las ubicaciones sin
-    proyecto (las de evento o impacto), que nunca son pins del mapa.
-    """
+    """Ubicaciones públicas de proyectos con validación pública."""
     return queryset.filter(
         project__status_validation__is_public=True, **PUBLIC_LOCATION)
 

@@ -39,21 +39,6 @@ class AfectacionToImpact(ActorBase):
             impact_type=self.impact_type,
             description=description
         )
-        if is_ae:
-            ubicaciones = self.afectacion.afectacionecologicatoubicacion_set.all()
-        else:
-            ubicaciones = self.afectacion.afectacionsocialtoubicacion_set.all()
-        self.set_locations(ubicaciones)
-
-    def set_locations(self, original_locations):
-        from space_time.models import Location
-        for record_to_ubic in original_locations:
-            location = Location.objects.filter(
-                ubicacion_id_ref=record_to_ubic.ubicacion_id).first()  # type: ignore
-            if not location:
-                continue
-            location.impact = self.impact
-            location.save()
 
 
 class AfectacionesToImpactMigrate:

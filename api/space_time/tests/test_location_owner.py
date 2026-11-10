@@ -1,9 +1,9 @@
-"""La ubicación siempre cuelga de una ficha, salvo en lote.
+"""La ubicación siempre cuelga de un proyecto, salvo en lote.
 
-Una ubicación sin proyecto, evento ni impacto no se lista ni se alcanza
-desde ninguna ficha: nace huérfana y nadie la corrige. El serializer la
-rechaza en toda escritura de detalle; la edición masiva queda fuera
-porque su payload trae solo los campos editados.
+La columna es NOT NULL desde adr-0033, pero `blank=True`: el serializer
+la exige en toda escritura de detalle con un mensaje propio, y la
+edición masiva queda fuera porque su payload trae solo los campos
+editados.
 """
 
 from django.test import TestCase
@@ -44,8 +44,7 @@ class LocationOwnerTests(TestCase):
         serializer = LocationSerializer(data={"details": "suelta"})
         self.assertFalse(serializer.is_valid())
         self.assertIn(
-            "Una ubicación debe pertenecer a un proyecto, un evento "
-            "o un impacto.",
+            "Una ubicación debe pertenecer a un proyecto.",
             [str(error) for error in serializer.errors["non_field_errors"]])
 
     def test_el_patch_parcial_no_pide_el_dueno_de_nuevo(self):
