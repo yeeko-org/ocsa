@@ -176,7 +176,7 @@ class MergeIndigenousGroupsTests(InpiCatalogTestCase):
         self.assertEqual(actor.indigenous_group_id, official.id)
         mixe.refresh_from_db()
         self.assertEqual(mixe.status_validation_id, "expired")
-        self.assertIn(f"fusionada en #{official.id}", mixe.comments)
+        self.assertIn("fusionada en «Ayuuk (Mixe)»", mixe.comments)
         self.assertIn("Mixe", official.alternative_names)
 
 

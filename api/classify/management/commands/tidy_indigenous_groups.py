@@ -97,16 +97,16 @@ class Command(BaseCommand):
             if actor_ids:
                 Actor.objects.filter(id__in=actor_ids).update(
                     indigenous_group=None)
-                # Los ids quedan en la entrada para poder deshacerlo.
-                ids = ", ".join(str(i) for i in actor_ids)
+                # Sin ids en el comentario (decisión de Ricardo): para
+                # deshacerlo, la salida de la corrida los lista.
                 add_comment(group, (
                     f"no es un pueblo; se quitó de {len(actor_ids)} "
-                    f"actores: {ids}"), prefix)
+                    "actores"), prefix)
             group.status_validation = statuses["expired"]
             group.save()
             lines.append(
-                f"CADUCO #{group.id} «{name}»: {len(actor_ids)} actores a "
-                f"null ({', '.join(map(str, actor_ids)) or '-'})")
+                f"CADUCO #{group.id} «{name}»: {len(actor_ids)} actores "
+                f"pasados a null ({', '.join(map(str, actor_ids)) or '-'})")
 
         for name, note in TO_RECLASSIFY:
             group = self.get(name)

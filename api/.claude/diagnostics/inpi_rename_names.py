@@ -13,12 +13,19 @@ CHOSEN = {
     "Pima": "O'oba", "Popoluca de la Sierra": "Nuntajɨɨyi",
     "Tarahumara": "Rarámuri", "Tepehuano del Sur": "O'dam",
     "Totonaco": "Tutunakú", "Zapoteco": "Binnizá", "Zoque": "Angpøn",
-    # Mi convención (devuelta como duda): variantes ortográficas de la misma
-    # palabra no llevan paréntesis; Jakalteko toma Popti'.
-    "Kaqchikel": None, "Paipai": None, "K'iche'": None, "Q'eqchi'": None,
-    "Jakalteko": "Popti'", "Tojolabal": "Tojol-ab'al",
-    "Pame": "Xi'iuy", "Seri": "Comca'ac",
+    # Variantes ortográficas de la misma palabra no llevan paréntesis;
+    # Jakalteko toma Popti'. Confirmado por Ricardo el 09/11/2026.
+    "Kaqchikel": None, "K'iche'": None, "Q'eqchi'": None,
+    "Jakalteko": "Popti'", "Pame": "Xi'iuy", "Seri": "Comca'ac",
+    # Ricardo, 09/11/2026: el DOF solo, aunque la autodenominación difiera.
+    "Q'anjob'al": None, "Tacuate": None,
+    # Ricardo, 09/11/2026: la autodenominación sola (ver ALONE).
+    "Paipai": "Pa ipai", "Tojolabal": "Tojol-ab'al",
 }
+# Nombre = la autodenominación sin paréntesis: es variante de grafía del DOF
+# y la regla general la descartaría. Tojol-ab'al va sin el espacio que el DOF
+# imprime antes del guion; la forma literal queda en los alternativos.
+ALONE = {"Paipai", "Tojolabal"}
 SPANISH = {"ñ", "Ñ"}
 
 def apos(t): return t.translate(APOS).replace("¨", "'").strip()
@@ -51,9 +58,12 @@ for p in data["pueblos"]:
         autonym = None
     else:
         autonym = apos(p["self_designation"])
-    if autonym and key(autonym) == key(dof):
+    if autonym and key(autonym) == key(dof) and dof not in ALONE:
         autonym = None
-    name = f"{autonym} ({dof})" if autonym else dof
+    if dof in ALONE:
+        name = autonym
+    else:
+        name = f"{autonym} ({dof})" if autonym else dof
     forms = [autonym, dof] + selfs + [apos(s) for s in p["extra_variants"]]
     forms = [f for f in forms if f]
     forms += [fold(f) for f in forms]
@@ -68,7 +78,9 @@ for p in data["pueblos"]:
 data["fields"]["name"] = (
     "Nombre en OCSA: «Autodenominación (Denominación DOF)» cuando difieren, "
     "la denominación del DOF sola cuando coinciden; apóstrofo recto. Regla "
-    "de Ricardo del 09/11/2026")
+    "de Ricardo del 09/11/2026, con cuatro excepciones suyas del mismo día: "
+    "Pa ipai y Tojol-ab'al llevan la autodenominación sola; Q'anjob'al y "
+    "Tacuate, la denominación del DOF sola")
 data["fields"]["autonym"] = (
     "Autodenominación elegida para el nombre; null cuando el nombre es la "
     "denominación del DOF sola")

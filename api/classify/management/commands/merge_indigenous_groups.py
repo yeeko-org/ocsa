@@ -62,9 +62,6 @@ ACTOR_NOTES = {
     4760: "estaba clasificado en el pueblo «Zapoteca» y pasó a «{new}» al "
           "fusionar con el catálogo del INPI. Revisar la ubicación de sus "
           "proyectos: además de Oaxaca, hay uno en Baja California",
-    7583: "estaba clasificado en el pueblo «Tzeltal» y pasó a «{new}» al "
-          "fusionar con el catálogo del INPI. Revisar: no necesariamente "
-          "es tseltal",
     2851: "estaba clasificado en el pueblo «Tzeltal» y pasó a «{new}» al "
           "fusionar con el catálogo del INPI. Revisar: no necesariamente "
           "es tseltal",
@@ -155,7 +152,9 @@ class Command(BaseCommand):
         # Si retiene actores, la entrada sigue en uso: expired la daría por
         # caducada; could_reclassify deja abierta su clasificación.
         status = statuses["could_reclassify" if retained else "expired"]
-        merged_mark = f"fusionada en #{target.id}"
+        # Sin ids en el comentario (decisión de Ricardo): la marca es el
+        # nombre del destino, y los ids para deshacer van solo en la salida.
+        merged_mark = f"fusionada en «{target.name}»"
         already = (source.status_validation_id == status.pk
                    and merged_mark in (source.comments or ""))
         if already and not moving:
@@ -185,20 +184,21 @@ class Command(BaseCommand):
                 target.save(update_fields=["alternative_names"])
 
         ids = ", ".join(str(a.id) for a in moving) or "-"
-        text = f"{merged_mark} «{target.name}»; se movieron " \
-               f"{len(moving)} actores: {ids}"
-        if retained:
-            text += "; se retuvo " + ", ".join(
-                f"el actor {a.id}" for a in retained)
+        text = f"{merged_mark}; se movieron {len(moving)} actores"
+        if len(retained) == 1:
+            text += "; se retuvo 1 actor"
+        elif retained:
+            text += f"; se retuvieron {len(retained)} actores"
         add_comment(source, text)
         source.status_validation = status
         source.save(update_fields=["status_validation", "comments"])
         counts["merged"] += 1
         counts["moved"] += len(moving)
         counts["retained"] += len(retained)
-        line = f"FUSIONADA {label}: {len(moving)} actores ({ids})"
+        line = f"FUSIONADA {label}: {len(moving)} actores movidos ({ids})"
         if retained:
-            line += ", retenido " + ", ".join(str(a.id) for a in retained)
+            line += "; retenidos en la absorbida: " + ", ".join(
+                str(a.id) for a in retained)
         if not kept_name:
             line += ", sin conservar el nombre"
         return line

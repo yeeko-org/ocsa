@@ -37,6 +37,10 @@ class Rollback(Exception):
     pass
 
 
+def comments():
+    return dict(IndigenousGroup.objects.values_list("id", "comments"))
+
+
 def counts():
     return {g.id: (g.name.strip(), g.n) for g in
             IndigenousGroup.objects.annotate(n=Count("actors"))}
@@ -58,6 +62,7 @@ def run(command):
 
 def main():
     before = counts()
+    before_comments = comments()
     try:
         with transaction.atomic():
             for command in CHAIN:
@@ -70,6 +75,7 @@ def main():
             print("estado idéntico tras la segunda pasada:",
                   snapshot() == first)
             report(before)
+            new_comments(before_comments)
             raise Rollback
     except Rollback:
         print("\n[revertido: la base queda como estaba]")
@@ -83,7 +89,8 @@ def report(before):
           f"({official.count()})\n")
     for g in official:
         states = ", ".join(s.short_name or s.name for s in g.states.all())
-        print(f"#{g.id} {g.name} | {g.n} actores | {states}")
+        print(f"#{g.id} {g.name} | {g.n} actores | {states}\n"
+              f"    alternativos: {g.alternative_names or '-'}")
     print("\n===== Entradas no oficiales que quedan\n")
     for g in groups.filter(is_official=False).order_by("id"):
         print(f"#{g.id} «{g.name.strip()}» | {g.status_validation_id} | "
@@ -106,6 +113,15 @@ def report(before):
             id=actor_id)
         print(f"\nactor {actor_id} → #{actor.indigenous_group_id} "
               f"{actor.indigenous_group}\n{actor.comments}")
+
+
+def new_comments(before):
+    print("\n===== Comentarios que escribió la cadena en las entradas\n")
+    for gid, text in sorted(comments().items()):
+        old = before.get(gid) or ""
+        if text and text != old:
+            added = text[len(old):].strip() if text.startswith(old) else text
+            print(f"#{gid}: {added}")
 
 
 main()

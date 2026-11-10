@@ -28,7 +28,7 @@
   }
  ],
  "fields": {
-  "name": "Nombre en OCSA: «Autodenominación (Denominación DOF)» cuando difieren, la denominación del DOF sola cuando coinciden; apóstrofo recto. Regla de Ricardo del 09/11/2026",
+  "name": "Nombre en OCSA: «Autodenominación (Denominación DOF)» cuando difieren, la denominación del DOF sola cuando coinciden; apóstrofo recto. Regla de Ricardo del 09/11/2026, con cuatro excepciones suyas del mismo día: Pa ipai y Tojol-ab'al llevan la autodenominación sola; Q'anjob'al y Tacuate, la denominación del DOF sola",
   "dof_name": "Denominación del pueblo en la tabla del DOF, sin el asterisco",
   "self_designation": "Columna «Autodenominación en lengua indígena», literal",
   "name_not_self_identified": "La fila lleva asterisco: «Los representantes de este pueblo no se identifican con esta denominación»",
@@ -1054,7 +1054,7 @@
   },
   {
    "no": 43,
-   "name": "Paipai",
+   "name": "Pa ipai",
    "dof_name": "Paipai",
    "self_designation": "Pa ipai",
    "name_not_self_identified": false,
@@ -1067,9 +1067,9 @@
    ],
    "extra_variants": [],
    "language_family": null,
-   "autonym": null,
+   "autonym": "Pa ipai",
    "alternative_names": [
-    "Pa ipai",
+    "Paipai",
     "Pai pai"
    ]
   },
@@ -1221,7 +1221,7 @@
   },
   {
    "no": 50,
-   "name": "K'anob'al (Q'anjob'al)",
+   "name": "Q'anjob'al",
    "dof_name": "Q'anjob'al",
    "self_designation": "K'anob'al",
    "name_not_self_identified": false,
@@ -1236,13 +1236,12 @@
     "Kanjobal"
    ],
    "language_family": null,
-   "autonym": "K'anob'al",
+   "autonym": null,
    "alternative_names": [
     "K'anob'al",
-    "Q'anjob'al",
     "Kanjobal",
-    "Kanobal",
-    "Qanjobal"
+    "Qanjobal",
+    "Kanobal"
    ]
   },
   {
@@ -1321,7 +1320,7 @@
   },
   {
    "no": 54,
-   "name": "Tu'un va'a Ñuu Chatuta-Yuta Ñii' (Tacuate)",
+   "name": "Tacuate",
    "dof_name": "Tacuate",
    "self_designation": "Tu'un va'a Ñuu Chatuta-Yuta Ñii'",
    "name_not_self_identified": false,
@@ -1333,10 +1332,9 @@
    ],
    "extra_variants": [],
    "language_family": "oto-mangue",
-   "autonym": "Tu'un va'a Ñuu Chatuta-Yuta Ñii'",
+   "autonym": null,
    "alternative_names": [
     "Tu'un va'a Ñuu Chatuta-Yuta Ñii'",
-    "Tacuate",
     "Tuun vaa Ñuu Chatuta-Yuta Ñii"
    ]
   },
@@ -1538,7 +1536,7 @@
   },
   {
    "no": 63,
-   "name": "Tojolabal",
+   "name": "Tojol-ab'al",
    "dof_name": "Tojolabal",
    "self_designation": "Tojol -ab'al",
    "name_not_self_identified": false,
@@ -1552,12 +1550,12 @@
     "Tojol-ab'al"
    ],
    "language_family": null,
-   "autonym": null,
+   "autonym": "Tojol-ab'al",
    "alternative_names": [
+    "Tojolabal",
     "Tojol -ab'al",
-    "Tojol-ab'al",
-    "Tojol -abal",
-    "Tojol-abal"
+    "Tojol-abal",
+    "Tojol -abal"
    ]
   },
   {
