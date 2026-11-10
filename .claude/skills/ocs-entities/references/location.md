@@ -1,10 +1,11 @@
 # Entidad: Ubicación (Location)
 
-Dónde está un megaproyecto, un evento o una afectación. Una `Location` cuelga de **un** padre (`project`, `event` o `impact`) y describe un lugar con división administrativa y, opcionalmente, geometría. La fuente canónica y detallada es el reference `2026-08-17-ubicaciones-y-geometria` en `docs/reference/`; aquí va lo indispensable para queries, filtros y exportaciones.
+Dónde está un megaproyecto. Una `Location` cuelga siempre de un proyecto (`project`, obligatorio en la base) y describe un lugar con división administrativa y, opcionalmente, geometría. La fuente canónica y detallada es el reference `2026-08-17-ubicaciones-y-geometria` en `docs/reference/`; aquí va lo indispensable para queries, filtros y exportaciones.
 
 ## Modelo `space_time.Location`
 
-- FK nulables: `project`, `event`, `impact` (una sola puesta), `state`, `municipality`, `locality` (una de cada) más el M2M derivado `municipalities` (todos los municipios que atraviesa la geometría, incluido el base).
+- `project`: FK obligatoria en la base (`null=False`); queda `blank=True` para que la edición masiva no la exija. Eventos y afectaciones no tienen ubicación propia: su lugar es el del proyecto de su mención.
+- FK nulables: `state`, `municipality`, `locality` (una de cada) más el M2M derivado `municipalities` (todos los municipios que atraviesa la geometría, incluido el base).
 - **Derivación geográfica y cartografía del INEGI: skill `ocs-geo`** — reglas, umbrales, loaders y contrato del `geojson` viven allí, no aquí.
 - `type_location`: choices `point` | `line` | `polygon` (`TYPE_LOCATIONS`; no es tabla). El 2026-08-26 se reabrió como tarea futura darle su propio modelo `LocationType` y renombrar el campo a `location_type`.
 - `latitude`, `longitude`: en `point`, la coordenada capturada; en `line` y `polygon`, el centroide que calcula el servidor al guardar la geometría (punto medio del trazo en las líneas).

@@ -8,7 +8,7 @@ Hecho narrado en la nota que afecta al proyecto o a sus actores. Los eventos se 
   `description`, `date` (aproximada), `number_women/men/mix`.
 - **`event.Involved`** — vínculo entre un `Participant` y un `Event`. Campos: `event` (FK), `participant` (FK), `involved_role` (FK, opcional),
   `number_women/men/mix`.
-- Las ubicaciones del evento se registran en `space_time` solo si difieren de la ubicación principal del proyecto.
+- El evento no tiene ubicación propia: su lugar es el del proyecto de la mención (`space_time.Location` cuelga solo del proyecto).
 
 ## Los 4 grupos de evento
 

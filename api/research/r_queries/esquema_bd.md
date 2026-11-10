@@ -53,7 +53,6 @@ El post-procesamiento (pivots, joins, cálculos) se hace con tidyverse.
                            | (project_id en source_mention)
                            |
                  space_time_location
-                 (también event_id, impact_id)
 ```
 
 `source_mention` es el nodo central: toda nota se amarra a un proyecto
@@ -79,7 +78,7 @@ desplazamientos.
 
 Cuando un proyecto tiene varias filas en `space_time_location`, la
 ubicación "principal" es la de mayor `priority` en su
-`status_location`. Este patrón aplica también para evento e impacto.
+`status_location`.
 
 ```sql
 SELECT DISTINCT ON (p.id)
@@ -100,15 +99,10 @@ LEFT JOIN space_time_locality     loc ON loc.id = lo.locality_id
 ORDER BY p.id, sc.priority DESC NULLS LAST
 ```
 
-### Evento → su propia ubicación
-
-```sql
-JOIN space_time_location lo ON lo.event_id = ev.id
-```
-
 ### Evento → ubicación del proyecto asociado
 
-Útil cuando el evento no tiene ubicación propia registrada.
+El evento no tiene ubicación propia: se hereda la del proyecto de su
+mención.
 
 ```sql
 JOIN source_mention       m  ON m.id = ev.mention_id
@@ -117,8 +111,8 @@ JOIN space_time_location  lo ON lo.project_id = m.project_id
 
 ### Afectación → ubicación
 
-Análogo a evento: `space_time_location.impact_id` para la ubicación
-propia; si no existe, heredar vía `source_mention.project_id`.
+Análogo a evento: la afectación no tiene ubicación propia; se hereda
+vía `source_mention.project_id`.
 
 ### Actor ↔ Evento: relación directa
 

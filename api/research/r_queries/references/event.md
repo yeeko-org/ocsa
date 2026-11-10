@@ -75,10 +75,9 @@ intervinieron en el evento y en qué rol.
 
 ## Ubicación del evento
 
-- **Directa**: `space_time_location` con `event_id = <id_evento>`.
-- **Heredada del proyecto** (cuando no hay ubicación propia): seguir
-  `event_event → source_mention → project_project →
-  space_time_location`. Ver `space_time.md` para el patrón completo.
+El evento no tiene ubicación propia: se hereda la del proyecto,
+siguiendo `event_event → source_mention → project_project →
+space_time_location`. Ver `space_time.md` para el patrón completo.
 
 ## Ejemplos
 

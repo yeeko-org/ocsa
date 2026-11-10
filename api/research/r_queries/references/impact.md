@@ -59,8 +59,8 @@ solo `impact_type_id` y dejar `impact_subtype_id` en `NULL`.
 
 ## Ubicación de la afectación
 
-- **Directa**: `space_time_location.impact_id = <id_afectacion>`.
-- **Heredada del proyecto**: vía `source_mention.project_id`.
+- La afectación no tiene ubicación propia: se hereda la del proyecto
+  vía `source_mention.project_id`.
 - Se selecciona la ubicación de mayor
   `status_location.priority` cuando hay varias (ver `space_time.md`).
 

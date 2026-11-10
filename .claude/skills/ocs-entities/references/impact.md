@@ -8,7 +8,7 @@ El flag `is_potential` distingue si ya ocurrió (`False`) o podría ocurrir (`Tr
 
 - **`impact.Impact`** — registro de una afectación en una mención.
   Campos clave: `mention` (FK), `impact_type` (FK), `impact_subtype` (FK, opcional), `description`, `is_potential` (bool).
-- Las ubicaciones de la afectación se registran en `space_time` solo cuando difieren de la ubicación principal del proyecto.
+- La afectación no tiene ubicación propia: su lugar es el del proyecto de la mención (`space_time.Location` cuelga solo del proyecto).
 - Si el impacto implica desplazamiento de personas, puede tener un `df.Displacement` relacionado (ver `references/displacement.md`).
 
 ## Catálogos

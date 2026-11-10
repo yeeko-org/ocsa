@@ -7,7 +7,8 @@ La base maneja dos familias de tablas:
   México.
 - **Ubicaciones registradas** (`space_time_location`): filas concretas
   que ligan una ubicación (estado, municipio, localidad, punto
-  geográfico) con un proyecto, evento o afectación.
+  geográfico) con un proyecto. Eventos y afectaciones no tienen
+  ubicación propia: heredan la del proyecto de su mención.
 
 ## Catálogos INEGI
 
@@ -56,16 +57,13 @@ La base maneja dos familias de tablas:
 
 ### `space_time_location`
 
-Fila que ata una entidad (proyecto / evento / afectación) con un
-punto, municipio o localidad concreta. Las tres FKs a las entidades
-padre son nullable y, en la práctica, cada fila pertenece a una sola.
+Fila que ata un proyecto con un punto, municipio o localidad
+concreta. `project_id` es obligatorio.
 
 | Columna | Tipo | Descripción |
 |---------|------|-------------|
 | `id` | integer | PK |
-| `project_id` | integer → `project_project.id` | (nullable) |
-| `event_id` | integer → `event_event.id` | (nullable) |
-| `impact_id` | integer → `impact_impact.id` | (nullable) |
+| `project_id` | integer → `project_project.id` | Obligatorio |
 | `state_id` | integer → `space_time_state.id` | (nullable) |
 | `municipality_id` | integer → `space_time_municipality.id` | (nullable) |
 | `locality_id` | integer → `space_time_locality.id` | (nullable) |
@@ -123,42 +121,34 @@ SELECT
 FROM project_project p
 ```
 
-Aplica igual para `event_id` e `impact_id`.
-
 ## Ejemplos
 
 ### Proyectos con su entidad (ubicación principal)
 
 Ver el primer bloque de SQL arriba.
 
-### Ubicación del evento con fallback al proyecto
+### Ubicación del evento (la del proyecto)
 
-Si el evento no tiene ubicación propia, usar la del proyecto asociado.
+El evento no tiene ubicación propia: se usa la del proyecto asociado.
 
 ```sql
 SELECT
     ev.id,
     ev.date,
-    COALESCE(
-        st_ev.name,
-        st_pr.name
-    ) AS entidad
+    st_pr.name AS entidad
 FROM event_event ev
-LEFT JOIN space_time_location lo_ev ON lo_ev.event_id = ev.id
-LEFT JOIN space_time_state    st_ev ON st_ev.id = lo_ev.state_id
 LEFT JOIN source_mention      m     ON m.id = ev.mention_id
 LEFT JOIN space_time_location lo_pr ON lo_pr.project_id = m.project_id
 LEFT JOIN space_time_state    st_pr ON st_pr.id = lo_pr.state_id
 ```
 
-(Para producción, envolver las dos `space_time_location` con el
-criterio de `priority` del patrón canónico.)
+(Para producción, envolver `space_time_location` con el criterio de
+`priority` del patrón canónico.)
 
 ## Trampas frecuentes
 
-- `space_time_location` registra la ubicación de **una** entidad por
-  fila. Filtrar siempre por la FK correspondiente
-  (`project_id`, `event_id` o `impact_id`).
+- `space_time_location` registra la ubicación de **un** proyecto por
+  fila; se filtra por `project_id`.
 - Cuando se busca "la" ubicación y hay varias, elegir por
   `status_location.priority`. Sin ese criterio, el resultado puede
   variar entre ejecuciones.

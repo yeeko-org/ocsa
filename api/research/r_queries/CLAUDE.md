@@ -15,31 +15,19 @@ preguntar.
 
 Casos canónicos a vigilar:
 
-- **Ubicación de algo**. Cada entidad (proyecto, evento, afectación)
-  puede tener su propia fila en `space_time_location`, filtrando por
-  `project_id`, `event_id` o `impact_id`. Para una misma entidad con
-  varias ubicaciones registradas, se elige la de mayor
+- **Ubicación de algo**. Solo el proyecto tiene filas en
+  `space_time_location` (`project_id`, obligatorio). Para un proyecto
+  con varias ubicaciones registradas, se elige la de mayor
   `status_location.priority` (patrón canónico del sistema).
 
-  Para **evento y afectación** hay dos niveles posibles de ubicación:
-
-  a) **Directa**: la fila de `space_time_location` ligada al propio
-     `event_id` o `impact_id`. Suele estar poco poblada y no siempre
-     existe.
-  c) **Vía proyecto** (`mention → project → space_time_location`):
-     la ubicación principal del proyecto al que pertenece la nota.
-     **Este es el default** cuando la usuaria pide "la ubicación del
-     evento o la afectación": es la ruta más
-     poblada.
-
-  Comportamiento del agente para evento/afectación: **no preguntar**,
-  usar la opción c) por default y **mencionarlo explícitamente** en el
-  resumen de la respuesta, de modo que la usuaria pueda pedir la
-  opción a) o un `COALESCE` entre ambas si le conviene.
+  **Evento y afectación** no tienen ubicación propia: su ubicación es
+  la del proyecto de su mención (`mention → project →
+  space_time_location`). Comportamiento del agente: **no preguntar** y
+  **mencionarlo explícitamente** en el resumen de la respuesta («la
+  ubicación del evento es la del proyecto»).
 
   Para **desplazamiento forzado** la ubicación funciona distinto y
-  tiene varios niveles (origen, destino, ubicación del evento o
-  afectación asociados, ubicación del proyecto). El caso es
+  tiene varios niveles (origen, destino, ubicación del proyecto). El caso es
   multidimensional y no tiene default limpio, así que **sí
   preguntar**. El menú completo de opciones y el patrón SQL viven en
   `references/df.md` (sección "Ubicación en desplazamiento: menú de
