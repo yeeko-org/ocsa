@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from profile_auth.models import User
+from profile_auth.signals import blocking_relations
 from django.contrib.auth.admin import UserAdmin
 
 
@@ -29,3 +30,13 @@ class CustomUserAdmin(UserAdmin):
     list_filter = (
         'is_staff', 'is_superuser', 'is_active', 'groups', 'full_editor')
 
+    def get_deleted_objects(self, objs, request):
+        deleted, model_count, perms_needed, protected = (
+            super().get_deleted_objects(objs, request))
+        # The guard raises ProtectedError only at the confirmation POST, a
+        # 500; listed here, the admin refuses with its own protected page.
+        protected = list(protected)
+        for user in objs:
+            protected += [f"Usuario «{user}»: {relation}"
+                          for relation in blocking_relations(user)]
+        return deleted, model_count, perms_needed, protected

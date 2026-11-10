@@ -146,20 +146,39 @@ class RecordMerger:
                     f"Error al procesar relación '{related.field.name}' "
                     f"del modelo '{related.related_model}': {e}"
                 )
+        if self.errors:
+            # Deleting the absorbed entry now would cascade away the rows
+            # that failed to move, so nothing of this merge is kept.
+            transaction.set_rollback(True)
+            return
+        self._carry_many_to_many()
         self._keep_merged_name()
         if delete_merge:
             try:
                 self.delete_instance()
             except Exception as e:
+                # The relations already point to the survivor: keeping them
+                # with the absorbed entry alive would be a half merge.
+                transaction.set_rollback(True)
+                self.deleted_report = {}
                 self.errors.append(
                     f"Error al eliminar el registro con ID {merge_id}: {e}")
 
+    def _schema(self):
+        from ps_schema.registry import schema_for_model
+        return schema_for_model(self.model_class)
+
+    def _carry_many_to_many(self):
+        schema = self._schema()
+        for field_name in getattr(schema, "merge_carries", []):
+            carried = getattr(self.merge_instance, field_name).all()
+            getattr(self.main_instance, field_name).add(*carried)
+
     def _keep_merged_name(self):
         # El nombre absorbido sigue sirviendo para buscar y pasa a los
-        # alternativos del destino, pero solo donde el CatalogSchema lo pide:
-        # un nombre de actor o de proyecto con comas se partiría en pedazos.
-        from ps_schema.registry import catalog_registry
-        schema = catalog_registry.schema_for_model(self.model_class)
+        # alternativos del destino, pero solo donde el schema lo pide: un
+        # nombre de actor o de proyecto con comas se partiría en pedazos.
+        schema = self._schema()
         if not schema or not schema.merge_keeps_name:
             return
         fields = {f.name: f for f in self.model_class._meta.get_fields()}
@@ -193,20 +212,17 @@ class RecordMerger:
             related_manager.update(**{field_name: self.main_instance})
 
     def _merge_many_to_many(self, related_field):
-        related_name = related_field.field.name
-        if related_name.endswith('_rel_+'):
-            related_name = related_name[:-5]
-        try:
-            related_manager = getattr(self.merge_instance, related_name)
-        except Exception as e:
-            print(f"Error accediendo a related_manager: {e}")
-            print(f"related.name: {related_field.name}")
-            print(f"merge_instance: {self.merge_instance.__dict__}")
-            print(f"related: {related_field.__dict__}")
-
-            raise e
+        # The absorbed entry reaches its rows through the reverse accessor
+        # (`country.actors`), not the field name (`countries`); only a
+        # symmetrical M2M on self has no reverse accessor and is read from
+        # the field itself.
+        accessor = (related_field.get_accessor_name()
+                    or related_field.field.name)
+        related_manager = getattr(self.merge_instance, accessor)
         field_name = related_field.field.name
 
+        # add() skips a row that already exists, so an object that points
+        # to both entries ends with the survivor once.
         for obj_whit_m2m in related_manager.all():
             obj_whit_m2m_manager = getattr(obj_whit_m2m, field_name)
             obj_whit_m2m_manager.add(self.main_instance)

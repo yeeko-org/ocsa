@@ -144,7 +144,7 @@ class ProjectViewSet(
         "mentions__participants__actor__belongs",
     ).distinct()
     # add_locations = True
-    click_actions = ['opened', 'created', 'saved']
+    click_actions = ['opened', 'created', 'updated']
 
     pagination_class = CustomPagination
     serializer_class = ProjectBasicSerializer
@@ -184,6 +184,7 @@ class ProjectViewSet(
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        self.save_click_action(request, instance, 'updated')
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)

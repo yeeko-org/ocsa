@@ -3,7 +3,7 @@
 Solo lectura (la transacción se abre READ ONLY). Se corre contra
 producción justo antes de `migrate`: la 0004 de `space_time` borra toda
 `Location` sin proyecto, y la 0005 quita `event_id`/`impact_id`
-(adr-0033, task-122). Por eso lee con SQL crudo y no con el modelo: el
+(adr-0035, task-122). Por eso lee con SQL crudo y no con el modelo: el
 modelo del working tree ya no tiene esas dos columnas.
 
 Escribe en el directorio de salida:
@@ -20,9 +20,9 @@ Escribe en el directorio de salida:
   en las ubicaciones de sus eventos y afectaciones.
 
 Uso:
-    python .claude/diagnostics/backup_non_project_locations.py <dir>
+    python api/.claude/diagnostics/backup_non_project_locations.py <dir>
     DATABASE_NAME=ocsa-prod-20261108 \\
-        python .claude/diagnostics/backup_non_project_locations.py <dir>
+        python api/.claude/diagnostics/backup_non_project_locations.py <dir>
 """
 import datetime
 import json

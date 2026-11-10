@@ -23,4 +23,4 @@ Prefix `[api]` or `[nuxt]` when the commit touches one side only; no prefix when
 
 ## Testing
 
-A small unit suite on the api side (`manage.py test source`); the rest are re-runnable diagnostics that hit real services and cost money. See [TESTING.md](TESTING.md) before running any.
+Unit suites on the api and nuxt sides, plus re-runnable diagnostics that hit real services and cost money. See [TESTING.md](TESTING.md) before running any.

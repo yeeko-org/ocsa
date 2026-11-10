@@ -65,6 +65,9 @@ class ClickHistoryActivitySerializer(ActivitySerializer):
         for model in models:
             if getattr(obj, model, None) is not None:
                 return model
+        # The record was deleted: keep the click's color in the activity view
+        if obj.deleted_origin:
+            return obj.deleted_origin.get("model")
 
     def get_activity_type(self, obj):
         return 'click'

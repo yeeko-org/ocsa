@@ -1,6 +1,6 @@
 # TESTING
 
-Estado real del repo, no un ideal: hay **tres suites montadas** —el invariante de escritura de adjuntos y la nota desde enlace, en `source/`; el criterio de visibilidad del mapa, en `space_time/tests/`, y la carga del catálogo del INPI, en `classify/`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
+Estado real del repo, no un ideal: hay **siete suites montadas** —el invariante de escritura de adjuntos y la nota desde enlace, en `source/`; el criterio de visibilidad del mapa, en `space_time/tests/`; la carga del catálogo del INPI, en `classify/`; el propósito y los exports de eventos, en `event/`; el historial de clics, en `task/`; la protección de usuarios contra el borrado, en `profile_auth/`, y la fusión del dashboard, en `project/`— sobre el runner nativo de Django. Los demás `tests.py` siguen siendo esqueletos vacíos.
 
 Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el mundo real (la red, la base) en vez de contra aserciones. Se corren a mano cuando hace falta, no en cada commit.
 
@@ -8,7 +8,7 @@ Lo demás son **diagnósticos re-ejecutables**: scripts que verifican contra el 
 
 | Nivel | Estado |
 |---|---|
-| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos, nota desde enlace), `space_time` (visibilidad del mapa, filtros de pendientes y geolocalización) y `classify` (catálogo del INPI) |
+| Unitario / integración (`django.test`, runner nativo) | **Sí** — `source` (adjuntos, nota desde enlace), `space_time` (visibilidad del mapa, filtros de pendientes y geolocalización), `classify` (catálogo del INPI), `event` (propósito y exports), `task` (historial de clics), `profile_auth` (usuarios que no se borran) y `project` (fusión del dashboard) |
 | E2E | No montado |
 | Diagnósticos manuales | **Sí** — ver abajo |
 
@@ -55,7 +55,39 @@ Ciento trece tests, ~1 s, **sin red y sin costo**, repartidos en el paquete `spa
 DATABASE_SCHEMA= python manage.py test classify --noinput
 ```
 
-`classify/test_inpi_catalog.py`, seis tests, ~0.4 s, **sin red y sin costo**, sobre un JSON de tres pueblos y uno de estados escritos en un directorio temporal: que repetir `load_inpi_catalog` no cree ni cambie nada, estados incluidos; que solo se adopte la entrada homónima del nombre o de una de sus dos partes —«Mixe», la denominación del DOF, queda como «Ayuuk (Mixe)» con «Ayuujk» entre sus alternativos— y que una entrada con otra autodenominación («Ayuujk») no se toque ni pierda sus actores, ni siquiera cuando es lo único que hay («el autónimo solo no se adopta»), porque pasarlos al pueblo es una fusión; que repetir `merge_indigenous_groups` no cambie nada (la absorbida queda `expired` con su comentario, sus actores en el oficial y su nombre entre los alternativos de este); que la fusión del dashboard (`utils/register_merge.py::RecordMerger`) pase el nombre y los alternativos de la entrada absorbida a los del destino; y que `GET /api/catalogs/indigenous_group/?q=` encuentre por `alternative_names` sin distinguir acentos. La base de test nace sin la extensión `unaccent`, así que la suite de búsqueda la crea en su `setUpTestData`.
+`classify/test_inpi_catalog.py`, seis tests, ~0.4 s, **sin red y sin costo**, sobre un JSON de tres pueblos y uno de estados escritos en un directorio temporal: que repetir `load_inpi_catalog` no cree ni cambie nada, estados incluidos; que solo se adopte la entrada homónima del nombre o de una de sus dos partes —«Mixe», la denominación del DOF, queda como «Ayuuk (Mixe)» con «Ayuujk» entre sus alternativos— y que una entrada con otra autodenominación («Ayuujk») no se toque ni pierda sus actores, ni siquiera cuando es lo único que hay («el autónimo solo no se adopta»), porque pasarlos al pueblo es una fusión; que repetir `merge_indigenous_groups` no cambie nada (la absorbida que queda sin actores se borra, con sus actores en el oficial y su nombre entre los alternativos de este, y la segunda corrida la reporta como «no existe la entrada»); que la fusión del dashboard (`utils/register_merge.py::RecordMerger`) pase el nombre y los alternativos de la entrada absorbida a los del destino; que en los tres caminos —carga, fusión del comando y fusión del dashboard— ningún alternativo repita, sin distinguir mayúsculas ni acentos, el nombre ni ninguna de sus dos partes («Ayuuk (Mixe)» no lleva «Ayuuk» ni «Mixe»: la regla vive en `utils/alternative_names.py::join_names`), y que `GET /api/catalogs/indigenous_group/?q=` encuentre por `alternative_names` y por cualquiera de las dos partes del nombre, sin distinguir acentos. La base de test nace sin la extensión `unaccent`, así que la suite de búsqueda la crea en su `setUpTestData`.
+
+### Propósito y exports de eventos (`event`)
+
+```bash
+DATABASE_SCHEMA= python manage.py test event.test_purpose event.test_exports --noinput
+```
+
+Cuatro tests, ~0.03 s, **sin red y sin costo**. Van por módulo y no como `test event`: el descubrimiento importaría `event/migrate/`, que consulta la base al importarse y truena en la base de test. `test_purpose.py` (2) protege `EventMediumSerializer.validate` (`task-125`): cambiar un mecanismo legal a otro tipo limpia su propósito, y editar uno legal lo conserva. `test_exports.py` (2) comprueba en los encabezados de `EventExport` e `ImpactExport` que no vuelva ninguna columna de ubicación propia (`LocationBlock`) y que estén todas las «… del proyecto» (`ProjectLocationBlock`, `adr-0035`); arma un request con usuario autenticado porque sin request la librería omite toda columna con `condition`.
+
+### Historial de clics (`task`)
+
+```bash
+DATABASE_SCHEMA= python manage.py test task --noinput
+```
+
+`task/test_click_trace.py`, dos tests, ~0.2 s, **sin red y sin costo**. Uno (`task-140`): borrar un proyecto conserva su clic y el de su ubicación —que se borra en cascada— con la llave en nulo y modelo, id, etiqueta y fecha en `deleted_origin`, que llena la señal `pre_delete` de `task/signals.py`; el rastro de una ubicación lleva además `project_id` y `project_name`, tanto en la cascada (el nombre sale del proyecto que origina el borrado, sin consulta por ubicación) como al borrarla sola (una consulta, y solo si tiene clics). El otro: guardar un proyecto por la API (`PATCH /api/project/<id>/`, editor pleno) deja exactamente un clic `updated` de ese usuario sobre ese proyecto; muerde si `ProjectViewSet.update` deja de llamar a `save_click_action` o si `click_actions` vuelve a nombrar la acción de otro modo (era `saved`, y el mixin descarta en silencio la acción que no está en la lista).
+
+### Usuarios que no se borran (`profile_auth`)
+
+```bash
+DATABASE_SCHEMA= python manage.py test profile_auth --noinput
+```
+
+`profile_auth/test_user_guard.py`, dos tests, ~0.2 s, **sin red y sin costo** (`task-140`): un usuario que editó una nota (`Note.editors`) no se borra, ni con `delete()` ni por queryset, y uno que solo tiene su token sí. La guarda es la señal `pre_delete` de `profile_auth/signals.py`, que deriva las relaciones de `_meta` y solo deja pasar token, `LogEntry` del admin, grupos y permisos. Corre dentro del bloque atómico del `Collector` sin savepoint, así que cada intento fallido del test va en su propio `transaction.atomic()`.
+
+### Fusión del dashboard (`project`)
+
+```bash
+DATABASE_SCHEMA= python manage.py test project --noinput
+```
+
+`project/test_merge.py`, cuatro tests, ~0.7 s, **sin red y sin costo** (`task-140`): que `RecordMerger` pase a la entrada que sobrevive solo los muchos a muchos que el schema declara en `merge_carries` —los editores de un proyecto, sí; los países y las pertenencias de un actor absorbido, no—; que al fusionar dos países cada actor que apuntaba a cualquiera de los dos quede con el que sobrevive una sola vez, sin errores y con el absorbido borrado (el merger lee esas filas por el accesor inverso, `country.actors`, no por el nombre del campo), y que `POST /api/generic_merge/` responda 403 sin escribir nada a un usuario sin rol (no puede borrar la entrada absorbida, que es lo único que `merge_denied` pregunta) y a un modelo cuyo schema no admite fusiones; y que si el borrado final de la absorbida falla (`ProtectedError` parcheado en el `delete` del modelo), `POST /api/generic_merge/` con `delete_merge` responda 400 con `deleted` vacío y no quede nada a medias: en un proyecto, su ubicación sigue apuntando a la absorbida y sus editores no pasan al destino (`merge_carries`); en un pueblo indígena (`merge_keeps_name`), su actor sigue en la absorbida y los `alternative_names` del destino no cambian. El bloque atómico de `merge_registers` es un savepoint dentro de la transacción del `TestCase`, así que su `set_rollback` deja válidas las aserciones posteriores.
 
 Setup compartido: `work_flux/test_helpers.py::make_status(name, group, **kw)` crea el `StatusControl` sembrando antes su `StatusGroup` (el FK lo exige desde la 0008) y limpia el caché por proceso de `api.permissions.status_fields()` cuando el grupo es nuevo.
 
@@ -234,7 +266,7 @@ DATABASE_NAME=ocsa-prod-20261108 \
     python .claude/diagnostics/backup_non_project_locations.py ~/respaldos/ocsa
 ```
 
-**Gratis y sin red, solo lectura** (la transacción se abre `READ ONLY`). Se corre contra producción justo antes de aplicar la 0004 de `space_time` (`adr-0033`, `task-122`). Lee con SQL crudo, porque el modelo ya no tiene `event_id` ni `impact_id`, así que deja de servir una vez aplicada la 0005. Escribe en el directorio que recibe un JSON con cada fila de `space_time_location` sin proyecto (todas sus columnas), sus filas del M2M `municipalities`, las de `task_clickhistory` que el borrado arrastra en cascada y el `purpose_id` de los eventos que la 0018 de `event` deja en nulo; y un xlsx para el equipo con los proyectos sin ubicación propia y las entidades y municipios de las ubicaciones de sus eventos y afectaciones. En la copia del 2026-11-08: 10,496 ubicaciones (5,307 de eventos, 5,170 de afectaciones, 19 huérfanas), 8 filas del M2M, ningún clic, 85 propósitos y 137 proyectos.
+**Gratis y sin red, solo lectura** (la transacción se abre `READ ONLY`). Se corre contra producción justo antes de aplicar la 0004 de `space_time` (`adr-0035`, `task-122`). Lee con SQL crudo, porque el modelo ya no tiene `event_id` ni `impact_id`, así que deja de servir una vez aplicada la 0005. Escribe en el directorio que recibe un JSON con cada fila de `space_time_location` sin proyecto (todas sus columnas), sus filas del M2M `municipalities`, las de `task_clickhistory` que apuntan a ellas (desde `task-140` la 0004 ya no las borra: les deja el rastro en `deleted_origin` y la llave en nulo) y el `purpose_id` de los eventos que la 0018 de `event` deja en nulo; y un xlsx para el equipo con los proyectos sin ubicación propia y las entidades y municipios de las ubicaciones de sus eventos y afectaciones. En la copia del 2026-11-08: 10,496 ubicaciones (5,307 de eventos, 5,170 de afectaciones, 19 huérfanas), 8 filas del M2M, ningún clic, 85 propósitos y 137 proyectos.
 
 ### Marcado editorial de ubicaciones dudosas
 

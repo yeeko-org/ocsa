@@ -70,7 +70,7 @@ class SyntheticCartography:
             public_name="Aprobado (Aproximado)")
         cls.approved = make_status(
             name="finished", group="location", public_name="Aprobado")
-        # Toda ubicación cuelga de un proyecto (adr-0033), y guardarla
+        # Toda ubicación cuelga de un proyecto (adr-0035), y guardarla
         # rederiva su status_location: sin status, «empty».
         make_status(
             name="empty", group="location", public_name="Sin ubicación")

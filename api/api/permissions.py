@@ -167,6 +167,11 @@ class IsEditorOrCreateOrRead(BaseHardPermission):
 
     def has_write_permission_object(self, request, view, obj):
 
+        # A catalog without a validation status (Country, Belong) has no
+        # lock to read: the full-editor check above is all there is.
+        if not hasattr(obj, "status_validation_id"):
+            return True
+
         if request.method in soft_actions and obj.status_validation.open_editor:
             return True
 

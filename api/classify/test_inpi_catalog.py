@@ -3,8 +3,9 @@
 Lo que se protege es lo que no se deshace solo: que repetir la carga o la
 fusión no duplique ni reescriba nada, que solo el homónimo del nombre o de
 sus partes se adopte (cualquier otro autónimo es una fusión), que fusionar
-no pierda el nombre absorbido, y que el catálogo se encuentre por sus
-nombres alternativos.
+no pierda el nombre absorbido, que los alternativos solo traigan lo que el
+nombre no dice ya, y que el catálogo se encuentre por sus nombres
+alternativos y por cualquiera de las dos partes de su nombre.
 """
 import json
 import tempfile
@@ -21,6 +22,7 @@ from actor.models import Actor
 from classify.models import IndigenousGroup
 from profile_auth.models import User
 from space_time.models import State
+from utils.alternative_names import name_forms, normalize_name, split_names
 from utils.register_merge import RecordMerger
 from work_flux.test_helpers import make_status
 
@@ -79,6 +81,12 @@ class InpiCatalogTestCase(TestCase):
         cls.tmp.cleanup()
         super().tearDownClass()
 
+    def assertOnlyNewNames(self, group):
+        group.refresh_from_db()
+        repeated = [n for n in split_names(group.alternative_names)
+                    if normalize_name(n) in name_forms(group.name)]
+        self.assertEqual(repeated, [], group.name)
+
     def call(self, command, *args):
         out = StringIO()
         call_command(command, "--path", str(self.path), *args, stdout=out)
@@ -130,6 +138,9 @@ class LoadInpiCatalogTests(InpiCatalogTestCase):
         self.assertTrue(mixe.is_official)
         self.assertEqual(mixe.status_validation_id, "validated")
         self.assertIn("Ayuujk", mixe.alternative_names)
+        # El JSON trae «Ayuuk» y «Mixe» sueltos; ya están en el nombre.
+        for group in IndigenousGroup.objects.filter(is_official=True):
+            self.assertOnlyNewNames(group)
 
         before = (ayuujk.name, ayuujk.alternative_names, ayuujk.is_official,
                   ayuujk.status_validation_id)
@@ -171,18 +182,23 @@ class MergeIndigenousGroupsTests(InpiCatalogTestCase):
         output = self.call("merge_indigenous_groups")
 
         self.assertEqual(self.snapshot(), first)
-        self.assertIn("0 fusionadas, 1 ya estaban", output)
+        self.assertIn("0 fusionadas (0 borradas), 0 ya estaban", output)
+        self.assertIn(
+            "FALTA «Mixe» → «Ayuuk (Mixe)»: no existe la entrada", output)
         actor.refresh_from_db()
         self.assertEqual(actor.indigenous_group_id, official.id)
-        mixe.refresh_from_db()
-        self.assertEqual(mixe.status_validation_id, "expired")
-        self.assertIn("fusionada en «Ayuuk (Mixe)»", mixe.comments)
-        self.assertIn("Mixe", official.alternative_names)
+        # Sin actores, la absorbida se borra; su nombre, «Mixe», ya lo dice
+        # el del oficial, así que no entra a los alternativos.
+        self.assertFalse(IndigenousGroup.objects.filter(pk=mixe.pk).exists())
+        self.assertOnlyNewNames(official)
+        self.assertEqual(official.alternative_names, "Ayuujk, Ayook")
 
 
 class DashboardMergeTests(InpiCatalogTestCase):
 
     def test_la_fusion_pasa_el_nombre_absorbido_a_los_alternativos(self):
+        # «Wixárika» ya está en el nombre del destino: sale de los
+        # alternativos aunque la absorbida también lo traiga.
         main = IndigenousGroup.objects.create(
             name="Wixárika (Huichol)", alternative_names="Wixárika")
         absorbed = IndigenousGroup.objects.create(
@@ -194,8 +210,7 @@ class DashboardMergeTests(InpiCatalogTestCase):
 
         self.assertEqual(merger.errors, [])
         main.refresh_from_db()
-        self.assertEqual(
-            main.alternative_names, "Wixárika, Wirrárika, Wixaritari")
+        self.assertEqual(main.alternative_names, "Wirrárika, Wixaritari")
         actor.refresh_from_db()
         self.assertEqual(actor.indigenous_group_id, main.id)
 
@@ -226,5 +241,8 @@ class IndigenousGroupSearchTests(TestCase):
         rows = response.data.get("results", response.data)
         return [row["id"] for row in rows]
 
-    def test_encuentra_por_nombre_alternativo(self):
+    def test_encuentra_por_alternativo_y_por_las_partes_del_nombre(self):
         self.assertEqual(self.search("wixaritari"), [self.wixarika.id])
+        # Las partes no viven en los alternativos: las encuentra el nombre.
+        self.assertEqual(self.search("wixarika"), [self.wixarika.id])
+        self.assertEqual(self.search("Huichol"), [self.wixarika.id])

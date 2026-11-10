@@ -19,7 +19,7 @@ class ImpactBlock(ModelExport):
     model = Impact
     columns = [
         XlsColumn("id"),
-        XlsColumn("description", width=50),
+        XlsColumn("description", title="Descripción", width=50),
         FkColumn(
             "impact_type", "impact_group__name",
             title="Grupo de afectación", width=15,

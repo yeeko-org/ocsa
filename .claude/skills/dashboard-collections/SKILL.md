@@ -31,7 +31,7 @@ middleware/dashboard.js → store.fetchCatalogs()
 
 ### Forma de `collection_data`
 
-Del backend (`api/ps_schema/registry.py::_base_collection_dict`, líneas 175-194): `app_label`, `snake_name`, `model_name` (PascalCase, el `object_name` del modelo), `name`, `plural_name`, `level`, `cat_params`, `sort_fields`, `extra_massive_edit_fields`; más, por registry (`CollectionRegistry.iter_collection_data`, líneas 403-428), `icon`, `color`, `open_insertion`, `available_actions` (`merge` / `massive_edit` / `massive_delete`), `xls_export`, `create_only_nested`, `all_filters` y `fields[]`. Cada entrada de `fields[]` trae `name`, `real_name`, `primary_key`, `relation_type` (`simple|one_to_many|many_to_many|…`), `field_type`, `is_editable`, `null`, `width` y, si es relación, `related_snake_name` / `related_model` / `related_app_label`.
+Del backend (`api/ps_schema/registry.py::_base_collection_dict`): `app_label`, `snake_name`, `model_name` (PascalCase, el `object_name` del modelo), `name`, `plural_name`, `level`, `cat_params`, `sort_fields`, `extra_massive_edit_fields`; más, por registry (`CollectionRegistry.iter_collection_data` y `CatalogRegistry.iter_collection_data`), `icon`, `color`, `open_insertion`, `available_actions` (`merge` / `massive_edit` / `massive_delete`), `xls_export`, `create_only_nested`, `all_filters` y `fields[]`. Cada entrada de `fields[]` trae `name`, `real_name`, `primary_key`, `relation_type` (`simple|one_to_many|many_to_many|…`), `field_type`, `is_editable`, `null`, `width` y, si es relación, `related_snake_name` / `related_model` / `related_app_label`.
 
 **En OCSA los metadatos derivados de los campos se calculan en el front**, en `composables/cats.js::calculateSchemas` (no en el backend):
 
@@ -62,8 +62,8 @@ Ejemplo real: `space_time` / `location` / `Location` → `~/components/dashboard
 | Sufijo | Se resuelve en | Fallback | Rol |
 |---|---|---|---|
 | `Header` | `PanelList.vue:30,33-41` | `HeaderGeneric.vue` | fila colapsada del panel de expansión |
-| `Sheet` | `PanelList.vue:31,43-52`; `DialogEdit.vue:32-33,53-64` (solo si `show_sheet`) | `SheetCommon.vue` | detalle expandido de solo lectura + colecciones hijas (§5) |
-| `Edit` | `PanelCommon.vue:25-33`; `DialogEdit.vue:31,41-51` | `EditGeneric.vue` | campos del formulario, montados en el slot `#edit` de `EditCommon` |
+| `Sheet` | `PanelList.vue:31,43-52`; `DialogEdit.vue`, el `import()` de `sheet_name` (solo si `show_sheet`) | `SheetCommon.vue` | detalle expandido de solo lectura + colecciones hijas (§5) |
+| `Edit` | `PanelCommon.vue:25-33`; `DialogEdit.vue`, el `import()` de `edit_name` | `EditGeneric.vue` | campos del formulario, montados en el slot `#edit` de `EditCommon` |
 | `EditSimple` | `PanelCommon.vue:36-44` | *(ninguno: queda vacío)* | editor inline completo que **reemplaza** a `EditCommon` |
 | `Card` | `CardComponent.vue:20-30` | `CardGeneric.vue` | tarjeta compacta de un objeto |
 
@@ -85,12 +85,12 @@ En `PanelCommon.vue:176-200`:
 | Componente | Props que entran | Eventos que el padre escucha |
 |---|---|---|
 | `Header` | `main` (la fila de la lista), `collection_data`, `show_details`, `parent`, `is_simple` | `@open-panel` → abre el panel (`PanelList.vue:111-119`) |
-| `Sheet` | `full_main` (el detalle ya traído), `show_details`, `collection_data` | ninguno (`PanelList.vue:125-130`, `DialogEdit.vue:126-132`) |
+| `Sheet` | `full_main` (el detalle ya traído), `show_details`, `collection_data` | ninguno (`PanelList.vue:125-130`, `DialogEdit.vue`, bloque `show_sheet && sheet_component`) |
 | `Edit` | `v-model` (= `full_main`), `is_edit` | `@itemSaved` en `PanelCommon`; ninguno en `DialogEdit` |
 | `EditSimple` | `v-model` únicamente | ninguno |
 | `Card` | `full_main`, `title`, `note_id` | ninguno (`CardComponent.vue:34-41`) |
 
-> `is_massive_edit` está declarado como prop en ~20 componentes `{Model}Edit.vue`, pero **ningún padre se lo pasa nunca**: siempre vale `false`. La edición masiva no reutiliza el `{Model}Edit`; `MassiveEdit.vue` arma su propio formulario a partir de `collection_data.fields` y de `extra_massive_edit_fields`, y `DialogEdit.vue:92-97` lo renderiza en lugar de `EditCommon` cuando `edit_type.key === 'massive_edit'`. La petición sale como `PATCH /{coll}/{primer_id}/massive_patch/`, decidido por `getLastId` en `store/index.js:17-19` a partir de la clave `elems_ids` del payload.
+> `is_massive_edit` está declarado como prop en ~20 componentes `{Model}Edit.vue`, pero **ningún padre se lo pasa nunca**: siempre vale `false`. La edición masiva no reutiliza el `{Model}Edit`; `MassiveEdit.vue` arma su propio formulario a partir de `collection_data.fields` y de `extra_massive_edit_fields`, y `DialogEdit.vue` lo renderiza en lugar de `EditCommon` en la rama `edit_type.key === 'massive_edit'`. La petición sale como `PATCH /{coll}/{primer_id}/massive_patch/`, decidido por `getLastId` en `store/index.js:17-19` a partir de la clave `elems_ids` del payload.
 
 ## 3. Árbol de componentes de una vista de lista
 
@@ -112,7 +112,7 @@ CollectionDisplay.vue        filtros, búsqueda (debounce 800 ms), orden, pagina
 
 Los filtros del tope de cada lista se ensamblan en `cats.js` dentro de `collection_data.collection_filters` (ordenados por `order`) y los renderiza `FiltersList.vue`. Fuentes, en orden de ensamblaje:
 
-1. **`all_filters`** declarados en el `CollectionSchema` del backend. Un `FilterRef` se resuelve contra `filters_dict` (los `FilterGroupSchema` registrados); un filtro custom sin `filter_name` se conserva con `is_custom: true` y `order: 12` (`cats.js:53-67`).
+1. **`all_filters`** declarados en el `CollectionSchema` o el `CatalogSchema` del backend. Un `FilterRef` se resuelve contra `filters_dict` (los `FilterGroupSchema` registrados); un filtro custom sin `filter_name` se conserva con `is_custom: true` y `order: 12` (`cats.js:53-67`).
 2. **Grupo de categoría** — si `is_category`, se agrega el `FilterGroupSchema` que corresponde al nivel, con `forced_level` y `order: 1` (`cats.js:73-86`).
 3. **Status groups** — por cada campo relacionado con `StatusControl` se agrega el grupo enriquecido como filtro (`is_status: true`) y una opción de ordenamiento `<field_name>__order`; si el schema marca el campo como no editable, el filtro viaja con `can_massive_edit: false` (`cats.js:95-122`). Los metadatos del grupo vienen del catálogo `status_group` (modelo `StatusGroup`, docs `adr-0030`), no de un registro a mano en el front.
 
@@ -135,7 +135,7 @@ Los chips de arriba controlan qué filtros están visibles (`visible_filters`); 
 - **Vienen los datos anidados** (`full_main['{snake}s']` es un array) → renderiza `PanelsResult` inline con `in_sheet`, sin fetch adicional.
 - **Solo viene el conteo** (`full_main['{snake}s_count']`) → renderiza un `CollectionDisplay` anidado con `direct_sheet` y `init_filters={ [snake_del_padre]: id_del_padre }`: una sublista filtrada, con sus propios filtros y paginación, que se trae a demanda.
 
-Un caso especial: en una colección `category_subtype`, las relaciones m2m hacia un `category_type` se omiten (`SheetCommon.vue:36-39`).
+Dos omisiones de m2m: en una colección `category_subtype`, las relaciones hacia un `category_type`; y las que llegan como lista de ids sueltos (un serializer `'__all__'` manda así sus M2M propios, p. ej. `IndigenousGroup.states`), que la lista genérica no puede pintar (`SheetCommon.vue`, `child_collections`).
 
 Una colección que solo tiene sentido bajo su padre lleva `create_only_nested: true` en su schema (skill `manage-collections`): eso apaga el botón «Crear» de `PanelsResult` en su lista propia y **solo ahí** —el botón del modo `is_mini` de `CollectionDisplay` y las altas que monte un `{Model}Sheet` a medida no consultan la clave—, así que el alta anidada sigue viva. Hoy la usa `location`.
 
@@ -155,9 +155,11 @@ Así el detalle de un padre muestra a sus hijos sin una línea de código por mo
 
 `getLastId()` (`store/index.js:17-28`) decide POST vs PUT a partir del pk y de `is_new`, y desvía a `massive_patch/` cuando el payload trae `elems_ids`. `EditCommon` llama a `saveElement` / `deleteElement`; nunca habla con la API directamente.
 
+**Fusión.** `EditCommon` guarda primero el registro principal y emite `merge-items`; `PanelsResult.mergeItems` lanza entonces una fusión por registro absorbido, en secuencia y esperando cada respuesta, mientras `DialogEdit` muestra una barra con «Fusionando registro X de N…» (`merge_progress`) y queda bloqueado. Si una falla se detiene: el diálogo sigue abierto y muestra en `merge_error` qué se fusionó, qué falló y por qué (textos en `composables/merge_messages.js`); lo ya fusionado sale de la lista y de la selección, así que reintentar solo lanza lo pendiente. En una categoría cuyo registro principal tiene un status que cierra la edición (`open_editor: false`) y con un usuario que no es staff, `EditCommon.main_locked` pone el formulario en solo lectura y va directo a la fusión sin guardar el principal: el servidor solo pide permiso de borrar los absorbidos (skill `manage-collections`, «Merge») y ese guardado daría 403. `main_locked` copia en el front la regla de `IsEditorOrCreateOrRead`; si esa regla cambia en el backend, se cambia aquí también.
+
 ### Contrato de retorno
 
-Las acciones del store **devuelven `response.data` tal cual en el éxito** (no un envoltorio `{data}`) y `{errors: <cuerpo del error>}` en el fallo; los deletes devuelven `{success: true}`. `deleteSimple` tiene además un tercer caso: ante un 400 con `report_data` devuelve `{report_data}`, que alimenta el diálogo de borrado con reporte de dependencias (`store/index.js:185-197`). Quien llama distingue por la presencia de `res.errors`:
+Las acciones del store **devuelven `response.data` tal cual en el éxito** (no un envoltorio `{data}`) y `{errors: <cuerpo del error>}` en el fallo; los deletes devuelven `{success: true}`. `deleteSimple` tiene además un tercer caso: ante un 400 con `report_data` devuelve `{report_data}`, que alimenta el diálogo de borrado con reporte de dependencias (`store/index.js`, acción `deleteSimple`). `mergeSimple` es el cuarto: en el fallo devuelve `{error_data, error_status}`, no `{errors}`; lo lee `mergeErrorText` (`composables/merge_messages.js`). Quien llama distingue por la presencia de `res.errors`:
 
 ```js
 const res = await saveElement(coll, obj)

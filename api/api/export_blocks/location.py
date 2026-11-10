@@ -92,7 +92,7 @@ class LocationBlock(ModelExport):
 
         Args:
             target: FK en Location que apunta a la entidad padre;
-                desde adr-0033 solo ``"project"``.
+                desde adr-0035 solo ``"project"``.
             outer_ref: campo del modelo raíz del queryset que se
                 usa en ``OuterRef``. Default ``"id"`` (el modelo
                 raíz ES la entidad). Para contextos anidados usar

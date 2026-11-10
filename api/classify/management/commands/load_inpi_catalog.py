@@ -30,7 +30,8 @@ class Command(BaseCommand):
         "Carga el Catálogo Nacional de Pueblos Indígenas y Afromexicanos "
         "del INPI en IndigenousGroup, con is_official=True, y sus estados "
         "desde el catálogo de comunidades del micrositio. Idempotente; "
-        "nunca quita un estado ni un nombre alternativo. Después van "
+        "nunca quita un estado, y de los nombres alternativos solo quita "
+        "los que repiten el nombre o una de sus partes. Después van "
         "tidy_indigenous_groups y merge_indigenous_groups. El índice del "
         "mapa (rebuild_map_index) no incluye pueblos: no hay que "
         "reconstruirlo.")
@@ -132,7 +133,8 @@ class Command(BaseCommand):
                 before = (group.name, group.alternative_names,
                           group.is_official, group.status_validation_id)
                 group.name = name
-                # Lo capturado antes se conserva, y el nombre viejo también.
+                # Lo capturado antes se conserva, y el nombre viejo también,
+                # salvo lo que ya dice el nombre nuevo.
                 group.alternative_names = join_names(
                     alternatives + split_names(before[1]) + [old_name],
                     exclude=name) or None

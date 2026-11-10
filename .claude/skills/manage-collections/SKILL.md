@@ -93,6 +93,18 @@ class MyModelSchema(CollectionSchema):
     ]
 ```
 
+### Merge
+
+Three attributes of `BaseSchema` (`api/ps_schema/schemas.py`) decide what a dashboard merge does, for catalogs and collections alike:
+
+- `can_merge` turns on the `merge` action in `available_actions`; without it the endpoint refuses the model.
+- `merge_keeps_name` sends the absorbed entry's name and alternative names to the survivor's `alternative_names`. Opt-in, because `split_names` would cut a name that contains commas; today only `IndigenousGroupSchema` sets it.
+- `merge_carries` lists the absorbed entry's own many-to-many fields that are unioned into the survivor; today only `ProjectSchema` (`["editors"]`).
+
+What moves without declaring anything: every reverse relation (FK, one-to-one and reverse many-to-many) is repointed to the survivor. Everything else the absorbed entry holds in its own columns is lost when it is deleted — that loss is the intended behavior, so add a field to `merge_carries` only when Ricardo asks for it.
+
+Permission has no rule of its own: `can_merge` plus the destroy permission of the model's ViewSet on the absorbed entry (`api/api/views/generic_merge/views.py::merge_denied`); the survivor is not checked, so an open entry can be folded into a validated one. If any relation fails to move, `RecordMerger.merge_registers` (`api/utils/register_merge.py`) rolls the whole merge back and deletes nothing.
+
 ---
 
 ## ComponentFilter — available components

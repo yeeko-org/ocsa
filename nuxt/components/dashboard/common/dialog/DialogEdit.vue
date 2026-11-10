@@ -14,6 +14,9 @@ const props = defineProps({
   selected_results: {type: Array, default: () => []},
   ids_to_edit: {type: Array, default: () => []},
   show_sheet: {type: Boolean, default: false},
+  // {current, total} while merges run; null otherwise.
+  merge_progress: {type: Object, default: null},
+  merge_error: {type: String, default: null},
 })
 
 const full_main = defineModel({type: Object, default: null})
@@ -68,16 +71,24 @@ function closeDialog() {
   emits('close-dialog')
 }
 
-function finishSave() {
-  editCommonRef.value?.finishSave()
+function finishSave(snackbar_msg) {
+  editCommonRef.value?.finishSave(snackbar_msg)
 }
 
-defineExpose({finishSave})
+function stopSaving() {
+  editCommonRef.value?.stopSaving()
+}
+
+defineExpose({finishSave, stopSaving})
 
 </script>
 
 <template>
-  <v-dialog v-model="is_open" max-width="1200">
+  <v-dialog
+    v-model="is_open"
+    max-width="1200"
+    :persistent="!!merge_progress"
+  >
     <v-card v-if="full_main">
       <v-card-title class="text-headline-small d-flex">
         {{ title }}
@@ -85,9 +96,25 @@ defineExpose({finishSave})
         <v-btn
           icon="close"
           variant="text"
+          :disabled="!!merge_progress"
           @click="closeDialog"
         ></v-btn>
       </v-card-title>
+      <div v-if="merge_progress" class="px-4 pb-2">
+        <v-progress-linear indeterminate color="accent" rounded/>
+        <div class="text-body-small text-grey-darken-1 mt-1">
+          Fusionando registro {{ merge_progress.current }}
+          de {{ merge_progress.total }}…
+        </div>
+      </div>
+      <v-alert
+        v-if="merge_error"
+        type="error"
+        variant="outlined"
+        class="mx-4 mb-2"
+      >
+        {{ merge_error }}
+      </v-alert>
       <v-card-text class="py-0 px-2">
         <MassiveEdit
           v-if="edit_type.key === 'massive_edit'"

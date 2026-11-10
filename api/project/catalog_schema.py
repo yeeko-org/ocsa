@@ -72,6 +72,7 @@ class ProjectSchema(CollectionSchema):
     sort_fields = [
         'id', 'status_validation__order', 'name', 'status_location__order']
     can_merge = True
+    merge_carries = ["editors"]
     can_massive_edit = True
     xls_export_class = ProjectExport
     extra_massive_edit_fields = ["conflict"]

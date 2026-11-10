@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from actor.models import Actor
+from classify.dated_comment import add_comment
 from classify.models import IndigenousGroup
 from work_flux.models import StatusControl
 
@@ -9,9 +10,6 @@ from work_flux.models import StatusControl
 # Decisiones de Ricardo del 2026-11-08, previas a cargar el catálogo del
 # INPI. Las cinco entradas compuestas («Mixe; Zapoteca; iKoot»…) no se tocan:
 # esperan la migración de indigenous_group a muchos a muchos.
-COMMENT_PREFIX = "08/11/2026 - Ricardo: "
-# «Comunidades aledañas» se decidió un día después, igual que Ciudadanos.
-LATER_PREFIX = "09/11/2026 - Ricardo: "
 NAHUA_NOTE = (
     "son nahuas históricos; si se fusiona en Nahua, agregar este nombre a "
     "nombres alternativos")
@@ -19,11 +17,9 @@ RENAMES = [
     # (nombre actual, nombre nuevo, status)
     ("NE", "Pueblo no especificado", "need_reclassify"),
 ]
-NOT_PEOPLES = [
-    ("Ciudadanos", COMMENT_PREFIX),
-    ("Vecinos", COMMENT_PREFIX),
-    ("Comunidades aledañas", LATER_PREFIX),
-]
+# No son pueblos: se quitan de sus actores y se borran (task-140); los ids
+# para deshacerlo quedan solo en la salida de la corrida.
+NOT_PEOPLES = ["Ciudadanos", "Vecinos", "Comunidades aledañas"]
 TO_RECLASSIFY = [
     ("Acolhuas", NAHUA_NOTE),
     ("Cholulteco", NAHUA_NOTE),
@@ -33,21 +29,12 @@ TO_RECLASSIFY = [
 ]
 
 
-def add_comment(group, text, prefix=COMMENT_PREFIX) -> bool:
-    comment = f"{prefix}{text}"
-    if comment in (group.comments or ""):
-        return False
-    group.comments = (
-        f"{group.comments}\n\n{comment}" if group.comments else comment)
-    return True
-
-
 class Command(BaseCommand):
     help = (
         "Limpia entradas de IndigenousGroup que no son pueblos: renombra NE, "
-        "vacía Ciudadanos, Vecinos y Comunidades aledañas, y marca para "
-        "reclasificar las que son nombres históricos o lugares. "
-        "Idempotente.")
+        "quita Ciudadanos, Vecinos y Comunidades aledañas de sus actores y "
+        "las borra, y marca para reclasificar las que son nombres "
+        "históricos o lugares. Idempotente.")
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -58,7 +45,7 @@ class Command(BaseCommand):
         statuses = {
             s.name: s
             for s in StatusControl.objects.filter(group_id="validation")}
-        needed = {"need_reclassify", "expired", "could_reclassify"}
+        needed = {"need_reclassify", "could_reclassify"}
         if missing := needed - set(statuses):
             raise CommandError(f"Faltan status de validación: {missing}")
 
@@ -86,26 +73,22 @@ class Command(BaseCommand):
             group.status_validation = statuses[status]
             group.save()
 
-        for name, prefix in NOT_PEOPLES:
+        for name in NOT_PEOPLES:
             group = self.get(name)
             if not group:
-                lines.append(f"NO EXISTE «{name}»")
+                lines.append(f"NO EXISTE «{name}» (¿ya borrada?)")
                 continue
             actor_ids = list(
                 Actor.objects.filter(indigenous_group=group)
                 .order_by("id").values_list("id", flat=True))
-            if actor_ids:
-                Actor.objects.filter(id__in=actor_ids).update(
-                    indigenous_group=None)
-                # Sin ids en el comentario (decisión de Ricardo): para
-                # deshacerlo, la salida de la corrida los lista.
-                add_comment(group, (
-                    f"no es un pueblo; se quitó de {len(actor_ids)} "
-                    "actores"), prefix)
-            group.status_validation = statuses["expired"]
-            group.save()
+            # El FK de Actor es CASCADE: sin vaciarlo, borrar la entrada
+            # borraría sus actores.
+            Actor.objects.filter(id__in=actor_ids).update(
+                indigenous_group=None)
+            group_id = group.id
+            group.delete()
             lines.append(
-                f"CADUCO #{group.id} «{name}»: {len(actor_ids)} actores "
+                f"BORRADA #{group_id} «{name}»: {len(actor_ids)} actores "
                 f"pasados a null ({', '.join(map(str, actor_ids)) or '-'})")
 
         for name, note in TO_RECLASSIFY:

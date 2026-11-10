@@ -377,6 +377,11 @@ class CollectionRegistry:
         self._schemas[snake_name] = schema_cls
         return schema_cls
 
+    def schema_for_model(
+            self, model: type) -> type[CollectionSchema] | None:
+        return next(
+            (s for s in self._schemas.values() if s.model is model), None)
+
     def register_routes(self, router) -> None:
         """Register all CollectionSchema viewsets into a DRF router.
 
@@ -480,3 +485,18 @@ class CollectionRegistry:
 
 catalog_registry = CatalogRegistry()
 collection_registry = CollectionRegistry()
+
+
+def schema_for_model(model: type) -> type[BaseSchema] | None:
+    """El schema de un modelo, sea catálogo o colección."""
+    return (catalog_registry.schema_for_model(model)
+            or collection_registry.schema_for_model(model))
+
+
+def viewset_for_model(model: type) -> type | None:
+    """El ViewSet que expone el modelo; sus permisos son los del registro."""
+    schema_cls = catalog_registry.schema_for_model(model)
+    if schema_cls:
+        return catalog_registry.get_viewset(camel_to_snake(model.__name__))
+    schema_cls = collection_registry.schema_for_model(model)
+    return schema_cls.viewset_class if schema_cls else None

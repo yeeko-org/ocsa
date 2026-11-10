@@ -3,6 +3,7 @@
 import {storeToRefs} from "pinia";
 import {useMainStore} from "~/store/index.js";
 import {useDashboardStore} from "~/store/dash.js";
+import {useAuthStore} from "~/store/auth.js";
 import EditCommonFields from "~/components/dashboard/common/generic/EditCommonFields.vue";
 import AlertInfo from "~/components/dashboard/common/utils/AlertInfo.vue";
 import DialogDelete from "~/components/dashboard/common/dialog/DialogDelete.vue";
@@ -13,6 +14,7 @@ const dashboardStore = useDashboardStore()
 import { saveElement, deleteElement } from "~/composables/save_elements.js";
 const { schemas, status_dict } = storeToRefs(mainStore)
 const { showSnackbar } = dashboardStore
+const { is_staff, is_superuser } = storeToRefs(useAuthStore())
 
 const props = defineProps({
   // full_main: Object,
@@ -56,7 +58,7 @@ function openDeleteDialog() {
 
 const emits = defineEmits([
     'new-item', 'item-deleted', 'item-saved', 'merge-items'])
-defineExpose({ finishSave })
+defineExpose({ finishSave, stopSaving })
 
 const final_collection_data = computed(() => {
   if (props.collection_data)
@@ -64,8 +66,24 @@ const final_collection_data = computed(() => {
   return schemas.value.collections_dict[props.collection_name]
 })
 
+// The catalogs' permission (IsEditorOrCreateOrRead) leaves an entry whose
+// status closes edition to staff, but the merge only asks to delete the
+// absorbed ones: a full editor folds entries into it without saving it.
+const main_locked = computed(() => {
+  if (props.edit_type.key !== 'merge') return false
+  if (is_staff.value || is_superuser.value) return false
+  if (!final_collection_data.value.is_category) return false
+  const status = full_main.value.status_validation
+  return status_dict.value.validation?.[status]?.open_editor === false
+})
+
 async function saveRecord() {
   errors.value = null
+  if (main_locked.value) {
+    saving.value = true
+    emits('merge-items', full_main.value)
+    return
+  }
   const { valid } = await editForm.value.validate()
   if (!valid) return
   if (!full_main.value.id && !full_main.value.comments){
@@ -103,6 +121,10 @@ async function saveRecord() {
 function finishSave(snackbar_msg='Se ha guardado el registro'){
   saving.value = false
   showSnackbar(snackbar_msg)
+}
+
+function stopSaving(){
+  saving.value = false
 }
 
 function updateStatus({group, new_status, res}){
@@ -165,8 +187,19 @@ async function deleteRecord() {
       :help_text="final_collection_data.help_text"
       class="mb-3"
     />
+    <v-alert
+      v-if="main_locked"
+      type="info"
+      variant="tonal"
+      density="compact"
+      class="mb-3"
+    >
+      Este registro tiene un estatus cerrado y no puedes editarlo: los demás
+      se fusionarán en él, pero sus campos no se guardarán.
+    </v-alert>
     <v-form
       ref="editForm"
+      :readonly="main_locked"
     >
       <EditCommonFields
         v-model="full_main"

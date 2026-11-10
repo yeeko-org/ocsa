@@ -29,15 +29,16 @@ Public-map visibility has a single source: `api/views/map/visibility.py` (`visib
 - `UnaccentSearchFilter` — uses `unaccent__icontains` for accent-insensitive search (PostgreSQL only; falls back on SQLite).
 - `AdvancedConditionalFieldsViewMixin` — excludes serializer fields based on `field_permissions` dict keyed by role (`anonymous`, `authenticated`, `staff`).
 
-### Permissions (`profile_auth/`)
-- `IsFullEditorOrReadOnly` — default; full editors can write, others read-only
-- `ByStatusOrReadOnly` — object writes require `is_full_editor` first, then are gated by `status_register.open_editor`; crashes on notes without status (docs `task-112`)
-- `IsEditorOrCreateOrRead` — allows creation with validation
-- `DynamicCatalogPermission` — for catalog endpoints
+### Permissions (`api/permissions.py`)
+- `IsFullEditorOrReadOnly` — default (`DEFAULT_PERMISSION_CLASSES`); full editors can write, others read-only
+- `ByStatusOrReadOnly` — notes: object writes require `is_full_editor` first, then are gated by `status_register.open_editor`; crashes on notes without status (docs `task-112`)
+- `IsEditorOrCreateOrRead` — default of the auto-generated catalogs (`CatalogSchema.permission = "editor"`; `"admin"` gives `IsAdminOrReadOnly`): full editors write while `status_validation.open_editor`, otherwise only `is_admin`. A catalog without a validation status (`Country`, `Belong`) has no lock: the full-editor check is all there is
+- `DynamicCatalogPermission` — `ActorViewSet` and `ProjectViewSet`: full editors always create and edit; delete follows `open_editor`, otherwise only `is_admin`
 - `LocationPermission` — for geographic data
+- `generic_merge/` has no rule of its own: it requires `can_merge` and the model ViewSet's destroy permission on the absorbed entry (`api/views/generic_merge/views.py::merge_denied`); the survivor is not checked
 
 ### Catalog/Collection Registry
-Register a ViewSet in `catalog_registry`/`collection_registry` only when the model is a catalog of options (`category_*`) or a main collection entity (`primary/secondary/relational`). Cross-cutting/infrastructure ViewSets (e.g. `StatusControl`, `InvolvedRole`) stay as manual registrations, even if trivial — they have distinct semantics. See the `manage-collections` skill.
+Register a ViewSet in `catalog_registry`/`collection_registry` only when the model is a catalog of options (`category_*`) or a main collection entity (`primary/secondary/relational`). Cross-cutting/infrastructure ViewSets (e.g. `StatusControl`) stay as manual registrations, even if trivial — they have distinct semantics. See the `manage-collections` skill.
 
 ### Settings & Database
 - Settings: `core/settings/__init__.py` (single file)
@@ -48,7 +49,7 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
 ### External Integrations
 - **OpenAI / Google Generative AI**: AI-assisted record pre-classification, and link → print-title matching for notes created with a link (`source/link_match.py`)
 - **BeautifulSoup / lxml**: news scraping from multiple sources
-- **openpyxl / yeekooxlsx_export**: Excel exports
+- **openpyxl / yeeko_xlsx_export**: Excel exports
 - **Redis**: caches the public map's facets/actors index (db 1 in production). Rebuilt by `rebuild_map_index` (06:00 UTC cron) or on demand via `POST map/index/rebuild/`; nothing else expires it
 - **S3 (django-storages)**: `NoteFile`/`ProjectFile` files in production (`USE_S3_FILES=1`, class `INTELLIGENT_TIERING`, public read via bucket policy on `data_files/*`); local dev keeps disk storage. Storage per field via `core/storages.py::select_docs_storage`
 
@@ -59,7 +60,7 @@ Register a ViewSet in `catalog_registry`/`collection_registry` only when the mod
 - Rules, thresholds and invariants of the engine: skill `ocs-geo` (`.claude/skills/ocs-geo/`) and docs `adr-0026`.
 
 ### Testing
-Suites unitarias con el runner nativo (`manage.py test source` y `manage.py test space_time`) más diagnósticos re-ejecutables que golpean servicios reales (proxy, PressReader, Gemini) y por tanto cuestan. Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
+Suites unitarias con el runner nativo más diagnósticos re-ejecutables que golpean servicios reales (proxy, PressReader, Gemini) y por tanto cuestan. Ver [TESTING.md](TESTING.md) antes de correr cualquiera.
 
 ### Documentación de proceso
 Decisiones (ADR), tareas abiertas y bitácoras viven en el submódulo privado `../docs/`, indexadas por frontmatter y enlazadas con `[[id]]`. Ver el skill `documenter`.

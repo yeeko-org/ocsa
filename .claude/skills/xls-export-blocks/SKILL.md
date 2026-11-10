@@ -5,7 +5,7 @@ description: XLSX export pattern. Use when adding, modifying, or debugging Excel
 
 # Exportaciones XLSX — yeeko_xlsx_export v2.0
 
-Paquete: `D:\dev\open\xlsx_django_export` (yeeko_xlsx_export).
+Paquete: `yeeko_xlsx_export`, instalado desde `git+https://github.com/yeeko-org/xlsx_django_export@main` (`api/requirements.txt`); checkout local en `~/dev/open/xlsx_django_export`.
 Exports del proyecto: `api/api/export_blocks/`.
 
 ---
@@ -405,6 +405,7 @@ export.
 | `api/api/export_blocks/actor.py` | ActorBlock, ActorExport |
 | `api/api/export_blocks/mention.py` | MentionBlock, NoteBlock |
 | `api/api/export_blocks/event.py` | EventBlock, EventExport |
-| `api/api/export_blocks/location.py` | LocationBlock |
+| `api/api/export_blocks/location.py` | LocationBlock, ProjectLocationBlock |
+| `api/api/export_blocks/impact.py` | ImpactBlock, ImpactExport |
 | `api/api/export_blocks/participant.py` | ParticipantBlock, ParticipantExport |
-| `api/api/export_blocks/project.py` | ProjectMiniBlock, ConflictMiniBlock, ProjectExport |
+| `api/api/export_blocks/project.py` | ConflictMiniBlock, ProjectMiniBlock, ProjectExpandBlock, ProjectExport |

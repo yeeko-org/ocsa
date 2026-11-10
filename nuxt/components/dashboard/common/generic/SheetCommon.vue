@@ -38,6 +38,10 @@ const child_collections = computed(() => {
         return
     }
     const results = props.full_main[`${snake_name}s`]
+    // A serializer with fields='__all__' sends its own M2M as bare ids
+    // (IndigenousGroup.states); the generic list can't render them.
+    if (is_m2m && results?.some(result => typeof result !== 'object'))
+      return
     const count = props.full_main[`${snake_name}s_count`]
     const has_count = count !== undefined && count !== null
     if (!is_m2m || results || has_count){

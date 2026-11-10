@@ -5,6 +5,9 @@ import SummaryList from "~/components/dashboard/common/main/SummaryList.vue";
 import MassiveActions from "~/components/dashboard/common/utils/MassiveActions.vue";
 import DialogEdit from "~/components/dashboard/common/dialog/DialogEdit.vue";
 import {useMainStore} from "~/store/index.js";
+import {
+  mergeErrorText, mergeFailureText, mergeSuccessText,
+} from "~/composables/merge_messages.js";
 
 const mainStore = useMainStore()
 const { mergeSimple } = mainStore
@@ -26,13 +29,16 @@ const props = defineProps({
 })
 
 const group_actions_enabled = ref(true)
-const error_messages = ref([])
+const merge_progress = ref(null)
+const merge_error = ref(null)
 const sel = ref({"selected_elems": [], "show_order": false})
 const edit_type = ref({
   key: 'edit', title: 'Agregar registro', btn: 'Guardar'})
 
 const dialogEditRef = ref(null)
 const dialog_edit = ref(false)
+// The dialog can also close by clicking outside, bypassing closeDialog().
+watch(dialog_edit, is_open => { if (!is_open) merge_error.value = null })
 const element_to_edit = ref(null)
 const selected_results = ref([])
 const page_number = ref(1)
@@ -109,50 +115,81 @@ function resetPage() {
 function closeDialog() {
   dialog_edit.value = false
   element_to_edit.value = null
+  merge_error.value = null
+}
+
+function replaceResult(res) {
+  const elem_id = props.collection_data.pk
+  const idx = props.results.findIndex(r => r[elem_id] === res[elem_id])
+  if (idx >= 0)
+    props.results.splice(idx, 1, res)
 }
 
 function saveNewElement({res, is_new}) {
   if (is_new)
     props.results.unshift(res)
-  else{
-    const elem_id = props.collection_data.pk
-    const idx = props.results.findIndex(r => r[elem_id] === res[elem_id])
-    props.results.splice(idx, 1, res)
-  }
+  else
+    replaceResult(res)
   closeDialog()
 }
 
-function mergeItems(res_main) {
-  saveNewElement({res: res_main, is_new: false})
-  const model_name = `${props.collection_data.app_label}.${
-                        props.collection_data.model_name}`
+function recordLabel(record) {
+  const name_field = props.collection_data.name_field
   const elem_id = props.collection_data.pk
+  return (name_field && record[name_field]) || `id ${record[elem_id]}`
+}
+
+function dropMerged(merge_id) {
+  const elem_id = props.collection_data.pk
+  const idx = props.results.findIndex(r => r[elem_id] === merge_id)
+  if (idx >= 0)
+    props.results.splice(idx, 1)
+  selected_results.value = selected_results.value.filter(
+      r => r[elem_id] !== merge_id)
+  sel.value.selected_elems = sel.value.selected_elems.filter(
+      id => id !== merge_id)
+}
+
+// Sequential on purpose: each merge deletes a record and repoints its
+// relations on the server, so parallel calls could race on shared rows.
+// It stops at the first failure: the likely causes (403, model not
+// mergeable) would fail the rest too. Merged records leave the selection,
+// so pressing «Fusionar» again retries only the pending ones.
+async function mergeItems(res_main) {
+  replaceResult(res_main)
+  const coll = props.collection_data
+  const model_name = `${coll.app_label}.${coll.model_name}`
+  const elem_id = coll.pk
   const main_id = selected_results.value[0][elem_id]
-  const merge_ids = selected_results.value.slice(1).map(res => res[elem_id])
-  error_messages.value = []
-  merge_ids.forEach(merge_id => {
-    let params = {
-      model_name,
-      main_id,
-      merge_id,
-      delete_merge: true,
-      // just_report: true,
+  const main_label = recordLabel(res_main)
+  const to_merge = selected_results.value.slice(1)
+  const snake_name = coll.is_category ? coll.snake_name : null
+  const merged = []
+  merge_error.value = null
+  for (const [idx, record] of to_merge.entries()) {
+    merge_progress.value = {current: idx + 1, total: to_merge.length}
+    const merge_id = record[elem_id]
+    const params = {model_name, main_id, merge_id, delete_merge: true}
+    const res = await mergeSimple([params, snake_name])
+    if (res?.error_data !== undefined) {
+      console.error("Error merging items:", res.error_data)
+      merge_progress.value = null
+      merge_error.value = mergeFailureText({
+        main_label,
+        merged,
+        failed: recordLabel(record),
+        reason: mergeErrorText(res.error_data, res.error_status),
+        pending: to_merge.slice(idx + 1).map(recordLabel),
+      })
+      dialogEditRef.value?.stopSaving()
+      return
     }
-    const is_category = props.collection_data.is_category
-    const snake_name = is_category ? props.collection_data.snake_name : null
-    mergeSimple([params, snake_name]).then(res => {
-      if (res.error_data) {
-        console.error("Error merging items:", res.error_data)
-        error_messages.value.push(
-          `Error al fusionar ${merge_id}: ${res.error_data.errors}`)
-        return
-      }
-      const idx = props.results.findIndex(
-          result => result[elem_id] === merge_id)
-      props.results.splice(idx, 1)
-    })
-  })
-  dialogEditRef.value?.finishSave()
+    merged.push(recordLabel(record))
+    dropMerged(merge_id)
+  }
+  merge_progress.value = null
+  dialogEditRef.value?.finishSave(
+      mergeSuccessText(main_label, merged.length))
   closeDialog()
   sel.value.selected_elems = []
 }
@@ -242,16 +279,6 @@ function selectItem(item) {
       Página {{page_number}} de {{Math.ceil(total_count / final_filters.page_size)}}
       | {{total_count}} Resultados
     </span>
-    <v-alert
-      v-if="error_messages.length"
-      type="error"
-      variant="outlined"
-      class="mt-2"
-    >
-      <div v-for="(msg, idx) in error_messages" :key="idx">
-        {{msg}}
-      </div>
-    </v-alert>
     <SummaryList
       v-if="is_mini"
       :results="results"
@@ -312,6 +339,8 @@ function selectItem(item) {
     :edit_type="edit_type"
     :selected_results="selected_results"
     :ids_to_edit="sel.selected_elems"
+    :merge_progress="merge_progress"
+    :merge_error="merge_error"
     @close-dialog="closeDialog"
     @item-saved="saveNewElement"
     @merge-items="mergeItems"

@@ -266,7 +266,7 @@ async function discardLocation(pre_item) {
     :color="mention.discarded ? 'red-lighten-3' : 'indigo-lighten-1'"
   >
     <v-row class="py-3 mx-0" v-if="mention.id || mention.path">
-      <v-col cols="7">
+      <v-col cols="10" offset="1">
         <v-card
           v-if="project_errors"
           class="my-2 px-3 py-2"
@@ -311,18 +311,19 @@ async function discardLocation(pre_item) {
           </template>
         </CardCommon>
       </v-col>
+      <ImpactToolbar
+        v-model="mention.impacts"
+        :cols="7"
+        :parent_id="mention.id"
+        :note_id="note_id"
+        ref="impactsRef"
+        class="mt-2"
+      />
       <StatusHistoryToolbar
         v-model="mention.status_history"
         :parent_id="mention.id"
         :note_id="note_id"
         ref="statusHistoryRef"
-        class="mt-2"
-      />
-      <ImpactToolbar
-        v-model="mention.impacts"
-        :parent_id="mention.id"
-        :note_id="note_id"
-        ref="impactsRef"
         class="mt-2"
       />
       <ParticipantsToolbar

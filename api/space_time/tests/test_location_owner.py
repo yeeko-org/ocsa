@@ -1,6 +1,6 @@
 """La ubicación siempre cuelga de un proyecto, salvo en lote.
 
-La columna es NOT NULL desde adr-0033, pero `blank=True`: el serializer
+La columna es NOT NULL desde adr-0035, pero `blank=True`: el serializer
 la exige en toda escritura de detalle con un mensaje propio, y la
 edición masiva queda fuera porque su payload trae solo los campos
 editados.

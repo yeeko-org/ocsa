@@ -20,7 +20,7 @@ const props = defineProps({
   }
 })
 
-// Toda ubicación cuelga de un proyecto (adr-0033).
+// Toda ubicación cuelga de un proyecto (adr-0035).
 const dest_collection = computed(() => {
   if (!props.main.project) return {}
   return collections_summary.value.project || {}

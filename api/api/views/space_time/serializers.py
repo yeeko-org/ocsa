@@ -59,7 +59,7 @@ GEOMETRY_FIELDS = ["geojson", "type_location", "latitude", "longitude"]
 # Derivados de la geometría por el servidor: el editor los muestra, pero
 # nunca los manda.
 DERIVED_FIELDS = ["municipalities"]
-# La ubicación siempre cuelga de un proyecto (adr-0033).
+# La ubicación siempre cuelga de un proyecto (adr-0035).
 OWNER_FIELD = "project"
 
 

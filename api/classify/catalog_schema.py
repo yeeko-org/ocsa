@@ -91,6 +91,7 @@ class CountrySchema(CatalogSchema):
     level = "category_subtype"
     name = "País"
     open_insertion = True
+    can_merge = True
     cat_params = {"select_component": "autocomplete"}
     count_fields = {"actors_count": "actors"}
     filterset_fields = []

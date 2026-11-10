@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from actor.models import Actor
+from classify.dated_comment import add_comment
 from classify.models import IndigenousGroup
 from utils.alternative_names import add_alternative_names, split_names
 from work_flux.models import StatusControl
@@ -13,7 +14,6 @@ from work_flux.models import StatusControl
 DEFAULT_PATH = (
     Path(__file__).resolve().parents[2] / "data"
     / "inpi_pueblos_2025-02-21.json")
-PREFIX = "09/11/2026 - Ricardo: "
 
 # Decisiones de Ricardo del 2026-11-09, sobre el informe
 # api/.claude/diagnostics/indigenous_merge_report.py. Entrada absorbida →
@@ -65,25 +65,20 @@ ACTOR_NOTES = {
     2851: "estaba clasificado en el pueblo «Tzeltal» y pasó a «{new}» al "
           "fusionar con el catálogo del INPI. Revisar: no necesariamente "
           "es tseltal",
+    3859: "estaba clasificado en «Xk'eek'en», un cenote de Dzitnup "
+          "registrado como pueblo, y pasó a «{new}» al fusionar con el "
+          "catálogo del INPI",
 }
-
-
-def add_comment(obj, text) -> bool:
-    comment = f"{PREFIX}{text}"
-    if comment in (obj.comments or ""):
-        return False
-    obj.comments = (
-        f"{obj.comments}\n\n{comment}" if obj.comments else comment)
-    return True
 
 
 class Command(BaseCommand):
     help = (
         "Fusiona entradas de IndigenousGroup en el pueblo oficial del INPI: "
         "mueve sus actores, pasa el nombre absorbido a los alternativos del "
-        "oficial y marca la absorbida como expired (could_reclassify si "
-        "retiene actores) con un comentario. Nunca borra. Idempotente. Va después de load_inpi_catalog y "
-        "tidy_indigenous_groups; el índice del mapa no incluye pueblos.")
+        "oficial y borra la absorbida; si retiene actores, la marca "
+        "could_reclassify con un comentario. Idempotente. Va después de "
+        "load_inpi_catalog y tidy_indigenous_groups; el índice del mapa no "
+        "incluye pueblos.")
 
     def add_arguments(self, parser):
         parser.add_argument("--path", default=str(DEFAULT_PATH))
@@ -97,17 +92,14 @@ class Command(BaseCommand):
             raise CommandError(f"No existe {path}")
         pueblos = json.loads(path.read_text(encoding="utf-8"))["pueblos"]
         names = {p["dof_name"]: p["name"] for p in pueblos}
-        statuses = {
-            s.name: s for s in StatusControl.objects.filter(
-                group_id="validation",
-                name__in=["expired", "could_reclassify"])}
-        missing = {"expired", "could_reclassify"} - set(statuses)
-        if missing:
+        retain_status = StatusControl.objects.filter(
+            group_id="validation", name="could_reclassify").first()
+        if not retain_status:
             raise CommandError(
-                f"Faltan StatusControl de validación: {sorted(missing)}")
+                "Falta el StatusControl de validación could_reclassify")
 
         with transaction.atomic():
-            lines, counts = self.merge_all(names, statuses)
+            lines, counts = self.merge_all(names, retain_status)
             if opts["dry_run"]:
                 transaction.set_rollback(True)
 
@@ -115,15 +107,17 @@ class Command(BaseCommand):
             self.stdout.write(line)
         prefix = "[dry-run, revertido] " if opts["dry_run"] else ""
         self.stdout.write(self.style.SUCCESS(
-            f"{prefix}{counts['merged']} fusionadas, {counts['done']} ya "
-            f"estaban, {counts['missing']} sin entrada o destino; "
+            f"{prefix}{counts['merged']} fusionadas ({counts['deleted']} "
+            f"borradas), {counts['done']} ya estaban, {counts['missing']} "
+            f"sin entrada o destino; "
             f"{counts['moved']} actores movidos, {counts['retained']} "
             f"retenidos, {counts['notes']} notas en actores"))
 
-    def merge_all(self, names, statuses):
+    def merge_all(self, names, retain_status):
         lines = []
         counts = dict.fromkeys(
-            ["merged", "done", "missing", "moved", "retained", "notes"], 0)
+            ["merged", "deleted", "done", "missing", "moved", "retained",
+             "notes"], 0)
         for old, dof_name in MERGES:
             target_name = names.get(dof_name, dof_name)
             target = IndigenousGroup.objects.filter(
@@ -134,30 +128,30 @@ class Command(BaseCommand):
                  if g.name.strip() == old), None)
             if not target or not source:
                 counts["missing"] += 1
-                why = ("no existe la entrada" if target else
+                # Una absorbida sin actores se borra al fusionarla: en la
+                # segunda corrida ya no existe.
+                why = ("no existe la entrada (¿ya fusionada y borrada?)"
+                       if target else
                        "sin destino oficial (¿corrió load_inpi_catalog?)")
                 lines.append(f"FALTA «{old}» → «{target_name}»: {why}")
                 continue
-            done = self.merge(source, target, statuses, counts)
+            done = self.merge(source, target, retain_status, counts)
             lines.append(done)
         return lines, counts
 
-    def merge(self, source, target, statuses, counts) -> str:
+    def merge(self, source, target, retain_status, counts) -> str:
         actors = list(Actor.objects.filter(
             indigenous_group=source).order_by("id"))
         moving = [a for a in actors if a.id not in RETAINED]
         retained = [a for a in actors if a.id in RETAINED]
         label = f"#{source.id} «{source.name.strip()}» → #{target.id} " \
                 f"«{target.name}»"
-        # Si retiene actores, la entrada sigue en uso: expired la daría por
-        # caducada; could_reclassify deja abierta su clasificación.
-        status = statuses["could_reclassify" if retained else "expired"]
         # Sin ids en el comentario (decisión de Ricardo): la marca es el
         # nombre del destino, y los ids para deshacer van solo en la salida.
         merged_mark = f"fusionada en «{target.name}»"
-        already = (source.status_validation_id == status.pk
+        already = (source.status_validation_id == retain_status.pk
                    and merged_mark in (source.comments or ""))
-        if already and not moving:
+        if already and retained and not moving:
             counts["done"] += 1
             return f"YA FUSIONADA {label}"
 
@@ -184,21 +178,33 @@ class Command(BaseCommand):
                 target.save(update_fields=["alternative_names"])
 
         ids = ", ".join(str(a.id) for a in moving) or "-"
-        text = f"{merged_mark}; se movieron {len(moving)} actores"
-        if len(retained) == 1:
-            text += "; se retuvo 1 actor"
-        elif retained:
-            text += f"; se retuvieron {len(retained)} actores"
-        add_comment(source, text)
-        source.status_validation = status
-        source.save(update_fields=["status_validation", "comments"])
         counts["merged"] += 1
         counts["moved"] += len(moving)
         counts["retained"] += len(retained)
+        if not retained:
+            # Su nombre ya vive en los alternativos del destino y los ids
+            # para deshacer quedan en la salida (task-140).
+            source.delete()
+            counts["deleted"] += 1
+            line = (f"FUSIONADA Y BORRADA {label}: {len(moving)} actores "
+                    f"movidos ({ids})")
+            if not kept_name:
+                line += ", sin conservar el nombre"
+            return line
+
+        # Si retiene actores, la entrada sigue en uso: could_reclassify deja
+        # abierta su clasificación.
+        text = f"{merged_mark}; se movieron {len(moving)} actores"
+        if len(retained) == 1:
+            text += "; se retuvo 1 actor"
+        else:
+            text += f"; se retuvieron {len(retained)} actores"
+        add_comment(source, text)
+        source.status_validation = retain_status
+        source.save(update_fields=["status_validation", "comments"])
         line = f"FUSIONADA {label}: {len(moving)} actores movidos ({ids})"
-        if retained:
-            line += "; retenidos en la absorbida: " + ", ".join(
-                str(a.id) for a in retained)
+        line += "; retenidos en la absorbida: " + ", ".join(
+            str(a.id) for a in retained)
         if not kept_name:
             line += ", sin conservar el nombre"
         return line

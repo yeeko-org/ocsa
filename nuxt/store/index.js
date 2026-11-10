@@ -223,7 +223,8 @@ export const useMainStore = defineStore('main', {
     cleanDelete(collection, id) {
       const index = this.cats[collection].findIndex(
         el => el.id === id)
-      this.cats[collection].splice(index, 1)
+      if (index >= 0)
+        this.cats[collection].splice(index, 1)
       this.all_nodes = calculateNewCats(this.cats, this.schemas)
     },
     async mergeSimple([params, category_name]) {
@@ -236,7 +237,10 @@ export const useMainStore = defineStore('main', {
         return response.data
       } catch (error) {
         console.error(error);
-        return {error_data: error.response.data}
+        return {
+          error_data: error.response?.data ?? null,
+          error_status: error.response?.status ?? null,
+        }
       }
     },
     async fetchElements([group, params]) {

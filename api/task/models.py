@@ -14,7 +14,7 @@ class ClickHistory(models.Model):
         ('mention_child', 'Agregó a nota')
     ]
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        User, on_delete=models.PROTECT,
         verbose_name="Usuario", related_name="clicks")
     date_start = models.DateTimeField(verbose_name="Fecha", auto_now_add=True)
     action = models.CharField(
@@ -22,17 +22,22 @@ class ClickHistory(models.Model):
         default='open')
 
     note = models.ForeignKey(
-        Note, on_delete=models.CASCADE, blank=True, null=True,
+        Note, on_delete=models.SET_NULL, blank=True, null=True,
         verbose_name="Nota", related_name="clicks")
     article = models.ForeignKey(
-        Article, on_delete=models.CASCADE, blank=True, null=True,
+        Article, on_delete=models.SET_NULL, blank=True, null=True,
         verbose_name="Artículo", related_name="clicks")
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, blank=True, null=True,
+        Project, on_delete=models.SET_NULL, blank=True, null=True,
         verbose_name="Proyecto", related_name="clicks")
     location = models.ForeignKey(
-        Location, on_delete=models.CASCADE, blank=True, null=True,
+        Location, on_delete=models.SET_NULL, blank=True, null=True,
         verbose_name="Ubicación", related_name="clicks")
+    # Clicks outlive what they point to (task-140): the FK goes null and
+    # this keeps what it was. Filled by task.signals, never by hand.
+    deleted_origin = models.JSONField(
+        blank=True, null=True, verbose_name="Origen borrado",
+        help_text="Modelo, id, etiqueta y fecha del registro borrado.")
 
     def __str__(self):
         return "%s - %s" % (self.user, self.date_start)

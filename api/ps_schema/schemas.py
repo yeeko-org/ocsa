@@ -96,6 +96,15 @@ class BaseSchema:
     name: str = None            # fallback: model._meta.verbose_name
     plural_name: str = None     # fallback: model._meta.verbose_name_plural
     can_merge: bool = False
+    # Al fusionar, el nombre absorbido pasa a alternative_names del destino.
+    # Opt-in: en catálogos cuyos nombres llevan comas, split_names los
+    # partiría en fragmentos.
+    merge_keeps_name: bool = False
+    # Muchos a muchos propios de la absorbida que pasan al destino (unión).
+    # Lo demás que la absorbida tiene en sus propias columnas se pierde al
+    # borrarla, por decisión de Ricardo; solo se repuntan sus relaciones
+    # inversas.
+    merge_carries: list = []
     can_massive_edit: bool = False
     # Campos NO-filtro a habilitar en edición masiva (los filtros usan
     # FilterRef.can_massive_edit). Solo aplica si can_massive_edit=True.
@@ -126,12 +135,6 @@ class CatalogSchema(BaseSchema):
     # --- UI metadata --------------------------------------------------------
     open_insertion: bool = None
     optional_category: bool = False
-
-    # --- Merge ---------------------------------------------------------------
-    # Al fusionar, el nombre absorbido pasa a alternative_names del destino.
-    # Opt-in: en catálogos cuyos nombres llevan comas, split_names los
-    # partiría en fragmentos.
-    merge_keeps_name: bool = False
 
     # --- ViewSet generation -------------------------------------------------
     # base: "status" → BaseStatusViewSet

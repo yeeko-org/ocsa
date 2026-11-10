@@ -4,11 +4,11 @@ Mide cuánto trabaja cada usuario en la plataforma sin que nadie registre una jo
 
 ## Modelo de datos (`models.py`)
 
-- **`ClickHistory`** — una fila por interacción relevante con un registro: `user`, `date_start` (`auto_now_add`; es el único sello de tiempo, no hay fin), `action` (`opened` / `created` / `updated` / `mention_child`) y cuatro FK opcionales y mutuamente excluyentes que dicen sobre qué se actuó: `note`, `article`, `project`, `location`.
+- **`ClickHistory`** — una fila por interacción relevante con un registro: `user`, `date_start` (`auto_now_add`; es el único sello de tiempo, no hay fin), `action` (`opened` / `created` / `updated` / `mention_child`) y cuatro FK opcionales y mutuamente excluyentes que dicen sobre qué se actuó: `note`, `article`, `project`, `location`. Los clics nunca se borran: esas cuatro FK son `SET_NULL` y, al borrarse el registro, una señal `pre_delete` (`signals.py`) deja su rastro en `deleted_origin` (modelo, id, etiqueta, fecha; en ubicaciones, también su proyecto); `user` es `PROTECT`. Una migración que borre con modelos históricos no dispara la señal y debe escribir el rastro ella misma.
 - **`OfflineTask`** — trabajo declarado a mano que no deja huella en la plataforma: `date_start`, `date_end`, `activity_type` (`OFFLINE_TYPES`: reunión semanal, reunión, capacitación, otro), `name` opcional, M2M `users` (una tarea puede cubrir a varias personas) y `user_added`.
 - **`ScrapedRecord`** — tercer insumo, vive en `source/models.py:230`: cada bloque de scrapeo tiene `user`, `date_start` y `date_end` reales.
 
-Los clics no los crea el front: los escribe el servidor desde `ClickHistoryMixin` (`api/api/views/common_views.py:60`), que cada ViewSet activa declarando `click_actions`. Hoy solo `ArticleViewSet` (`opened`), `NoteViewSet` (`opened`, `updated`), `ProjectViewSet` (`opened`, `created`, `saved`) y las altas de menciones, que se atribuyen a la nota padre con la acción `mention_child`. Que la lista sea corta es intencional: cada acción extra infla las horas.
+Los clics no los crea el front: los escribe el servidor desde `ClickHistoryMixin` (`api/api/views/common_views.py:60`), que cada ViewSet activa declarando `click_actions`. Hoy solo `ArticleViewSet` (`opened`), `NoteViewSet` (`opened`, `updated`), `ProjectViewSet` (`opened`, `created`, `updated`) y las altas de menciones, que se atribuyen a la nota padre con la acción `mention_child`. Que la lista sea corta es intencional: cada acción extra infla las horas.
 
 ## Cómo se derivan las horas
 
@@ -41,7 +41,7 @@ Consecuencias al usar estos números:
 
 ## Consumo en el front
 
-`nuxt/components/dashboard/activity/`, montado en `pages/dashboard/activity.vue`; `activities` y `spend_groups` viven en el store principal (`store/index.js:472`, `fetchActivities`).
+`nuxt/components/dashboard/activity/`, montado en `pages/dashboard/activity.vue`; `activities` y `spend_groups` viven en el store principal (`store/index.js`, acción `fetchActivities`).
 
 - `ActivityHolder.vue` arma el calendario. El día no es el natural: cada actividad y cada grupo se asignan restando 5 horas a su inicio (`start.subtract(5, 'hours')`), así la jornada corre de 05:00 a 05:00 del día siguiente y una madrugada de trabajo cuenta para el día anterior. Las horas del día son `sum(group.seconds) / 3600` — el front no recalcula nada, solo suma lo que devolvió la API — y acumula horas por semana cerrando el domingo.
 - `ActivityViz.vue` dibuja cada día como una línea de tiempo d3 de 04:50 a 05:10 del día siguiente: los `spend_groups` como banda de fondo y las actividades en tres carriles por tipo (offline, click, task), coloreadas por subtipo (`offline_type`) o por modelo tocado (`model`).

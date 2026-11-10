@@ -74,7 +74,7 @@ class Event(models.Model):
     number_men = models.IntegerField(blank=True, null=True)
     number_mix = models.IntegerField(blank=True, null=True)
     purpose = models.ForeignKey(
-        Purpose, on_delete=models.CASCADE, blank=True, null=True,
+        Purpose, on_delete=models.PROTECT, blank=True, null=True,
         related_name='events')
     reclassification_stage = models.CharField(
         max_length=12, choices=RECLASSIFICATION_STAGE_CHOICES,
