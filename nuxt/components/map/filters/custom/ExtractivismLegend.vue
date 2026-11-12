@@ -32,7 +32,7 @@ const extractivism_types_list = computed(() => {
   >
     <div
       v-if="!smAndDown"
-      class="text-title-small pr-3 font-weight-medium flex-shrink-0"
+      class="text-title-small font-weight-medium flex-shrink-0"
     >
       Tipos de extractivismo:
     </div>
@@ -90,7 +90,7 @@ const extractivism_types_list = computed(() => {
   top: 12px;
   left: 450px;
   right: 12px;
-  max-width: 1130px;
+  max-width: 1200px;
 }
 
 .legend-mobile .v-chip {
