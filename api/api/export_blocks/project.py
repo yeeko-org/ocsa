@@ -41,7 +41,7 @@ class ProjectExpandBlock(ModelExport):
 
     model = Project
     columns = [
-        XlsColumn("is_grouper"),
+        XlsColumn("is_grouper", title="Agrupa otros proyectos"),
         FkColumn(
             "parent_project", "id",
             title="ID de proyecto agrupador",
@@ -85,8 +85,8 @@ class ProjectExport(ModelExport):
         XlsColumn("name", width=35),
         XlsColumn("alternative_names", width=25),
         XlsColumn("description", width=40),
-        Include(ConflictMiniBlock, through="conflict"),
         Include(ProjectExpandBlock),
+        Include(ConflictMiniBlock, through="conflict"),
         Include(LocationBlock),
         CollectColumn(
             "mentions__note", "date",
