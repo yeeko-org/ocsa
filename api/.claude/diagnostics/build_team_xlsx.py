@@ -31,8 +31,8 @@ from space_time.models import (  # noqa: E402
 
 CLAUDE_DIR = os.path.join(BASE, ".claude")
 VERDICTS_DIR = os.path.join(CLAUDE_DIR, "verdicts")
-STAMP = "2026-08-28"
-ORPHANS = os.path.join(CLAUDE_DIR, f"dashboard_orphans_{STAMP}.csv")
+STAMP = "2026-08-31"
+ORPHANS = os.path.join(CLAUDE_DIR, "dashboard_orphans_2026-08-28.csv")
 CHANGES = os.path.join(CLAUDE_DIR, f"geolocate_fill_changes_{STAMP}.csv")
 VERDICTS = os.path.join(VERDICTS_DIR, "legacy_names_verdicts.csv")
 MANUAL = os.path.join(
@@ -340,8 +340,8 @@ README = [
      "traen el dato que se capturó en su momento; las cinco últimas llevan "
      "en «origen» la pista con la que se reconstruyó de dónde venían. Lo "
      "que necesitamos de ustedes: decir a qué proyecto o nota pertenece "
-     "cada una, o si se pueden borrar. A partir del [fecha del deploy] el "
-     "dashboard ya no permite crear ubicaciones sueltas."),
+     "cada una, o si se pueden borrar. A partir de la noche del 30 de "
+     "agosto de 2026 el dashboard ya no permite crear ubicaciones sueltas."),
     ("Nombres a detalles",
      "Nombres de lugar que el sistema anterior guardaba como si fueran "
      "localidades del INEGI pero no lo son (colonias, ejidos, barrios, "
@@ -360,10 +360,10 @@ README = [
     ("Llenado automático",
      "Datos que el motor de geolocalización dedujo del trazo o del pin de "
      "cada ubicación a partir de la cartografía del INEGI, en el backfill "
-     "del [fecha del deploy]. «Municipios atravesados» es un campo nuevo: "
-     "lo calcula el sistema al guardar y no se captura a mano. Es "
-     "informativo; no hace falta hacer nada, salvo avisar si alguno se ve "
-     "claramente mal."),
+     "de la noche del 30 de agosto de 2026. «Municipios atravesados» es "
+     "un campo nuevo: lo calcula el sistema al guardar y no se captura a "
+     "mano. Es informativo; no hace falta hacer nada, salvo avisar si "
+     "alguno se ve claramente mal."),
     ("Llenado por nombre",
      "Estados, municipios y localidades que estaban vacíos y se llenaron "
      "cruzando el nombre que traía el sistema anterior con el catálogo del "
@@ -406,11 +406,11 @@ def write_readme(book, counts):
     sheet["A1"].font = Font(bold=True, size=14)
     sheet["A2"] = (
         "Este archivo acompaña los cambios de geolocalización que entraron "
-        "el [fecha del deploy]. Cada hoja es una lista distinta; abajo se "
-        "explica qué trae cada una y qué hay que hacer con ella. Los "
-        "pines que caen lejos de lo capturado y los casos que no se "
-        "pudieron resolver no vienen aquí: quedaron marcados en el "
-        "dashboard con su estatus y un comentario.")
+        "la noche del 30 de agosto de 2026. Cada hoja es una lista "
+        "distinta; abajo se explica qué trae cada una y qué hay que hacer "
+        "con ella. Los pines que caen lejos de lo capturado y los casos "
+        "que no se pudieron resolver no vienen aquí: quedaron marcados en "
+        "el dashboard con su estatus y un comentario.")
     sheet["A2"].alignment = Alignment(wrap_text=True, vertical="top")
     sheet.row_dimensions[2].height = 60
     row_index = 4
