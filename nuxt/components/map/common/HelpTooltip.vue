@@ -17,8 +17,6 @@ defineProps({
       activator="parent"
       location="bottom left"
       max-width="400"
-      color="primary"
-      :content-props="{ background: 'white' }"
     >
       <div v-if="title" class="font-weight-bold pt-3 pb-2">{{ title }}:</div>
       <div class="text-title-small pb-3">{{ description }}</div>

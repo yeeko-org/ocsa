@@ -96,6 +96,7 @@ function collapseRail() {
             icon="filter_alt_off"
             variant="outlined"
             color="error"
+            size="large"
             @click="mapStore.clearAllFilters()"
           />
           <v-expand-x-transition>

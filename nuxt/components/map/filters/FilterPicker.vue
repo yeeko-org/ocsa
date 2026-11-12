@@ -134,6 +134,7 @@ const purposeModel = computed({
         align-center">
         <v-icon :color="RAIL_TONE" :icon="rg.icon" class="mr-2"/>
         {{ rg.label }}
+        <v-spacer/>
         <HelpTooltip
           :title="rg.label"
           :description="rg.description"

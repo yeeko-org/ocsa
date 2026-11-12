@@ -3,6 +3,7 @@
 import ToolbarCommon from "~/components/dashboard/capture/ToolbarCommon.vue";
 import CardCommon from "~/components/dashboard/common/generic/CardCommon.vue";
 import DisplayGroup from "~/components/dashboard/common/select/DisplayGroup.vue";
+import DescriptionIcon from "~/components/dashboard/common/utils/DescriptionIcon.vue";
 
 const props = defineProps({
   parent_id: Number,
@@ -84,15 +85,21 @@ function validate(){
         color="cyan"
       >
         <template #rows="{ item }">
-          <v-textarea
-            v-model="item.text"
-            label="Descripción del interés"
-            variant="outlined"
-            class="mr-8"
-            density="compact"
-            rows="1"
-            auto-grow
-          ></v-textarea>
+          <div class="d-flex align-start">
+            <v-textarea
+              v-model="item.text"
+              label="Descripción del interés"
+              variant="outlined"
+              class="mr-8"
+              density="compact"
+              rows="1"
+              auto-grow
+            ></v-textarea>
+            <DescriptionIcon
+              :description="item.text"
+              icon_size="large"
+            />
+          </div>
         </template>
       </ToolbarCommon>
       <ToolbarCommon

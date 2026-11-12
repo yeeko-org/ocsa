@@ -32,13 +32,17 @@ const extractivism_types_list = computed(() => {
   >
     <div
       v-if="!smAndDown"
-      class="text-title-small font-weight-medium flex-shrink-0"
+      class="text-title-small font-weight-medium flex-shrink-0 mr-2"
     >
       Tipos de extractivismo:
     </div>
+    <!-- Flechas solo en escritorio y solo si los chips desbordan (default de
+         show-arrows). `mobile` se ata a smAndDown porque el `mobile` propio
+         de Vuetify corta en lg (1145 px) y escondería las flechas en
+         escritorios angostos. -->
     <v-chip-group
       v-model="mapStore.filters.extractivism"
-      show-arrows="desktop"
+      :mobile="smAndDown"
       multiple
       class="flex-grow-1"
       style="min-width: 0;"
