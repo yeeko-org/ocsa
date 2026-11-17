@@ -18,7 +18,10 @@ export default defineNuxtRouteMiddleware((to, from, next) => {
     setCollection,
     setFilterGroup,
   } = mainStore
-  const { is_logged, checkAuthSimple, authCookie, purgeAuth } = authStore
+  const { is_logged, checkAuthSimple, purgeAuth } = authStore
+  // Read the cookie fresh on every navigation: a cached Pinia getter kept
+  // the pre-login value until the next task, bouncing a just-logged-in user.
+  const authCookie = useCookie('auth_ocsa').value
 
   // console.log("is_logged", is_logged)
   // console.log("authCookie", authCookie)

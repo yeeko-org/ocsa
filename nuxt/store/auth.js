@@ -149,13 +149,6 @@ export const useAuthStore = defineStore("auth", {
     }
   },
   getters: {
-    authCookie() {
-      // console.log("Cookie", Cookie)
-      // console.log("authCookie", Cookie.get('auth_ocsa'))
-      const token = useCookie('auth_ocsa')
-      return token.value
-      // return true
-    },
     is_staff(state) {
       if (state.user_details_ocsa)
         return state.user_details_ocsa.is_staff || false
