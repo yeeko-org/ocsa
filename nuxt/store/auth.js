@@ -82,15 +82,23 @@ export const useAuthStore = defineStore("auth", {
       // return new Promise((resolve) => {
       // this.setHeader()
       const { $api } = useNuxtApp()
+      // Taken here, inside the Nuxt context; the callbacks run outside it.
+      const token = useCookie('auth_ocsa')
       $api.get('/login/')
         .then(({data, status}) => {
           // The API answers anonymous users with an empty 200, not a 204.
-          if (status === 204 || !data)
+          if (status === 204 || !data) {
+            token.value = null
             return this.hasNotLogged(`Not logged in (${status})`)
+          }
           return this.hasLogged(data)
         })
         .catch(err =>{
           console.log("LOGIN_ERROR", err)
+          // Only the API's "invalid token" (401) drops the cookie: a network
+          // error or a 5xx is an outage and must not sign anybody out.
+          if (err.response && err.response.status === 401)
+            token.value = null
           return this.hasNotLogged(`Server error: ${err}`)
         })
       // })
