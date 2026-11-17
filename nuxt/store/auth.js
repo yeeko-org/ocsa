@@ -26,7 +26,7 @@ export const useAuthStore = defineStore("auth", {
       // console.log("Cookie", Cookie)
       // console.log("auth_ocsa", Cookie.get('auth_ocsa'))
       if (!from_mid){
-        const token = useCookie('auth_ocsa')
+        const token = useCookie('auth_ocsa', { maxAge: 60 * 60 * 24 })
         token.value = user.token
       }
       this.auth_ocsa = user.token
@@ -46,7 +46,7 @@ export const useAuthStore = defineStore("auth", {
         if (this.is_logged) {
           // console.log("hay auth", this.auth_ocsa)
           let last_login = this.is_logged
-          if (!!last_login && last_login + (3600*24*1000) > Date.now()){
+          if (!!last_login && last_login + (3600*24*1000) < Date.now()){
             // console.log("NO hay datos recientes")
             this.purgeAuth()
             return resolve()
@@ -84,10 +84,10 @@ export const useAuthStore = defineStore("auth", {
       const { $api } = useNuxtApp()
       $api.get('/login/')
         .then(({data, status}) => {
-          if (status !== 204)
-            return this.hasLogged(data)
-          else
-            return this.hasNotLogged('Not Content (204)')
+          // The API answers anonymous users with an empty 200, not a 204.
+          if (status === 204 || !data)
+            return this.hasNotLogged(`Not logged in (${status})`)
+          return this.hasLogged(data)
         })
         .catch(err =>{
           console.log("LOGIN_ERROR", err)
